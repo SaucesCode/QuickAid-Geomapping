@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // Import axios to make requests
+import axios from "axios";
 
 const ApplicantForm = () => {
   const [fullName, setFullName] = useState("");

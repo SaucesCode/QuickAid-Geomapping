@@ -14,4 +14,5 @@ urlpatterns = [
     path('protected/', protected_view, name='protected_view'),
     
     path("submit-applicant/", submit_applicant, name="submit_applicant"),
+    path('applicant-locations/', get_applicant_locations, name='applicant-locations'),
 ]
