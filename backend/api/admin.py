@@ -4,9 +4,9 @@ from .models import Applicant, CustomUser
 
 class ApplicantAdmin(admin.ModelAdmin):
     list_display = (
-        "staff", "first_name", "last_name", "age", 
-        "gender", "contact_number", "barangay", 
-        "city_municipality", "province", "type_of_assistance", "date_filled"
+        "staff", "first_name", "last_name", 
+        "barangay", "city_municipality", "province", 
+        "type_of_assistance", "date_filled"
     )
     search_fields = ("first_name", "last_name", "barangay", "city_municipality", "province")
     list_filter = ("gender", "province", "city_municipality", "barangay", "type_of_assistance", "date_filled")
