@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { GoogleMap, LoadScript, Marker, Polygon } from "@react-google-maps/api";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import axios from "axios";
 
 const API_URL = "http://127.0.0.1:8000/api/applicant-locations/";
@@ -20,17 +20,17 @@ const center = {
 // 13.959180954773736, 121.45673847752202;
 // 13.939946000594816, 121.35662861784843;
 
-const districtCoords = [
-  { lat: 13.947702653239158, lng: 121.63779175301936 }, // Lucena (Northeast)
-  { lat: 13.944591264104197, lng: 121.51018336824447 }, // Sariaya (Northwest)
-  { lat: 13.959180954773736, lng: 121.45673847752202 }, // Sariaya (Southwest)
-  { lat: 13.939946000594816, lng: 121.35662861784843 }, // Candelaria (West)
-  { lat: 13.7926, lng: 121.5115 }, // Candelaria (South)
-  { lat: 13.7433, lng: 121.4653 }, // Tiaong (West)
-  { lat: 13.7339, lng: 121.5904 }, // Dolores (South)
-  { lat: 13.8252, lng: 121.6087 }, // San Antonio (Southeast)
-  { lat: 13.9461, lng: 121.6233 }, // Back to Lucena (East)
-];
+// const districtCoords = [
+//   { lat: 13.947702653239158, lng: 121.63779175301936 }, // Lucena (Northeast)
+//   { lat: 13.944591264104197, lng: 121.51018336824447 }, // Sariaya (Northwest)
+//   { lat: 13.959180954773736, lng: 121.45673847752202 }, // Sariaya (Southwest)
+//   { lat: 13.939946000594816, lng: 121.35662861784843 }, // Candelaria (West)
+//   { lat: 13.7926, lng: 121.5115 }, // Candelaria (South)
+//   { lat: 13.7433, lng: 121.4653 }, // Tiaong (West)
+//   { lat: 13.7339, lng: 121.5904 }, // Dolores (South)
+//   { lat: 13.8252, lng: 121.6087 }, // San Antonio (Southeast)
+//   { lat: 13.9461, lng: 121.6233 }, // Back to Lucena (East)
+// ];
 
 const MapComponent = () => {
   const [locations, setLocations] = useState([]);
@@ -54,17 +54,6 @@ const MapComponent = () => {
   return (
     <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
       <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={center}>
-        <Polygon
-          paths={districtCoords}
-          options={{
-            fillColor: "blue",
-            fillOpacity: 0.2,
-            strokeColor: "blue",
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-          }}
-        />
-
         {locations.map((applicant, index) => (
           <Marker
             key={index}
