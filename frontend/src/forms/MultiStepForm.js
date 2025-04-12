@@ -14,7 +14,7 @@ const MultiStepForm = () => {
     purok: "",
     barangay: "",
     city_municipality: "",
-    province: "",
+    province: "Quezon",
     birthday: "",
     gender: "",
     civil_status: "",

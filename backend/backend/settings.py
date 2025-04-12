@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-4s6=*q8w3sg3g-q2=a5kgo2a+4bnh4fg!m@=cl39eq)sc2exyl
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 GOOGLE_MAPS_API_KEY = 'AIzaSyAE84E5M0Qnb0ZI4erRXfgFACfR1ZfzabA'
 
@@ -48,7 +48,7 @@ MIDDLEWARE = [
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),  # Adjust as needed
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -65,6 +65,7 @@ AUTH_USER_MODEL = 'api.CustomUser'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
 }
 
@@ -97,11 +98,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ['quickaid_db'],
-        'USER': os.environ['postgres'],
-        'PASSWORD': os.environ['admin'],
-        'HOST': os.environ['localhost'],
-        'PORT': os.environ['5432'],
+        'NAME': 'quickaid_db',
+        'USER': 'postgres',
+        'PASSWORD': 'admin',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 

@@ -16,6 +16,7 @@ const Step3 = ({ formData, handleChange, prevStep }) => {
     } catch (error) {
       console.error("Submission Error:", error.response ? error.response.data : error);
       alert("Error submitting applicant. Please try again.");
+      console.log("Submitting data:", formData);
     }
   };
 
