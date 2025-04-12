@@ -1,9 +1,15 @@
 import React from "react";
+import AddressDropdown from "./AddressDropdown";
 
 const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
+  const handleAddressChange = (field, value) => {
+    handleChange({ target: { name: field, value } });
+  };
+
   return (
     <div>
       <h2>Step 2: Address & Additional Information</h2>
+
       <input
         type="text"
         name="purok"
@@ -12,30 +18,10 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
         onChange={handleChange}
         required
       />
-      <input
-        type="text"
-        name="barangay"
-        placeholder="Barangay"
-        value={formData.barangay}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="city_municipality"
-        placeholder="City/Municipality"
-        value={formData.city_municipality}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="province"
-        placeholder="Province"
-        value={formData.province}
-        onChange={handleChange}
-        required
-      />
+
+      {/* PSGC Dropdown Component */}
+      <AddressDropdown onSelect={handleAddressChange} />
+
       <input
         type="date"
         name="birthday"
@@ -43,19 +29,27 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
         onChange={handleChange}
         required
       />
+
       <select name="gender" value={formData.gender} onChange={handleChange} required>
         <option value="">Select Gender</option>
         <option value="Male">Male</option>
         <option value="Female">Female</option>
       </select>
-      <input
-        type="text"
+
+      <select
         name="civil_status"
-        placeholder="Civil Status"
         value={formData.civil_status}
         onChange={handleChange}
         required
-      />
+      >
+        <option value="">Select Civil Status</option>
+        <option value="Single">Single</option>
+        <option value="Married">Married</option>
+        <option value="Widowed">Widowed</option>
+        <option value="Separated">Separated</option>
+        <option value="Divorced">Divorced</option>
+      </select>
+
       <input
         type="text"
         name="occupation"
@@ -64,6 +58,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
         onChange={handleChange}
         required
       />
+
       <input
         type="number"
         name="monthly_income"
@@ -72,6 +67,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
         onChange={handleChange}
         required
       />
+
       <button onClick={prevStep}>Back</button>
       <button onClick={nextStep}>Next</button>
     </div>

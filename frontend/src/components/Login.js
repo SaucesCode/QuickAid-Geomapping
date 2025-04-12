@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginStaff } from "../services/api";
-import "./Login.css"; // Make sure to create this CSS file
+import "./Login.css";
 
 const Login = () => {
   const [username, setUsername] = useState("");

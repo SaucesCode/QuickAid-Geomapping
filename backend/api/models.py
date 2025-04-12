@@ -1,9 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
-import requests
 from geopy.geocoders import Nominatim
-import googlemaps
 
 
 class CustomUser(AbstractUser):
@@ -16,6 +14,17 @@ class CustomUser(AbstractUser):
 
 
 class Applicant(models.Model):
+    ASSISTANCE_TYPES = [
+        ('Medical', 'Medical'),
+        ('Burial', 'Burial'),
+        ('Educational', 'Educational'),
+    ]
+
+    CIVIL_STATUS = [
+        ('Single', 'Single'), ('Married', 'Married'), ('Widowed', 'Widowed'),
+        ('Separated', 'Separated'), ('Divorced', 'Divorced')
+    ]
+
     staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     # 🟢 Basic Info 1.0
@@ -36,10 +45,7 @@ class Applicant(models.Model):
     # 🟢 Basic Info 1.1
     birthday = models.DateField()
     gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')])
-    civil_status = models.CharField(max_length=20, choices=[
-        ('Single', 'Single'), ('Married', 'Married'), ('Widowed', 'Widowed'),
-        ('Separated', 'Separated'), ('Divorced', 'Divorced')
-    ])
+    civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS)
     occupation = models.CharField(max_length=100, blank=True, null=True)
     monthly_income = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
@@ -48,11 +54,7 @@ class Applicant(models.Model):
     beneficiary_name = models.CharField(max_length=255)
 
     # 🟢 Assistance Details
-    type_of_assistance = models.CharField(max_length=50, choices=[
-        ('Medical', 'Medical'),
-        ('Burial', 'Burial'),
-        ('Educational', 'Educational')
-    ])
+    type_of_assistance = models.CharField(max_length=50, choices=ASSISTANCE_TYPES)
     justification = models.TextField()
 
     date_filled = models.DateTimeField(auto_now_add=True)
@@ -66,7 +68,7 @@ class Applicant(models.Model):
         super().save(*args, **kwargs)  # Save to DB
 
     def get_coordinates(self, address):
-        geolocator = Nominatim(user_agent="quickaid-geomapping")  
+        geolocator = Nominatim(user_agent="quickaid-geomapping")
         location = geolocator.geocode(address)
 
         if location:
