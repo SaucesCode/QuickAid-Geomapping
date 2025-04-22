@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginStaff } from "../services/api";
+import { loginStaff } from "../../services/api";
 import "./Login.css";
 
 const Login = () => {
@@ -13,11 +13,18 @@ const Login = () => {
     e.preventDefault();
     try {
       await loginStaff(username, password);
-      navigate("/register-applicant"); // Redirect after login
+      navigate("/dashboard");
     } catch (err) {
       setError("Invalid credentials. Please try again.");
     }
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, []);
 
   return (
     <div className="login-container">

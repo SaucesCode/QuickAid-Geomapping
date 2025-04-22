@@ -57,19 +57,51 @@ api.interceptors.request.use(
 );
 
 // ✅ Staff Login Function
+// export const loginStaff = async (username, password) => {
+//   try {
+//     const response = await axios.post(`${API_URL}/token/`, { username, password });
+
+//     if (response.status === 200) {
+//       const { access, refresh } = response.data;
+//       storeTokens(access, refresh);
+//       return response.data; // ✅ Return tokens
+//     }
+//   } catch (error) {
+//     console.error("Login Error:", error.response?.data);
+//     throw new Error("Login failed");
+//   }
+// };
+
 export const loginStaff = async (username, password) => {
   try {
     const response = await axios.post(`${API_URL}/token/`, { username, password });
 
     if (response.status === 200) {
-      const { access, refresh } = response.data;
+      const { access, refresh, staff_info: user } = response.data;
+
+      // Store tokens in localStorage
       storeTokens(access, refresh);
-      return response.data; // ✅ Return tokens
+
+      // Store user object in localStorage
+      localStorage.setItem("userData", JSON.stringify(user));
+      console.log("User object before storage:", user); // <--- ADD THIS
+      console.log("userData stored in localStorage:", localStorage.getItem("userData"));
+
+      return response.data; // Return response with user data
     }
   } catch (error) {
     console.error("Login Error:", error.response?.data);
     throw new Error("Login failed");
   }
+};
+
+export const logoutUser = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("userData");
+
+  // Optional: clear more things if you store session-like info
+  window.location.href = "/login";
 };
 
 // ✅ Register Applicant Function
@@ -82,40 +114,54 @@ export const submitApplicant = async data => {
       if (!token) throw new Error("No authentication token found");
     }
 
-    // ✅ Ensure the correct field names match the backend
-    const response = await axios.post(
-      `${API_URL}/submit-applicant/`,
-      {
-        first_name: data.first_name,
-        middle_initial: data.middle_initial,
-        last_name: data.last_name,
-        suffix: data.suffix,
-        contact_number: data.contact_number,
-        purok: data.purok, // ✅ Saved but NOT geocoded
-        barangay: data.barangay, // ✅ Used for geocoding
-        city_municipality: data.city_municipality,
-        province: data.province,
-        birthday: data.birthday,
-        gender: data.gender,
-        civil_status: data.civil_status,
-        occupation: data.occupation,
-        monthly_income: data.monthly_income,
-        valid_id_presented: data.valid_id_presented,
-        beneficiary_name: data.beneficiary_name,
-        type_of_assistance: data.type_of_assistance,
-        justification: data.justification,
+    // Base payload
+    const payload = {
+      first_name: data.first_name,
+      middle_initial: data.middle_initial,
+      last_name: data.last_name,
+      suffix: data.suffix,
+      contact_number: data.contact_number,
+      purok: data.purok,
+      barangay: data.barangay,
+      city_municipality: data.city_municipality,
+      province: data.province,
+      birthday: data.birthday,
+      gender: data.gender,
+      civil_status: data.civil_status,
+      occupation: data.occupation,
+      monthly_income: data.monthly_income,
+      valid_id_presented: data.valid_id_presented,
+      type_of_assistance: data.type_of_assistance,
+      applicant_type: data.applicant_type || "Self", // Add this
+    };
+
+    // If representative, add rep-specific fields
+    if (data.applicant_type === "Representative") {
+      Object.assign(payload, {
+        rep_first_name: data.rep_first_name,
+        rep_middle_initial: data.rep_middle_initial,
+        rep_last_name: data.rep_last_name,
+        rep_suffix: data.rep_suffix,
+        rep_address: data.rep_address,
+        rep_birthday: data.rep_birthday,
+        rep_gender: data.rep_gender,
+        rep_civil_status: data.rep_civil_status,
+        rep_occupation: data.rep_occupation,
+        rep_monthly_income: data.rep_monthly_income,
+        rep_relationship: data.rep_relationship,
+      });
+    }
+
+    const response = await axios.post(`${API_URL}/submit-applicant/`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    });
 
     return response.data;
   } catch (error) {
-    console.error("Submission Error:", error.response?.data); // ✅ Print errors
+    console.error("Submission Error:", error.response?.data);
     throw error.response?.data || "Submission failed";
   }
 };

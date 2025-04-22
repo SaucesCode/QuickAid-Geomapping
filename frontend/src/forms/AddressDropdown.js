@@ -25,7 +25,13 @@ const AddressDropdown = ({ onSelect }) => {
       );
       const data = await response.json();
       console.log("Fetched barangays:", data);
-      setBarangays(data);
+
+      const processedBarangays = data.map(brgy => ({
+        ...brgy,
+        name: brgy.name.replace(" (Pob.)", "").trim(),
+      }));
+
+      setBarangays(processedBarangays);
     } catch (error) {
       console.error("Error fetching barangays:", error);
     }
@@ -33,6 +39,17 @@ const AddressDropdown = ({ onSelect }) => {
 
   return (
     <div className="grid gap-4">
+      <div>
+        <label>Province:</label>
+        <select
+          defaultValue="Quezon"
+          onChange={e => onSelect("province", e.target.value)}
+          required
+          disabled
+        >
+          <option value="Quezon">Quezon</option>
+        </select>
+      </div>
       <div>
         <label>City / Municipality:</label>
         <select value={selectedCity} onChange={handleCityChange} required>

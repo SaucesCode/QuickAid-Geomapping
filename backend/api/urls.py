@@ -1,10 +1,13 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 from .views import *
+
+
+
 
 urlpatterns = [
     # Login: Obtain access and refresh tokens
-    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/", MyTokenObtainView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 
     # Staff Registration (Only Admins Can Do This)
@@ -13,6 +16,7 @@ urlpatterns = [
     # Protected API Route (Only Authenticated Staff)
     path('protected/', protected_view, name='protected_view'),
     
+    path('api/barangays/<str:cityOrMunicipalityCode>/', PSGCView().get_barangays, name='get_barangays'),
     path("submit-applicant/", submit_applicant, name="submit_applicant"),
     path('applicant-locations/', get_applicant_locations, name='applicant-locations'),
 

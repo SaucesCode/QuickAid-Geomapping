@@ -21,9 +21,21 @@ const MultiStepForm = () => {
     occupation: "",
     monthly_income: "",
     valid_id_presented: "",
-    beneficiary_name: "",
+    applicant_type: "Self",
     type_of_assistance: "",
-    justification: "",
+
+    // Representative details (if not self)
+    // representative_first_name: "",
+    // representative_middle_initial: "",
+    // representative_last_name: "",
+    // representative_suffix: "",
+    // representative_address: "",
+    // representative_birthday: "",
+    // representative_gender: "",
+    // representative_civil_status: "",
+    // representative_occupation: "",
+    // representative_monthly_income: "",
+    // representative_relationship: "",
   });
 
   const nextStep = () => setStep(step + 1);
