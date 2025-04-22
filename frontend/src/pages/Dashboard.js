@@ -37,7 +37,9 @@ const Dashboard = () => {
     const params = {};
     if (startDate) params.start = startDate.toISOString().split("T")[0];
     if (endDate) params.end = endDate.toISOString().split("T")[0];
-    if (selectedType) params.type = selectedType;
+    if (selectedType && selectedType !== "All") {
+      params.type = selectedType;
+    }
 
     try {
       const [total, type, barangays, trends, avg, staff] = await Promise.all([
@@ -90,7 +92,7 @@ const Dashboard = () => {
             onChange={e => setSelectedType(e.target.value)}
             className="type-select"
           >
-            <option value="">All</option>
+            <option value="All">All</option>
             <option value="Medical">Medical</option>
             <option value="Burial">Burial</option>
             <option value="Educational">Educational</option>

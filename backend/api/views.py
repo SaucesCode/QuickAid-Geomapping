@@ -1,9 +1,9 @@
-# from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
-# from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate
 from .models import Applicant, CustomUser
 import requests
 from django.http import JsonResponse
@@ -15,11 +15,12 @@ from .serializers import ApplicantSerializer
 from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField
 from django.utils.timezone import now, timedelta
 from django.db.models.functions import TruncDate
+from .serializers import MyTokenObtainPairSerializer
 
 
-# Register Staff (Only Admins Can Do This)
+# REGISTER STAFF (Only Admins Can Do This)
 @api_view(['POST'])
-@permission_classes([IsAdminUser])  # Only superusers can add staff
+@permission_classes([IsAdminUser])  # ✅ Only superusers can access
 def register_staff(request):
     username = request.data.get('username')
     password = request.data.get('password')
@@ -30,11 +31,18 @@ def register_staff(request):
     if CustomUser.objects.filter(username=username).exists():
         return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Create staff user and set the role
-    user = CustomUser.objects.create_user(username=username, password=password, is_staff=True, role='staff')
+    user = CustomUser.objects.create_user(
+        username=username,
+        password=password,
+        is_staff=True,
+        role='staff'
+    )
     
     return Response({"message": "Staff registered successfully"}, status=status.HTTP_201_CREATED)
 
+
+class MyTokenObtainView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 # Protected route (for testing authentication)
 @api_view(['GET'])
@@ -47,27 +55,36 @@ def protected_view(request):
 def submit_applicant(request):
     data = request.data
 
-    # Ensure required fields are present
     required_fields = [
         "first_name", "middle_initial", "last_name", "contact_number",
         "purok", "barangay", "city_municipality", "province", "birthday",
         "gender", "civil_status", "occupation", "monthly_income",
-        "valid_id_presented", "beneficiary_name", "type_of_assistance", "justification"
+        "valid_id_presented", "type_of_assistance", "applicant_type"
     ]
-    
+
+    # If applicant is a representative, validate representative fields
+    if data.get("applicant_type") == "Representative":
+        rep_fields = [
+            "rep_first_name", "rep_last_name", "rep_middle_initial",
+            "rep_address", "rep_birthday",
+            "rep_gender", "rep_civil_status", "rep_occupation",
+            "rep_monthly_income", "rep_relationship"
+        ]
+        required_fields.extend(rep_fields)
+
     for field in required_fields:
         if field not in data or data[field] == "":
             return Response({"error": f"Missing required field: {field}"}, status=400)
 
-    # Save applicant
     serializer = ApplicantSerializer(data=data)
     if serializer.is_valid():
-        serializer.save(staff=request.user)  # Associate with logged-in staff
+        serializer.save(staff=request.user)
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
 
 
+#THIS IS FOR LOCATION DROPDOWN / API FOR LOCATIONS
 # PSGC API Base URL
 PSGC_BASE_URL = "https://psgc.gitlab.io/api"
 
@@ -90,7 +107,7 @@ class PSGCView(View):
             return JsonResponse(response.json(), safe=False)
         return JsonResponse({"error": "Failed to fetch barangays"}, status=500)
 
-
+#THIS IS FOR SUBMITTING APPLICANTS
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmitApplicantView(View):
     @method_decorator(login_required)
@@ -118,14 +135,13 @@ class SubmitApplicantView(View):
                 valid_id_presented=data.get("valid_id_presented"),
                 beneficiary_name=data.get("beneficiary_name"),
                 type_of_assistance=data.get("type_of_assistance"),
-                justification=data.get("justification"),
             )
             return JsonResponse({"message": "Applicant submitted successfully", "applicant_id": applicant.id}, status=201)
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-
+#THIS IS FOR THE GEOSPATIAL 
 def get_applicant_locations(request):
     applicants = Applicant.objects.exclude(latitude__isnull=True, longitude__isnull=True)
     data = [
@@ -141,9 +157,7 @@ def get_applicant_locations(request):
     return JsonResponse(data, safe=False)
 
 
-
-
-
+# ANALYTICS VIEWS
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def total_applicants(request):
@@ -165,11 +179,20 @@ def total_applicants(request):
 @permission_classes([IsAuthenticated])
 def applicants_by_assistance_type(request):
     assistance_type = request.GET.get("type")
+    start_date = request.GET.get("start")
+    end_date = request.GET.get("end")
+
     qs = Applicant.objects.all()
+
     if assistance_type:
         qs = qs.filter(type_of_assistance=assistance_type)
+
+    if start_date and end_date:
+        qs = qs.filter(date_filled__date__range=[start_date, end_date])
+
     data = qs.values('type_of_assistance').annotate(count=Count('id'))
     return Response(list(data))
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -198,9 +221,15 @@ def staff_activity_logs(request):
 @permission_classes([IsAuthenticated])
 def top_barangays(request):
     assistance_type = request.GET.get("type")
+    start_date = request.GET.get("start")
+    end_date = request.GET.get("end")
+
     qs = Applicant.objects.all()
     if assistance_type:
         qs = qs.filter(type_of_assistance=assistance_type)
+    if start_date and end_date:
+        qs = qs.filter(date_filled__date__range=[start_date, end_date])
+    
     data = qs.values('barangay').annotate(count=Count('id')).order_by('-count')[:10]
     return Response(list(data))
 
@@ -212,3 +241,24 @@ def average_processing_time(request):
     ).aggregate(avg_time=Avg('processing_time'))
     return Response({"average_processing_time": data['avg_time'].total_seconds() if data['avg_time'] else 0})
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def assistance_type_trend(request):
+    assistance_type = request.GET.get('type')
+    start_date = request.GET.get("start")
+    end_date = request.GET.get("end")
+
+    qs = Applicant.objects.all()
+    if assistance_type:
+        qs = qs.filter(type_of_assistance=assistance_type)
+    if start_date and end_date:
+        qs = qs.filter(date_filled__date__range=[start_date, end_date])
+        
+    data = qs.annotate(date=TruncDate('date_filled')).values('date').annotate(count=Count('id')).order_by('date')
+    return Response(list(data))
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def barangay_by_type(request):
+    data = Applicant.objects.values('barangay', 'type_of_assistance').annotate(count=Count('id')).order_by('-count')
+    return Response(list(data))

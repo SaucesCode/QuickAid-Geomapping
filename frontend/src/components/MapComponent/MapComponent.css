@@ -1,0 +1,49 @@
+/* MapComponent.css */
+.map-container {
+  display: flex;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.filter-panel {
+  width: 300px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
+}
+
+.filter-panel h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.filter-panel label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.filter-panel select,
+.filter-panel button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.filter-panel button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.filter-panel button:hover {
+  background-color: #45a049;
+}
+
+.map {
+  flex-grow: 1;
+  height: 100%;
+}
