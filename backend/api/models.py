@@ -1,8 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
-from geopy.geocoders import Nominatim
+# from geopy.geocoders import Nominatim
+from opencage.geocoder import OpenCageGeocode
 import random
+
+OPENCAGE_API_KEY = "97bff458c2874bbdb716af30af9607cc" 
 
 
 class CustomUser(AbstractUser):
@@ -72,22 +75,33 @@ class Applicant(models.Model):
     type_of_assistance = models.CharField(max_length=50, choices=ASSISTANCE_TYPES)
 
     date_filled = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
 
     def save(self, *args, **kwargs):
         if not self.latitude or not self.longitude:
             location_query = f"{self.barangay}, {self.city_municipality}, {self.province}"
             self.latitude, self.longitude = self.get_coordinates(location_query)
-
         super().save(*args, **kwargs)
 
-    def get_coordinates(self, address):
-        geolocator = Nominatim(user_agent="quickaid-geomapping")
-        location = geolocator.geocode(address)
 
-        if location:
-            jitter_lat = random.uniform(-0.0010, 0.0010)
-            jitter_lng = random.uniform(-0.0010, 0.0010)
-            return location.latitude + jitter_lat, location.longitude + jitter_lng
+    # def get_coordinates(self, address):
+    #     geolocator = Nominatim(user_agent="quickaid-geomapping")
+    #     location = geolocator.geocode(address)
+
+    #     if location:
+    #         jitter_lat = random.uniform(-0.0010, 0.0010)
+    #         jitter_lng = random.uniform(-0.0010, 0.0010)
+    #         return location.latitude + jitter_lat, location.longitude + jitter_lng
+    #     return None, None
+
+    def get_coordinates(self, address):
+        geocoder = OpenCageGeocode(OPENCAGE_API_KEY)
+        result = geocoder.geocode(address)
+
+        if result and len(result):
+            return result[0]['geometry']['lat'], result[0]['geometry']['lng']
         return None, None
 
     def __str__(self):

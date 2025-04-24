@@ -1,48 +1,154 @@
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth import authenticate
-from .models import Applicant, CustomUser
-import requests
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.views import View
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from .serializers import ApplicantSerializer
-from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField
-from django.utils.timezone import now, timedelta
+from django.db.models import Avg, Count, ExpressionWrapper, F, DurationField
 from django.db.models.functions import TruncDate
-from .serializers import MyTokenObtainPairSerializer
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.utils.timezone import now, timedelta
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
+import requests
+from .models import Applicant, CustomUser
+from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer
 
+User = get_user_model()
 
-# REGISTER STAFF (Only Admins Can Do This)
+# ✅ REGISTER STAFF (Only Admins Can Do This)
 @api_view(['POST'])
-@permission_classes([IsAdminUser])  # ✅ Only superusers can access
+@permission_classes([IsAdminUser])  # Only superusers can access
 def register_staff(request):
     username = request.data.get('username')
     password = request.data.get('password')
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    email = request.data.get('email')
 
-    if not username or not password:
-        return Response({"error": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
+    if not all([username, password, first_name, last_name, email]):
+        return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    if CustomUser.objects.filter(username=username).exists():
+    # Check for duplicate username, full name, or email
+    if User.objects.filter(username=username).exists():
         return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(first_name=first_name, last_name=last_name).exists():
+        return Response({"error": "A user with the same full name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(email=email).exists():
+        return Response({"error": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = CustomUser.objects.create_user(
+    # Create staff user
+    user = User.objects.create_user(
         username=username,
         password=password,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
         is_staff=True,
         role='staff'
     )
-    
+
     return Response({"message": "Staff registered successfully"}, status=status.HTTP_201_CREATED)
 
 
+# ✅ LIST ALL STAFF
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def list_staff(request):
+    staff_users = User.objects.filter(is_staff=True).values('id', 'username', 'first_name', 'last_name', 'email')
+    return Response(list(staff_users))
+
+# LIST APPLICANTS
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_applicants(request):
+    applicants = Applicant.objects.all().order_by('-date_filled')
+    serializer = ApplicantSerializer(applicants, many=True)
+    return Response(serializer.data)
+
+
+# ✅ EDIT STAFF INFO
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])
+def update_staff(request, pk):
+    try:
+        user = User.objects.get(pk=pk, is_staff=True)
+    except User.DoesNotExist:
+        return Response({"error": "Staff not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    data = request.data
+
+    if 'username' in data and data['username'] != user.username:
+        if User.objects.filter(username=data['username']).exists():
+            return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
+        user.username = data['username']
+
+    if 'email' in data and data['email'] != user.email:
+        if User.objects.filter(email=data['email']).exists():
+            return Response({"error": "Email already taken"}, status=status.HTTP_400_BAD_REQUEST)
+        user.email = data['email']
+
+    if 'first_name' in data:
+        user.first_name = data['first_name']
+    if 'last_name' in data:
+        user.last_name = data['last_name']
+
+    user.save()
+    return Response({"message": "Staff updated successfully"})
+
+
+# ✅ DELETE STAFF
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def delete_staff(request, pk):
+    try:
+        user = User.objects.get(pk=pk, is_staff=True)
+        user.delete()
+        return Response({"message": "Staff deleted successfully"})
+    except User.DoesNotExist:
+        return Response({"error": "Staff not found"}, status=status.HTTP_404_NOT_FOUND)
+
 class MyTokenObtainView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])
+def update_staff(request, staff_id):
+    try:
+        user = CustomUser.objects.get(id=staff_id)
+    except CustomUser.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
+
+    data = request.data
+    username = data.get("username")
+    email = data.get("email")
+    first_name = data.get("first_name")
+    last_name = data.get("last_name")
+    password = data.get("password")  # Optional
+
+    # Duplicate check
+    if CustomUser.objects.exclude(id=staff_id).filter(username=username).exists():
+        return Response({"error": "Username already exists"}, status=400)
+    if CustomUser.objects.exclude(id=staff_id).filter(email=email).exists():
+        return Response({"error": "Email already exists"}, status=400)
+
+    user.username = username
+    user.email = email
+    user.first_name = first_name
+    user.last_name = last_name
+
+    if password:
+        user.set_password(password)
+
+    user.save()
+    return Response({"message": "Staff updated successfully"})
+
+
 
 # Protected route (for testing authentication)
 @api_view(['GET'])
@@ -78,9 +184,18 @@ def submit_applicant(request):
 
     serializer = ApplicantSerializer(data=data)
     if serializer.is_valid():
-        serializer.save(staff=request.user)
-        return Response(serializer.data, status=201)
-    return Response(serializer.errors, status=400)
+        applicant = serializer.save(staff=request.user)
+
+        # Mark the processed time as now
+        applicant.processed_at = timezone.now()
+
+    # If no start time is submitted, assume now minus 5 mins
+    if not applicant.started_at:
+        applicant.started_at = applicant.processed_at - timedelta(minutes=5)
+
+    applicant.save()
+
+    return Response(ApplicantSerializer(applicant).data, status=201)
 
 
 
@@ -144,13 +259,28 @@ class SubmitApplicantView(View):
 #THIS IS FOR THE GEOSPATIAL 
 def get_applicant_locations(request):
     applicants = Applicant.objects.exclude(latitude__isnull=True, longitude__isnull=True)
+
+    type_filter = request.GET.get("type")
+    city_filter = request.GET.get("city")
+    barangay_filter = request.GET.get("barangay")
+
+    if type_filter:
+        applicants = applicants.filter(type_of_assistance=type_filter)
+    if city_filter:
+        applicants = applicants.filter(city_municipality=city_filter)
+    if barangay_filter:
+        applicants = applicants.filter(barangay=barangay_filter)
+
     data = [
         {
+            "id": app.id,
             "full_name": f"{app.first_name} {app.last_name}",
             "latitude": app.latitude,
             "longitude": app.longitude,
             "address": f"{app.purok}, {app.barangay}, {app.city_municipality}, {app.province}",
             "type_of_assistance": app.type_of_assistance,
+            "barangay": app.barangay,
+            "city_municipality": app.city_municipality,
         }
         for app in applicants
     ]
@@ -236,10 +366,15 @@ def top_barangays(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def average_processing_time(request):
-    data = Applicant.objects.annotate(
-        processing_time=ExpressionWrapper(F('date_filled') - F('date_filled'), output_field=DurationField())
+    data = Applicant.objects.exclude(started_at__isnull=True).exclude(processed_at__isnull=True).annotate(
+        processing_time=ExpressionWrapper(F('processed_at') - F('started_at'), output_field=DurationField())
     ).aggregate(avg_time=Avg('processing_time'))
-    return Response({"average_processing_time": data['avg_time'].total_seconds() if data['avg_time'] else 0})
+
+
+    return Response({
+        "average_processing_time": data['avg_time'].total_seconds() if data['avg_time'] else 0
+    })
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

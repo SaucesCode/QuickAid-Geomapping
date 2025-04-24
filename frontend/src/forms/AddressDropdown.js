@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./MultiStepForm.css";
 
 const AddressDropdown = ({ onSelect }) => {
   const [selectedCity, setSelectedCity] = useState("");
@@ -38,10 +39,14 @@ const AddressDropdown = ({ onSelect }) => {
   };
 
   return (
-    <div className="grid gap-4">
-      <div>
-        <label>Province:</label>
+    <div className="address-dropdown-container">
+      <div className="form-group">
+        <label htmlFor="province">
+          Province <span className="required">*</span>
+        </label>
         <select
+          id="province"
+          className="form-control"
           defaultValue="Quezon"
           onChange={e => onSelect("province", e.target.value)}
           required
@@ -50,9 +55,18 @@ const AddressDropdown = ({ onSelect }) => {
           <option value="Quezon">Quezon</option>
         </select>
       </div>
-      <div>
-        <label>City / Municipality:</label>
-        <select value={selectedCity} onChange={handleCityChange} required>
+
+      <div className="form-group">
+        <label htmlFor="city_municipality">
+          City / Municipality <span className="required">*</span>
+        </label>
+        <select
+          id="city_municipality"
+          className="form-control"
+          value={selectedCity}
+          onChange={handleCityChange}
+          required
+        >
           <option value="">Select City or Municipality</option>
           {cities.map(city => (
             <option key={city.code} value={city.code}>
@@ -62,9 +76,16 @@ const AddressDropdown = ({ onSelect }) => {
         </select>
       </div>
 
-      <div>
-        <label>Barangay:</label>
-        <select onChange={e => onSelect("barangay", e.target.value)} required>
+      <div className="form-group">
+        <label htmlFor="barangay">
+          Barangay <span className="required">*</span>
+        </label>
+        <select
+          id="barangay"
+          className="form-control"
+          onChange={e => onSelect("barangay", e.target.value)}
+          required
+        >
           <option value="">Select Barangay</option>
           {barangays.map(brgy => (
             <option key={brgy.code} value={brgy.name}>
