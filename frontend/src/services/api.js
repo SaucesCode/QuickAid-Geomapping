@@ -25,7 +25,7 @@ export const refreshAccessToken = async () => {
   } catch (error) {
     console.error("Token refresh failed", error);
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken"); // ✅ Clear tokens if refresh fails
+    localStorage.removeItem("refreshToken");
     return null;
   }
 };
@@ -56,22 +56,6 @@ api.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-// ✅ Staff Login Function
-// export const loginStaff = async (username, password) => {
-//   try {
-//     const response = await axios.post(`${API_URL}/token/`, { username, password });
-
-//     if (response.status === 200) {
-//       const { access, refresh } = response.data;
-//       storeTokens(access, refresh);
-//       return response.data; // ✅ Return tokens
-//     }
-//   } catch (error) {
-//     console.error("Login Error:", error.response?.data);
-//     throw new Error("Login failed");
-//   }
-// };
-
 export const loginStaff = async (username, password) => {
   try {
     const response = await axios.post(`${API_URL}/token/`, { username, password });
@@ -84,8 +68,6 @@ export const loginStaff = async (username, password) => {
 
       // Store user object in localStorage
       localStorage.setItem("userData", JSON.stringify(user));
-      console.log("User object before storage:", user); // <--- ADD THIS
-      console.log("userData stored in localStorage:", localStorage.getItem("userData"));
 
       return response.data; // Return response with user data
     }
@@ -133,6 +115,7 @@ export const submitApplicant = async data => {
       valid_id_presented: data.valid_id_presented,
       type_of_assistance: data.type_of_assistance,
       applicant_type: data.applicant_type || "Self", // Add this
+      processed_at: data.processed_at,
     };
 
     // If representative, add rep-specific fields

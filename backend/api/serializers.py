@@ -34,11 +34,12 @@ class ApplicantSerializer(serializers.ModelSerializer):
             "first_name", "middle_initial", "last_name", "suffix", "contact_number",
             "purok", "barangay", "city_municipality", "province", "birthday",
             "gender", "civil_status", "occupation", "monthly_income",
-            "valid_id_presented", "type_of_assistance", "applicant_type",
+            "valid_id_presented", "type_of_assistance", "applicant_type", 
+            "started_at", "processed_at",
 
             # Representative fields (optional if self)
             "rep_first_name", "rep_last_name", "rep_middle_initial",
-            "rep_suffix", "rep_address", "rep_birthday",
+            "rep_suffix", "rep_address",
             "rep_gender", "rep_civil_status", "rep_occupation",
             "rep_monthly_income", "rep_relationship"
         ]

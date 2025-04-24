@@ -2,11 +2,11 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./components/Login/Login";
 import ApplicantForm from "./pages/ApplicantForm";
 import MapComponent from "./components/MapComponent/MapComponent";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./pages/Dashboard/Dashboard";
 import LandingPage from "./components/LandingPage/LandingPage";
 import Sidebar from "./components/Sidebar/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
-import AdminManagement from "./pages/AdminManagement";
+import AdminManagement from "./pages/AdminManagement/AdminManagement";
 
 function App() {
   return (
@@ -26,8 +26,6 @@ function App() {
         <Route path="register-applicant" element={<ApplicantForm />} />
         <Route path="geomapping" element={<MapComponent />} />
         <Route path="admin-management" element={<AdminManagement />} />
-        {/* <Route path="analytics" element={<AnalyticsPage />} />
-        <Route path="admin-management" element={<AdminManagement />} /> */}
       </Route>
     </Routes>
   );

@@ -7,13 +7,6 @@ const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("userData"));
-  // useEffect(() => {
-  //   // Simulated way to check admin; you can adapt based on actual backend
-  //   const userData = JSON.parse(localStorage.getItem("userData"));
-  //   if (userData?.is_superuser) {
-  //     setIsAdmin(true);
-  //   }
-  // }, []);
 
   const toggleSidebar = () => setCollapsed(!collapsed);
 
@@ -32,11 +25,12 @@ const Sidebar = () => {
             <span className="icon">📊</span>
             {!collapsed && <span className="link-text">Dashboard</span>}
           </NavLink>
-
-          <NavLink to="/geomapping" className={({ isActive }) => (isActive ? "active" : "")}>
-            <span className="icon">🗺️</span>
-            {!collapsed && <span className="link-text">Geomapping</span>}
-          </NavLink>
+          {user && user.is_superuser && (
+            <NavLink to="/geomapping" className={({ isActive }) => (isActive ? "active" : "")}>
+              <span className="icon">🗺️</span>
+              {!collapsed && <span className="link-text">Geomapping</span>}
+            </NavLink>
+          )}
 
           <NavLink
             to="/register-applicant"
@@ -48,23 +42,14 @@ const Sidebar = () => {
 
           <NavLink to="/applicants" className={({ isActive }) => (isActive ? "active" : "")}>
             <span className="icon">👥</span>
-            {!collapsed && <span className="link-text">CRUD Applicants</span>}
+            {!collapsed && <span className="link-text">Applicants</span>}
           </NavLink>
-
-          <NavLink to="/analytics" className={({ isActive }) => (isActive ? "active" : "")}>
-            <span className="icon">📈</span>
-            {!collapsed && <span className="link-text">Analytics</span>}
-          </NavLink>
-
-          {/* {user && user.is_superuser && (
-            <NavLink
-              to="/admin-management"
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              <span className="icon">🛠️</span>
-              {!collapsed && <span className="link-text">Admin Management</span>}
+          {user && user.is_superuser && (
+            <NavLink to="/analytics" className={({ isActive }) => (isActive ? "active" : "")}>
+              <span className="icon">📈</span>
+              {!collapsed && <span className="link-text">Analytics</span>}
             </NavLink>
-          )} */}
+          )}
 
           {user && user.is_superuser && (
             <NavLink

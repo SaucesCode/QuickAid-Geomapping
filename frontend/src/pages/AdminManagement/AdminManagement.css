@@ -1,0 +1,296 @@
+/* AdminManagement.css */
+:root {
+  --primary-color: #4361ee;
+  --primary-light: rgba(67, 97, 238, 0.1);
+  --primary-hover: #3a56d4;
+  --danger-color: #ef476f;
+  --danger-hover: #d64163;
+  --success-color: #06d6a0;
+  --warning-color: #ffd166;
+  --warning-hover: #e6bc5c;
+  --text-color: #333;
+  --text-secondary: #6c757d;
+  --border-color: #e9ecef;
+  --bg-color: #f8f9fa;
+  --card-bg: #ffffff;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --border-radius: 10px;
+  --transition: all 0.3s ease;
+}
+
+.admin-management {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.admin-management h2 {
+  color: var(--text-color);
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Button Styles */
+.admin-management > button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition);
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-management > button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Message Styles */
+.message {
+  padding: 12px 18px;
+  border-radius: var(--border-radius);
+  margin: 16px 0;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.message:nth-of-type(1n) {
+  background-color: rgba(6, 214, 160, 0.1);
+  color: var(--success-color);
+  border-left: 4px solid var(--success-color);
+}
+
+.message:nth-of-type(2n) {
+  background-color: rgba(239, 71, 111, 0.1);
+  color: var(--danger-color);
+  border-left: 4px solid var(--danger-color);
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 20px;
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+thead {
+  background-color: var(--primary-light);
+}
+
+th {
+  text-align: left;
+  padding: 16px;
+  font-weight: 600;
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Action Button Styles */
+td button {
+  margin-right: 8px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+}
+
+/* Delete button */
+td button:first-child {
+  background-color: rgba(239, 71, 111, 0.1);
+  color: var(--danger-color);
+}
+
+td button:first-child:hover {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+/* Edit button */
+td button:last-child {
+  background-color: rgba(255, 209, 102, 0.1);
+  color: var(--warning-color);
+}
+
+td button:last-child:hover {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+/* Fix for table layout with two buttons */
+td:last-child,
+td:nth-last-child(2) {
+  padding-right: 8px;
+  white-space: nowrap;
+  width: 1%;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 30px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s ease;
+}
+
+.modal-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+.modal-content input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modal-buttons button:first-child {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  flex: 1;
+}
+
+.modal-buttons button:first-child:hover {
+  background-color: var(--primary-hover);
+}
+
+.modal-buttons button:last-child {
+  background-color: #f8f9fa;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  flex: 1;
+}
+
+.modal-buttons button:last-child:hover {
+  background-color: #e9ecef;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .admin-management {
+    padding: 16px;
+  }
+
+  .modal-content {
+    width: 90%;
+    padding: 20px;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  th,
+  td {
+    padding: 12px;
+  }
+
+  td button {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+}
