@@ -6,7 +6,6 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import Sidebar from "./components/Sidebar/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
 import AdminManagement from "./pages/AdminManagement/AdminManagement";
-quickaid_update
 import Analytics from "./pages/Analytics";
 import Applicants from "./pages/Applicants";
 import Navbar from "./components/LandingPage/Navbar";
@@ -16,30 +15,34 @@ import ServicesSection from "./components/Sections/ServicesSection";
 import MissionSection from "./components/Sections/MissionSection";
 import HeroSection from "./components/Sections/HeroSection";
 import BeneficiariesSection from "./components/Sections/BeneficiariesSection";
-import './index.css';
+import "./index.css";
 import Footer from "./components/LandingPage/Footer";
-
-my-website
 
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main>
-        <HeroSection />
-        <ChallengesSection />
-        <GoalsSection />
-        <ServicesSection />
-        <BeneficiariesSection />
-        <MissionSection />
-      </main>
-      <Footer />
-
-      {/* Now Routes are separate */}
       <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              <Navbar />
+              <main>
+                <HeroSection />
+                <ChallengesSection />
+                <GoalsSection />
+                <ServicesSection />
+                <BeneficiariesSection />
+                <MissionSection />
+              </main>
+              <Footer />
+            </>
+          }
+        />
+
         <Route path="/login" element={<Login />} />
 
-{/* quickaid_update */}
+
       <Route
         path="/"
         element={
@@ -55,6 +58,7 @@ function App() {
         <Route path="analytics" element={<Analytics />} />
         <Route path="applicants" element={<Applicants />} />
       </Route>
+
         <Route
           path="/"
           element={
@@ -67,11 +71,11 @@ function App() {
           <Route path="register-applicant" element={<ApplicantForm />} />
           <Route path="geomapping" element={<MapComponent />} />
           <Route path="admin-management" element={<AdminManagement />} />
-          <Route path="Step1" element={<ApplicantForm />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="applicants" element={<Applicants />} />
         </Route>
       </Routes>
     </div>
-//  my-website
   );
 }
 
