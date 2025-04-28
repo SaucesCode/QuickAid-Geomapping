@@ -56,13 +56,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
 
         <div className="form-group">
           <label htmlFor="suffix">Suffix</label>
-          <select
-            id="suffix"
-            name="suffix"
-            value={formData.suffix}
-            onChange={handleChange}
-            className="form-control"
-          >
+          <select id="suffix" name="suffix" value={formData.suffix} onChange={handleChange}>
             <option value="">None</option>
             <option value="Jr.">Jr.</option>
             <option value="Sr.">Sr.</option>

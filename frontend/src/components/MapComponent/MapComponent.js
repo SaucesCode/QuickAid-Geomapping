@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
-import MarkerClusterGroup from "react-leaflet-markercluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
@@ -13,7 +12,8 @@ const assistanceColors = {
   Educational: "#9c27b0",
 };
 
-const MapComponent = () => {
+const MapComponent = ({ province, city, barangay, applicantName }) => {
+  // Added props
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("");
@@ -21,6 +21,7 @@ const MapComponent = () => {
   const [barangayFilter, setBarangayFilter] = useState("");
   const [availableBarangays, setAvailableBarangays] = useState([]);
   const [stats, setStats] = useState({});
+  const [mapCenter, setMapCenter] = useState(defaultCenter); // New state for map center
 
   const assistanceTypes = ["Medical", "Burial", "Educational"];
   const cities = ["Lucena City", "Sariaya", "Candelaria", "Tiaong", "San Antonio", "Dolores"];
@@ -74,6 +75,38 @@ const MapComponent = () => {
     setBarangayFilter("");
   };
 
+  // Geocoding and Map Update Effect
+  useEffect(() => {
+    const geocodeAddress = async () => {
+      if (!province || !city || !barangay) return; // Don't geocode if address is incomplete
+
+      const addressString = `${barangay}, ${city}, ${province}`;
+      try {
+        // Replace with your actual geocoding API call
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+            addressString
+          )}&format=json`
+        );
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+          const { lat, lon } = data[0]; // Use the first result
+          setMapCenter([parseFloat(lat), parseFloat(lon)]); // Update map center state
+        } else {
+          console.error("Geocoding failed for:", addressString);
+          // Optionally, set a default center or display an error message
+          setMapCenter(defaultCenter); // Revert to default if geocoding fails
+        }
+      } catch (error) {
+        console.error("Geocoding error:", error);
+        setMapCenter(defaultCenter); // Revert to default on error
+      }
+    };
+
+    geocodeAddress();
+  }, [province, city, barangay]); // Re-run when address props change
+
   return (
     <div className="map-wrapper">
       <div className="map-container">
@@ -81,21 +114,43 @@ const MapComponent = () => {
           <p>Loading map data...</p>
         ) : (
           <MapContainer
-            center={defaultCenter}
-            zoom={11.5}
-            style={{ height: "80vh", width: "100%" }}
+            center={mapCenter} // Use the mapCenter state
+            zoom={13} // Adjust zoom level as needed
+            style={{ height: "400px", width: "100%" }}
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <MarkerClusterGroup>
-              {locations.map(loc => (
-                <React.Fragment
-                  key={loc.id || `${loc.full_name}-${loc.latitude}-${loc.longitude}`}
-                >
+
+            {/* Single Marker for Edited Applicant */}
+            {province && city && barangay && (
+              <Marker
+                position={mapCenter}
+                icon={L.icon({
+                  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+                  iconSize: [25, 41],
+                  iconAnchor: [12, 41],
+                })}
+              >
+                <Popup>
+                  <strong>{applicantName}</strong>
+                  <br />
+                  {barangay}, {city}, {province}
+                </Popup>
+              </Marker>
+            )}
+
+            {/* Existing Markers (if you still want them) */}
+            {locations.map((loc, index) => {
+              const offset = (Math.random() - 0.5) * 0.0005; // very tiny offset
+              const adjustedLat = loc.latitude + offset;
+              const adjustedLng = loc.longitude + offset;
+
+              return (
+                <React.Fragment key={loc.id || `${loc.full_name}-${index}`}>
                   <Marker
-                    position={[loc.latitude, loc.longitude]}
+                    position={[adjustedLat, adjustedLng]}
                     icon={L.icon({
                       iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
                       iconSize: [25, 41],
@@ -112,7 +167,7 @@ const MapComponent = () => {
                   </Marker>
 
                   <Circle
-                    center={[loc.latitude, loc.longitude]}
+                    center={[adjustedLat, adjustedLng]}
                     radius={50}
                     pathOptions={{
                       color: getColor(loc.type_of_assistance),
@@ -121,8 +176,8 @@ const MapComponent = () => {
                     }}
                   />
                 </React.Fragment>
-              ))}
-            </MarkerClusterGroup>
+              );
+            })}
           </MapContainer>
         )}
       </div>

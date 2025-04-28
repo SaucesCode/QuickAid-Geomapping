@@ -1,15 +1,17 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Count, ExpressionWrapper, F, DurationField
-from django.db.models.functions import TruncDate
+from django.db.models import Avg, Count, ExpressionWrapper, F, DurationField, IntegerField, Case, Value, When
+from django.db.models.functions import TruncDate, ExtractYear, Cast
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
+import datetime
+from django.db import models
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now, timedelta
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -20,7 +22,7 @@ from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer
 
 User = get_user_model()
 
-# ✅ REGISTER STAFF (Only Admins Can Do This)
+# REGISTER STAFF (Only Admins Can Do This)
 @api_view(['POST'])
 @permission_classes([IsAdminUser])  # Only superusers can access
 def register_staff(request):
@@ -55,7 +57,7 @@ def register_staff(request):
     return Response({"message": "Staff registered successfully"}, status=status.HTTP_201_CREATED)
 
 
-# ✅ LIST ALL STAFF
+# LIST ALL STAFF
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def list_staff(request):
@@ -70,8 +72,59 @@ def list_applicants(request):
     serializer = ApplicantSerializer(applicants, many=True)
     return Response(serializer.data)
 
+# GET, PUT, DELETE a single applicant
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def applicant_detail(request, applicant_id):
+    try:
+        applicant = Applicant.objects.get(pk=applicant_id)
+    except Applicant.DoesNotExist:
+        return Response({'error': 'Applicant not found'}, status=500)
 
-# ✅ EDIT STAFF INFO
+    if request.method == 'GET':
+        serializer = ApplicantSerializer(applicant)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = ApplicantSerializer(applicant, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    elif request.method == 'DELETE':
+        applicant.delete()
+        return Response({'message': 'Applicant deleted successfully'})
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_coordinates(request):
+    applicant_id = request.data.get('id')
+    barangay = request.data.get('barangay')
+    city_municipality = request.data.get('city_municipality')
+    province = request.data.get('province')
+
+    try:
+        applicant = Applicant.objects.get(pk=applicant_id)
+        location_query = f"{barangay}, {city_municipality}, {province}"
+        latitude, longitude = applicant.get_coordinates(location_query)
+
+        if latitude and longitude:
+            applicant.latitude = latitude
+            applicant.longitude = longitude
+            applicant.save()  # Save the updated coordinates
+            return Response({'latitude': latitude, 'longitude': longitude})
+        else:
+            return Response({'error': 'Could not retrieve coordinates'}, status=400)
+
+    except Applicant.DoesNotExist:
+        return Response({'error': 'Applicant not found'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+# EDIT STAFF INFO
 @api_view(['PUT'])
 @permission_classes([IsAdminUser])
 def update_staff(request, pk):
@@ -100,8 +153,7 @@ def update_staff(request, pk):
     user.save()
     return Response({"message": "Staff updated successfully"})
 
-
-# ✅ DELETE STAFF
+# DELETE STAFF
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])
 def delete_staff(request, pk):
@@ -114,7 +166,6 @@ def delete_staff(request, pk):
 
 class MyTokenObtainView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-
 
 @api_view(['PUT'])
 @permission_classes([IsAdminUser])
@@ -147,7 +198,6 @@ def update_staff(request, staff_id):
 
     user.save()
     return Response({"message": "Staff updated successfully"})
-
 
 
 # Protected route (for testing authentication)
@@ -397,3 +447,40 @@ def assistance_type_trend(request):
 def barangay_by_type(request):
     data = Applicant.objects.values('barangay', 'type_of_assistance').annotate(count=Count('id')).order_by('-count')
     return Response(list(data))
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def applicants_by_gender(request):
+    data = Applicant.objects.values("gender").annotate(count=Count("id"))
+    return Response(list(data))
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def applicants_by_civil_status(request):
+    data = Applicant.objects.values("civil_status").annotate(count=Count("id"))
+    return Response(list(data))
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def applicants_by_age_group(request):
+    today = datetime.date.today()
+    qs = Applicant.objects.annotate(
+        age=ExpressionWrapper(
+            today.year - ExtractYear("birthday"),
+            output_field=IntegerField()
+        )
+    )
+
+    age_groups = {
+        "0-17": qs.filter(age__lte=17).count(),
+        "18-25": qs.filter(age__gte=18, age__lte=25).count(),
+        "26-35": qs.filter(age__gte=26, age__lte=35).count(),
+        "36-45": qs.filter(age__gte=36, age__lte=45).count(),
+        "46-60": qs.filter(age__gte=46, age__lte=60).count(),
+        "60+": qs.filter(age__gt=60).count(),
+    }
+
+    formatted = [{"age_group": group, "count": count} for group, count in age_groups.items()]
+    return Response(formatted)
+
+#AYAKO NA UMAY 

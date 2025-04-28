@@ -6,6 +6,9 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import Sidebar from "./components/Sidebar/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
 import AdminManagement from "./pages/AdminManagement/AdminManagement";
+quickaid_update
+import Analytics from "./pages/Analytics";
+import Applicants from "./pages/Applicants";
 import Navbar from "./components/LandingPage/Navbar";
 import ChallengesSection from "./components/Sections/ChallengesSection";
 import GoalsSection from "./components/Sections/GoalsSection";
@@ -16,6 +19,7 @@ import BeneficiariesSection from "./components/Sections/BeneficiariesSection";
 import './index.css';
 import Footer from "./components/LandingPage/Footer";
 
+my-website
 
 function App() {
   return (
@@ -35,6 +39,23 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
 
+quickaid_update
+      <Route
+        path="/"
+        element={
+          <PrivateRoute>
+            <Sidebar />
+          </PrivateRoute>
+        }
+      >
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="register-applicant" element={<ApplicantForm />} />
+        <Route path="geomapping" element={<MapComponent />} />
+        <Route path="admin-management" element={<AdminManagement />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="applicants" element={<Applicants />} />
+      </Route>
+    </Routes>
         <Route
           path="/"
           element={
@@ -51,6 +72,7 @@ function App() {
         </Route>
       </Routes>
     </div>
+ my-website
   );
 }
 

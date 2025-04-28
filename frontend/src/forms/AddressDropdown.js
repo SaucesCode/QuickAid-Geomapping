@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+// File: frontend/src/forms/AddressDropdown.js
+import React, { useState, useEffect } from "react";
 import "./MultiStepForm.css";
 
-const AddressDropdown = ({ onSelect }) => {
-  const [selectedCity, setSelectedCity] = useState("");
+const AddressDropdown = ({ onSelect, initialValues }) => {
+  const [selectedCity, setSelectedCity] = useState(initialValues?.city_municipalityCode || "");
   const [barangays, setBarangays] = useState([]);
+  const [selectedBarangay, setSelectedBarangay] = useState(initialValues?.barangay || "");
 
   const cities = [
     { name: "Lucena City", code: "045624000" },
@@ -14,28 +16,49 @@ const AddressDropdown = ({ onSelect }) => {
     { name: "Dolores, Quezon", code: "045615000" },
   ];
 
-  const handleCityChange = async e => {
-    const code = e.target.value;
-    const city = cities.find(city => city.code === code);
-    setSelectedCity(code);
-    onSelect("city_municipality", city.name);
+  useEffect(() => {
+    if (initialValues?.city_municipalityCode) {
+      fetchBarangays(initialValues.city_municipalityCode);
+    }
+  }, [initialValues?.city_municipalityCode]);
 
+  const fetchBarangays = async code => {
     try {
       const response = await fetch(
         `https://psgc.gitlab.io/api/cities-municipalities/${code}/barangays/`
       );
       const data = await response.json();
-      console.log("Fetched barangays:", data);
-
       const processedBarangays = data.map(brgy => ({
         ...brgy,
         name: brgy.name.replace(" (Pob.)", "").trim(),
       }));
-
       setBarangays(processedBarangays);
     } catch (error) {
       console.error("Error fetching barangays:", error);
     }
+  };
+
+  const handleCityChange = async e => {
+    const code = e.target.value;
+    setSelectedCity(code);
+    const city = cities.find(city => city.code === code);
+    // Use a single function to handle the onSelect calls
+    handleAddressChange("city_municipality", city?.name || "");
+    handleAddressChange("city_municipalityCode", code); // Store the code
+
+    await fetchBarangays(code);
+  };
+
+  const handleBarangayChange = e => {
+    const barangayName = e.target.value;
+    setSelectedBarangay(barangayName);
+    // Use a single function to handle the onSelect calls
+    handleAddressChange("barangay", barangayName);
+  };
+
+  // Generic handler for address changes
+  const handleAddressChange = (name, value) => {
+    onSelect({ target: { name: name, value: value } });
   };
 
   return (
@@ -48,7 +71,7 @@ const AddressDropdown = ({ onSelect }) => {
           id="province"
           className="form-control"
           defaultValue="Quezon"
-          onChange={e => onSelect("province", e.target.value)}
+          onChange={e => handleAddressChange("province", e.target.value)} // Use handleAddressChange
           required
           disabled
         >
@@ -83,7 +106,8 @@ const AddressDropdown = ({ onSelect }) => {
         <select
           id="barangay"
           className="form-control"
-          onChange={e => onSelect("barangay", e.target.value)}
+          value={selectedBarangay}
+          onChange={handleBarangayChange}
           required
         >
           <option value="">Select Barangay</option>
