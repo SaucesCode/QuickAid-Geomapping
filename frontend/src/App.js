@@ -39,7 +39,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
 
-quickaid_update
+{/* quickaid_update */}
       <Route
         path="/"
         element={
@@ -55,7 +55,6 @@ quickaid_update
         <Route path="analytics" element={<Analytics />} />
         <Route path="applicants" element={<Applicants />} />
       </Route>
-    </Routes>
         <Route
           path="/"
           element={
@@ -72,7 +71,7 @@ quickaid_update
         </Route>
       </Routes>
     </div>
- my-website
+//  my-website
   );
 }
 
