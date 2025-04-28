@@ -9,4 +9,6 @@ Pillow
 python-decouple
 gunicorn
 whitenoise
+quickaid_update
 opencage
+my-website
