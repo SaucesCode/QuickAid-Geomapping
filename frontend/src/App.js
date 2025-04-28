@@ -7,6 +7,8 @@ import LandingPage from "./components/LandingPage/LandingPage";
 import Sidebar from "./components/Sidebar/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
 import AdminManagement from "./pages/AdminManagement/AdminManagement";
+import Analytics from "./pages/Analytics";
+import Applicants from "./pages/Applicants";
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
         <Route path="register-applicant" element={<ApplicantForm />} />
         <Route path="geomapping" element={<MapComponent />} />
         <Route path="admin-management" element={<AdminManagement />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="applicants" element={<Applicants />} />
       </Route>
     </Routes>
   );

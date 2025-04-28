@@ -17,7 +17,6 @@ const ApplicantForm = () => {
       });
 
       const data = await response.json();
-      console.log("Fetched applicants:", data);
 
       setApplicants(Array.isArray(data) ? data : []);
     } catch (error) {

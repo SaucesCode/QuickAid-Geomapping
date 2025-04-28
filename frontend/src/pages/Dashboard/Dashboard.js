@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -12,175 +12,245 @@ import {
   Pie,
   Cell,
   Legend,
+  ResponsiveContainer,
 } from "recharts";
 import { api } from "../../services/api";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./Dashboard.css";
 
+const COLORS = ["#4361ee", "#3a0ca3", "#4cc9f0", "#4ade80", "#fbbf24", "#f87171"];
+
 const Dashboard = () => {
-  const [totalApplicants, setTotalApplicants] = useState({});
-  const [byType, setByType] = useState([]);
-  const [byBarangay, setByBarangay] = useState([]);
-  const [trendData, setTrendData] = useState([]);
-  const [avgProcessing, setAvgProcessing] = useState(0);
+  const [totalApplicants, setTotalApplicants] = useState({ daily: 0, weekly: 0, monthly: 0 });
+  const [recentApplicants, setRecentApplicants] = useState([]);
+  const [avgProcessing, setAvgProcessing] = useState(null);
   const [staffActivity, setStaffActivity] = useState([]);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [selectedType, setSelectedType] = useState("");
+  const [assistanceTypes, setAssistanceTypes] = useState([]);
+  const [trendsOverTime, setTrendsOverTime] = useState([]);
+  const [topBarangays, setTopBarangays] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboardData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [totalRes, avgRes, staffRes, recentRes, assistTypesRes, trendsRes, topBrgysRes] =
+        await Promise.all([
+          api.get("/analytics/total-applicants/"),
+          api.get("/analytics/average-processing-time/"),
+          api.get("/analytics/staff-activity/"),
+          api.get("/applicants/?limit=5&ordering=-date_filled"),
+          api.get("/analytics/applicants-by-assistance-type/"),
+          api.get("/analytics/trends-over-time/"),
+          api.get("/analytics/top-barangays/"),
+        ]);
+
+      setTotalApplicants(totalRes.data || { daily: 0, weekly: 0, monthly: 0 });
+      setAvgProcessing(avgRes.data?.average_processing_time ?? null);
+      setStaffActivity(staffRes.data || []);
+      setRecentApplicants(recentRes.data?.results || recentRes.data || []);
+      setAssistanceTypes(assistTypesRes.data || []);
+      setTrendsOverTime(trendsRes.data || []);
+      setTopBarangays(topBrgysRes.data || []);
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    fetchAnalytics();
-  }, [startDate, endDate, selectedType]);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
-  const fetchAnalytics = async () => {
-    const params = {};
-    if (startDate) params.start = startDate.toISOString().split("T")[0];
-    if (endDate) params.end = endDate.toISOString().split("T")[0];
-    if (selectedType && selectedType !== "All") {
-      params.type = selectedType;
-    }
+  const assistancePieData = useMemo(
+    () =>
+      (assistanceTypes || []).map(item => ({
+        name: item.type_of_assistance,
+        value: item.count,
+      })),
+    [assistanceTypes]
+  );
 
+  const topBarangaysData = useMemo(
+    () => (topBarangays || []).map(item => ({ name: item.barangay, count: item.count })),
+    [topBarangays]
+  );
+
+  const trendsData = useMemo(
+    () => (trendsOverTime || []).map(item => ({ date: item.date, count: item.count })),
+    [trendsOverTime]
+  );
+
+  const formatProcessingTime = seconds => {
+    if (seconds === null || seconds === undefined) return "N/A";
+    const totalMinutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${totalMinutes}:${String(remainingSeconds).padStart(2, "0")} min`;
+  };
+
+  const formatRecentDate = dateString => {
+    if (!dateString) return "N/A";
     try {
-      const [total, type, barangays, trends, avg, staff] = await Promise.all([
-        api.get("/analytics/total-applicants/", { params }),
-        api.get("/analytics/applicants-by-assistance-type/", { params }),
-        api.get("/analytics/top-barangays/", { params }),
-        api.get("/analytics/trends-over-time/", { params }),
-        api.get("/analytics/average-processing-time/", { params }),
-        api.get("/analytics/staff-activity/", { params }),
-      ]);
-
-      setTotalApplicants(total.data);
-      setByType(type.data);
-      setByBarangay(barangays.data);
-      setTrendData(trends.data);
-      setAvgProcessing(avg.data.average_processing_time);
-      setStaffActivity(staff.data);
-    } catch (error) {
-      console.error("Dashboard fetch error:", error);
+      return new Date(dateString).toLocaleString();
+    } catch (e) {
+      return dateString;
     }
   };
 
-  const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#00C49F", "#FFBB28"];
+  if (loading) {
+    return (
+      <div className="dashboard-container">
+        <div className="dashboard-header">
+          <h1>📊 QuickAid Dashboard</h1>
+        </div>
+        <div className="loading-indicator">
+          <div className="spinner"></div>
+          <span>Loading dashboard data...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
         <h1>📊 QuickAid Dashboard</h1>
-        <div className="text-right">
-          <button className="download-btn" onClick={() => window.print()}>
-            ⬇️ Download PDF
-          </button>
-        </div>
-      </div>
-
-      <div className="filter-container">
-        <div className="filter-group">
-          <label className="filter-label">Start Date</label>
-          <DatePicker
-            selected={startDate}
-            onChange={date => setStartDate(date)}
-            className="date-picker"
-            placeholderText="Select start date"
-          />
-        </div>
-        <div className="filter-group">
-          <label className="filter-label">End Date</label>
-          <DatePicker
-            selected={endDate}
-            onChange={date => setEndDate(date)}
-            className="date-picker"
-            placeholderText="Select end date"
-          />
-        </div>
-        <div className="filter-group">
-          <label className="filter-label">Assistance Type</label>
-          <select
-            value={selectedType}
-            onChange={e => setSelectedType(e.target.value)}
-            className="type-select"
-          >
-            <option value="All">All</option>
-            <option value="Medical">Medical</option>
-            <option value="Burial">Burial</option>
-            <option value="Educational">Educational</option>
-          </select>
-        </div>
       </div>
 
       <div className="stats-grid">
         <div className="stat-card">
           <h2 className="stat-title">Total Applicants</h2>
-          <p className="stat-value">Today: {totalApplicants.daily || 0}</p>
-          <p className="stat-value">This Week: {totalApplicants.weekly || 0}</p>
-          <p className="stat-value">This Month: {totalApplicants.monthly || 0}</p>
+          <div className="stat-value">Today: {totalApplicants.daily ?? 0}</div>
+          <div className="stat-value">This Week: {totalApplicants.weekly ?? 0}</div>
+          <div className="stat-value">This Month: {totalApplicants.monthly ?? 0}</div>
         </div>
 
         <div className="stat-card">
           <h2 className="stat-title">Avg. Processing Time</h2>
-          <p className="stat-value">
-            {avgProcessing
-              ? `${Math.floor(avgProcessing / 60)}:${String(
-                  Math.floor(avgProcessing % 60)
-                ).padStart(2, "0")} min`
-              : "N/A"}
-          </p>
+          <div className="stat-value">{formatProcessingTime(avgProcessing)}</div>
+        </div>
+
+        <div className="stat-card">
+          <h2 className="stat-title">Top Staff Activity</h2>
+          {(staffActivity || []).length > 0 ? (
+            <ul className="staff-list">
+              {(staffActivity || []).slice(0, 3).map(s => (
+                <li key={s.staff__username}>
+                  {s.staff__username} <strong>{s.count}</strong>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No activity recorded</p>
+          )}
         </div>
       </div>
 
       <div className="charts-grid">
         <div className="chart-card">
-          <h2 className="chart-title">Applicants by Type</h2>
-          <PieChart width={350} height={250}>
-            <Pie
-              data={byType}
-              dataKey="count"
-              nameKey="assistance_type"
-              cx="50%"
-              cy="50%"
-              outerRadius={80}
-              label
-            >
-              {byType.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Legend />
-          </PieChart>
+          <h2 className="chart-title">Assistance Types</h2>
+          {assistancePieData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={assistancePieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {assistancePieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="no-data-message">No assistance type data available</div>
+          )}
         </div>
 
         <div className="chart-card">
           <h2 className="chart-title">Top Barangays</h2>
-          <BarChart width={350} height={250} data={byBarangay}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="barangay" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="count" fill="#8884d8" />
-          </BarChart>
+          {topBarangaysData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={topBarangaysData} layout="vertical" margin={{ left: 30 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" width={90} interval={0} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#4361ee" name="Applicants" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="no-data-message">No barangay data available</div>
+          )}
         </div>
+      </div>
 
-        <div className="chart-card">
-          <h2 className="chart-title">Application Trends</h2>
-          <LineChart width={350} height={250} data={trendData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={2} />
-          </LineChart>
+      <div className="charts-grid">
+        <div className="chart-card large">
+          <h2 className="chart-title">Applicant Trends (Last 30 Days)</h2>
+          {trendsData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={trendsData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#4361ee"
+                  strokeWidth={2}
+                  name="Applicants"
+                  dot={false}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="no-data-message">No trend data available</div>
+          )}
         </div>
+      </div>
 
-        <div className="chart-card">
-          <h2 className="chart-title">Staff Submissions</h2>
-          <BarChart width={350} height={250} data={staffActivity}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="staff__username" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="count" fill="#82ca9d" />
-          </BarChart>
+      <div className="list-card">
+        <h2>🕒 Recent Submissions</h2>
+        <div className="table-container">
+          <table className="recent-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Barangay</th>
+                <th>Assistance</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentApplicants.length > 0 ? (
+                recentApplicants.map((a, idx) => (
+                  <tr key={a.id || idx}>
+                    <td>{`${a.first_name || ""} ${a.last_name || ""}`.trim()}</td>
+                    <td>{a.barangay}</td>
+                    <td>{a.type_of_assistance}</td>
+                    <td>{Date(a.date_filled).toString().slice(0, 24)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4">No recent applicants</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
