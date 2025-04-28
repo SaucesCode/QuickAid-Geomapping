@@ -42,6 +42,23 @@ function App() {
 
         <Route path="/login" element={<Login />} />
 
+
+      <Route
+        path="/"
+        element={
+          <PrivateRoute>
+            <Sidebar />
+          </PrivateRoute>
+        }
+      >
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="register-applicant" element={<ApplicantForm />} />
+        <Route path="geomapping" element={<MapComponent />} />
+        <Route path="admin-management" element={<AdminManagement />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="applicants" element={<Applicants />} />
+      </Route>
+
         <Route
           path="/"
           element={
