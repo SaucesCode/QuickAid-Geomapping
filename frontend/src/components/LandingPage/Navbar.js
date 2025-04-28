@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Menu, X, FileText } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-
+import React, { useState, useEffect } from "react";
+import { Menu, X, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Navbar: React.FC = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -11,17 +11,15 @@ const Navbar: React.FC = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
-  const navigate = useNavigate();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'
+        isScrolled ? "bg-white shadow-md py-2" : "bg-transparent py-4"
       }`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,16 +31,33 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#challenges" className="text-gray-600 hover:text-blue-600 transition-colors">Challenges</a>
-            <a href="#goals" className="text-gray-600 hover:text-blue-600 transition-colors">Goals</a>
-            <a href="#services" className="text-gray-600 hover:text-blue-600 transition-colors">Services</a>
-            <a href="#beneficiaries" className="text-gray-600 hover:text-blue-600 transition-colors">Beneficiaries</a>
-            <a href="#mission" className="text-gray-600 hover:text-blue-600 transition-colors">Mission</a>
-            <div className="staff-login">
-              <button className="login-button bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                Staff Login
-              </button>
-            </div>
+            <a
+              href="#challenges"
+              className="text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              Challenges
+            </a>
+            <a href="#goals" className="text-gray-600 hover:text-blue-600 transition-colors">
+              Goals
+            </a>
+            <a
+              href="#services"
+              className="text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              Services
+            </a>
+            <a
+              href="#beneficiaries"
+              className="text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              Beneficiaries
+            </a>
+            <a href="#mission" className="text-gray-600 hover:text-blue-600 transition-colors">
+              Mission
+            </a>
+            {/* <div className="staff-login">
+              <button onClick={() => alert("Desktop button clicked!")}>Staff Login</button>
+            </div> */}
           </div>
 
           {/* Mobile Menu Button */}
@@ -52,18 +67,14 @@ const Navbar: React.FC = () => {
               className="text-gray-600 hover:text-blue-600 focus:outline-none"
               onClick={() => setIsOpen(!isOpen)}
             >
-              {isOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
       </div>
 
       {/* Mobile Menu */}
-      {isOpen && (
+      {/* {isOpen && (
         <div className="md:hidden bg-white shadow-lg absolute top-full left-0 right-0">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <a
@@ -111,7 +122,7 @@ const Navbar: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </nav>
   );
 };
