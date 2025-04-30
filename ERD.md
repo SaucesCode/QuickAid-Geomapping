@@ -55,5 +55,5 @@ erDiagram
         varchar relationship
     }
 
-    staff ||--o{ applicants : processes
-    applicants ||--o{ representatives : has
+    staff ||--o{ applicants : handles
+    applicants ||--o{ representatives : represents
