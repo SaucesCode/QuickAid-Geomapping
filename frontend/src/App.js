@@ -43,6 +43,7 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/new-applicant" element={<MultiStepForm />} />
+
         <Route
           path="/"
           element={
