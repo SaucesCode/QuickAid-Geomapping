@@ -135,7 +135,7 @@
   padding: 2rem;
   border-radius: 8px;
   width: 90%;
-  max-width: 600px;
+  max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -151,6 +151,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1000;
 }
 
 .modal h2 {
@@ -158,12 +159,19 @@
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid var(--primary-light);
+  display: flex;
+  align-items: center;
+}
+
+.modal h2::before {
+  content: "✏️";
+  margin-right: 0.5rem;
 }
 
 .modal form {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .modal h2 {
@@ -177,6 +185,7 @@
   border-radius: 4px;
   font-size: 1rem;
   width: 100%;
+  transition: all 0.2s ease;
 }
 
 .modal input:focus,
@@ -186,8 +195,31 @@
   box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
 }
 
+.modal .form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  font-size: 0.9rem;
+}
+
 .form-group.address-group {
   grid-column: 1 / -1;
+  background-color: var(--primary-light);
+  padding: 1.25rem;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
+
+.form-group.address-group h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--primary-dark);
+  font-size: 1.1rem;
 }
 
 .form-group.address-group select {
@@ -198,20 +230,40 @@
   grid-column: 1 / -1;
 }
 
+.modal-section {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.modal-section h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--primary-dark);
+}
+
 .modal-actions {
   grid-column: 1 / -1;
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
 }
 
 .modal-actions button {
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1.75rem;
   border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 1rem;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-actions button[type="submit"] {
@@ -220,8 +272,14 @@
   border: none;
 }
 
+.modal-actions button[type="submit"]::before {
+  content: "💾";
+  margin-right: 0.5rem;
+}
+
 .modal-actions button[type="submit"]:hover {
   background-color: var(--primary-dark);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .modal-actions button[type="button"] {
@@ -230,9 +288,72 @@
   color: var(--text-color);
 }
 
+.modal-actions button[type="button"]::before {
+  content: "✖️";
+  margin-right: 0.5rem;
+  font-size: 0.9rem;
+}
+
 .modal-actions button[type="button"]:hover {
   border-color: var(--error-color);
   color: var(--error-color);
+}
+
+/* Field groups styling */
+.field-group-personal {
+  background-color: rgba(63, 81, 181, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.field-group-personal h3 {
+  grid-column: 1 / -1;
+  margin-top: 0;
+  color: var(--primary-dark);
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.field-group-contact {
+  background-color: rgba(76, 175, 80, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.field-group-contact h3 {
+  grid-column: 1 / -1;
+  margin-top: 0;
+  color: var(--success-color);
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.field-group-assistance {
+  background-color: rgba(255, 152, 0, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.field-group-assistance h3 {
+  grid-column: 1 / -1;
+  margin-top: 0;
+  color: #ff9800;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
 }
 
 /* Address dropdown styles */

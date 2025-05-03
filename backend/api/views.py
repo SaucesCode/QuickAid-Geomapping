@@ -204,6 +204,13 @@ def submit_applicant(request):
     for field in required_fields:
         if field not in data or data[field] == "":
             return Response({"error": f"Missing required field: {field}"}, status=400)
+        
+    if data.get('valid_id_presented') == 'Others':
+        other_id_value = data.get('other_valid_id', '').strip() 
+        if other_id_value:
+             data['valid_id_presented'] = other_id_value
+        else:
+            return Response({"error": "Please specify the ID type when 'Others' is selected."}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = ApplicantSerializer(data=data)
     if serializer.is_valid():

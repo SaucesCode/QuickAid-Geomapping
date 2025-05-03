@@ -8,6 +8,40 @@ import "./Applicants.css";
 
 Modal.setAppElement("#root");
 
+const csvHeaders = [
+  { label: "ID", key: "id" },
+  { label: "First Name", key: "first_name" },
+  { label: "Middle Initial", key: "middle_initial" },
+  { label: "Last Name", key: "last_name" },
+  { label: "Suffix", key: "suffix" },
+  { label: "Contact Number", key: "contact_number" },
+  { label: "Purok", key: "purok" },
+  { label: "Barangay", key: "barangay" },
+  { label: "City/Municipality", key: "city_municipality" },
+  { label: "Province", key: "province" },
+  { label: "Birthday", key: "birthday" },
+  { label: "Gender", key: "gender" },
+  { label: "Civil Status", key: "civil_status" },
+  { label: "Occupation", key: "occupation" },
+  { label: "Monthly Income", key: "monthly_income" },
+  { label: "Valid ID", key: "valid_id_presented" },
+  { label: "Assistance Type", key: "type_of_assistance" },
+  { label: "Applicant Type", key: "applicant_type" },
+  { label: "Date Filled", key: "processed_at" },
+  { label: "Representative First Name", key: "rep_first_name" },
+  { label: "Representative Last Name", key: "rep_last_name" },
+  { label: "Representative Middle Initial", key: "rep_middle_initial" },
+  { label: "Representative Suffix", key: "rep_suffix" },
+  { label: "Representative Address", key: "rep_address" },
+  { label: "Representative Gender", key: "rep_gender" },
+  { label: "Representative Civil Status", key: "rep_civil_status" },
+  { label: "Representative Occupation", key: "rep_occupation" },
+  { label: "Representative Monthly Income", key: "rep_monthly_income" },
+  { label: "Representative Relationship to Applcaint", key: "rep_relationship" },
+
+  // Add or remove fields as needed
+];
+
 const Applicants = () => {
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +77,7 @@ const Applicants = () => {
   useEffect(() => {
     fetchApplicants();
   }, []);
+  console.log(applicants);
 
   const openEditModal = applicant => {
     setEditingApplicant({ ...applicant });
@@ -158,11 +193,16 @@ const Applicants = () => {
       <div className="actions">
         <input
           type="text"
-          placeholder="Search applicants..."
+          placeholder="🔍 Search applicants..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
         />
-        <CSVLink data={applicants} filename="applicants.csv" className="btn">
+        <CSVLink
+          data={applicants}
+          headers={csvHeaders}
+          filename="applicants.csv"
+          className="btn"
+        >
           Export CSV
         </CSVLink>
       </div>
@@ -189,7 +229,7 @@ const Applicants = () => {
                   <td>{applicant.type_of_assistance}</td>
                   <td>
                     {formatDate(
-                      new Date(+applicant.date_filled).toLocaleString().slice(0, 24)
+                      new Date(applicant.processed_at).toLocaleString().slice(0, 24)
                     )}
                   </td>
                   <td>

@@ -174,7 +174,7 @@ td:nth-last-child(2) {
   animation: fadeIn 0.3s ease;
 }
 
-.modal-content {
+/* .modal-content {
   background-color: var(--card-bg);
   border-radius: var(--border-radius);
   padding: 30px;
@@ -182,7 +182,7 @@ td:nth-last-child(2) {
   max-width: 500px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   animation: slideUp 0.3s ease;
-}
+} */
 
 .modal-content h3 {
   font-size: 1.5rem;

@@ -34,7 +34,7 @@ class ApplicantSerializer(serializers.ModelSerializer):
             "id", "first_name", "middle_initial", "last_name", "suffix", "contact_number",
             "purok", "barangay", "city_municipality", "province", "birthday",
             "gender", "civil_status", "occupation", "monthly_income",
-            "valid_id_presented", "type_of_assistance", "applicant_type", 
+            "valid_id_presented", "type_of_assistance", "applicant_type", "date_filled",
             "started_at", "processed_at",
 
             # Representative fields (optional if self)
