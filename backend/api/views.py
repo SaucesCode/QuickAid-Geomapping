@@ -97,33 +97,6 @@ def applicant_detail(request, applicant_id):
         return Response({'message': 'Applicant deleted successfully'})
 
 
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def update_coordinates(request):
-    applicant_id = request.data.get('id')
-    barangay = request.data.get('barangay')
-    city_municipality = request.data.get('city_municipality')
-    province = request.data.get('province')
-
-    try:
-        applicant = Applicant.objects.get(pk=applicant_id)
-        location_query = f"{barangay}, {city_municipality}, {province}"
-        latitude, longitude = applicant.get_coordinates(location_query)
-
-        if latitude and longitude:
-            applicant.latitude = latitude
-            applicant.longitude = longitude
-            applicant.save()  # Save the updated coordinates
-            return Response({'latitude': latitude, 'longitude': longitude})
-        else:
-            return Response({'error': 'Could not retrieve coordinates'}, status=400)
-
-    except Applicant.DoesNotExist:
-        return Response({'error': 'Applicant not found'}, status=404)
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
-
 # EDIT STAFF INFO
 @api_view(['PUT'])
 @permission_classes([IsAdminUser])
@@ -336,6 +309,32 @@ def get_applicant_locations(request):
     ]
     return JsonResponse(data, safe=False)
 
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_coordinates(request):
+    applicant_id = request.data.get('id')
+    barangay = request.data.get('barangay')
+    city_municipality = request.data.get('city_municipality')
+    province = request.data.get('province')
+
+    try:
+        applicant = Applicant.objects.get(pk=applicant_id)
+        location_query = f"{barangay}, {city_municipality}, {province}"
+        latitude, longitude = applicant.get_coordinates(location_query)
+
+        if latitude and longitude:
+            applicant.latitude = latitude
+            applicant.longitude = longitude
+            applicant.save()  # Save the updated coordinates
+            return Response({'latitude': latitude, 'longitude': longitude})
+        else:
+            return Response({'error': 'Could not retrieve coordinates'}, status=400)
+
+    except Applicant.DoesNotExist:
+        return Response({'error': 'Applicant not found'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
 
 # ANALYTICS VIEWS
 @api_view(['GET'])

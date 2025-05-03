@@ -14,7 +14,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { api } from "../services/api";
+import { api } from "../../services/api";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 // import "./Analytics.css";

@@ -1,10 +1,11 @@
 // File: frontend/src/pages/Applicants.js
 import React, { useEffect, useState } from "react";
-import { api } from "../services/api";
+import { api } from "../../services/api";
 import { CSVLink } from "react-csv";
 import Modal from "react-modal";
-import AddressDropdown from "../forms/AddressDropdown";
-import MapComponent from "../components/MapComponent/MapComponent";
+import AddressDropdown from "../../forms/AddressDropdown";
+import "./Applicants.css";
+
 Modal.setAppElement("#root");
 
 const Applicants = () => {
@@ -25,6 +26,19 @@ const Applicants = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (
+      editingApplicant?.barangay &&
+      editingApplicant?.city_municipality &&
+      editingApplicant?.province
+    ) {
+      updateCoordinates();
+    }
+  }, [
+    editingApplicant?.barangay,
+    editingApplicant?.city_municipality,
+    editingApplicant?.province,
+  ]);
 
   useEffect(() => {
     fetchApplicants();
@@ -58,8 +72,25 @@ const Applicants = () => {
     if (!editingApplicant || !editingApplicant.id) return;
 
     try {
-      await api.put(`/applicants/${editingApplicant.id}/`, editingApplicant);
-      fetchApplicants();
+      // Before saving, update the coordinates first
+      const { data } = await api.post("/update_coordinates/", {
+        id: editingApplicant.id,
+        barangay: editingApplicant.barangay,
+        city_municipality: editingApplicant.city_municipality,
+        province: editingApplicant.province,
+      });
+
+      // Update local editingApplicant with new coordinates
+      const updatedApplicant = {
+        ...editingApplicant,
+        latitude: data.latitude,
+        longitude: data.longitude,
+      };
+
+      // Save the updated applicant
+      await api.put(`/applicants/${editingApplicant.id}/`, updatedApplicant);
+
+      fetchApplicants(); // Refresh the table
       closeModal();
     } catch (err) {
       console.error("Save failed:", err);
@@ -156,7 +187,11 @@ const Applicants = () => {
                   <td>{`${applicant.first_name || ""} ${applicant.last_name || ""}`}</td>
                   <td>{applicant.barangay}</td>
                   <td>{applicant.type_of_assistance}</td>
-                  <td>{formatDate(Date(applicant.date_filled).toString().slice(0, 24))}</td>
+                  <td>
+                    {formatDate(
+                      new Date(+applicant.date_filled).toLocaleString().slice(0, 24)
+                    )}
+                  </td>
                   <td>
                     <button onClick={() => openEditModal(applicant)}>Edit</button>
                     <button
@@ -238,7 +273,12 @@ const Applicants = () => {
             />
             <div className="form-group address-group full-width">
               <AddressDropdown
-                onSelect={handleChange}
+                onSelect={(field, value) => {
+                  setEditingApplicant(prev => ({
+                    ...prev,
+                    [field]: value,
+                  }));
+                }}
                 initialValues={{
                   province: editingApplicant.province,
                   city_municipality: editingApplicant.city_municipality,
@@ -247,7 +287,6 @@ const Applicants = () => {
                 }}
               />
             </div>
-
             <input
               name="type_of_assistance"
               placeholder="Type of Assistance"

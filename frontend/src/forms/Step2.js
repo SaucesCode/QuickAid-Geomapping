@@ -3,17 +3,13 @@ import AddressDropdown from "./AddressDropdown";
 import "./MultiStepForm.css";
 
 const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
+  // This function will be passed to the AddressDropdown component
   const handleAddressChange = (field, value) => {
-    handleChange({ target: { name: field, value } });
+    handleChange({ target: { name: field, value: value } });
   };
 
   return (
     <div className="form-step">
-      {/* <div className="form-step-header">
-        <span className="step-title">Address & Additional Information</span>
-        <p className="step-description">Please provide your address and personal details</p>
-      </div> */}
-
       <div className="form-section">
         <h3 className="section-title">Address Information</h3>
         <div className="form-grid">
@@ -34,7 +30,16 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
           </div>
 
           <div className="form-group address-group full-width">
-            <AddressDropdown onSelect={handleAddressChange} />
+            {/* Pass a simpler function to handle address selection */}
+            <AddressDropdown
+              onSelect={(field, value) => handleAddressChange(field, value)}
+              initialValues={{
+                province: formData.province,
+                city_municipality: formData.city_municipality,
+                city_municipalityCode: formData.city_municipalityCode,
+                barangay: formData.barangay,
+              }}
+            />
           </div>
         </div>
       </div>

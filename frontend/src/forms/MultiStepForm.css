@@ -1,78 +1,107 @@
-/* MultiStepForm.css - Updated Version */
+/* MultiStepForm.css - Accessible Modern Full-Page Redesign v3 */
+
 :root {
-  --primary-color: #4361ee;
-  --primary-light: rgba(67, 97, 238, 0.1);
-  --primary-hover: #3a56d4;
-  --success-color: #06d6a0;
-  --text-color: #333;
-  --text-secondary: #6c757d;
-  --border-color: #e9ecef;
-  --bg-color: #f8f9fa;
-  --card-bg: #ffffff;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --border-radius: 10px;
-  --transition: all 0.3s ease;
-  --cancel-color: #ff5252; /* Added cancel button color */
+  /* Accessible & Modern Color Palette */
+  --primary-color: #005ea2; /* Deeper Accessible Blue */
+  --primary-light: #eaf3fa; /* Lighter Blue */
+  --primary-hover: #003e73; /* Darker Blue for Hover */
+  --accent-color: #fdb81e; /* Accessible Gold/Yellow */
+  --success-color: #00a91c; /* Accessible Green */
+  --error-color: #d83933; /* Accessible Red */
+  --error-hover: #b52d28; /* Darker Red for Hover */
+  --text-color: #333333; /* Very Dark Gray - High Contrast */
+  --text-muted: #5c5c5c; /* Medium Gray */
+  --body-bg: #f9f9f9; /* Very Light Off-White/Gray */
+  --card-bg: #ffffff; /* White */
+  --border-color: #cccccc; /* Lighter Gray Border */
+  --shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Slightly Softer Shadow */
+  --border-radius: 0.75rem; /* Slightly Larger Radius */
+  --transition: all 0.25s ease-in-out;
+
+  /* Enhanced Readability */
+  --font-family-sans: "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
+    "Droid Sans", "Helvetica Neue", sans-serif; /* Modern System Fonts */
+  --base-font-size: 16px; /* Standard Base */
+  --line-height-base: 1.7; /* Increased Line Height */
 }
 
+body {
+  background-color: var(--body-bg);
+  margin: 0;
+  padding: 0; /* Ensure no default body padding */
+  font-family: var(--font-family-sans);
+  line-height: var(--line-height-base);
+  color: var(--text-color);
+  font-size: var(--base-font-size);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Form Container - Enhanced Full Page Usage */
 .form-container {
-  position: fixed;
-  top: 5%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: white;
-  padding: 2rem;
-  z-index: 9999;
+  position: relative;
+  background-color: var(--card-bg);
+  padding: 3rem 4rem; /* Adjusted Padding */
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
-  width: 1250px;
-  max-width: 95%;
-  max-height: 92vh;
-  overflow: auto;
+  width: calc(100% - 4rem); /* Full width minus some margin */
+  max-width: 1200px; /* Increased Max Width */
+  margin: 2rem auto; /* Centered with margin */
+  box-sizing: border-box; /* Include padding in width */
+  min-height: calc(100vh - 4rem); /* Ensure it takes vertical space */
+  display: flex; /* Use flexbox for internal layout */
+  flex-direction: column; /* Stack children vertically */
+  border-top: 5px solid var(--primary-color); /* Add color accent border */
 }
 
-/* Step indicator - Top navigation */
+/* Step Indicator - Much Smaller */
 .step-indicator {
   display: flex;
-  justify-content: center;
-  margin-bottom: 30px;
+  justify-content: space-around; /* Even spacing */
+  align-items: center;
+  margin-bottom: 2.5rem; /* Reduced bottom margin */
+  padding: 1rem 2rem 0; /* Adjusted padding */
   position: relative;
+  width: 100%; /* Ensure it spans the container */
+  box-sizing: border-box;
 }
 
 .step-indicator::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 20%;
-  right: 20%;
-  height: 2px;
+  top: calc(1rem + 1.25rem); /* Align with center of smaller step */
+  left: 15%; /* Adjust start/end points */
+  right: 15%;
+  height: 0.15rem; /* Thinner line */
   background-color: var(--border-color);
   transform: translateY(-50%);
   z-index: 1;
 }
 
 .step {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--bg-color);
-  border: 2px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 2.5rem; /* Much Smaller Step Circles */
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  border: 0.15rem solid var(--border-color); /* Thinner border */
   font-weight: 600;
-  margin: 0 30px;
+  font-size: 1rem; /* Smaller Font */
+  color: var(--text-muted); /* Muted color for inactive */
   position: relative;
   z-index: 2;
   transition: var(--transition);
-  color: var(--text-secondary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Smaller shadow */
 }
 
 .step.active {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
   color: white;
-  box-shadow: 0 0 0 5px rgba(67, 97, 238, 0.2);
+  box-shadow: 0 0.3rem 0.6rem rgba(0, 94, 162, 0.2); /* Adjusted Shadow */
+  transform: scale(1.1); /* Slightly larger when active */
 }
 
 .step.completed {
@@ -81,311 +110,454 @@
   color: white;
 }
 
-/* Step content */
+/* Step Content Area */
 .step-content {
-  min-height: 400px;
-  padding: 20px 0;
-  animation: fadeStep 0.4s ease forwards; /* Fixed animation */
+  padding: 0; /* Remove padding here, handled by sections */
+  flex-grow: 1; /* Allow content to fill space */
+  animation: fadeStep 0.4s ease-in-out forwards;
 }
 
-/* Form step header styling - removed underline */
-.form-step {
-  padding: 24px 0;
-}
-
+/* Form Step Header - Smaller Font */
 .form-step-header {
-  margin-bottom: 28px;
+  margin-bottom: 2.5rem; /* Adjusted margin */
+  padding: 1.2rem 2rem; /* Adjusted padding */
+  border-bottom: 1px solid var(--border-color); /* Subtle separator */
+  text-align: left;
+  background-color: var(--primary-light); /* Light blue background */
+  border-radius: var(--border-radius) var(--border-radius) 0 0; /* Round top corners */
+  margin-left: -2rem; /* Extend to edge of padding */
+  margin-right: -2rem;
+  margin-top: -1rem; /* Pull up slightly */
 }
 
-/* Specific styling for personal information title - no underline */
 .step-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-color);
-  /* No border-bottom here */
-}
-
-.step-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background-color: var(--primary-color);
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 50%;
-  margin-right: 12px;
+  font-size: 1.8rem; /* Smaller Header Title */
+  font-weight: 700;
+  color: var(--primary-color); /* Use primary color */
+  margin-bottom: 0.4rem; /* Adjusted spacing */
 }
 
 .step-description {
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin: 0;
-  padding-left: 40px;
+  font-size: 1rem; /* Smaller Header Description */
+  color: var(--text-muted);
 }
 
-/* Form layout */
+/* Form Grid - Responsive & Spaced */
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem; /* Adjusted Gap */
+  margin-bottom: 2.5rem; /* Adjusted Margin */
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .form-group.full-width {
-  grid-column: span 2;
+  grid-column: 1 / -1;
 }
 
 label {
   display: block;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 1.05rem; /* Slightly Smaller Labels */
+  font-weight: 600;
   color: var(--text-color);
-  margin-bottom: 6px;
+  margin-bottom: 0.6rem; /* Adjusted spacing */
 }
 
 .required {
-  color: #ef4444;
-  margin-left: 2px;
+  color: var(--accent-color); /* Use Accent color for required */
+  margin-left: 0.3rem;
+  font-weight: bold;
 }
 
-/* Form controls */
+/* Form Controls - Modern & Accessible with Bigger Font */
 .form-control {
   width: 100%;
-  padding: 12px 14px;
+  padding: 0.9rem 1.3rem; /* Adjusted Padding for font */
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 15px;
+  border-radius: calc(var(--border-radius) - 0.25rem);
+  font-size: 1.15rem; /* Bigger Input Font */
   transition: var(--transition);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  box-sizing: border-box;
+  line-height: 1.5;
 }
 
 .form-control:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+  box-shadow: 0 0 0 3px rgba(0, 94, 162, 0.2); /* Focus Ring */
 }
 
 .form-control::placeholder {
-  color: #94a3b8;
+  color: var(--text-muted);
+  opacity: 0.8;
+  font-size: 1.1rem; /* Adjust placeholder size slightly */
 }
 
+/* Style select specifically */
 select.form-control {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%235c5c5c'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 011.06 0L8 8.94l2.72-2.72a.75.75 0 111.06 1.06l-3.25 3.25a.75.75 0 01-1.06 0L4.22 7.28a.75.75 0 010-1.06z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
+  background-position: right 1rem center;
+  background-size: 1.2em 1.2em;
+  padding-right: 3rem;
 }
 
-/* Navigation buttons */
+/* Form Navigation - Clear & Contrasting Buttons */
 .form-navigation {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 30px;
+  margin-top: auto;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
 }
 
 .back-btn,
 .next-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: 8px;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 0.9rem 1.8rem;
+  border-radius: var(--border-radius);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 1.05rem;
   cursor: pointer;
   transition: var(--transition);
-  border: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  line-height: 1.5;
 }
 
-/* Updated cancel/back button with more visibility */
 .back-btn {
-  color: white;
-  background-color: var(--cancel-color); /* Changed to red for visibility */
+  background-color: var(--card-bg);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .back-btn:hover {
-  background-color: #e03e3e; /* Darker red on hover */
+  background-color: var(--primary-light);
+  border-color: var(--primary-hover);
+  color: var(--primary-hover);
 }
 
 .next-btn {
   background-color: var(--primary-color);
   color: white;
+  border-color: var(--primary-color);
 }
 
 .next-btn:hover {
   background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Style for disabled state */
+.back-btn:disabled,
+.next-btn:disabled {
+  background-color: #e0e0e0;
+  color: #a0a0a0;
+  border-color: #e0e0e0;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-icon {
-  font-size: 16px;
+  font-size: 1.1rem;
+  line-height: 1;
 }
 
-/* Add these styles to your MultiStepForm.css file */
-
+/* Close Button - Distinct Cancel Color */
 .close-btn {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: #f44336;
+  top: 1rem;
+  right: 1.5rem;
+  background-color: var(--error-color);
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--border-radius);
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
+  transition: var(--transition);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  line-height: 1.4;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .close-btn:hover {
-  background-color: #d32f2f;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: var(--error-hover);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
-.close-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Section titles */
+/* Section Titles - Clean with Color Border */
 .section-title {
-  font-size: 1.5rem;
+  font-size: 1.5rem; /* Adjusted size */
   font-weight: 600;
-  margin-bottom: 20px;
-  color: var(--text-color);
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-color);
+  color: var(--primary-color);
+  margin-bottom: 1.8rem; /* Adjusted space */
+  padding-bottom: 0.8rem;
+  border-bottom: 2px solid var(--primary-color);
 }
 
-/* Radio button styling */
+/* Radio Button Styling - Modernized */
 .radio-group {
   display: flex;
-  gap: 15px;
-  margin-top: 8px;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }
 
 .radio-label {
   display: flex;
   align-items: center;
   cursor: pointer;
+  font-size: 1rem; /* Adjusted size */
+  color: var(--text-color);
+  font-weight: 500;
 }
 
+/* Hide actual radio input */
 .radio-input {
-  margin-right: 8px;
-  accent-color: var(--primary-color);
-  width: 18px;
-  height: 18px;
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
 }
 
-/* Checkbox styling */
+/* Custom radio button appearance */
+.radio-label::before {
+  content: "";
+  display: inline-block;
+  width: 1.1em; /* Adjusted size */
+  height: 1.1em;
+  margin-right: 0.7em;
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+  transition: var(--transition);
+  background-color: white;
+}
+
+/* Style when checked */
+.radio-input:checked + .radio-label::before {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color);
+  box-shadow: inset 0 0 0 2px white; /* Adjusted inner circle */
+}
+
+/* Focus style for accessibility */
+.radio-input:focus + .radio-label::before {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Checkbox Styling - Consistent with Radio */
 .checkbox-label {
   display: flex;
   align-items: center;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 0.75rem;
+  font-size: 1rem; /* Adjusted size */
+  color: var(--text-color);
+  font-weight: 500;
 }
 
+/* Hide actual checkbox input */
 .checkbox-input {
-  margin-right: 8px;
-  accent-color: var(--primary-color);
-  width: 18px;
-  height: 18px;
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
 }
 
-/* Form validation */
+/* Custom checkbox appearance */
+.checkbox-label::before {
+  content: "";
+  display: inline-block;
+  width: 1.1em; /* Adjusted size */
+  height: 1.1em;
+  margin-right: 0.7em;
+  border: 2px solid var(--border-color);
+  border-radius: 0.25rem;
+  transition: var(--transition);
+  background-color: white;
+}
+
+/* Style when checked */
+.checkbox-input:checked + .checkbox-label::before {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 0.8em 0.8em; /* Adjusted checkmark size */
+}
+
+/* Focus style for accessibility */
+.checkbox-input:focus + .checkbox-label::before {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Form Validation - Clear Feedback */
 .form-control.error {
-  border-color: #ef4444;
+  border-color: var(--error-color);
+  box-shadow: 0 0 0 3px rgba(216, 57, 51, 0.2);
 }
 
 .error-message {
-  color: #ef4444;
-  font-size: 12px;
-  margin-top: 4px;
+  color: var(--error-color);
+  font-size: 0.9rem; /* Adjusted size */
+  margin-top: 0.4rem;
+  font-weight: 500;
 }
 
-/* Progress bar for multi-step form */
+/* Progress Bar - Could be implemented visually if needed */
 .form-progress {
-  display: flex;
-  margin-bottom: 24px;
-  padding: 0 24px;
+  display: none;
 }
 
-.progress-step {
-  flex: 1;
-  position: relative;
+/* Address Dropdown - Consistent Grid */
+.address-dropdown-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
 }
 
-.progress-step:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  top: 12px;
-  left: 28px;
-  right: 0;
-  height: 2px;
-  background-color: #e2e8f0;
-  z-index: 1;
+select.form-control:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+  opacity: 0.7;
+  border-color: #e0e0e0;
 }
 
-.progress-step.completed:not(:last-child)::after {
-  background-color: var(--primary-color);
+/* Step 3 Specific Styles - Cleaner Sections */
+.form-section {
+  margin-bottom: 2.5rem; /* Adjusted spacing */
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: none;
+  border: 1px solid #e8e8e8;
 }
 
-.progress-marker {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: #f1f5f9;
-  border: 2px solid #cbd5e1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: #64748b;
-  position: relative;
-  z-index: 2;
-  margin-bottom: 8px;
+.subsection-title {
+  font-size: 1.3rem; /* Adjusted size */
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0 0 1.3rem 0; /* Adjusted margin */
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.progress-step.active .progress-marker {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white;
-}
-
-.progress-step.completed .progress-marker {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white;
-}
-
-.progress-label {
-  font-size: 12px;
-  color: #64748b;
-  text-align: center;
+.field-label {
+  font-weight: 600;
+  margin-bottom: 0.8rem; /* Adjusted space */
+  color: var(--text-color);
   display: block;
+  font-size: 1rem; /* Adjusted size */
 }
 
-.progress-step.active .progress-label {
+.id-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Radio Wrapper - Button-like Style */
+.radio-wrapper {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 0.7rem 1.3rem; /* Adjusted padding */
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+
+.radio-wrapper:hover {
+  border-color: var(--primary-color);
+  background-color: var(--primary-light);
+}
+
+.radio-wrapper input[type="radio"] {
+  position: static;
+  opacity: 1;
+  width: auto;
+  height: auto;
+  margin-right: 0.7em;
+  accent-color: var(--primary-color);
+}
+
+/* Adjust label within wrapper */
+.radio-wrapper .radio-label {
+  font-weight: 500;
+  margin-bottom: 0;
+}
+
+.radio-wrapper .radio-label::before {
+  display: none;
+}
+
+/* Highlight checked wrapper */
+.radio-wrapper:has(.radio-input:checked) {
+  background-color: var(--primary-light);
+  border-color: var(--primary-color);
+}
+
+.radio-wrapper:has(.radio-input:checked) .radio-label {
   color: var(--primary-color);
   font-weight: 600;
 }
 
-/* Fixed animation for step transitions */
+.other-id-option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.other-id-input {
+  flex: 1;
+  min-width: 200px;
+  margin-top: 0;
+}
+
+.applicant-type-selector {
+  margin-bottom: 1.8rem; /* Adjusted space */
+}
+
+.representative-info {
+  background-color: var(--primary-light);
+  border-radius: var(--border-radius);
+  padding: 1.8rem; /* Adjusted padding */
+  margin-top: 1.8rem; /* Adjusted space */
+  animation: fadeIn 0.4s ease;
+  border: 1px solid rgba(0, 94, 162, 0.2);
+}
+
+/* Animations */
 @keyframes fadeStep {
   0% {
     opacity: 0;
@@ -397,283 +569,165 @@ select.form-control {
   }
 }
 
-/* Responsive styles */
-@media (max-width: 768px) {
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
   .form-container {
-    padding: 20px;
-    width: 95%;
+    width: calc(100% - 3rem);
+    padding: 2.5rem 3rem;
+    min-height: calc(100vh - 3rem);
+  }
+  .form-grid {
+    gap: 1.8rem; /* Adjusted gap */
+  }
+  .form-step-header {
+    padding: 1rem 1.5rem; /* Adjusted padding */
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    margin-top: -1rem;
+  }
+  .step-title {
+    font-size: 1.7rem; /* Adjusted size */
+  }
+  .step-description {
+    font-size: 0.95rem; /* Adjusted size */
+  }
+  .form-control {
+    font-size: 1.1rem; /* Adjust input font on medium screens */
+  }
+  .form-control::placeholder {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+  .form-container {
+    width: calc(100% - 1rem);
+    padding: 1.5rem 1rem; /* Adjusted padding */
+    margin: 0.5rem auto;
+    min-height: calc(100vh - 1rem);
+    border-top-width: 4px;
+  }
+  .step-indicator {
+    padding: 0.8rem 0.5rem 0; /* Adjusted padding */
+    margin-bottom: 1.8rem; /* Adjusted margin */
+  }
+  .step {
+    width: 2.2rem; /* Further smaller step */
+    height: 2.2rem;
+    font-size: 0.9rem; /* Smaller font */
+    border-width: 0.1rem;
+  }
+  .step-indicator::before {
+    top: calc(0.8rem + 1.1rem); /* Align with center of smaller step */
+    left: 10%;
+    right: 10%;
   }
 
+  .form-step-header {
+    padding: 0.8rem 1rem; /* Adjusted padding */
+    margin-left: -1rem;
+    margin-right: -1rem;
+    margin-top: -0.8rem; /* Adjust pull up */
+    margin-bottom: 1.8rem;
+  }
+  .step-title {
+    font-size: 1.5rem; /* Smaller title */
+  }
+  .step-description {
+    font-size: 0.9rem; /* Smaller description */
+  }
+  .form-control {
+    font-size: 1.05rem; /* Adjust input font on small screens */
+    padding: 0.8rem 1.1rem;
+  }
+  .form-control::placeholder {
+    font-size: 1rem;
+  }
   .form-grid {
     grid-template-columns: 1fr;
+    gap: 1.3rem; /* Adjusted gap */
   }
-
-  .form-group.full-width {
-    grid-column: span 1;
+  .address-dropdown-container {
+    grid-template-columns: 1fr;
   }
-
   .form-navigation {
-    flex-direction: column;
-    gap: 16px;
+    flex-direction: column-reverse;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
   }
-
   .form-navigation button {
     width: 100%;
-    justify-content: center;
   }
-
-  .step {
-    width: 35px;
-    height: 35px;
-    margin: 0 15px;
-  }
-
-  .step-indicator::before {
-    left: 15%;
-    right: 15%;
-  }
-
   .close-btn {
-    top: 10px;
-    right: 10px;
+    top: 0.6rem; /* Adjusted position */
+    right: 0.6rem;
+    padding: 0.4rem 0.8rem; /* Adjusted padding */
+    font-size: 0.85rem; /* Adjusted font */
+  }
+  .form-section {
+    padding: 1.2rem; /* Adjusted padding */
+    margin-bottom: 1.8rem;
+  }
+  .section-title {
+    font-size: 1.3rem; /* Adjusted size */
+    margin-bottom: 1.3rem;
+  }
+  .id-options {
+    gap: 0.7rem; /* Adjusted gap */
+  }
+  .radio-wrapper {
+    padding: 0.6rem 1rem; /* Adjusted padding */
+  }
+  .radio-label {
+    font-size: 0.95rem; /* Adjust font */
+  }
+  .checkbox-label {
+    font-size: 0.95rem; /* Adjust font */
+  }
+  .other-id-option {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .other-id-input {
+    min-width: unset;
+    width: 100%;
+  }
+  .representative-info {
+    padding: 1.2rem; /* Adjusted padding */
+    margin-top: 1.5rem;
+  }
+  label {
+    font-size: 1rem; /* Adjust label font */
+  }
+  .field-label {
+    font-size: 0.95rem; /* Adjust font */
+  }
+  .subsection-title {
+    font-size: 1.2rem; /* Adjust font */
   }
 }
 
-/* STEP 2 */
-/* Back button styling */
-.back-btn {
-  padding: 10px 20px;
-  background-color: #f2f2f2;
-  color: #555;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.back-btn:hover {
-  background-color: #e5e5e5;
-  color: #333;
-}
-
-.back-btn .btn-icon {
-  font-size: 16px;
-}
-
-/* Ensure all form fields have consistent styling */
-input[type="number"].form-control {
-  appearance: textfield;
-}
-
-input[type="date"].form-control {
-  padding: 9px 12px; /* Makes date inputs match other inputs better */
-}
-
-/* Style for the address dropdown container if needed */
-.form-group.full-width {
-  grid-column: 1 / -1;
-}
-
-/* Form grid system for Step2 */
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Add these styles to your MultiStepForm.css file */
-
-.address-dropdown-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  width: 100%;
-}
-
-/* Styling for the disabled province field */
-select.form-control:disabled {
-  background-color: #f9f9f9;
-  cursor: not-allowed;
-  opacity: 0.8;
-  border-color: #ddd;
-}
-
-/* Responsive adjustments for address dropdowns */
-@media (max-width: 992px) {
-  .address-dropdown-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .address-dropdown-container {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* STEP 3 */
-/* Additional CSS for Step 3 - Add these to your MultiStepForm.css */
-
-/* ========== STEP 3 SPECIFIC STYLES ========== */
-
-/* Section headers and containers */
-.form-section {
-  margin-bottom: 32px;
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius);
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 1px solid var(--border-color);
-}
-
-.section-title {
-  font-size: 18px;
-  color: var(--text-color);
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-color);
-  font-weight: 600;
-}
-
-.subsection-title {
-  font-size: 16px;
-  color: var(--text-color);
-  margin: 20px 0 16px;
-  font-weight: 500;
-}
-
-.field-label {
-  font-weight: 500;
-  margin-bottom: 12px;
-  color: var(--text-color);
-}
-
-/* ID Options section */
-.id-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-/* Better Radio Buttons */
-.radio-wrapper {
-  display: inline-flex;
-  align-items: center;
-  background-color: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 10px 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.radio-wrapper:hover {
-  background-color: var(--primary-light);
-  border-color: var(--primary-color);
-}
-
-.radio-input {
-  margin-right: 8px;
-  accent-color: var(--primary-color);
-}
-
-.radio-wrapper input[type="radio"]:checked + .radio-label {
-  color: var(--primary-color);
-  font-weight: 500;
-}
-
-.radio-wrapper:has(.radio-input:checked) {
-  background-color: var(--primary-light);
-  border-color: var(--primary-color);
-}
-
-/* Other ID input */
-.other-id-option {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-
-.other-id-input {
-  flex: 1;
-  min-width: 200px;
-  margin-top: 8px;
-}
-
-/* Applicant type section */
-.applicant-type-selector {
-  margin-bottom: 20px;
-}
-
-.radio-group {
-  display: flex;
-  gap: 16px;
-}
-
-/* Representative info */
-.representative-info {
-  background-color: var(--bg-color);
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 16px;
-  animation: fadeIn 0.3s ease;
-}
-
-/* Submit button states */
+/* Styling for submit button states */
 .next-btn.submitting {
-  background-color: #7986cb;
   cursor: wait;
-  opacity: 0.8;
+  background-color: var(--primary-hover);
 }
 
 .next-btn.success {
   background-color: var(--success-color);
-}
-
-/* Animation for representative info appearing */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .id-options {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .radio-wrapper {
-    width: 100%;
-  }
-
-  .other-id-option {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .other-id-input {
-    width: 100%;
-  }
+  border-color: var(--success-color);
+  cursor: default;
 }
