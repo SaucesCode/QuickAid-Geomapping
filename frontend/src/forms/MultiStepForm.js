@@ -3,8 +3,9 @@ import Step1 from "./Step1";
 import Step2 from "./Step2";
 import Step3 from "./Step3";
 import "./MultiStepForm.css";
+import { NavLink } from "react-router-dom";
 
-const MultiStepForm = ({ closeModal }) => {
+const MultiStepForm = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     first_name: "",
@@ -23,7 +24,7 @@ const MultiStepForm = ({ closeModal }) => {
     monthly_income: "",
     valid_id_presented: "",
     other_valid_id: "",
-    applicant_type: "Self",
+    applicant_type: "",
     rep_first_name: "",
     rep_last_name: "",
     rep_middle_initial: "",
@@ -71,9 +72,9 @@ const MultiStepForm = ({ closeModal }) => {
           <Step3 formData={formData} handleChange={handleChange} prevStep={prevStep} />
         )}
       </div>
-      <button className="close-btn" onClick={closeModal}>
+      <NavLink className="close-btn" to={"/register-applicant"}>
         Cancel
-      </button>
+      </NavLink>
     </div>
   );
 };

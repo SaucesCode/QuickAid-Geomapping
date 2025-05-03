@@ -88,13 +88,15 @@ const Dashboard = () => {
     return `${totalMinutes}:${String(remainingSeconds).padStart(2, "0")} min`;
   };
 
-  const formatRecentDate = dateString => {
-    if (!dateString) return "N/A";
-    try {
-      return new Date(dateString).toLocaleString();
-    } catch (e) {
-      return dateString;
-    }
+  const formatDate = dateString => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      minute: "numeric",
+      hour: "numeric",
+    });
   };
 
   if (loading) {
@@ -241,7 +243,7 @@ const Dashboard = () => {
                     <td>{`${a.first_name || ""} ${a.last_name || ""}`.trim()}</td>
                     <td>{a.barangay}</td>
                     <td>{a.type_of_assistance}</td>
-                    <td>{Date(a.date_filled).toString().slice(0, 24)}</td>
+                    <td>{formatDate(new Date(a.processed_at))}</td>
                   </tr>
                 ))
               ) : (

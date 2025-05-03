@@ -14,7 +14,7 @@ const Sidebar = () => {
     <div className={`layout ${collapsed ? "collapsed" : ""}`}>
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h2>{collapsed ? "QA" : "QuickAid"}</h2>
+          <NavLink to="/">{collapsed ? "QA" : "QuickAid"}</NavLink>
           <button className="toggle-btn" onClick={toggleSidebar}>
             {collapsed ? "→" : "←"}
           </button>

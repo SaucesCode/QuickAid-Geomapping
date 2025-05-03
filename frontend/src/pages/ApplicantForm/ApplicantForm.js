@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import MultiStepForm from "../forms/MultiStepForm";
 import "./ApplicationForm.css";
+import { NavLink } from "react-router-dom";
 
 const ApplicantForm = () => {
   const [applicants, setApplicants] = useState([]);
-  const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchApplicants = async () => {
@@ -45,6 +44,8 @@ const ApplicantForm = () => {
       year: "numeric",
       month: "short",
       day: "numeric",
+      minute: "numeric",
+      hour: "numeric",
     });
   };
 
@@ -55,9 +56,9 @@ const ApplicantForm = () => {
           <h1>New Applicant</h1>
           <p>Input and View assistance applicants</p>
         </div>
-        <button className="add-applicant-btn" onClick={() => setShowForm(true)}>
+        <NavLink className="add-applicant-btn" to={"/new-applicant"}>
           + New Applicant
-        </button>
+        </NavLink>
       </div>
 
       <div className="dashboard-tools">
@@ -101,7 +102,9 @@ const ApplicantForm = () => {
                   <td>
                     <span className="assistance-badge">{applicant.type_of_assistance}</span>
                   </td>
-                  <td>{Date(applicant.date_filled).toString().slice(0, 24)}</td>
+                  <td>
+                    {formatDate(new Date(applicant.processed_at).toString().slice(0, 24))}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -112,28 +115,6 @@ const ApplicantForm = () => {
           <div className="empty-icon">📋</div>
           <h3>No applicants found</h3>
           <p>Add new applicants or adjust your search criteria</p>
-        </div>
-      )}
-
-      {showForm && (
-        <div className="modal-overlay">
-          <div className="modal-header">
-            <h2>New Applicant Registration</h2>
-            <button
-              className="close-modal-btn"
-              onClick={() => {
-                setShowForm(false);
-              }}
-            >
-              ×
-            </button>
-          </div>
-          <MultiStepForm
-            closeModal={() => {
-              setShowForm(false);
-              fetchApplicants();
-            }}
-          />
         </div>
       )}
     </div>

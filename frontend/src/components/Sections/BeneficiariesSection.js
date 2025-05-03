@@ -1,5 +1,5 @@
-import React from 'react';
-import { FileText, User, GraduationCap, Users } from 'lucide-react';
+import React from "react";
+import { FileText, User, GraduationCap, Users } from "lucide-react";
 
 interface BeneficiaryCardProps {
   icon: React.ReactNode;
@@ -24,23 +24,27 @@ const BeneficiariesSection: React.FC = () => {
     {
       icon: <FileText className="h-8 w-8" />,
       title: "Applicants",
-      description: "Individuals seeking various forms of assistance through our streamlined application system."
+      description:
+        "Individuals seeking various forms of assistance through our streamlined application system.",
     },
     {
       icon: <User className="h-8 w-8" />,
       title: "Patients",
-      description: "Those requiring medical assistance for treatments, procedures, and healthcare services."
+      description:
+        "Those requiring medical assistance for treatments, procedures, and healthcare services.",
     },
     {
       icon: <GraduationCap className="h-8 w-8" />,
       title: "Students",
-      description: "Learners of all ages seeking educational support, scholarships, and academic resources."
+      description:
+        "Learners of all ages seeking educational support, scholarships, and academic resources.",
     },
     {
       icon: <Users className="h-8 w-8" />,
       title: "Parents/Guardians",
-      description: "Family members applying on behalf of dependents for various support programs."
-    }
+      description:
+        "Family members applying on behalf of dependents for various support programs.",
+    },
   ];
 
   return (
@@ -49,7 +53,8 @@ const BeneficiariesSection: React.FC = () => {
         <div className="mb-12 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Who We Serve</h2>
           <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-            Our application management system is designed to assist a diverse range of beneficiaries.
+            Our application management system is designed to assist a diverse range of
+            beneficiaries.
           </p>
         </div>
 
