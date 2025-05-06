@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Applicant
+from .models import Applicant, Representative
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -20,6 +20,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Add user info to response data (accessible in frontend)
         data['staff_info'] = {
             'username': self.user.username,
+            "first_name": self.user.first_name,
+            "last_name": self.user.last_name,
             'role': self.user.role,
             'is_superuser': self.user.is_superuser,
             'is_staff': self.user.is_staff
@@ -36,10 +38,13 @@ class ApplicantSerializer(serializers.ModelSerializer):
             "gender", "civil_status", "occupation", "monthly_income",
             "valid_id_presented", "type_of_assistance", "applicant_type", "date_filled",
             "started_at", "processed_at",
+        ]
 
-            # Representative fields (optional if self)
-            "rep_first_name", "rep_last_name", "rep_middle_initial",
-            "rep_suffix", "rep_address",
-            "rep_gender", "rep_civil_status", "rep_occupation",
-            "rep_monthly_income", "rep_relationship"
+class RepresentativeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Representative
+        fields = [
+            'first_name', 'last_name', 'middle_initial', 'suffix',
+            'address', 'birthday', 'gender', 'civil_status',
+            'occupation', 'monthly_income', 'relationship'
         ]

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const API_URL = "http://127.0.0.1:8000/api"; // Django backend URL
 
@@ -63,17 +64,33 @@ export const loginStaff = async (username, password) => {
     if (response.status === 200) {
       const { access, refresh, staff_info: user } = response.data;
 
-      // Store tokens in localStorage
       storeTokens(access, refresh);
 
       // Store user object in localStorage
       localStorage.setItem("userData", JSON.stringify(user));
 
-      return response.data; // Return response with user data
+      return response.data;
     }
   } catch (error) {
     console.error("Login Error:", error.response?.data);
     throw new Error("Login failed");
+  }
+};
+
+const isTokenExpired = token => {
+  try {
+    const { exp } = jwtDecode(token);
+    return Date.now() >= exp * 1000;
+  } catch {
+    return true;
+  }
+};
+
+export const checkTokenValidity = () => {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token || isTokenExpired(token)) {
+    logoutUser();
   }
 };
 
@@ -82,7 +99,6 @@ export const logoutUser = () => {
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("userData");
 
-  // Optional: clear more things if you store session-like info
   window.location.href = "/login";
 };
 

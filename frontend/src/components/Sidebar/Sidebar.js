@@ -1,23 +1,42 @@
-import React, { useState, useEffect } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import React, { useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import "./Sidebar.css";
 import { logoutUser } from "../../services/api";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
 
   const user = JSON.parse(localStorage.getItem("userData"));
 
   const toggleSidebar = () => setCollapsed(!collapsed);
+
+  const getPageTitle = () => {
+    switch (location.pathname) {
+      case "/dashboard":
+        return "Dashboard";
+      case "/geomapping":
+        return "Geomapping";
+      case "/register-applicant":
+        return "Input New Applicant";
+      case "/applicants":
+        return "Applicants";
+      case "/analytics":
+        return "Analytics";
+      case "/admin-management":
+        return "Admin Management";
+      case "/settings":
+        return "Settings";
+      default:
+        return "QuickAid";
+    }
+  };
 
   return (
     <div className={`layout ${collapsed ? "collapsed" : ""}`}>
       <aside className="sidebar">
         <div className="sidebar-header">
           <NavLink to="/">{collapsed ? "QA" : "QuickAid"}</NavLink>
-          <button className="toggle-btn" onClick={toggleSidebar}>
-            {collapsed ? "→" : "←"}
-          </button>
         </div>
 
         <nav className="nav-links">
@@ -83,7 +102,21 @@ const Sidebar = () => {
 
       <main className="main-content">
         <header className="content-header">
-          <h1>QuickAid Dashboard</h1>
+          <div className="header-left">
+            <button className="toggle-sidebar-btn" onClick={toggleSidebar}>
+              {collapsed ? "▶️" : "◀️"}
+            </button>
+            <h1>{getPageTitle()}</h1>
+          </div>
+          <div className="header-actions">
+            <button className="notification-btn">🔔</button>
+            <div className="user-menu">
+              <span>{user ? `${user.first_name} ${user.last_name}` : "User"}</span>
+              <div className="user-avatar">
+                {user?.first_name ? user.first_name.charAt(0).toUpperCase() : "U"}
+              </div>
+            </div>
+          </div>
         </header>
         <div className="content-container">
           <Outlet />
