@@ -17,6 +17,6 @@ Visualize where applicants are located, track key application metrics, and uncov
 
 * **Frontend:** `React`, `HTML`, `CSS`, `JavaScript`
 * **Mapping Library:** `Leaflet.js`, `OpenLayers`
-* **Charting Library:** `Chart.js`
+* **Charting Library:** `Recharts`
 * **Backend:** `Python` (`Django`)
 * **Database:** `PostgreSQL`
