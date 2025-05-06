@@ -56,20 +56,12 @@ class Applicant(models.Model):
     # 🟢 Valid ID & Beneficiary
     valid_id_presented = models.CharField(max_length=255)
     other_valid_id = models.CharField(max_length=255, blank=True, null=True)
-    applicant_type = models.CharField(max_length=20, choices=[('Self', 'Self'), ('Representative', 'Representative')], default='Self')
+    applicant_type = models.CharField(
+        max_length=20,
+        choices=[('Self', 'Self'), ('Representative', 'Representative')],
+        default='Self'
+    )
 
-    # Representative fields (if applicant is a representative)
-    rep_first_name = models.CharField(max_length=100, blank=True, null=True)
-    rep_last_name = models.CharField(max_length=100, blank=True, null=True)
-    rep_middle_initial = models.CharField(max_length=5, blank=True, null=True)
-    rep_suffix = models.CharField(max_length=10, blank=True, null=True)
-    rep_address = models.TextField(blank=True, null=True)
-    rep_birthday = models.DateField(blank=True, null=True)
-    rep_gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
-    rep_civil_status = models.CharField(max_length=20, choices=CIVIL_STATUS, blank=True, null=True)
-    rep_occupation = models.CharField(max_length=100, blank=True, null=True)
-    rep_monthly_income = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    rep_relationship = models.CharField(max_length=100, blank=True, null=True)
 
     # 🟢 Assistance Details
     type_of_assistance = models.CharField(max_length=50, choices=ASSISTANCE_TYPES)
@@ -85,7 +77,7 @@ class Applicant(models.Model):
             self.latitude, self.longitude = self.get_coordinates(location_query)
         super().save(*args, **kwargs)
 
-
+    # Using geopy
     # def get_coordinates(self, address):
     #     geolocator = Nominatim(user_agent="quickaid-geomapping")
     #     location = geolocator.geocode(address)
@@ -108,3 +100,16 @@ class Applicant(models.Model):
         return f"{self.first_name} {self.last_name} - {self.type_of_assistance}"
 
 
+class Representative(models.Model):
+    applicant = models.OneToOneField('Applicant', on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    middle_initial = models.CharField(max_length=5, blank=True, null=True)
+    suffix = models.CharField(max_length=10, blank=True, null=True)
+    address = models.TextField()
+    birthday = models.DateField()
+    gender = models.CharField(max_length=10, choices=Applicant.GENDER_CHOICES)
+    civil_status = models.CharField(max_length=20, choices=Applicant.CIVIL_STATUS)
+    occupation = models.CharField(max_length=100, blank=True, null=True)
+    monthly_income = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    relationship = models.CharField(max_length=100)

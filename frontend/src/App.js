@@ -18,6 +18,7 @@ import BeneficiariesSection from "./components/Sections/BeneficiariesSection";
 import "./index.css";
 import Footer from "./components/LandingPage/Footer";
 import MultiStepForm from "./forms/MultiStepForm";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -52,7 +53,14 @@ function App() {
             </PrivateRoute>
           }
         >
-          <Route path="dashboard" element={<Dashboard />} />
+          <Route
+            path="dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route path="register-applicant" element={<ApplicantForm />} />
           <Route path="geomapping" element={<MapComponent />} />
           <Route path="admin-management" element={<AdminManagement />} />

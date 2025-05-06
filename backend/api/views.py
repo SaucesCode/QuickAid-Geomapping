@@ -1,24 +1,19 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Count, ExpressionWrapper, F, DurationField, IntegerField, Case, Value, When
-from django.db.models.functions import TruncDate, ExtractYear, Cast
+from django.db.models import Avg, Count, ExpressionWrapper, F, DurationField, IntegerField
+from django.db.models.functions import TruncDate, ExtractYear
 from django.http import JsonResponse
-from django.shortcuts import render
 from django.utils import timezone
 import datetime
-from django.db import models
-from django.utils.decorators import method_decorator
 from django.utils.timezone import now, timedelta
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework import status, generics
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 import requests
-from .models import Applicant, CustomUser
-from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer
+from .models import Applicant, CustomUser, Representative
+from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer, RepresentativeSerializer
 
 User = get_user_model()
 
@@ -191,7 +186,6 @@ def submit_applicant(request):
         "valid_id_presented", "type_of_assistance", "applicant_type"
     ]
 
-    # If applicant is a representative, validate representative fields
     if data.get("applicant_type") == "Representative":
         rep_fields = [
             "rep_first_name", "rep_last_name", "rep_middle_initial",
@@ -205,21 +199,42 @@ def submit_applicant(request):
         if field not in data or data[field] == "":
             return Response({"error": f"Missing required field: {field}"}, status=400)
 
+    if data.get("valid_id_presented") == "Others":
+        other_id_value = data.get("other_valid_id", "").strip()
+        if other_id_value:
+            data["valid_id_presented"] = other_id_value
+        else:
+            return Response({"error": "Please specify the ID type when 'Others' is selected."}, status=400)
+
     serializer = ApplicantSerializer(data=data)
     if serializer.is_valid():
         applicant = serializer.save(staff=request.user)
-
-        # Mark the processed time as now
         applicant.processed_at = timezone.now()
 
-    # If no start time is submitted, assume now minus 5 mins
-    if not applicant.started_at:
-        applicant.started_at = applicant.processed_at - timedelta(minutes=5)
+        if not applicant.started_at:
+            applicant.started_at = applicant.processed_at - timedelta(minutes=5)
 
-    applicant.save()
+        applicant.save()
 
-    return Response(ApplicantSerializer(applicant).data, status=201)
+        if data.get("applicant_type") == "Representative":
+            Representative.objects.create(
+                applicant=applicant,
+                first_name=data["rep_first_name"],
+                last_name=data["rep_last_name"],
+                middle_initial=data.get("rep_middle_initial", ""),
+                suffix=data.get("rep_suffix", ""),
+                address=data["rep_address"],
+                birthday=data["rep_birthday"],
+                gender=data["rep_gender"],
+                civil_status=data["rep_civil_status"],
+                occupation=data.get("rep_occupation", ""),
+                monthly_income=data.get("rep_monthly_income", 0),
+                relationship=data["rep_relationship"]
+            )
 
+        return Response(ApplicantSerializer(applicant).data, status=201)
+    else:
+        return Response(serializer.errors, status=400)
 
 
 #THIS IS FOR LOCATION DROPDOWN / API FOR LOCATIONS
@@ -244,41 +259,7 @@ class PSGCView(View):
         if response.status_code == 200:
             return JsonResponse(response.json(), safe=False)
         return JsonResponse({"error": "Failed to fetch barangays"}, status=500)
-
-#THIS IS FOR SUBMITTING APPLICANTS
-@method_decorator(csrf_exempt, name='dispatch')
-class SubmitApplicantView(View):
-    @method_decorator(login_required)
-    def post(self, request):
-        """Handles applicant form submission"""
-        data = request.POST
-
-        try:
-            applicant = Applicant.objects.create(
-                staff=request.user,
-                first_name=data.get("first_name"),
-                middle_initial=data.get("middle_initial"),
-                last_name=data.get("last_name"),
-                suffix=data.get("suffix"),
-                contact_number=data.get("contact_number"),
-                purok=data.get("purok"),
-                barangay=data.get("barangay"),
-                city_municipality=data.get("city_municipality"),
-                province=data.get("province"),
-                birthday=data.get("birthday"),
-                gender=data.get("gender"),
-                civil_status=data.get("civil_status"),
-                occupation=data.get("occupation"),
-                monthly_income=data.get("monthly_income"),
-                valid_id_presented=data.get("valid_id_presented"),
-                beneficiary_name=data.get("beneficiary_name"),
-                type_of_assistance=data.get("type_of_assistance"),
-            )
-            return JsonResponse({"message": "Applicant submitted successfully", "applicant_id": applicant.id}, status=201)
-
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-
+    
 #THIS IS FOR THE GEOSPATIAL 
 def get_applicant_locations(request):
     applicants = Applicant.objects.exclude(latitude__isnull=True, longitude__isnull=True)
