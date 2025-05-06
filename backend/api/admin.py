@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
-from .models import Applicant, CustomUser
+from .models import Applicant, CustomUser, Representative
 
 class ApplicantAdmin(admin.ModelAdmin):
     list_display = (
@@ -30,6 +30,11 @@ class ApplicantAdmin(admin.ModelAdmin):
         if obj is None:
             return True
         return obj.staff == request.user or request.user.is_superuser
+    
+class RepresentativeAdmin(admin.ModelAdmin):
+    list_display = (
+        "applicant","first_name", "last_name", "relationship",
+    )
 
 class CustomUserAdmin(admin.ModelAdmin):
     list_display = ("username", "email", "role", "is_staff", "is_active")
@@ -37,4 +42,5 @@ class CustomUserAdmin(admin.ModelAdmin):
     list_filter = ("role", "is_staff", "is_active")
 
 admin.site.register(Applicant, ApplicantAdmin)
+admin.site.register(Representative, RepresentativeAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)

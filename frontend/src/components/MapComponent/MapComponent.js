@@ -4,7 +4,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
 
-const defaultCenter = [13.9177, 121.607];
+const defaultCenter = [13.938, 121.508];
 
 const assistanceColors = {
   Medical: "#4caf50",
@@ -113,11 +113,7 @@ const MapComponent = ({ province, city, barangay, applicantName }) => {
         {loading ? (
           <p>Loading map data...</p>
         ) : (
-          <MapContainer
-            center={mapCenter} // Use the mapCenter state
-            zoom={13} // Adjust zoom level as needed
-            style={{ height: "400px", width: "100%" }}
-          >
+          <MapContainer center={mapCenter} zoom={11} style={{ height: "100%", width: "100%" }}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -141,7 +137,6 @@ const MapComponent = ({ province, city, barangay, applicantName }) => {
               </Marker>
             )}
 
-            {/* Existing Markers (if you still want them) */}
             {locations.map((loc, index) => {
               const offset = (Math.random() - 0.5) * 0.0005; // very tiny offset
               const adjustedLat = loc.latitude + offset;

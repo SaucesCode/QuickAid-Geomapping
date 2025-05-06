@@ -9,11 +9,11 @@ const AddressDropdown = ({ onSelect, initialValues }) => {
 
   const cities = [
     { name: "Lucena City", code: "045624000" },
-    { name: "Sariaya, Quezon", code: "045645000" },
-    { name: "Candelaria, Quezon", code: "045608000" },
-    { name: "Tiaong, Quezon", code: "045648000" },
-    { name: "San Antonio, Quezon", code: "045641000" },
-    { name: "Dolores, Quezon", code: "045615000" },
+    { name: "Sariaya", code: "045645000" },
+    { name: "Candelaria", code: "045608000" },
+    { name: "Tiaong", code: "045648000" },
+    { name: "San Antonio", code: "045641000" },
+    { name: "Dolores", code: "045615000" },
   ];
 
   useEffect(() => {
@@ -21,6 +21,13 @@ const AddressDropdown = ({ onSelect, initialValues }) => {
       fetchBarangays(initialValues.city_municipalityCode);
     }
   }, [initialValues?.city_municipalityCode]);
+
+  // Log for debugging - remove in production
+  useEffect(() => {
+    console.log("Selected City:", selectedCity);
+    console.log("Selected Barangay:", selectedBarangay);
+    console.log("values:", initialValues);
+  }, [selectedCity, selectedBarangay, initialValues]);
 
   const fetchBarangays = async code => {
     try {
@@ -41,24 +48,28 @@ const AddressDropdown = ({ onSelect, initialValues }) => {
   const handleCityChange = async e => {
     const code = e.target.value;
     setSelectedCity(code);
-    const city = cities.find(city => city.code === code);
-    // Use a single function to handle the onSelect calls
-    handleAddressChange("city_municipality", city?.name || "");
-    handleAddressChange("city_municipalityCode", code); // Store the code
 
-    await fetchBarangays(code);
+    // Find the city name from code
+    const city = cities.find(city => city.code === code);
+    const cityName = city ? city.name : "";
+
+    // Update both the code and name in the parent component
+    onSelect("city_municipalityCode", code);
+    onSelect("city_municipality", cityName);
+
+    // Reset barangay when city changes
+    setSelectedBarangay("");
+    onSelect("barangay", "");
+
+    if (code) {
+      await fetchBarangays(code);
+    }
   };
 
   const handleBarangayChange = e => {
     const barangayName = e.target.value;
     setSelectedBarangay(barangayName);
-    // Use a single function to handle the onSelect calls
-    handleAddressChange("barangay", barangayName);
-  };
-
-  // Generic handler for address changes
-  const handleAddressChange = (name, value) => {
-    onSelect({ target: { name: name, value: value } });
+    onSelect("barangay", barangayName);
   };
 
   return (
@@ -71,7 +82,7 @@ const AddressDropdown = ({ onSelect, initialValues }) => {
           id="province"
           className="form-control"
           defaultValue="Quezon"
-          onChange={e => handleAddressChange("province", e.target.value)} // Use handleAddressChange
+          onChange={() => onSelect("province", "Quezon")}
           required
           disabled
         >
@@ -109,6 +120,7 @@ const AddressDropdown = ({ onSelect, initialValues }) => {
           value={selectedBarangay}
           onChange={handleBarangayChange}
           required
+          disabled={!selectedCity}
         >
           <option value="">Select Barangay</option>
           {barangays.map(brgy => (

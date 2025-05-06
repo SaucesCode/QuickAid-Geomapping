@@ -1,11 +1,46 @@
 // File: frontend/src/pages/Applicants.js
 import React, { useEffect, useState } from "react";
-import { api } from "../services/api";
+import { api } from "../../services/api";
 import { CSVLink } from "react-csv";
 import Modal from "react-modal";
-import AddressDropdown from "../forms/AddressDropdown";
-import MapComponent from "../components/MapComponent/MapComponent";
+import AddressDropdown from "../../forms/AddressDropdown";
+import "./Applicants.css";
+
 Modal.setAppElement("#root");
+
+const csvHeaders = [
+  { label: "ID", key: "id" },
+  { label: "First Name", key: "first_name" },
+  { label: "Middle Initial", key: "middle_initial" },
+  { label: "Last Name", key: "last_name" },
+  { label: "Suffix", key: "suffix" },
+  { label: "Contact Number", key: "contact_number" },
+  { label: "Purok", key: "purok" },
+  { label: "Barangay", key: "barangay" },
+  { label: "City/Municipality", key: "city_municipality" },
+  { label: "Province", key: "province" },
+  { label: "Birthday", key: "birthday" },
+  { label: "Gender", key: "gender" },
+  { label: "Civil Status", key: "civil_status" },
+  { label: "Occupation", key: "occupation" },
+  { label: "Monthly Income", key: "monthly_income" },
+  { label: "Valid ID", key: "valid_id_presented" },
+  { label: "Assistance Type", key: "type_of_assistance" },
+  { label: "Applicant Type", key: "applicant_type" },
+  { label: "Date Filled", key: "processed_at" },
+  { label: "Representative First Name", key: "rep_first_name" },
+  { label: "Representative Last Name", key: "rep_last_name" },
+  { label: "Representative Middle Initial", key: "rep_middle_initial" },
+  { label: "Representative Suffix", key: "rep_suffix" },
+  { label: "Representative Address", key: "rep_address" },
+  { label: "Representative Gender", key: "rep_gender" },
+  { label: "Representative Civil Status", key: "rep_civil_status" },
+  { label: "Representative Occupation", key: "rep_occupation" },
+  { label: "Representative Monthly Income", key: "rep_monthly_income" },
+  { label: "Representative Relationship to Applcaint", key: "rep_relationship" },
+
+  // Add or remove fields as needed
+];
 
 const Applicants = () => {
   const [applicants, setApplicants] = useState([]);
@@ -25,10 +60,24 @@ const Applicants = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (
+      editingApplicant?.barangay &&
+      editingApplicant?.city_municipality &&
+      editingApplicant?.province
+    ) {
+      updateCoordinates();
+    }
+  }, [
+    editingApplicant?.barangay,
+    editingApplicant?.city_municipality,
+    editingApplicant?.province,
+  ]);
 
   useEffect(() => {
     fetchApplicants();
   }, []);
+  console.log(applicants);
 
   const openEditModal = applicant => {
     setEditingApplicant({ ...applicant });
@@ -58,8 +107,25 @@ const Applicants = () => {
     if (!editingApplicant || !editingApplicant.id) return;
 
     try {
-      await api.put(`/applicants/${editingApplicant.id}/`, editingApplicant);
-      fetchApplicants();
+      // Before saving, update the coordinates first
+      const { data } = await api.post("/update_coordinates/", {
+        id: editingApplicant.id,
+        barangay: editingApplicant.barangay,
+        city_municipality: editingApplicant.city_municipality,
+        province: editingApplicant.province,
+      });
+
+      // Update local editingApplicant with new coordinates
+      const updatedApplicant = {
+        ...editingApplicant,
+        latitude: data.latitude,
+        longitude: data.longitude,
+      };
+
+      // Save the updated applicant
+      await api.put(`/applicants/${editingApplicant.id}/`, updatedApplicant);
+
+      fetchApplicants(); // Refresh the table
       closeModal();
     } catch (err) {
       console.error("Save failed:", err);
@@ -127,11 +193,16 @@ const Applicants = () => {
       <div className="actions">
         <input
           type="text"
-          placeholder="Search applicants..."
+          placeholder="🔍 Search applicants..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
         />
-        <CSVLink data={applicants} filename="applicants.csv" className="btn">
+        <CSVLink
+          data={applicants}
+          headers={csvHeaders}
+          filename="applicants.csv"
+          className="btn"
+        >
           Export CSV
         </CSVLink>
       </div>
@@ -156,7 +227,11 @@ const Applicants = () => {
                   <td>{`${applicant.first_name || ""} ${applicant.last_name || ""}`}</td>
                   <td>{applicant.barangay}</td>
                   <td>{applicant.type_of_assistance}</td>
-                  <td>{formatDate(Date(applicant.date_filled).toString().slice(0, 24))}</td>
+                  <td>
+                    {formatDate(
+                      new Date(applicant.processed_at).toLocaleString().slice(0, 24)
+                    )}
+                  </td>
                   <td>
                     <button onClick={() => openEditModal(applicant)}>Edit</button>
                     <button
@@ -238,7 +313,12 @@ const Applicants = () => {
             />
             <div className="form-group address-group full-width">
               <AddressDropdown
-                onSelect={handleChange}
+                onSelect={(field, value) => {
+                  setEditingApplicant(prev => ({
+                    ...prev,
+                    [field]: value,
+                  }));
+                }}
                 initialValues={{
                   province: editingApplicant.province,
                   city_municipality: editingApplicant.city_municipality,
@@ -247,7 +327,6 @@ const Applicants = () => {
                 }}
               />
             </div>
-
             <input
               name="type_of_assistance"
               placeholder="Type of Assistance"

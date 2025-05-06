@@ -55,9 +55,9 @@ const Navbar: React.FC = () => {
             <a href="#mission" className="text-gray-600 hover:text-blue-600 transition-colors">
               Mission
             </a>
-            {/* <div className="staff-login">
+            <div className="staff-login">
               <button onClick={() => alert("Desktop button clicked!")}>Staff Login</button>
-            </div> */}
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
