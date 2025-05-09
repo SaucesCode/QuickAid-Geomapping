@@ -25,8 +25,9 @@ erDiagram
         DECIMAL monthly_income
         BOOLEAN valid_id_presented
         VARCHAR type_of_assistance
-        VARCHAR address
-        VARCHAR barangay_id FK "barangay_id (FK)"
+        VARCHAR purok
+        VARCHAR barangay "barangay (address)"
+        VARCHAR province "province (address)"
     }
 
     Representative {
@@ -56,5 +57,9 @@ erDiagram
 
     Staff ||--|{ Application : "processes"
     Applicant ||--o{ Representative : "has zero or one"
-    Application ||--|{ Applicant : "is for"
-    Applicant }|--|| Barangay : "assigned to"
+    Applicant ||--|{ Application : "submits"
+
+    %% Note: Relationship between Applicant and Barangay is based on
+    %% address attributes in Applicant entity, not a formal FK link.
+    %% The Barangay entity exists separately but is not directly linked
+    %% to Applicant in this schema based on user constraint.
