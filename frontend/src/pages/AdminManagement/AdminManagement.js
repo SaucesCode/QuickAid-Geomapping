@@ -26,6 +26,7 @@ const AdminManagement = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
+      console.log("Staff list:", data);
       setStaffList(data);
     } catch (error) {
       setMessage("Error loading staff list");
@@ -77,6 +78,17 @@ const AdminManagement = () => {
       setMessage("❌ Failed to delete staff");
     }
   };
+  const getStatusBadge = lastActive => {
+    if (!lastActive) return "🔴 Offline";
+
+    const last = new Date(lastActive);
+    const now = new Date();
+    const diff = (now - last) / 1000;
+
+    if (diff < 60) return "🟢 Online";
+    if (diff < 300) return "🟡 Idle";
+    return "🔴 Offline";
+  };
 
   return (
     <div className="admin-management">
@@ -88,6 +100,7 @@ const AdminManagement = () => {
       <table>
         <thead>
           <tr>
+            <th>Status</th>
             <th>Username</th>
             <th>Full Name</th>
             <th>Email</th>
@@ -97,6 +110,8 @@ const AdminManagement = () => {
         <tbody>
           {staffList.map(staff => (
             <tr key={staff.id}>
+              <td>{getStatusBadge(staff.last_active)}</td>
+
               <td>{staff.username}</td>
               <td>
                 {staff.first_name} {staff.last_name}

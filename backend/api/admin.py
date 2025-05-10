@@ -4,7 +4,7 @@ from .models import Applicant, CustomUser, Representative
 
 class ApplicantAdmin(admin.ModelAdmin):
     list_display = (
-        "staff", "first_name", "last_name", 
+        "id", "staff", "first_name", "last_name", 
         "barangay", "city_municipality", "province", 
         "type_of_assistance", "date_filled"
     )

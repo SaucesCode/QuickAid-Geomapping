@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Step1 from "./Step1";
 import Step2 from "./Step2";
 import Step3 from "./Step3";
+import PreviewStep from "./PreviewStep";
 import "./MultiStepForm.css";
 import { NavLink } from "react-router-dom";
 
@@ -45,8 +46,53 @@ const MultiStepForm = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const nextStep = () => setStep(prev => prev + 1);
+  const nextStep = () => {
+    const requiredFields = {
+      1: ["first_name", "middle_initial", "last_name", "contact_number"],
+      2: [
+        "purok",
+        "barangay",
+        "city_municipality",
+        "province",
+        "birthday",
+        "gender",
+        "civil_status",
+        "occupation",
+        "monthly_income",
+      ],
+      3: ["valid_id_presented", "type_of_assistance"],
+    };
+
+    if (step === 3 && formData.applicant_type === "Representative") {
+      requiredFields[3].push(
+        "rep_first_name",
+        "rep_last_name",
+        "rep_address",
+        "rep_birthday",
+        "rep_gender",
+        "rep_civil_status",
+        "rep_relationship"
+      );
+    }
+
+    const missingFields = requiredFields[step]?.filter(field => !formData[field]?.trim());
+
+    if (missingFields.length > 0) {
+      alert("Please fill in all required fields before continuing.");
+      return;
+    }
+
+    setStep(prev => prev + 1);
+  };
+
   const prevStep = () => setStep(prev => prev - 1);
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [step]);
 
   return (
     <div className="form-container">
@@ -54,6 +100,7 @@ const MultiStepForm = () => {
         <div className={`step ${step >= 1 ? "active" : ""}`}>1</div>
         <div className={`step ${step >= 2 ? "active" : ""}`}>2</div>
         <div className={`step ${step >= 3 ? "active" : ""}`}>3</div>
+        <div className={`step ${step >= 4 ? "active" : ""}`}>4</div>
       </div>
 
       <div className="step-content">
@@ -69,7 +116,15 @@ const MultiStepForm = () => {
           />
         )}
         {step === 3 && (
-          <Step3 formData={formData} handleChange={handleChange} prevStep={prevStep} />
+          <Step3
+            formData={formData}
+            handleChange={handleChange}
+            prevStep={prevStep}
+            nextStep={nextStep}
+          />
+        )}
+        {step === 4 && (
+          <PreviewStep formData={formData} handleChange={handleChange} prevStep={prevStep} />
         )}
       </div>
       <NavLink className="close-btn" to={"/register-applicant"}>

@@ -17,7 +17,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
-GOOGLE_MAPS_API_KEY = 'AIzaSyAE84E5M0Qnb0ZI4erRXfgFACfR1ZfzabA'
+# GOOGLE_MAPS_API_KEY = 'AIzaSyAE84E5M0Qnb0ZI4erRXfgFACfR1ZfzabA'
 
 # Application definition
 
@@ -44,6 +44,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'api.middleware.UpdateLastActiveMiddleware',
 ]
 
 

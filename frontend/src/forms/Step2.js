@@ -1,6 +1,6 @@
 import React from "react";
 import AddressDropdown from "./AddressDropdown";
-import "./MultiStepForm.css";
+import "./Steps.css";
 
 const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
   // This function will be passed to the AddressDropdown component
@@ -141,7 +141,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
           Back to Personal Info
         </button>
         <button type="button" className="next-btn" onClick={nextStep}>
-          Continue to Final Step
+          Continue to Assistance Type
           <span className="btn-icon">→</span>
         </button>
       </div>

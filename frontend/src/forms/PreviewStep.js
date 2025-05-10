@@ -1,0 +1,222 @@
+import React, { useState } from "react";
+import "./PreviewStep.css";
+import { useNavigate } from "react-router-dom";
+
+const PreviewStep = ({ formData, prevStep, nextStep }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // Get token from storage
+      const token = localStorage.getItem("accessToken");
+
+      // Make API request
+      const response = await fetch("http://127.0.0.1:8000/api/submit-applicant/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Server responded with an error");
+      }
+
+      const data = await response.json();
+      console.log("Response:", data);
+      navigate("/print", { state: { applicant: data } });
+      setSubmitSuccess(true);
+      setTimeout(() => {
+        alert("Applicant registered successfully!");
+      }, 500);
+    } catch (error) {
+      console.error("Submission Error:", error);
+      alert("Error submitting applicant. Please try again.");
+      console.log("Submitting data:", formData);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getFullName = () => {
+    let name = formData.first_name;
+    if (formData.middle_initial) name += ` ${formData.middle_initial}.`;
+    name += ` ${formData.last_name}`;
+    if (formData.suffix) name += ` ${formData.suffix}`;
+    return name;
+  };
+
+  const getFullAddress = () => {
+    return `${formData.purok}, ${formData.barangay}, ${formData.city_municipality}, ${formData.province}`;
+  };
+
+  return (
+    <div className="preview-step">
+      <div className="preview-header">
+        <h2>Review Applicant Details</h2>
+        <p>Please verify all information before submitting</p>
+      </div>
+
+      <div className="preview-content">
+        <div className="section-title">Personal Information</div>
+        <div className="preview-section">
+          <div className="info-group">
+            <div className="info-label">Full Name</div>
+            <div className="info-value">{getFullName()}</div>
+          </div>
+
+          <div className="info-group">
+            <div className="info-label">Birthday</div>
+            <div className="info-value">{formData.birthday}</div>
+          </div>
+
+          <div className="info-group">
+            <div className="info-label">Gender</div>
+            <div className="info-value">{formData.gender}</div>
+          </div>
+
+          <div className="info-group">
+            <div className="info-label">Civil Status</div>
+            <div className="info-value">{formData.civil_status}</div>
+          </div>
+        </div>
+
+        <div className="section-divider"></div>
+
+        <div className="section-title">Contact Information</div>
+        <div className="preview-section">
+          <div className="info-group">
+            <div className="info-label">Contact Number</div>
+            <div className="info-value">{formData.contact_number}</div>
+          </div>
+
+          <div className="info-group">
+            <div className="info-label">Address</div>
+            <div className="info-value">{getFullAddress()}</div>
+          </div>
+        </div>
+
+        <div className="section-divider"></div>
+
+        <div className="section-title">Financial Information</div>
+        <div className="preview-section">
+          <div className="info-group">
+            <div className="info-label">Occupation</div>
+            <div className="info-value">{formData.occupation}</div>
+          </div>
+
+          <div className="info-group">
+            <div className="info-label">Monthly Income</div>
+            <div className="info-value">₱{formData.montly_income}</div>
+          </div>
+        </div>
+
+        <div className="section-divider"></div>
+
+        <div className="section-title">Application Details</div>
+        <div className="preview-section">
+          <div className="info-group">
+            <div className="info-label">Valid ID Presented</div>
+            <div className="info-value">{formData.valid_id_presented}</div>
+          </div>
+
+          <div className="info-group">
+            <div className="info-label">Applicant Type</div>
+            <div className="info-value">{formData.applicant_type}</div>
+          </div>
+
+          <div className="info-group">
+            <div className="info-label">Assistance Type</div>
+            <div className="info-value">{formData.type_of_assistance}</div>
+          </div>
+        </div>
+
+        {formData.applicant_type === "Representative" && (
+          <>
+            <div className="section-divider"></div>
+            <div className="section-title">Representative Information</div>
+            <div className="preview-section">
+              <div className="info-group">
+                <div className="info-label">Representative Name</div>
+                <div className="info-value">
+                  {formData.rep_first_name}{" "}
+                  {formData.rep_middle_initial && `${formData.rep_middle_initial}.`}{" "}
+                  {formData.rep_last_name} {formData.rep_suffix}
+                </div>
+              </div>
+
+              <div className="info-group">
+                <div className="info-label">Representative Address</div>
+                <div className="info-value">{formData.rep_address}</div>
+              </div>
+
+              <div className="info-group">
+                <div className="info-label">Representative Birthday</div>
+                <div className="info-value">{formData.rep_birthday}</div>
+              </div>
+
+              <div className="info-group">
+                <div className="info-label">Representative Gender</div>
+                <div className="info-value">{formData.rep_gender}</div>
+              </div>
+
+              <div className="info-group">
+                <div className="info-label">Representative Civil Status</div>
+                <div className="info-value">{formData.rep_civil_status}</div>
+              </div>
+
+              <div className="info-group">
+                <div className="info-label">Representative Occupation</div>
+                <div className="info-value">{formData.rep_occupation}</div>
+              </div>
+
+              <div className="info-group">
+                <div className="info-label">Representative Monthly Income</div>
+                <div className="info-value">₱{formData.rep_monthly_income}</div>
+              </div>
+
+              <div className="info-group">
+                <div className="info-label">Relationship to Applicant</div>
+                <div className="info-value">{formData.rep_relationship}</div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="preview-actions">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="btn back-btn"
+          disabled={isSubmitting}
+        >
+          <span className="btn-icon">←</span> Back
+        </button>
+        <button
+          type="submit"
+          onClick={handleSubmit}
+          className={`btn submit-btn ${isSubmitting ? "submitting" : ""} ${
+            submitSuccess ? "success" : ""
+          }`}
+          disabled={isSubmitting}
+        >
+          {isSubmitting
+            ? "Submitting..."
+            : submitSuccess
+            ? "Submitted ✓"
+            : "Submit Application"}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default PreviewStep;
