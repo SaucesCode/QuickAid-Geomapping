@@ -3,7 +3,6 @@ from django.db import models
 from django.conf import settings
 # from geopy.geocoders import Nominatim
 from opencage.geocoder import OpenCageGeocode
-import random
 
 OPENCAGE_API_KEY = "97bff458c2874bbdb716af30af9607cc" 
 
@@ -14,6 +13,7 @@ class CustomUser(AbstractUser):
         ('admin', 'Admin'),
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='staff')
+    last_active = models.DateTimeField(null=True, blank=True)
 
 class Applicant(models.Model):
     ASSISTANCE_TYPES = [

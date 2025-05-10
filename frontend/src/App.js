@@ -18,6 +18,9 @@ import BeneficiariesSection from "./components/Sections/BeneficiariesSection";
 import "./index.css";
 import Footer from "./components/LandingPage/Footer";
 import MultiStepForm from "./forms/MultiStepForm";
+import PrintPage from "./forms/PrintPage";
+import PrintPagebyID from "./forms/PrintPagebyID";
+import SettingsPage from "./pages/SettingsPage/SettingsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -44,6 +47,8 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/new-applicant" element={<MultiStepForm />} />
+        <Route path="/print" element={<PrintPage />} />
+        <Route path="/print/applicants/:id" element={<PrintPagebyID />} />
 
         <Route
           path="/"
@@ -66,6 +71,7 @@ function App() {
           <Route path="admin-management" element={<AdminManagement />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="applicants" element={<Applicants />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </div>

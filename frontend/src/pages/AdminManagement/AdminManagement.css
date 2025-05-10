@@ -159,6 +159,14 @@ td:nth-last-child(2) {
   width: 1%;
 }
 
+.status-online {
+  color: green;
+  font-weight: bold;
+}
+.status-offline {
+  color: gray;
+}
+
 /* Modal Styles */
 .modal {
   position: fixed;

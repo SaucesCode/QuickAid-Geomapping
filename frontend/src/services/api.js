@@ -66,7 +66,6 @@ export const loginStaff = async (username, password) => {
 
       storeTokens(access, refresh);
 
-      // Store user object in localStorage
       localStorage.setItem("userData", JSON.stringify(user));
 
       return response.data;

@@ -1,5 +1,5 @@
 import React from "react";
-import "./MultiStepForm.css";
+import "./Steps.css";
 
 const Step1 = ({ formData, handleChange, nextStep }) => {
   return (

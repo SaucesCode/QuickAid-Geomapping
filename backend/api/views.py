@@ -56,7 +56,7 @@ def register_staff(request):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def list_staff(request):
-    staff_users = User.objects.filter(is_staff=True).values('id', 'username', 'first_name', 'last_name', 'email')
+    staff_users = User.objects.filter(is_staff=True).values('id', 'username', 'first_name', 'last_name', 'email', 'last_active').order_by('last_active')
     return Response(list(staff_users))
 
 # LIST APPLICANTS
