@@ -23,6 +23,8 @@ const Sidebar = () => {
         return "Applicants";
       case "/analytics":
         return "Analytics";
+      case "/archived-applicants":
+        return "Archived Applicants";
       case "/admin-management":
         return "Admin Management";
       case "/settings":
@@ -69,6 +71,13 @@ const Sidebar = () => {
               {!collapsed && <span className="link-text">Analytics</span>}
             </NavLink>
           )}
+          <NavLink
+            to="/archived-applicants"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
+            <span className="icon">🗂️</span>
+            {!collapsed && <span className="link-text">Archived</span>}
+          </NavLink>
 
           {user && user.is_superuser && (
             <NavLink

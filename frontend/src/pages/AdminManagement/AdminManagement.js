@@ -170,17 +170,14 @@ const AdminManagement = () => {
               <button
                 onClick={async () => {
                   try {
-                    const res = await fetch(
-                      `http://127.0.0.1:8000/api/update-staff/${editData.id}/`,
-                      {
-                        method: "PUT",
-                        headers: {
-                          "Content-Type": "application/json",
-                          Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify(editData),
-                      }
-                    );
+                    const res = await fetch(`${API_URL}/update-staff/${editData.id}/`, {
+                      method: "PUT",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify(editData),
+                    });
                     const data = await res.json();
                     if (res.ok) {
                       setMessage("✅ Staff updated!");

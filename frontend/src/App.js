@@ -20,6 +20,7 @@ import Footer from "./components/LandingPage/Footer";
 import MultiStepForm from "./forms/MultiStepForm";
 import PrintPage from "./forms/PrintPage";
 import PrintPagebyID from "./forms/PrintPagebyID";
+import ArchiveApplicants from "./pages/Archive/ArchiveApplicants";
 import SettingsPage from "./pages/SettingsPage/SettingsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -71,7 +72,8 @@ function App() {
           <Route path="admin-management" element={<AdminManagement />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="applicants" element={<Applicants />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="archived-applicants" element={<ArchiveApplicants />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </div>

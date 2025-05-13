@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./SettingsPage.css";
+import { API_URL } from "../../services/api";
 
 const SettingsPage = () => {
   const storedUser = localStorage.getItem("userData");
   const [user, setUser] = useState(null);
-  const [activeSection, setActiveSection] = useState("profile"); // Default active section
+  const [activeSection, setActiveSection] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
@@ -85,10 +86,30 @@ const SettingsPage = () => {
     ? [...settingOptions, ...adminSettingOptions]
     : settingOptions;
 
-  const handleSave = () => {
-    // Simulate saving user data
-    console.log("Saving user data:", editedUser);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch(`${API_URL}/users/${user.id}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editedUser),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update user");
+      }
+
+      const updatedUser = await response.json();
+      setUser(updatedUser);
+      localStorage.setItem("userData", JSON.stringify(updatedUser));
+      setIsEditing(false);
+      console.log("User updated successfully:", updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
   };
 
   const handlePasswordChange = () => {

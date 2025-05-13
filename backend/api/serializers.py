@@ -12,7 +12,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['role'] = user.role
         token['is_superuser'] = user.is_superuser
         token['is_staff'] = user.is_staff
-        token['last_active'] = user.last_active.isoformat() if user.last_active else Non
+        token['last_active'] = user.last_active.isoformat() if user.last_active else None,
         return token
 
     def validate(self, attrs):
