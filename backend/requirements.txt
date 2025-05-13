@@ -13,3 +13,4 @@ quickaid_update
 opencage
 my-website
 django
+corsheaders
