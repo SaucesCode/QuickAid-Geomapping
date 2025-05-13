@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./PreviewStep.css";
 import { useNavigate } from "react-router-dom";
+import API_URL from "../services/api";
 
 const PreviewStep = ({ formData, prevStep, nextStep }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,7 +17,7 @@ const PreviewStep = ({ formData, prevStep, nextStep }) => {
       const token = localStorage.getItem("accessToken");
 
       // Make API request
-      const response = await fetch("http://127.0.0.1:8000/api/submit-applicant/", {
+      const response = await fetch(`${API_URL}/api/submit-applicant/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
