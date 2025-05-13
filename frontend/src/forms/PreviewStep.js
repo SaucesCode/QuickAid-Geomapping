@@ -31,7 +31,6 @@ const PreviewStep = ({ formData, prevStep, nextStep }) => {
       }
 
       const data = await response.json();
-      console.log("Response:", data);
       navigate("/print", { state: { applicant: data } });
       setSubmitSuccess(true);
       setTimeout(() => {
@@ -40,7 +39,6 @@ const PreviewStep = ({ formData, prevStep, nextStep }) => {
     } catch (error) {
       console.error("Submission Error:", error);
       alert("Error submitting applicant. Please try again.");
-      console.log("Submitting data:", formData);
     } finally {
       setIsSubmitting(false);
     }

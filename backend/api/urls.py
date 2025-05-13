@@ -18,6 +18,8 @@ urlpatterns = [
     path('applicants/', list_applicants, name='applicants'),
     path('recent_applicants/', recent_applicants, name='recent_applicants'),
     path('applicants/<int:applicant_id>/', applicant_detail, name='applicant_detail'),
+    path('list-archived-applicants/', list_archived_applicants, name='list_archived_applicants'),
+    path('restore-applicant/<int:pk>/', restore_archived_applicant, name='restore_applicant'),
     path('update_coordinates/', update_coordinates, name='update_coordinates'),
 
     # Protected API Route (Only Authenticated Staff)

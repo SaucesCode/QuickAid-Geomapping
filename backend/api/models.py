@@ -69,6 +69,7 @@ class Applicant(models.Model):
     date_filled = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(null=True, blank=True)
     processed_at = models.DateTimeField(null=True, blank=True)
+    is_archived = models.BooleanField(default=False)
 
 
     def save(self, *args, **kwargs):

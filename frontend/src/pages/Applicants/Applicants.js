@@ -25,17 +25,6 @@ const csvHeaders = [
   { label: "Assistance Type", key: "type_of_assistance" },
   { label: "Applicant Type", key: "applicant_type" },
   { label: "Date Filled", key: "processed_at" },
-  { label: "Representative First Name", key: "rep_first_name" },
-  { label: "Representative Last Name", key: "rep_last_name" },
-  { label: "Representative Middle Initial", key: "rep_middle_initial" },
-  { label: "Representative Suffix", key: "rep_suffix" },
-  { label: "Representative Address", key: "rep_address" },
-  { label: "Representative Gender", key: "rep_gender" },
-  { label: "Representative Civil Status", key: "rep_civil_status" },
-  { label: "Representative Occupation", key: "rep_occupation" },
-  { label: "Representative Monthly Income", key: "rep_monthly_income" },
-  { label: "Representative Relationship to Applcaint", key: "rep_relationship" },
-  // Add or remove fields as needed
 ];
 
 const Applicants = () => {
@@ -113,7 +102,7 @@ const Applicants = () => {
     document.body.classList.remove("dialog-open");
   };
 
-  const handleDelete = async applicant_id => {
+  const handleArchive = async applicant_id => {
     if (!window.confirm("Are you sure you want to delete this applicant?")) return;
 
     try {
@@ -262,7 +251,7 @@ const Applicants = () => {
                   </td>
                   <td>
                     <button onClick={() => openEditView(applicant)}>Edit</button>
-                    <button onClick={() => handleDelete(applicant.id)}>Delete</button>
+                    <button onClick={() => handleArchive(applicant.id)}>Archive</button>
                     <button onClick={() => goPrintPage(applicant)}>Print</button>
                   </td>
                 </tr>
@@ -282,9 +271,6 @@ const Applicants = () => {
           <div className="dialog preview-dialog">
             <div className="dialog-header">
               <h2>Applicant Preview</h2>
-              <button className="close-btn" onClick={closePreviewView}>
-                &times;
-              </button>
             </div>
             <div className="dialog-content">
               {previewApplicant && (
@@ -370,9 +356,6 @@ const Applicants = () => {
               <>
                 <div className="dialog-header">
                   <h2>Edit Applicant</h2>
-                  <button className="close-btn" onClick={closeEditView}>
-                    &times;
-                  </button>
                 </div>
                 <div className="dialog-content">
                   <form id="edit-applicant-form" onSubmit={handleSave}>

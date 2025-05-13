@@ -71,7 +71,7 @@ def recent_applicants(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_applicants(request):
-    applicants = Applicant.objects.all().order_by('-date_filled')
+    applicants = Applicant.objects.filter(is_archived=False).order_by('-date_filled')
     serializer = ApplicantSerializer(applicants, many=True)
     return Response(serializer.data)
 
@@ -103,9 +103,27 @@ def applicant_detail(request, applicant_id):
         return Response(serializer.errors, status=400)
 
     elif request.method == 'DELETE':
-        applicant.delete()
-        return Response({'message': 'Applicant deleted successfully'})
+        applicant.is_archived = True
+        applicant.save()
+        return Response({"message": "Applicant archived successfully"})
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_archived_applicants(request):
+    applicants = Applicant.objects.filter(is_archived=True)
+    serializer = ApplicantSerializer(applicants, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def restore_archived_applicant(request, pk):
+    try:
+        applicant = Applicant.objects.get(pk=pk)
+        applicant.is_archived = False
+        applicant.save()
+        return Response({"message": "Applicant restored successfully"})
+    except Applicant.DoesNotExist:
+        return Response({"error": "Applicant not found"}, status=404)
 
 # EDIT STAFF INFO
 @api_view(['PUT'])

@@ -22,13 +22,6 @@ const AddressDropdown = ({ onSelect, initialValues }) => {
     }
   }, [initialValues?.city_municipalityCode]);
 
-  // Log for debugging - remove in production
-  useEffect(() => {
-    console.log("Selected City:", selectedCity);
-    console.log("Selected Barangay:", selectedBarangay);
-    console.log("values:", initialValues);
-  }, [selectedCity, selectedBarangay, initialValues]);
-
   const fetchBarangays = async code => {
     try {
       const response = await fetch(
