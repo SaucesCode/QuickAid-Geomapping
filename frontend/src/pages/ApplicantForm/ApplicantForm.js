@@ -6,6 +6,13 @@ const ApplicantForm = () => {
   const [applicants, setApplicants] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    document.title = "Quickaid | Applicant Form";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
   const fetchApplicants = async () => {
     try {
       const token = localStorage.getItem("accessToken");

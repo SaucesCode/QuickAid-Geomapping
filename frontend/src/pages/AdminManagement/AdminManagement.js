@@ -15,6 +15,13 @@ const AdminManagement = () => {
   const [editData, setEditData] = useState(null);
   const token = localStorage.getItem("accessToken");
 
+  useEffect(() => {
+    document.title = "Quickaid | Admin Management";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
   // Fetch all staff on load
   useEffect(() => {
     fetchStaff();

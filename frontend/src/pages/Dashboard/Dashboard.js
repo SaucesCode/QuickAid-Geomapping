@@ -30,6 +30,13 @@ const Dashboard = () => {
   const [topBarangays, setTopBarangays] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    document.title = "Quickaid | Dashboard";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
@@ -38,7 +45,7 @@ const Dashboard = () => {
           api.get("/analytics/total-applicants/"),
           api.get("/analytics/average-processing-time/"),
           api.get("/analytics/staff-activity/"),
-          api.get("/applicants/?limit=5&ordering=-date_filled"),
+          api.get("/recent_applicants/"),
           api.get("/analytics/applicants-by-assistance-type/"),
           api.get("/analytics/trends-over-time/"),
           api.get("/analytics/top-barangays/"),

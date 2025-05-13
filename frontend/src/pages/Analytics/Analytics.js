@@ -41,6 +41,13 @@ const Analytics = () => {
   const formatDate = date => date?.toISOString().split("T")[0] ?? null;
 
   useEffect(() => {
+    document.title = "Quickaid | Analytics";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       const params = {}; // Params for date/type filtered endpoints

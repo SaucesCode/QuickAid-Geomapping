@@ -60,7 +60,7 @@ const Navbar: React.FC = () => {
                 className="login-button bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition-colors"
                 onClick={() => navigate("/login")}
               >
-                Staff Login
+                Login
               </button>
             </div>
           </div>
@@ -122,7 +122,7 @@ const Navbar: React.FC = () => {
                 className="w-full text-left px-3 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                Staff Login
+                Login
               </button>
             </div>
           </div>

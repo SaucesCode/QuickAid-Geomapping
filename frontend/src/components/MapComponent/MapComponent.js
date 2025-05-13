@@ -26,6 +26,13 @@ const MapComponent = ({ province, city, barangay, applicantName }) => {
   const assistanceTypes = ["Medical", "Burial", "Educational"];
   const cities = ["Lucena City", "Sariaya", "Candelaria", "Tiaong", "San Antonio", "Dolores"];
 
+  useEffect(() => {
+    document.title = "Quickaid | Geolocation Map";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
   const fetchLocations = async () => {
     setLoading(true);
     try {

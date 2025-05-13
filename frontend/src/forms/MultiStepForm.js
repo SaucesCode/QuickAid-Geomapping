@@ -40,6 +40,12 @@ const MultiStepForm = () => {
     type_of_assistance: "",
     started_at: new Date().toISOString(),
   });
+  useEffect(() => {
+    document.title = "Quickaid | New Applicant";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
 
   const handleChange = e => {
     const { name, value } = e.target;

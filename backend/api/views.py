@@ -59,11 +59,26 @@ def list_staff(request):
     staff_users = User.objects.filter(is_staff=True).values('id', 'username', 'first_name', 'last_name', 'email', 'last_active').order_by('last_active')
     return Response(list(staff_users))
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def recent_applicants(request):
+    applicants = Applicant.objects.all().order_by('-date_filled')[:5]
+    serializer = ApplicantSerializer(applicants, many=True)
+    return Response(serializer.data)
+
+
 # LIST APPLICANTS
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_applicants(request):
     applicants = Applicant.objects.all().order_by('-date_filled')
+    serializer = ApplicantSerializer(applicants, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def recent_applicants(request):
+    applicants = Applicant.objects.all().order_by('-date_filled')[:5]
     serializer = ApplicantSerializer(applicants, many=True)
     return Response(serializer.data)
 
