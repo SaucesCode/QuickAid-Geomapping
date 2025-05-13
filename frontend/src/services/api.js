@@ -3,6 +3,7 @@ import { jwtDecode } from "jwt-decode";
 
 export const API_URL = "https://quickaidmap.pythonanywhere.com/api"; // Django backend URL
 
+
 // ✅ Function to store tokens in localStorage
 const storeTokens = (access, refresh) => {
   localStorage.setItem("accessToken", access);
