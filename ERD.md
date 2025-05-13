@@ -3,57 +3,63 @@
 
 ```mermaid
 erDiagram
-    staff {
-        integer id PK
-        varchar username
-        varchar email
-        varchar password
-        varchar role
-        timestamp created_at
-    }
-    applicants {
-        integer id PK
-        integer staff_id FK
-        varchar first_name
-        varchar middle_initial
-        varchar last_name
-        varchar suffix
-        date birthday
-        varchar gender
-        varchar civil_status
-        varchar occupation
-        numeric monthly_income
-        varchar contact_number
-        varchar purok
-        varchar barangay
-        varchar city_municipality
-        varchar city_municipalityCode
-        varchar province
-        double latitude
-        double longitude
-        varchar valid_id_presented
-        varchar other_valid_id
-        varchar type_of_assistance
-        varchar applicant_type
-        timestamp date_filled
-        timestamp started_at
-        timestamp processed_at
-    }
-    representatives {
-        integer id PK
-        integer applicant_id FK
-        varchar first_name
-        varchar middle_initial
-        varchar last_name
-        varchar suffix
-        text address
-        date birthday
-        varchar gender
-        varchar civil_status
-        varchar occupation
-        numeric monthly_income
-        varchar relationship
+    Staff {
+        VARCHAR staff_id PK "staff_id (PK)"
+        VARCHAR username
+        VARCHAR password
+        VARCHAR first_name
+        VARCHAR last_name
+        VARCHAR email
+        VARCHAR role
     }
 
-    staff ||--o{ applicants : handles
-    applicants ||--o{ representatives : represents
+    Applicant {
+        VARCHAR applicant_id PK "applicant_id (PK)"
+        VARCHAR first_name
+        VARCHAR last_name
+        VARCHAR middle_initial
+        DATE birthday
+        VARCHAR gender
+        VARCHAR civil_status
+        VARCHAR occupation
+        DECIMAL monthly_income
+        BOOLEAN valid_id_presented
+        VARCHAR type_of_assistance
+        VARCHAR purok
+        VARCHAR barangay "barangay (address)"
+        VARCHAR province "province (address)"
+    }
+
+    Representative {
+        VARCHAR rep_id PK "rep_id (PK)"
+        VARCHAR first_name
+        VARCHAR last_name
+        DATE birthday
+        VARCHAR gender
+        VARCHAR relationship_to_applicant
+        VARCHAR address
+        VARCHAR applicant_id FK "applicant_id (FK)"
+    }
+
+    Application {
+        VARCHAR application_id PK "application_id (PK)"
+        DATETIME processed_at
+        VARCHAR applicant_id FK "applicant_id (FK)"
+        VARCHAR staff_id FK "staff_id (FK)"
+    }
+
+    Barangay {
+        VARCHAR barangay_id PK "barangay_id (PK)"
+        VARCHAR name
+        VARCHAR city
+        VARCHAR province
+    }
+
+    Staff ||--|{ Application : "processes"
+    Applicant ||--o{ Representative : "has zero or one"
+    Applicant ||--|{ Application : "submits"
+
+    %% Note: Relationship between Applicant and Barangay is based on
+    %% address attributes in Applicant entity, not a formal FK link.
+    %% The Barangay entity exists separately but is not directly linked
+    %% to Applicant in this schema based on user constraint.
