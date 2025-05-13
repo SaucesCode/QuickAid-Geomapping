@@ -47,6 +47,13 @@ const Applicants = () => {
   const [previewView, setPreviewView] = useState(false);
   const [previewApplicant, setPreviewApplicant] = useState(null);
 
+  useEffect(() => {
+    document.title = "Quickaid | Applicants";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
   const fetchApplicants = async () => {
     setLoading(true);
     try {

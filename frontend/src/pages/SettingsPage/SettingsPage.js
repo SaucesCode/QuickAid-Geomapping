@@ -40,6 +40,13 @@ const SettingsPage = () => {
   ];
 
   useEffect(() => {
+    document.title = "Quickaid | Settings";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
+  useEffect(() => {
     try {
       if (storedUser) {
         const parsed = JSON.parse(storedUser);

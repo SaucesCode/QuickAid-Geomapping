@@ -31,7 +31,7 @@ function App() {
           path="/"
           element={
             <>
-              <Navbar />
+              {/* <Navbar /> */}
               <main>
                 <HeroSection />
                 <ChallengesSection />
