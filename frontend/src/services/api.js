@@ -1,7 +1,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-const API_URL = "https://quickaidmap.pythonanywhere.com/api"; // Django backend URL
+const API_URL = "https://quickaidmap.pythonanywhere.com"; // Django backend URL
 
 // ✅ Function to store tokens in localStorage
 const storeTokens = (access, refresh) => {
