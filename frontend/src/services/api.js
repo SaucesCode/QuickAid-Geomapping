@@ -1,7 +1,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-const API_URL = "http://127.0.0.1:8000/api"; // Django backend URL
+export const API_URL = "http://127.0.0.1:8000/api"; // Django backend URL
 
 // ✅ Function to store tokens in localStorage
 const storeTokens = (access, refresh) => {

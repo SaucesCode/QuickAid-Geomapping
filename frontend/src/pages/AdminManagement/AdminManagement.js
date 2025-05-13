@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./AdminManagement.css"; // Add styles if needed
+import { API_URL } from "../../services/api";
 
 const AdminManagement = () => {
   const [staffList, setStaffList] = useState([]);
@@ -29,7 +30,7 @@ const AdminManagement = () => {
 
   const fetchStaff = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/staff-list/", {
+      const res = await fetch(`${API_URL}/staff-list/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -46,7 +47,7 @@ const AdminManagement = () => {
 
   const handleSubmit = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/register_staff/", {
+      const res = await fetch(`${API_URL}/register_staff/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -73,7 +74,7 @@ const AdminManagement = () => {
     if (!window.confirm("Are you sure you want to delete this staff?")) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/delete-staff/${id}/`, {
+      const res = await fetch(`${API_URL}/delete-staff/${id}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

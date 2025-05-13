@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
+import { API_URL } from "../../services/api";
 
 const defaultCenter = [13.938, 121.508];
 
@@ -36,7 +37,7 @@ const MapComponent = ({ province, city, barangay, applicantName }) => {
   const fetchLocations = async () => {
     setLoading(true);
     try {
-      let url = "http://127.0.0.1:8000/api/applicant-locations/";
+      let url = `${API_URL}/applicant-locations/`;
       const params = new URLSearchParams();
       if (typeFilter) params.append("type", typeFilter);
       if (cityFilter) params.append("city", cityFilter);

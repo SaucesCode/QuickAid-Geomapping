@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./ApplicationForm.css";
 import { NavLink } from "react-router-dom";
+import { API_URL } from "../../services/api";
 
 const ApplicantForm = () => {
   const [applicants, setApplicants] = useState([]);
@@ -16,7 +17,7 @@ const ApplicantForm = () => {
   const fetchApplicants = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await fetch("http://127.0.0.1:8000/api/applicants/", {
+      const response = await fetch(`${API_URL}/applicants/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
