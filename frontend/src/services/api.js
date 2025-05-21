@@ -1,8 +1,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-export const API_URL = "https://quickaidmap.pythonanywhere.com/api"; // Django backend URL
-
+export const API_URL = "http://127.0.0.1:8000/api"; // Django backend URL
 
 // ✅ Function to store tokens in localStorage
 const storeTokens = (access, refresh) => {
@@ -112,43 +111,49 @@ export const submitApplicant = async data => {
       if (!token) throw new Error("No authentication token found");
     }
 
-    // Base payload
-    const payload = {
+    // Prepare background_info block
+    const background_info = {
       first_name: data.first_name,
       middle_initial: data.middle_initial,
       last_name: data.last_name,
       suffix: data.suffix,
-      contact_number: data.contact_number,
-      purok: data.purok,
-      barangay: data.barangay,
-      city_municipality: data.city_municipality,
-      province: data.province,
       birthday: data.birthday,
-      gender: data.gender,
+      street_address: data.street_address,
+      barangay: data.barangay,
+      sex: data.sex,
       civil_status: data.civil_status,
       occupation: data.occupation,
       monthly_income: data.monthly_income,
-      valid_id_presented: data.valid_id_presented,
-      type_of_assistance: data.type_of_assistance,
-      applicant_type: data.applicant_type || "Self", // Add this
-      processed_at: data.processed_at,
     };
 
-    // If representative, add rep-specific fields
+    const payload = {
+      background_info,
+      contact_number: data.contact_number,
+      valid_id_presented: data.valid_id_presented,
+      other_valid_id: data.other_valid_id || null,
+      applicant_type: data.applicant_type || "Self",
+      type_of_assistance: data.type_of_assistance,
+      date_filled: data.date_filled,
+    };
+
+    // Add representative data if needed
     if (data.applicant_type === "Representative") {
-      Object.assign(payload, {
-        rep_first_name: data.rep_first_name,
-        rep_middle_initial: data.rep_middle_initial,
-        rep_last_name: data.rep_last_name,
-        rep_suffix: data.rep_suffix,
-        rep_address: data.rep_address,
-        rep_birthday: data.rep_birthday,
-        rep_gender: data.rep_gender,
-        rep_civil_status: data.rep_civil_status,
-        rep_occupation: data.rep_occupation,
-        rep_monthly_income: data.rep_monthly_income,
-        rep_relationship: data.rep_relationship,
-      });
+      payload.representative = {
+        relationship: data.rep_relationship,
+        background_info: {
+          first_name: data.rep_first_name,
+          middle_initial: data.rep_middle_initial,
+          last_name: data.rep_last_name,
+          suffix: data.rep_suffix,
+          birthday: data.rep_birthday,
+          street_address: data.rep_address,
+          barangay: data.rep_barangay,
+          sex: data.rep_gender,
+          civil_status: data.rep_civil_status,
+          occupation: data.rep_occupation,
+          monthly_income: data.rep_monthly_income,
+        },
+      };
     }
 
     const response = await axios.post(`${API_URL}/submit-applicant/`, payload, {
@@ -164,3 +169,5 @@ export const submitApplicant = async data => {
     throw error.response?.data || "Submission failed";
   }
 };
+
+//

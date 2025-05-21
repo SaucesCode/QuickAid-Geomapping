@@ -1,3 +1,4 @@
+// ✅ Step1.js — Personal Info
 import React from "react";
 import "./Steps.css";
 
@@ -10,6 +11,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
           Please provide the applicant's basic personal details
         </p>
       </div>
+
       <div className="form-grid">
         <div className="form-group">
           <label htmlFor="first_name">
@@ -32,10 +34,10 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
             type="text"
             id="middle_initial"
             name="middle_initial"
+            maxLength={1}
             value={formData.middle_initial}
             onChange={handleChange}
             className="form-control"
-            maxLength={1}
           />
         </div>
 
@@ -56,7 +58,13 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
 
         <div className="form-group">
           <label htmlFor="suffix">Suffix</label>
-          <select id="suffix" name="suffix" value={formData.suffix} onChange={handleChange}>
+          <select
+            id="suffix"
+            name="suffix"
+            value={formData.suffix}
+            onChange={handleChange}
+            className="form-control"
+          >
             <option value="">None</option>
             <option value="Jr.">Jr.</option>
             <option value="Sr.">Sr.</option>
@@ -87,12 +95,11 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
       <div className="form-navigation">
         <div></div>
         <button type="button" className="next-btn" onClick={nextStep}>
-          Continue to Address
-          <span className="btn-icon">→</span>
+          Continue to Address <span className="btn-icon">&rarr;</span>
         </button>
       </div>
     </div>
   );
 };
-
+//
 export default Step1;

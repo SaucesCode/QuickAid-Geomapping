@@ -2,10 +2,10 @@ import React from "react";
 import AddressDropdown from "./AddressDropdown";
 import "./Steps.css";
 
-const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
-  // This function will be passed to the AddressDropdown component
-  const handleAddressChange = (field, value) => {
-    handleChange({ target: { name: field, value: value } });
+const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
+  // Handle selection from AddressDropdown and update formData
+  const handleAddressSelect = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -14,32 +14,23 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
         <h3 className="section-title">Address Information</h3>
         <div className="form-grid">
           <div className="form-group">
-            <label htmlFor="purok">
-              Purok <span className="required">*</span>
+            <label htmlFor="street_address">
+              Street Address <span className="required">*</span>
             </label>
             <input
               type="text"
-              id="purok"
-              name="purok"
-              value={formData.purok}
+              id="street_address"
+              name="street_address"
+              value={formData.street_address || ""}
               onChange={handleChange}
-              required
               className="form-control"
-              placeholder="Enter your purok"
+              placeholder="Enter your street/purok"
+              required
             />
           </div>
 
           <div className="form-group address-group full-width">
-            {/* Pass a simpler function to handle address selection */}
-            <AddressDropdown
-              onSelect={(field, value) => handleAddressChange(field, value)}
-              initialValues={{
-                province: formData.province,
-                city_municipality: formData.city_municipality,
-                city_municipalityCode: formData.city_municipalityCode,
-                barangay: formData.barangay,
-              }}
-            />
+            <AddressDropdown onSelect={handleAddressSelect} initialValues={formData} />
           </div>
         </div>
       </div>
@@ -55,26 +46,26 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
               type="date"
               id="birthday"
               name="birthday"
-              value={formData.birthday}
+              value={formData.birthday || ""}
               onChange={handleChange}
-              required
               className="form-control"
+              required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="gender">
-              Gender <span className="required">*</span>
+            <label htmlFor="sex">
+              Sex <span className="required">*</span>
             </label>
             <select
-              id="gender"
-              name="gender"
-              value={formData.gender}
+              id="sex"
+              name="sex"
+              value={formData.sex || ""}
               onChange={handleChange}
-              required
               className="form-control"
+              required
             >
-              <option value="">Select Gender</option>
+              <option value="">Select Sex</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
             </select>
@@ -87,10 +78,10 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
             <select
               id="civil_status"
               name="civil_status"
-              value={formData.civil_status}
+              value={formData.civil_status || ""}
               onChange={handleChange}
-              required
               className="form-control"
+              required
             >
               <option value="">Select Civil Status</option>
               <option value="Single">Single</option>
@@ -109,10 +100,10 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
               type="text"
               id="occupation"
               name="occupation"
-              value={formData.occupation}
+              value={formData.occupation || ""}
               onChange={handleChange}
-              required
               className="form-control"
+              required
               placeholder="Enter your occupation"
             />
           </div>
@@ -125,28 +116,27 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep }) => {
               type="number"
               id="monthly_income"
               name="monthly_income"
-              value={formData.monthly_income}
+              value={formData.monthly_income || ""}
               onChange={handleChange}
-              required
               className="form-control"
-              placeholder="Enter amount in PHP"
+              required
+              placeholder="e.g. 15000"
             />
           </div>
         </div>
       </div>
 
       <div className="form-navigation">
-        <button type="button" className="back-btn" onClick={prevStep}>
-          <span className="btn-icon">←</span>
-          Back to Personal Info
+        <button type="button" onClick={prevStep} className="back-btn">
+          <span className="btn-icon">←</span> Back
         </button>
-        <button type="button" className="next-btn" onClick={nextStep}>
-          Continue to Assistance Type
+        <button type="button" onClick={nextStep} className="next-btn">
+          Continue to Assistance
           <span className="btn-icon">→</span>
         </button>
       </div>
     </div>
   );
 };
-
+//
 export default Step2;

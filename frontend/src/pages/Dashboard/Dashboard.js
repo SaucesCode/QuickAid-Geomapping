@@ -31,6 +31,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log(avgProcessing);
     document.title = "Quickaid | Dashboard";
     return () => {
       document.title = "Quickaid | Home";
@@ -79,7 +80,11 @@ const Dashboard = () => {
   );
 
   const topBarangaysData = useMemo(
-    () => (topBarangays || []).map(item => ({ name: item.barangay, count: item.count })),
+    () =>
+      (topBarangays || []).map(item => ({
+        name: item["background_info__barangay__name"],
+        count: item.count,
+      })),
     [topBarangays]
   );
 
@@ -125,7 +130,6 @@ const Dashboard = () => {
       <div className="dashboard-header">
         <h1>📊 QuickAid Dashboard</h1>
       </div>
-
       <div className="stats-grid">
         <div className="stat-card">
           <h2 className="stat-title">Total Applicants</h2>
@@ -154,7 +158,6 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
       <div className="charts-grid">
         <div className="chart-card">
           <h2 className="chart-title">Assistance Types</h2>
@@ -202,7 +205,7 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
+      {/*  */}
       <div className="charts-grid">
         <div className="chart-card large">
           <h2 className="chart-title">Applicant Trends (Last 30 Days)</h2>
@@ -230,7 +233,6 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
       <div className="list-card">
         <h2>🕒 Recent Submissions</h2>
         <div className="table-container">
@@ -247,10 +249,14 @@ const Dashboard = () => {
               {recentApplicants.length > 0 ? (
                 recentApplicants.map((a, idx) => (
                   <tr key={a.id || idx}>
-                    <td>{`${a.first_name || ""} ${a.last_name || ""}`.trim()}</td>
-                    <td>{a.barangay}</td>
+                    <td>
+                      {`${a.background_info.first_name || ""} ${
+                        a.background_info.last_name || ""
+                      }`.trim()}
+                    </td>
+                    <td>{a.background_info.barangay}</td>
                     <td>{a.type_of_assistance}</td>
-                    <td>{formatDate(new Date(a.processed_at))}</td>
+                    <td>{formatDate(new Date(a.date_filled))}</td>
                   </tr>
                 ))
               ) : (
@@ -265,5 +271,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
+//
 export default Dashboard;

@@ -24,6 +24,7 @@ import ArchiveApplicants from "./pages/Archive/ArchiveApplicants";
 import SettingsPage from "./pages/SettingsPage/SettingsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+//
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">

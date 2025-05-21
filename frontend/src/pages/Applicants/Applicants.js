@@ -17,14 +17,14 @@ const csvHeaders = [
   { label: "City/Municipality", key: "city_municipality" },
   { label: "Province", key: "province" },
   { label: "Birthday", key: "birthday" },
-  { label: "Gender", key: "gender" },
+  { label: "Sex", key: "gender" },
   { label: "Civil Status", key: "civil_status" },
   { label: "Occupation", key: "occupation" },
   { label: "Monthly Income", key: "monthly_income" },
   { label: "Valid ID", key: "valid_id_presented" },
   { label: "Assistance Type", key: "type_of_assistance" },
   { label: "Applicant Type", key: "applicant_type" },
-  { label: "Date Filled", key: "processed_at" },
+  { label: "Date Filled", key: "date_filled" },
 ];
 
 const Applicants = () => {
@@ -55,19 +55,19 @@ const Applicants = () => {
     }
   };
 
-  useEffect(() => {
-    if (
-      editingApplicant?.barangay &&
-      editingApplicant?.city_municipality &&
-      editingApplicant?.province
-    ) {
-      updateCoordinates();
-    }
-  }, [
-    editingApplicant?.barangay,
-    editingApplicant?.city_municipality,
-    editingApplicant?.province,
-  ]);
+  // useEffect(() => {
+  //   if (
+  //     editingApplicant?.barangay &&
+  //     editingApplicant?.city_municipality &&
+  //     editingApplicant?.province
+  //   ) {
+  //     updateCoordinates();
+  //   }
+  // }, [
+  //   editingApplicant?.barangay,
+  //   editingApplicant?.city_municipality,
+  //   editingApplicant?.province,
+  // ]);
 
   useEffect(() => {
     fetchApplicants();
@@ -238,16 +238,16 @@ const Applicants = () => {
               filteredApplicants.map((applicant, id) => (
                 <tr key={id}>
                   <td className="link-button" onClick={() => openPreviewView(applicant)}>
-                    {`${applicant.first_name || ""} ${applicant.last_name || ""}`}
+                    {`${applicant.background_info.first_name || ""} ${
+                      applicant.background_info.last_name || ""
+                    }`}
                   </td>
 
-                  <td>{applicant.barangay}</td>
-                  <td>{applicant.city_municipality}</td>
+                  <td>{applicant.background_info.barangay}</td>
+                  <td>{applicant.background_info.barangay_details.city_name}</td>
                   <td>{applicant.type_of_assistance}</td>
                   <td>
-                    {formatDate(
-                      new Date(applicant.processed_at).toLocaleString().slice(0, 24)
-                    )}
+                    {formatDate(new Date(applicant.date_filled).toLocaleString().slice(0, 24))}
                   </td>
                   <td>
                     <button onClick={() => openEditView(applicant)}>Edit</button>
@@ -281,23 +281,31 @@ const Applicants = () => {
                       <div className="detail-item">
                         <span className="detail-label">Full Name</span>
                         <span className="detail-value">
-                          {previewApplicant.first_name} {previewApplicant.middle_initial}{" "}
-                          {previewApplicant.last_name} {previewApplicant.suffix}
+                          {previewApplicant.background_info.first_name}{" "}
+                          {previewApplicant.background_info.middle_initial}{" "}
+                          {previewApplicant.background_info.last_name}{" "}
+                          {previewApplicant.background_info.suffix}
                         </span>
                       </div>
                       <div className="detail-item">
-                        <span className="detail-label">Gender</span>
-                        <span className="detail-value">{previewApplicant.gender}</span>
+                        <span className="detail-label">Sex</span>
+                        <span className="detail-value">
+                          {previewApplicant.background_info.sex}
+                        </span>
                       </div>
                     </div>
                     <div className="detail-row">
                       <div className="detail-item">
                         <span className="detail-label">Birthday</span>
-                        <span className="detail-value">{previewApplicant.birthday}</span>
+                        <span className="detail-value">
+                          {previewApplicant.background_info.birthday}
+                        </span>
                       </div>
                       <div className="detail-item">
                         <span className="detail-label">Civil Status</span>
-                        <span className="detail-value">{previewApplicant.civil_status}</span>
+                        <span className="detail-value">
+                          {previewApplicant.background_info.civil_status}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -308,8 +316,10 @@ const Applicants = () => {
                       <div className="detail-item">
                         <span className="detail-label">Address</span>
                         <span className="detail-value">
-                          {previewApplicant.purok}, {previewApplicant.barangay},{" "}
-                          {previewApplicant.city_municipality}, {previewApplicant.province}
+                          {previewApplicant.background_info.street_address},{" "}
+                          {previewApplicant.background_info.barangay},{" "}
+                          {previewApplicant.background_info.barangay_details.city_name},{" "}
+                          {previewApplicant.background_info.barangay_details.province_name}
                         </span>
                       </div>
                     </div>
@@ -358,7 +368,8 @@ const Applicants = () => {
                   <h2>Edit Applicant</h2>
                 </div>
                 <div className="dialog-content">
-                  <form id="edit-applicant-form" onSubmit={handleSave}>
+                  <form id="edit-applicant-form">
+                    {/* onSubmit={handleSave} */}
                     <div className="form-section">
                       <h3>Personal Information</h3>
                       <div className="form-row">
@@ -368,7 +379,7 @@ const Applicants = () => {
                             id="first_name"
                             name="first_name"
                             placeholder="First Name"
-                            value={editingApplicant.first_name || ""}
+                            value={editingApplicant.background_info.first_name || ""}
                             onChange={handleChange}
                           />
                         </div>
@@ -378,7 +389,7 @@ const Applicants = () => {
                             id="middle_initial"
                             name="middle_initial"
                             placeholder="Middle Initial"
-                            value={editingApplicant.middle_initial || ""}
+                            value={editingApplicant.background_info.middle_initial || ""}
                             onChange={handleChange}
                           />
                         </div>
@@ -390,7 +401,7 @@ const Applicants = () => {
                             id="last_name"
                             name="last_name"
                             placeholder="Last Name"
-                            value={editingApplicant.last_name || ""}
+                            value={editingApplicant.background_info.last_name || ""}
                             onChange={handleChange}
                           />
                         </div>
@@ -399,7 +410,7 @@ const Applicants = () => {
                           <select
                             id="suffix"
                             name="suffix"
-                            value={editingApplicant.suffix || ""}
+                            value={editingApplicant.background_info.suffix || ""}
                             onChange={handleChange}
                           >
                             <option value="">None</option>
@@ -414,12 +425,12 @@ const Applicants = () => {
                       </div>
                       <div className="form-row">
                         <div className="form-field">
-                          <label htmlFor="gender">Gender</label>
+                          <label htmlFor="gender">Sex</label>
                           <input
-                            id="gender"
-                            name="gender"
-                            placeholder="Gender"
-                            value={editingApplicant.gender || ""}
+                            id="sex"
+                            name="sex"
+                            placeholder="sex"
+                            value={editingApplicant.background_info.sex || ""}
                             onChange={handleChange}
                           />
                         </div>
@@ -429,13 +440,12 @@ const Applicants = () => {
                             id="civil_status"
                             name="civil_status"
                             placeholder="Civil Status"
-                            value={editingApplicant.civil_status || ""}
+                            value={editingApplicant.background_info.civil_status || ""}
                             onChange={handleChange}
                           />
                         </div>
                       </div>
                     </div>
-
                     <div className="form-section">
                       <h3>Contact Information</h3>
                       <div className="form-row">
@@ -456,10 +466,10 @@ const Applicants = () => {
                         <div className="form-field">
                           <label htmlFor="purok">Purok</label>
                           <input
-                            id="purok"
+                            id="street_address"
                             type="text"
-                            name="purok"
-                            value={editingApplicant.purok || ""}
+                            name="street_address"
+                            value={editingApplicant.background_info.street_address || ""}
                             onChange={handleChange}
                             required
                             placeholder="Enter your purok"
@@ -484,7 +494,6 @@ const Applicants = () => {
                         />
                       </div>
                     </div>
-
                     <div className="form-section">
                       <h3>Assistance Information</h3>
                       <div className="form-row">
@@ -518,5 +527,5 @@ const Applicants = () => {
     </div>
   );
 };
-
+//
 export default Applicants;

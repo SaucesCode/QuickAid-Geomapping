@@ -14,7 +14,7 @@ const assistanceColors = {
 };
 
 const MapComponent = ({ province, city, barangay, applicantName }) => {
-  // Added props
+  // Added propss
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("");
