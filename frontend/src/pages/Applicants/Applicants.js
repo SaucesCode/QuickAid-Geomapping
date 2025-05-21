@@ -527,5 +527,5 @@ const Applicants = () => {
     </div>
   );
 };
-
+//
 export default Applicants;

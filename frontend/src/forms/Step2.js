@@ -138,5 +138,5 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
     </div>
   );
 };
-
+//
 export default Step2;

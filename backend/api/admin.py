@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Applicant, CustomUser, Representative, BackgroundInfo
 
+#
 class ApplicantAdmin(admin.ModelAdmin):
     list_display = (
         "id", "staff", "get_first_name", "get_last_name",

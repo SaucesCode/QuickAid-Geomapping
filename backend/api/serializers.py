@@ -92,7 +92,7 @@ class ApplicantSerializer(serializers.ModelSerializer):
     representative = RepresentativeSerializer(required=False, write_only=True)
     staff = serializers.CharField(source='staff.username', read_only=True)
     city = serializers.CharField(source='background_info.barangay.city.name', read_only=True)
-
+    #
     class Meta:
         model = Applicant
         fields = [

@@ -97,7 +97,7 @@ const Analytics = () => {
 
     fetchData();
   }, [startDate, endDate, selectedType]); // Dependencies for re-fetching filtered data
-
+  //
   // --- Memoized data for charts ---
   const genderPieData = useMemo(
     () =>

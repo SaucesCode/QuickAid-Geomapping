@@ -50,7 +50,7 @@ class Barangay(models.Model):
 
 class BackgroundInfo(models.Model):
     SEX_CHOICES = [('Male', 'Male'), ('Female', 'Female')]
-
+    #
     first_name = models.CharField(max_length=100)
     middle_initial = models.CharField(max_length=5, blank=True, null=True)
     last_name = models.CharField(max_length=100)

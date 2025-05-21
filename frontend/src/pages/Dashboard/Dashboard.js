@@ -130,7 +130,6 @@ const Dashboard = () => {
       <div className="dashboard-header">
         <h1>📊 QuickAid Dashboard</h1>
       </div>
-
       <div className="stats-grid">
         <div className="stat-card">
           <h2 className="stat-title">Total Applicants</h2>
@@ -159,7 +158,6 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
       <div className="charts-grid">
         <div className="chart-card">
           <h2 className="chart-title">Assistance Types</h2>
@@ -207,7 +205,7 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
+      {/*  */}
       <div className="charts-grid">
         <div className="chart-card large">
           <h2 className="chart-title">Applicant Trends (Last 30 Days)</h2>
@@ -235,7 +233,6 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
       <div className="list-card">
         <h2>🕒 Recent Submissions</h2>
         <div className="table-container">
@@ -274,5 +271,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
+//
 export default Dashboard;
