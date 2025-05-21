@@ -4,7 +4,6 @@ import "./Steps.css";
 const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
   return (
     <div className="step-content">
-      {/* Step header */}
       <div className="form-step-header">
         <h2 className="step-title">ID & Assistance Details</h2>
         <p className="step-description">
@@ -12,7 +11,6 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
         </p>
       </div>
 
-      {/* ID Section */}
       <div className="form-section">
         <h3 className="section-title">Valid ID Information</h3>
         <div className="id-options">
@@ -25,6 +23,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                 checked={formData.valid_id_presented === id}
                 onChange={handleChange}
                 className="radio-input"
+                required
               />
               <span className="radio-label">{id}</span>
             </label>
@@ -39,6 +38,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                 checked={formData.valid_id_presented === "Others"}
                 onChange={handleChange}
                 className="radio-input"
+                required
               />
               <span className="radio-label">Others</span>
             </label>
@@ -51,13 +51,13 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                 value={formData.other_valid_id || ""}
                 onChange={handleChange}
                 className="form-control other-id-input"
+                required
               />
             )}
           </div>
         </div>
       </div>
 
-      {/* Applicant Type Section */}
       <div className="form-section">
         <h3 className="section-title">Applicant Information</h3>
         <div className="applicant-type-selector">
@@ -71,6 +71,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                 checked={formData.applicant_type === "Self"}
                 onChange={handleChange}
                 className="radio-input"
+                required
               />
               <span className="radio-label">Self</span>
             </label>
@@ -82,13 +83,34 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                 checked={formData.applicant_type === "Representative"}
                 onChange={handleChange}
                 className="radio-input"
+                required
               />
               <span className="radio-label">Representative</span>
             </label>
           </div>
         </div>
 
-        {/* Representative Info Section - Conditionally Rendered */}
+        <div className="form-section">
+          <h3 className="section-title">Assistance Type</h3>
+          <div className="form-group full-width">
+            <label>
+              Type of Assistance <span className="required">*</span>
+            </label>
+            <select
+              name="type_of_assistance"
+              value={formData.type_of_assistance}
+              onChange={handleChange}
+              className="form-control"
+              required
+            >
+              <option value="">Select assistance type</option>
+              <option value="Medical">Medical</option>
+              <option value="Burial">Burial</option>
+              <option value="Educational">Educational</option>
+            </select>
+          </div>
+        </div>
+
         {formData.applicant_type === "Representative" && (
           <div className="representative-info">
             <h4 className="subsection-title">Representative Information</h4>
@@ -102,6 +124,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                   type="text"
                   name="rep_first_name"
                   placeholder="First Name"
+                  value={formData.rep_first_name}
                   onChange={handleChange}
                   className="form-control"
                   required
@@ -116,6 +139,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                   type="text"
                   name="rep_last_name"
                   placeholder="Last Name"
+                  value={formData.rep_last_name}
                   onChange={handleChange}
                   className="form-control"
                   required
@@ -128,8 +152,10 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                   type="text"
                   name="rep_middle_initial"
                   placeholder="Middle Initial"
+                  value={formData.rep_middle_initial}
                   onChange={handleChange}
                   className="form-control"
+                  maxLength={1}
                 />
               </div>
 
@@ -139,6 +165,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                   type="text"
                   name="rep_suffix"
                   placeholder="Suffix"
+                  value={formData.rep_suffix}
                   onChange={handleChange}
                   className="form-control"
                 />
@@ -152,6 +179,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                   type="text"
                   name="rep_address"
                   placeholder="Complete Address"
+                  value={formData.rep_address}
                   onChange={handleChange}
                   className="form-control"
                   required
@@ -165,6 +193,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                 <input
                   type="date"
                   name="rep_birthday"
+                  value={formData.rep_birthday}
                   onChange={handleChange}
                   className="form-control"
                   required
@@ -177,6 +206,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                 </label>
                 <select
                   name="rep_gender"
+                  value={formData.rep_gender}
                   onChange={handleChange}
                   className="form-control"
                   required
@@ -193,6 +223,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                 </label>
                 <select
                   name="rep_civil_status"
+                  value={formData.rep_civil_status}
                   onChange={handleChange}
                   className="form-control"
                   required
@@ -202,6 +233,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                   <option value="Married">Married</option>
                   <option value="Widowed">Widowed</option>
                   <option value="Separated">Separated</option>
+                  <option value="Divorced">Divorced</option>
                 </select>
               </div>
 
@@ -211,6 +243,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                   type="text"
                   name="rep_occupation"
                   placeholder="Occupation"
+                  value={formData.rep_occupation}
                   onChange={handleChange}
                   className="form-control"
                 />
@@ -222,6 +255,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                   type="number"
                   name="rep_monthly_income"
                   placeholder="Monthly Income"
+                  value={formData.rep_monthly_income}
                   onChange={handleChange}
                   className="form-control"
                 />
@@ -235,6 +269,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                   type="text"
                   name="rep_relationship"
                   placeholder="Relationship to Beneficiary"
+                  value={formData.rep_relationship}
                   onChange={handleChange}
                   className="form-control"
                   required
@@ -245,34 +280,11 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
         )}
       </div>
 
-      {/* Assistance Type Section */}
-      <div className="form-section">
-        <h3 className="section-title">Assistance Details</h3>
-        <div className="form-group">
-          <label>
-            Type of Assistance <span className="required">*</span>
-          </label>
-          <select
-            name="type_of_assistance"
-            value={formData.type_of_assistance || ""}
-            onChange={handleChange}
-            className="form-control"
-            required
-          >
-            <option value="">Select Assistance Type</option>
-            <option value="Medical">Medical</option>
-            <option value="Burial">Burial</option>
-            <option value="Educational">Educational</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Navigation Buttons */}
       <div className="form-navigation">
         <button type="button" onClick={prevStep} className="back-btn">
           <span className="btn-icon">←</span> Back
         </button>
-        <button type="button" className="next-btn" onClick={nextStep}>
+        <button type="button" onClick={nextStep} className="next-btn">
           Continue to Preview
           <span className="btn-icon">→</span>
         </button>

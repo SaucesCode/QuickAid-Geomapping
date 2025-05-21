@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const PrintPage = () => {
@@ -6,7 +6,15 @@ const PrintPage = () => {
   const navigate = useNavigate();
   const applicant = state?.applicant;
 
-  React.useEffect(() => {
+  useEffect(() => {
+    console.log("Applicants", applicant.background_info.barangay_details.city_name);
+    document.title = "Quickaid | Print Applicant";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
+  useEffect(() => {
     if (!applicant) {
       navigate("/dashboard");
     }
@@ -20,18 +28,21 @@ const PrintPage = () => {
 
       <div className="space-y-2 mb-6">
         <p>
-          <strong>Full Name:</strong> {applicant.first_name} {applicant.middle_initial}{" "}
-          {applicant.last_name} {applicant.suffix}
+          <strong>Full Name:</strong> {applicant.background_info.first_name}{" "}
+          {applicant.background_info.middle_initial} {applicant.background_info.last_name}{" "}
+          {applicant.background_info.suffix}
         </p>
         <p>
-          <strong>Birthday:</strong> {applicant.birthday}
+          <strong>Birthday:</strong> {applicant.background_info.birthday}
         </p>
         <p>
-          <strong>Gender:</strong> {applicant.gender}
+          <strong>Sex:</strong> {applicant.background_info.sex}
         </p>
         <p>
-          <strong>Address:</strong> {applicant.purok}, {applicant.barangay},{" "}
-          {applicant.city_municipality}, {applicant.province}
+          <strong>Address:</strong> {applicant.background_info.street_address},{" "}
+          {applicant.background_info.barangay},{" "}
+          {applicant.background_info.barangay_details.city_name},{" "}
+          {applicant.background_info.barangay_details.province_name}
         </p>
         <p>
           <strong>Type of Assistance:</strong> {applicant.type_of_assistance}

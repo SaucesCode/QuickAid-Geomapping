@@ -25,7 +25,6 @@ urlpatterns = [
     # Protected API Route (Only Authenticated Staff)
     path('protected/', protected_view, name='protected_view'),
     
-    path('api/barangays/<str:cityOrMunicipalityCode>/', PSGCView().get_barangays, name='get_barangays'),
     path("submit-applicant/", submit_applicant, name="submit_applicant"),
     path('applicant-locations/', get_applicant_locations, name='applicant-locations'),
 

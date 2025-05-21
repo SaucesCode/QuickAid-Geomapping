@@ -34,6 +34,7 @@ const ApplicantForm = () => {
 
   useEffect(() => {
     fetchApplicants();
+    console.log("Fetched applicants:", applicants);
   }, []);
 
   const filteredApplicants = applicants.filter(
@@ -103,16 +104,15 @@ const ApplicantForm = () => {
                 <tr key={index}>
                   <td>{filteredApplicants.length - index}</td>
                   <td className="applicant-name">
-                    {applicant.first_name} {applicant.last_name}
+                    {applicant.background_info.first_name}{" "}
+                    {applicant.background_info.last_name}
                   </td>
-                  <td>{applicant.barangay}</td>
-                  <td>{applicant.city_municipality}</td>
+                  <td>{applicant.background_info.barangay}</td>
+                  <td>{applicant.background_info.barangay_details.city_name}</td>
                   <td>
                     <span className="assistance-badge">{applicant.type_of_assistance}</span>
                   </td>
-                  <td>
-                    {formatDate(new Date(applicant.processed_at).toString().slice(0, 24))}
-                  </td>
+                  <td>{formatDate(new Date(applicant.created_at).toString().slice(0, 24))}</td>
                 </tr>
               ))}
             </tbody>

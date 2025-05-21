@@ -100,14 +100,18 @@ const Analytics = () => {
 
   // --- Memoized data for charts ---
   const genderPieData = useMemo(
-    () => genderData.map(item => ({ name: item.gender || "Unknown", value: item.count })),
+    () =>
+      genderData.map(item => ({
+        name: item.background_info__sex || "Unknown",
+        value: item.count,
+      })),
     [genderData]
   );
 
   const civilStatusPieData = useMemo(
     () =>
       civilStatusData.map(item => ({
-        name: item.civil_status || "Unknown",
+        name: item.background_info__civil_status || "Unknown",
         value: item.count,
       })),
     [civilStatusData]

@@ -31,6 +31,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log(avgProcessing);
     document.title = "Quickaid | Dashboard";
     return () => {
       document.title = "Quickaid | Home";
@@ -79,7 +80,11 @@ const Dashboard = () => {
   );
 
   const topBarangaysData = useMemo(
-    () => (topBarangays || []).map(item => ({ name: item.barangay, count: item.count })),
+    () =>
+      (topBarangays || []).map(item => ({
+        name: item["background_info__barangay__name"],
+        count: item.count,
+      })),
     [topBarangays]
   );
 
@@ -247,10 +252,14 @@ const Dashboard = () => {
               {recentApplicants.length > 0 ? (
                 recentApplicants.map((a, idx) => (
                   <tr key={a.id || idx}>
-                    <td>{`${a.first_name || ""} ${a.last_name || ""}`.trim()}</td>
-                    <td>{a.barangay}</td>
+                    <td>
+                      {`${a.background_info.first_name || ""} ${
+                        a.background_info.last_name || ""
+                      }`.trim()}
+                    </td>
+                    <td>{a.background_info.barangay}</td>
                     <td>{a.type_of_assistance}</td>
-                    <td>{formatDate(new Date(a.processed_at))}</td>
+                    <td>{formatDate(new Date(a.date_filled))}</td>
                   </tr>
                 ))
               ) : (

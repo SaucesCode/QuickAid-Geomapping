@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./PreviewStep.css";
 import { useNavigate } from "react-router-dom";
-import { API_URL } from "../services/api";
+import { submitApplicant } from "../services/api";
 
-const PreviewStep = ({ formData, prevStep, nextStep }) => {
+const PreviewStep = ({ formData, prevStep }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const navigate = useNavigate();
@@ -11,28 +11,10 @@ const PreviewStep = ({ formData, prevStep, nextStep }) => {
   const handleSubmit = async e => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      // Get token from storage
-      const token = localStorage.getItem("accessToken");
-
-      // Make API request
-      const response = await fetch(`${API_URL}/submit-applicant/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Server responded with an error");
-      }
-
-      const data = await response.json();
-      navigate("/print", { state: { applicant: data } });
+      const data = await submitApplicant(formData);
       setSubmitSuccess(true);
+      navigate("/print", { state: { applicant: data } });
       setTimeout(() => {
         alert("Applicant registered successfully!");
       }, 500);
@@ -53,7 +35,7 @@ const PreviewStep = ({ formData, prevStep, nextStep }) => {
   };
 
   const getFullAddress = () => {
-    return `${formData.purok}, ${formData.barangay}, ${formData.city_municipality}, ${formData.province}`;
+    return `${formData.street_address}, ${formData.barangay_name}, ${formData.city_municipality}, ${formData.province}`;
   };
 
   return (
@@ -70,17 +52,14 @@ const PreviewStep = ({ formData, prevStep, nextStep }) => {
             <div className="info-label">Full Name</div>
             <div className="info-value">{getFullName()}</div>
           </div>
-
           <div className="info-group">
             <div className="info-label">Birthday</div>
             <div className="info-value">{formData.birthday}</div>
           </div>
-
           <div className="info-group">
-            <div className="info-label">Gender</div>
-            <div className="info-value">{formData.gender}</div>
+            <div className="info-label">Sex</div>
+            <div className="info-value">{formData.sex}</div>
           </div>
-
           <div className="info-group">
             <div className="info-label">Civil Status</div>
             <div className="info-value">{formData.civil_status}</div>
@@ -95,7 +74,6 @@ const PreviewStep = ({ formData, prevStep, nextStep }) => {
             <div className="info-label">Contact Number</div>
             <div className="info-value">{formData.contact_number}</div>
           </div>
-
           <div className="info-group">
             <div className="info-label">Address</div>
             <div className="info-value">{getFullAddress()}</div>
@@ -110,10 +88,9 @@ const PreviewStep = ({ formData, prevStep, nextStep }) => {
             <div className="info-label">Occupation</div>
             <div className="info-value">{formData.occupation}</div>
           </div>
-
           <div className="info-group">
             <div className="info-label">Monthly Income</div>
-            <div className="info-value">₱{formData.montly_income}</div>
+            <div className="info-value">₱{formData.monthly_income}</div>
           </div>
         </div>
 
@@ -125,12 +102,10 @@ const PreviewStep = ({ formData, prevStep, nextStep }) => {
             <div className="info-label">Valid ID Presented</div>
             <div className="info-value">{formData.valid_id_presented}</div>
           </div>
-
           <div className="info-group">
             <div className="info-label">Applicant Type</div>
             <div className="info-value">{formData.applicant_type}</div>
           </div>
-
           <div className="info-group">
             <div className="info-label">Assistance Type</div>
             <div className="info-value">{formData.type_of_assistance}</div>
@@ -150,37 +125,30 @@ const PreviewStep = ({ formData, prevStep, nextStep }) => {
                   {formData.rep_last_name} {formData.rep_suffix}
                 </div>
               </div>
-
               <div className="info-group">
                 <div className="info-label">Representative Address</div>
                 <div className="info-value">{formData.rep_address}</div>
               </div>
-
               <div className="info-group">
                 <div className="info-label">Representative Birthday</div>
                 <div className="info-value">{formData.rep_birthday}</div>
               </div>
-
               <div className="info-group">
                 <div className="info-label">Representative Gender</div>
                 <div className="info-value">{formData.rep_gender}</div>
               </div>
-
               <div className="info-group">
                 <div className="info-label">Representative Civil Status</div>
                 <div className="info-value">{formData.rep_civil_status}</div>
               </div>
-
               <div className="info-group">
                 <div className="info-label">Representative Occupation</div>
                 <div className="info-value">{formData.rep_occupation}</div>
               </div>
-
               <div className="info-group">
                 <div className="info-label">Representative Monthly Income</div>
                 <div className="info-value">₱{formData.rep_monthly_income}</div>
               </div>
-
               <div className="info-group">
                 <div className="info-label">Relationship to Applicant</div>
                 <div className="info-value">{formData.rep_relationship}</div>

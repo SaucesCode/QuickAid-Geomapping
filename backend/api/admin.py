@@ -1,46 +1,82 @@
 from django.contrib import admin
-from django.contrib.auth.models import Group
-from .models import Applicant, CustomUser, Representative
+from .models import Applicant, CustomUser, Representative, BackgroundInfo
 
 class ApplicantAdmin(admin.ModelAdmin):
     list_display = (
-        "id", "staff", "first_name", "last_name", 
-        "barangay", "city_municipality", "province", 
+        "id", "staff", "get_first_name", "get_last_name",
+        "get_barangay", "get_city", "get_province",
         "type_of_assistance", "date_filled"
     )
-    search_fields = ("first_name", "last_name", "barangay", "city_municipality", "province")
-    list_filter = ("gender", "province", "city_municipality", "barangay", "type_of_assistance", "date_filled")
+    search_fields = (
+        "background_info__first_name",
+        "background_info__last_name",
+        "background_info__barangay__name",
+        "background_info__barangay__city__name",
+        "background_info__barangay__city__province__name"
+    )
+    list_filter = (
+        "background_info__sex",
+        "background_info__barangay__city__province__name",
+        "background_info__barangay__city__name",
+        "background_info__barangay__name",
+        "type_of_assistance",
+        "date_filled"
+    )
     ordering = ("-date_filled",)
 
     def get_queryset(self, request):
-        """Restrict staff to only see their own applicants."""
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs  # Superusers see all records
-        return qs.filter(staff=request.user)  # Staff only see their own entries
+        return qs.select_related("background_info", "background_info__barangay__city__province")
+
+    def get_first_name(self, obj):
+        return obj.background_info.first_name
+    get_first_name.short_description = "First Name"
+
+    def get_last_name(self, obj):
+        return obj.background_info.last_name
+    get_last_name.short_description = "Last Name"
+
+    def get_barangay(self, obj):
+        return obj.background_info.barangay.name
+    get_barangay.short_description = "Barangay"
+
+    def get_city(self, obj):
+        return obj.background_info.barangay.city.name
+    get_city.short_description = "City"
+
+    def get_province(self, obj):
+        return obj.background_info.barangay.city.province.name
+    get_province.short_description = "Province"
 
     def has_change_permission(self, request, obj=None):
-        """Restrict staff from modifying others' applicants."""
-        if obj is None:
-            return True  # Allow listing
-        return obj.staff == request.user or request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
-        """Restrict staff from deleting others' applicants."""
         if obj is None:
             return True
         return obj.staff == request.user or request.user.is_superuser
-    
+
+    def has_delete_permission(self, request, obj=None):
+        if obj is None:
+            return True
+        return obj.staff == request.user or request.user.is_superuser
+
 class RepresentativeAdmin(admin.ModelAdmin):
     list_display = (
-        "applicant","first_name", "last_name", "relationship",
+        "applicant", "get_first_name", "get_last_name", "relationship",
     )
+
+    def get_first_name(self, obj):
+        return obj.background_info.first_name
+    get_first_name.short_description = "First Name"
+
+    def get_last_name(self, obj):
+        return obj.background_info.last_name
+    get_last_name.short_description = "Last Name"
 
 class CustomUserAdmin(admin.ModelAdmin):
     list_display = ("username", "email", "role", "is_staff", "is_active")
     search_fields = ("username", "email")
-    list_filter = ("role", "is_staff", "is_active")
+    list_filter = ("role", "is_superuser", "is_active")
 
 admin.site.register(Applicant, ApplicantAdmin)
 admin.site.register(Representative, RepresentativeAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(BackgroundInfo)

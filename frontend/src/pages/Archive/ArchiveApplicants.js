@@ -79,16 +79,16 @@ const ArchiveApplicants = () => {
               filteredApplicants.map((applicant, id) => (
                 <tr key={id}>
                   <td className="link-button">
-                    {`${applicant.first_name || ""} ${applicant.last_name || ""}`}
+                    {`${applicant.background_info.first_name || ""} ${
+                      applicant.background_info.last_name || ""
+                    }`}
                   </td>
 
-                  <td>{applicant.barangay}</td>
-                  <td>{applicant.city_municipality}</td>
+                  <td>{applicant.background_info.barangay}</td>
+                  <td>{applicant.background_info.barangay_details.city_name}</td>
                   <td>{applicant.type_of_assistance}</td>
                   <td>
-                    {formatDate(
-                      new Date(applicant.processed_at).toLocaleString().slice(0, 24)
-                    )}
+                    {formatDate(new Date(applicant.date_filled).toLocaleString().slice(0, 24))}
                   </td>
                   <td>
                     <button onClick={() => handleRestore(applicant.id)}>Restore</button>
