@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36" version="27.0.6">
   <diagram name="Page-1" id="t5rzh0xJjsQ6xpa7HA2k">
-    <mxGraphModel dx="1830" dy="763" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="883" dy="368" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -170,8 +170,13 @@
             <mxPoint x="1110" y="110" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="K7WplHady1vbZabaGS0h-113" value="applicant details" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="K7WplHady1vbZabaGS0h-93">
+          <mxGeometry x="-0.0537" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="K7WplHady1vbZabaGS0h-44" value="APPLICANT" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
-          <mxGeometry x="1072.5" y="170" width="75" height="70" as="geometry" />
+          <mxGeometry x="1072.5" y="190" width="75" height="70" as="geometry" />
         </mxCell>
         <mxCell id="K7WplHady1vbZabaGS0h-60" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" target="K7WplHady1vbZabaGS0h-28">
           <mxGeometry relative="1" as="geometry">
