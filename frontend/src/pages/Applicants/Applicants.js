@@ -4,6 +4,7 @@ import { api } from "../../services/api";
 import { CSVLink } from "react-csv";
 import AddressDropdown from "../../forms/AddressDropdown";
 import "./Applicants.css";
+import { useNavigate } from "react-router-dom";
 
 const csvHeaders = [
   { label: "ID", key: "id" },
@@ -35,6 +36,7 @@ const Applicants = () => {
   const [editingApplicant, setEditingApplicant] = useState(null);
   const [previewView, setPreviewView] = useState(false);
   const [previewApplicant, setPreviewApplicant] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.title = "Quickaid | Applicants";
@@ -81,7 +83,7 @@ const Applicants = () => {
   };
 
   const goPrintPage = applicant => {
-    window.open(`/print/applicants/${applicant.id}`, "_blank");
+    navigate(`/print/${applicant.id}`);
   };
 
   const closeEditView = () => {
