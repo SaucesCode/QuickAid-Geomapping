@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 import requests
+from django.views.decorators.csrf import csrf_exempt
 from .models import Applicant, CustomUser, Representative
 from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer, RepresentativeSerializer
 
@@ -207,8 +208,10 @@ def update_staff(request, staff_id):
 def protected_view(request):
     return Response({"message": f"Hello, {request.user.username}! You are authenticated as {'Admin' if request.user.is_superuser else 'Staff'}."})
 
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@csrf_exempt
 def submit_applicant(request):
     data = request.data  # Kunin yung buong request body (payload)
 

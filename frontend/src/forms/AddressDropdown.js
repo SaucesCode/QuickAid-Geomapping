@@ -1,10 +1,3 @@
-// File: frontend/src/forms/AddressDropdown.js
-// -------------------------------------------------
-// Component for Province ▶ City/Municipality ▶ Barangay selection
-// Keeps original CSS class names so existing styles keep working.
-// Returns PSGC *codes* to the parent for backend submission, but also
-// returns readable *names* so you can still display them.
-// -------------------------------------------------
 import React, { useState, useEffect } from "react";
 import "./MultiStepForm.css";
 

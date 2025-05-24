@@ -1,61 +1,36 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { API_URL } from "../services/api";
 
 const PrintPagebyID = () => {
   const { id } = useParams();
   const [applicant, setApplicant] = useState(null);
   const navigate = useNavigate();
+  console.log(id);
 
-  //   useEffect(() => {
-  //     const fetchApplicant = async () => {
-  //       try {
-  //         const res = await fetch(`/applicants/${id}`);
-  //         setApplicant(res.data);
-  //       } catch (err) {
-  //         console.error("Error loading applicant:", err);
-  //         // navigate("/dashboard");
-  //       }
-  //     };
-
-  //     fetchApplicant();
-  //   }, [id, navigate]);
   const fetchApplicant = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(`http://127.0.0.1:8000/api/applicants/${applicant.id}/`, {
+      const token = localStorage.getItem("accessToken");
+      console.log(token);
+      const res = await fetch(`${API_URL}/applicants/${id}/`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-      console.log("Fetching applicant ID:", id);
 
       if (!res.ok) throw new Error(`Status ${res.status}`);
       const data = await res.json();
       setApplicant(data);
-      console.log(res.data);
+      console.log("Fetched applicant data:", data);
     } catch (err) {
       console.error("Error loading applicant:", err);
       // navigate("/dashboard");
     }
   };
-
-  // const fetchApplicants = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const res = await api.get("/applicants/");
-  //     setApplicants(res.data);
-  //   } catch (err) {
-  //     console.error("Fetch applicants failed:", err);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   useEffect(() => {
     fetchApplicant();
-  }, [id, navigate]);
+  });
 
   if (!applicant) return <p className="p-4">Loading applicant info...</p>;
 
@@ -91,16 +66,10 @@ const PrintPagebyID = () => {
           Print
         </button>
         <button
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate("/applicants")}
           className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
         >
-          Back to Dashboard
-        </button>
-        <button
-          onClick={() => navigate("/new-applicant")}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          Input Another Applicant
+          Back to Applicants
         </button>
       </div>
     </div>

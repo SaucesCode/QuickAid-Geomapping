@@ -2,8 +2,10 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
 from opencage.geocoder import OpenCageGeocode
+import os
 
-OPENCAGE_API_KEY = "97bff458c2874bbdb716af30af9607cc"
+OPENCAGE_API_KEY = os.environ.get('OPENCAGE_API_KEY')
+print(OPENCAGE_API_KEY)
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (

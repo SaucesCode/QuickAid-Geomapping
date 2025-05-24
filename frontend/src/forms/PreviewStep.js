@@ -185,5 +185,5 @@ const PreviewStep = ({ formData, prevStep }) => {
     </div>
   );
 };
-//
+
 export default PreviewStep;

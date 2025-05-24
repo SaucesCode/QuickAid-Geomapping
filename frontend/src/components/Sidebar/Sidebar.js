@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import "./Sidebar.css";
 import { logoutUser } from "../../services/api";
@@ -10,6 +10,9 @@ const Sidebar = () => {
   const user = JSON.parse(localStorage.getItem("userData"));
 
   const toggleSidebar = () => setCollapsed(!collapsed);
+  useEffect(() => {
+    console.log(user);
+  });
 
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -101,12 +104,6 @@ const Sidebar = () => {
             {!collapsed && <span className="link-text">Logout</span>}
           </NavLink>
         </nav>
-
-        {!collapsed && (
-          <div className="sidebar-footer">
-            <p>QuickAid v1.0</p>
-          </div>
-        )}
       </aside>
 
       <main className="main-content">

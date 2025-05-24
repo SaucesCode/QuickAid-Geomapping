@@ -50,7 +50,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/new-applicant" element={<MultiStepForm />} />
         <Route path="/print" element={<PrintPage />} />
-        <Route path="/print/applicants/:id" element={<PrintPagebyID />} />
+        <Route path="/print/:id" element={<PrintPagebyID />} />
 
         <Route
           path="/"
