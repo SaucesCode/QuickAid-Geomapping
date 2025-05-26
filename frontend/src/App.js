@@ -8,42 +8,21 @@ import PrivateRoute from "./components/PrivateRoute";
 import AdminManagement from "./pages/AdminManagement/AdminManagement";
 import Analytics from "./pages/Analytics/Analytics";
 import Applicants from "./pages/Applicants/Applicants";
-import Navbar from "./components/LandingPage/Navbar";
-import ChallengesSection from "./components/Sections/ChallengesSection";
-import GoalsSection from "./components/Sections/GoalsSection";
-import ServicesSection from "./components/Sections/ServicesSection";
-import MissionSection from "./components/Sections/MissionSection";
-import HeroSection from "./components/Sections/HeroSection";
-import BeneficiariesSection from "./components/Sections/BeneficiariesSection";
+
+import LandingPage from "./components/LandingPage/LandingPage";
 import "./index.css";
-import Footer from "./components/LandingPage/Footer";
+
 import MultiStepForm from "./forms/MultiStepForm";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <>
-              <Navbar />
-              <main>
-                <HeroSection />
-                <ChallengesSection />
-                <GoalsSection />
-                <ServicesSection />
-                <BeneficiariesSection />
-                <MissionSection />
-              </main>
-              <Footer />
-            </>
-          }
-        />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/new-applicant" element={<MultiStepForm />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/new-applicant" element={<MultiStepForm />} />
 
         <Route
           path="/"

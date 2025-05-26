@@ -1,0 +1,528 @@
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter :wght@400;500;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #f4f4f4;
+  font-family: 'Inter', sans-serif;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Background Colors */
+.bg-blue-500 {
+  background-color: #007bff;
+}
+
+.bg-white {
+  background-color: white;
+}
+
+/* Text Colors */
+.text-white {
+  color: white;
+}
+
+.text-gray-600 {
+  color: #666;
+}
+
+.text-gray-400 {
+  color: #aaa;
+}
+
+/* Borders & Radius */
+.border {
+  border: 1px solid #ddd;
+}
+
+.rounded {
+  border-radius: 8px;
+}
+
+/* Shadows */
+.shadow-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover Effects */
+.hover\:underline:hover {
+  text-decoration: underline;
+}
+
+/* Widths / Heights */
+.h-48 {
+  height: 12rem;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* space between logo and text */
+}
+
+.logo-icon {
+  width: 7vw; /* adjust size as needed */
+  height: 15vh;
+}
+
+.logo-text {
+  width: 8rem; /* adjust text width as needed */
+}
+
+.contact-info-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rem;
+  color: #374151;
+  padding: 1rem 2rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.contact-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.contact-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.contact-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1;
+}
+
+.contact-value {
+  font-weight: 600;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.2;
+  color: #111827;
+}
+
+/* HeroSection CSS */
+.hero-section {
+  background-color: white;
+  padding: 4rem 0;
+}
+
+.hero-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 3rem; /* Space between text and image */
+}
+
+.hero-text-content {
+  flex: 1;
+  text-align: left; /* Changed from center to left for better side-by-side layout */
+}
+
+.hero-title {
+  font-size: 1.875rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #0d265d;
+}
+
+.hero-description {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hero-btn-primary {
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.hero-btn-primary:hover {
+  background-color: #2563eb;
+}
+
+.hero-btn-secondary {
+  background-color: white;
+  border: 1px solid #3b82f6;
+  color: #3b82f6;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.hero-btn-secondary:hover {
+  background-color: #dbeafe;
+}
+
+.hero-image-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.carl {
+  width: auto;
+  height: 70vh;
+  border-radius: 0.5rem;
+}
+
+/* Parent container */
+.AIC {
+  display: flex;
+  flex-direction: column; 
+  margin-top: -0.001px;
+  margin-bottom: 20px;
+  padding-left: 40px;
+  padding-top: -0.1px;
+  background-color: black;
+}
+
+.logo-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.dswdLogo{
+  width: auto;
+  height: 20vh;
+}
+.aicsLogo {
+  width: auto;
+  height: 15vh;
+}
+
+.aicsText {
+  margin-top: -0.1px; /* Increased from 10px */
+  font-size: 50px;
+  font-weight: bold;
+  color: #2a4c91;
+}
+
+.navbar {
+  background-color: #1e3a8a;
+  color: white;
+  padding: 1rem 0;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Nav Links */
+.nav-links {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li a {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav-links li a:hover {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+/* Hamburger icon styling */
+.hamburger {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Main section layout */
+/* === Section Layout === */
+.services-section {
+  background-color: #ffffff;
+  padding: 4rem 0;
+}
+
+.section-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.services-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+@media (min-width: 768px) {
+  .services-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+
+/* === Left Side Text === */
+.services-text {
+  flex: 1;
+}
+
+.section-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #000000;
+}
+
+.services-subtitle {
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.blue-heading {
+  color: #2563eb;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 1rem;
+}
+
+.services-description {
+  color: #6b7280;
+  max-width: 400px;
+}
+
+/* === Right Side Cards Wrapper === */
+.services-cards-wrapper {
+  flex: 1;
+  position: relative;
+  padding-top: 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* Blue Background Bar */
+.services-bg-bar {
+  background-color: #3b82f6;
+  height: 8rem;
+  width: 70vw;
+  max-width: 600px;
+  border-radius: 0.5rem;
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 0;
+}
+
+/* Card Container */
+.services-cards {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  position: relative;
+  z-index: 10;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
+  margin-top: 3rem;
+}
+
+@media (max-width: 767px) {
+  .services-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .services-bg-bar {
+    height: 12rem;
+    max-width: 300px;
+  }
+}
+
+/* === Individual Card === */
+.service-card {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  padding: 1.5rem;
+  text-align: center;
+  width: 160px;
+  padding-top: 3rem; 
+}
+
+/* === Icon Circle === */
+.service-icon-circle {
+  background-color: #f3f4f6;
+  padding: 0.75rem;
+  border-radius: 50%;
+  width: 55%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Clean margin */
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+
+.service-icon {
+  height: 2rem;
+  width: auto;
+  /* Optional: make icons blue */
+  /* filter: brightness(0) saturate(100%) invert(23%) sepia(100%) saturate(7500%) hue-rotate(210deg) brightness(95%) contrast(85%); */
+}
+
+/* === Card Title === */
+.service-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 1rem 0;
+  }
+  
+  .hero-container {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .hero-text-content {
+    text-align: center;
+  }
+  
+  .hero-title {
+    font-size: 1.5rem;
+  }
+  
+  .hero-buttons {
+    justify-content: center;
+  }
+  
+  .hero-btn-primary,
+  .hero-btn-secondary {
+    width: 200px;
+  }
+}
+
+.w-12,
+.h-12 {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Padding */
+.p-4 {
+  padding: 1rem;
+}
+
+/* Margins */
+.mt-8 {
+  margin-top: 2rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+/* Flexbox Spacing */
+.space-x-4 > * + * {
+  margin-left: 1rem;
+}
+
+/* Grid Columns */
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Responsive Classes */
+@media (min-width: 768px) {
+  .md\:flex-row {
+    flex-direction: row;
+  }
+
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .md\:grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .md\:space-x-8 > * + * {
+    margin-left: 2rem;
+  }
+}
