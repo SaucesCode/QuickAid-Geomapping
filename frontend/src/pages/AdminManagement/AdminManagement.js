@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./AdminManagement.css"; // Add styles if needed
+import { API_URL } from "../../services/api";
 
 const AdminManagement = () => {
   const [staffList, setStaffList] = useState([]);
@@ -15,6 +16,13 @@ const AdminManagement = () => {
   const [editData, setEditData] = useState(null);
   const token = localStorage.getItem("accessToken");
 
+  useEffect(() => {
+    document.title = "Quickaid | Admin Management";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
   // Fetch all staff on load
   useEffect(() => {
     fetchStaff();
@@ -22,10 +30,11 @@ const AdminManagement = () => {
 
   const fetchStaff = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/staff-list/", {
+      const res = await fetch(`${API_URL}/staff-list/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
+      console.log("Staff list:", data);
       setStaffList(data);
     } catch (error) {
       setMessage("Error loading staff list");
@@ -38,7 +47,7 @@ const AdminManagement = () => {
 
   const handleSubmit = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/register_staff/", {
+      const res = await fetch(`${API_URL}/register_staff/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -65,7 +74,7 @@ const AdminManagement = () => {
     if (!window.confirm("Are you sure you want to delete this staff?")) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/delete-staff/${id}/`, {
+      const res = await fetch(`${API_URL}/delete-staff/${id}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -76,6 +85,17 @@ const AdminManagement = () => {
     } catch (err) {
       setMessage("❌ Failed to delete staff");
     }
+  };
+  const getStatusBadge = lastActive => {
+    if (!lastActive) return "🔴 Offline";
+
+    const last = new Date(lastActive);
+    const now = new Date();
+    const diff = (now - last) / 1000;
+
+    if (diff < 60) return "🟢 Online";
+    if (diff < 300) return "🟡 Idle";
+    return "🔴 Offline";
   };
 
   return (
@@ -88,6 +108,7 @@ const AdminManagement = () => {
       <table>
         <thead>
           <tr>
+            <th>Status</th>
             <th>Username</th>
             <th>Full Name</th>
             <th>Email</th>
@@ -97,6 +118,8 @@ const AdminManagement = () => {
         <tbody>
           {staffList.map(staff => (
             <tr key={staff.id}>
+              <td>{getStatusBadge(staff.last_active)}</td>
+
               <td>{staff.username}</td>
               <td>
                 {staff.first_name} {staff.last_name}
@@ -147,17 +170,14 @@ const AdminManagement = () => {
               <button
                 onClick={async () => {
                   try {
-                    const res = await fetch(
-                      `http://127.0.0.1:8000/api/update-staff/${editData.id}/`,
-                      {
-                        method: "PUT",
-                        headers: {
-                          "Content-Type": "application/json",
-                          Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify(editData),
-                      }
-                    );
+                    const res = await fetch(`${API_URL}/update-staff/${editData.id}/`, {
+                      method: "PUT",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify(editData),
+                    });
                     const data = await res.json();
                     if (res.ok) {
                       setMessage("✅ Staff updated!");
@@ -225,5 +245,6 @@ const AdminManagement = () => {
     </div>
   );
 };
+//
 
 export default AdminManagement;

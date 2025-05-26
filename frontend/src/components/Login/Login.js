@@ -9,6 +9,13 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.title = "Quickaid | Login";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
   const handleLogin = async e => {
     e.preventDefault();
     try {

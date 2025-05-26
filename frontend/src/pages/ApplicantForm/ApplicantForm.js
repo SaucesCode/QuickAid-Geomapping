@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from "react";
 import "./ApplicationForm.css";
 import { NavLink } from "react-router-dom";
+import { API_URL } from "../../services/api";
 
 const ApplicantForm = () => {
   const [applicants, setApplicants] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    document.title = "Quickaid | Applicant Form";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
   const fetchApplicants = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await fetch("http://127.0.0.1:8000/api/applicants/", {
+      const response = await fetch(`${API_URL}/applicants/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -26,6 +34,7 @@ const ApplicantForm = () => {
 
   useEffect(() => {
     fetchApplicants();
+    console.log("Fetched applicants:", applicants);
   }, []);
 
   const filteredApplicants = applicants.filter(
@@ -95,16 +104,15 @@ const ApplicantForm = () => {
                 <tr key={index}>
                   <td>{filteredApplicants.length - index}</td>
                   <td className="applicant-name">
-                    {applicant.first_name} {applicant.last_name}
+                    {applicant.background_info.first_name}{" "}
+                    {applicant.background_info.last_name}
                   </td>
-                  <td>{applicant.barangay}</td>
-                  <td>{applicant.city_municipality}</td>
+                  <td>{applicant.background_info.barangay}</td>
+                  <td>{applicant.background_info.barangay_details.city_name}</td>
                   <td>
                     <span className="assistance-badge">{applicant.type_of_assistance}</span>
                   </td>
-                  <td>
-                    {formatDate(new Date(applicant.processed_at).toString().slice(0, 24))}
-                  </td>
+                  <td>{formatDate(new Date(applicant.created_at).toString().slice(0, 24))}</td>
                 </tr>
               ))}
             </tbody>
@@ -120,5 +128,5 @@ const ApplicantForm = () => {
     </div>
   );
 };
-
+//
 export default ApplicantForm;

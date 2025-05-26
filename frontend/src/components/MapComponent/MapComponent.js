@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
+import { API_URL } from "../../services/api";
 
 const defaultCenter = [13.938, 121.508];
 
@@ -13,7 +14,7 @@ const assistanceColors = {
 };
 
 const MapComponent = ({ province, city, barangay, applicantName }) => {
-  // Added props
+  // Added propss
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("");
@@ -26,10 +27,17 @@ const MapComponent = ({ province, city, barangay, applicantName }) => {
   const assistanceTypes = ["Medical", "Burial", "Educational"];
   const cities = ["Lucena City", "Sariaya", "Candelaria", "Tiaong", "San Antonio", "Dolores"];
 
+  useEffect(() => {
+    document.title = "Quickaid | Geolocation Map";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
   const fetchLocations = async () => {
     setLoading(true);
     try {
-      let url = "http://127.0.0.1:8000/api/applicant-locations/";
+      let url = `${API_URL}/applicant-locations/`;
       const params = new URLSearchParams();
       if (typeFilter) params.append("type", typeFilter);
       if (cityFilter) params.append("city", cityFilter);
