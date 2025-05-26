@@ -4,11 +4,12 @@ import Step1 from "./Step1";
 import Step2 from "./Step2";
 import Step3 from "./Step3";
 import PreviewStep from "./PreviewStep";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "./MultiStepForm.css";
 
 const MultiStepForm = () => {
   const [step, setStep] = useState(1);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     // Step 1
     first_name: "",
@@ -64,8 +65,20 @@ const MultiStepForm = () => {
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
 
+  const handleCancel = () => {
+    if (
+      window.confirm("Are you sure you want to cancel? All entered information will be lost.")
+    ) {
+      navigate("/register-applicant");
+    }
+  };
+
   return (
     <div className="form-container">
+      <button onClick={handleCancel} className="cancel-btn">
+        Cancel
+      </button>
+
       <div className="step-indicator">
         <div className={`step ${step >= 1 ? "active" : ""}`}>1</div>
         <div className={`step ${step >= 2 ? "active" : ""}`}>2</div>
@@ -80,13 +93,12 @@ const MultiStepForm = () => {
         {step === 2 && (
           <Step2
             formData={formData}
-            setFormData={setFormData} // ✅ Add this!
+            setFormData={setFormData}
             handleChange={handleChange}
             nextStep={nextStep}
             prevStep={prevStep}
           />
         )}
-
         {step === 3 && (
           <Step3
             formData={formData}
@@ -97,12 +109,8 @@ const MultiStepForm = () => {
         )}
         {step === 4 && <PreviewStep formData={formData} prevStep={prevStep} />}
       </div>
-
-      <NavLink to="/register-applicant" className="close-btn">
-        Cancel
-      </NavLink>
     </div>
   );
 };
-//
+
 export default MultiStepForm;

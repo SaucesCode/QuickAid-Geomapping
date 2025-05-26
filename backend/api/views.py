@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 import requests
 from django.views.decorators.csrf import csrf_exempt
-from .models import Applicant, CustomUser, Representative
+from .models import Applicant, CustomUser, Representative, StaffActivityLog
 from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer, RepresentativeSerializer
 
 User = get_user_model()
@@ -100,12 +100,26 @@ def applicant_detail(request, applicant_id):
         serializer = ApplicantSerializer(applicant, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            # Log the update
+            log_staff_activity(
+                request.user,
+                'UPDATE',
+                f"Updated application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
+                request
+            )
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
     elif request.method == 'DELETE':
         applicant.is_archived = True
         applicant.save()
+        # Log the archive
+        log_staff_activity(
+            request.user,
+            'ARCHIVE',
+            f"Archived application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
+            request
+        )
         return Response({"message": "Applicant archived successfully"})
 
 @api_view(['GET'])
@@ -122,6 +136,13 @@ def restore_archived_applicant(request, pk):
         applicant = Applicant.objects.get(pk=pk)
         applicant.is_archived = False
         applicant.save()
+        # Log the restore
+        log_staff_activity(
+            request.user,
+            'RESTORE',
+            f"Restored application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
+            request
+        )
         return Response({"message": "Applicant restored successfully"})
     except Applicant.DoesNotExist:
         return Response({"error": "Applicant not found"}, status=404)
@@ -213,28 +234,34 @@ def protected_view(request):
 @permission_classes([IsAuthenticated])
 @csrf_exempt
 def submit_applicant(request):
-    data = request.data  # Kunin yung buong request body (payload)
+    data = request.data
 
-    # Ginagamit na ang serializer para mag-validate ng data, kaya hindi na manual na check fields dito
     serializer = ApplicantSerializer(data=data)
 
-
     if serializer.is_valid():
-        # I-save ang applicant, ibibigay ang nag-submit na staff user sa model
+        # Save the applicant with the current timestamp
         applicant = serializer.save(staff=request.user)
-
-        # Auto-set ng processed_at timestamp
-        applicant.date_filled = timezone.now()
-
+        
+        # Set date_filled to current time when form is submitted
+        current_time = timezone.now()
+        applicant.date_filled = current_time
+        
+        # If created_at is not set (first time), set it to current time
         if not applicant.created_at:
-            applicant.created_at = applicant.date_filled - timedelta(minutes=5)
-
+            applicant.created_at = current_time
+        
         applicant.save()
 
-        # Ibalik ang serialized data ng bagong gawa na applicant bilang success response
+        # Log the application creation
+        log_staff_activity(
+            request.user,
+            'CREATE',
+            f"Created application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
+            request
+        )
+
         return Response(ApplicantSerializer(applicant).data, status=201)
 
-    # Kapag invalid ang data, ibalik error messages sa response
     return Response(serializer.errors, status=400)
 
 
@@ -271,7 +298,7 @@ def get_applicant_locations(request):
             "address": f"{app.background_info.street_address}, {barangay_name}, {city_name}",
             "type_of_assistance": app.type_of_assistance,
             "barangay": barangay_name,
-
+            "city": city_name,
         })
 
     print(data) 
@@ -282,19 +309,20 @@ def get_applicant_locations(request):
 @permission_classes([IsAuthenticated])
 def update_coordinates(request):
     applicant_id = request.data.get('id')
-    barangay = request.data.get('barangay')
-    city_municipality = request.data.get('city_municipality')
-    province = request.data.get('province')
+    barangay = request.data.get('background_info', {}).get('barangay')
+    city_name = request.data.get('background_info', {}).get('barangay_details', {}).get('city_name')
 
     try:
         applicant = Applicant.objects.get(pk=applicant_id)
-        location_query = f"{barangay}, {city_municipality}, {province}"
+
+        # Build the location query with Quezon, Philippines to ensure correct location
+        location_query = f"{barangay}, {city_name}, Quezon, Philippines"
         latitude, longitude = applicant.get_coordinates(location_query)
 
         if latitude and longitude:
             applicant.latitude = latitude
             applicant.longitude = longitude
-            applicant.save()  # Save the updated coordinates
+            applicant.save()
             return Response({'latitude': latitude, 'longitude': longitude})
         else:
             return Response({'error': 'Could not retrieve coordinates'}, status=400)
@@ -303,6 +331,7 @@ def update_coordinates(request):
         return Response({'error': 'Applicant not found'}, status=404)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+
 
 # ANALYTICS VIEWS
 @api_view(['GET'])
@@ -387,11 +416,12 @@ def average_processing_time(request):
     data = Applicant.objects.exclude(created_at__isnull=True).exclude(date_filled__isnull=True).annotate(
         processing_time=ExpressionWrapper(F('date_filled') - F('created_at'), output_field=DurationField())
     ).aggregate(avg_time=Avg('processing_time'))
-    print(data  )
 
+    # Convert seconds to minutes and round to 1 decimal place
+    avg_minutes = round(data['avg_time'].total_seconds() / 60, 1) if data['avg_time'] else 0
 
     return Response({
-        "average_processing_time": data['avg_time'].total_seconds() if data['avg_time'] else 0
+        "average_processing_time": avg_minutes
     })
 
 
@@ -452,4 +482,330 @@ def applicants_by_age_group(request):
     formatted = [{"age_group": group, "count": count} for group, count in age_groups.items()]
     return Response(formatted)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def monthly_trends(request):
+    # Get the last 12 months of data
+    end_date = timezone.now()
+    start_date = end_date - timedelta(days=365)
+    
+    # Get monthly counts
+    monthly_data = Applicant.objects.filter(
+        date_filled__range=[start_date, end_date]
+    ).annotate(
+        month=TruncDate('date_filled')
+    ).values('month').annotate(
+        count=Count('id')
+    ).order_by('month')
+    
+    # Format the data for the frontend
+    formatted_data = [
+        {
+            'month': item['month'].strftime('%Y-%m'),
+            'count': item['count']
+        }
+        for item in monthly_data
+    ]
+    
+    return Response(formatted_data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def income_distribution(request):
+    # Define income ranges with a reasonable maximum
+    income_ranges = [
+        (0, 10000, 'Below 10,000'),
+        (10001, 20000, '10,001 - 20,000'),
+        (20001, 30000, '20,001 - 30,000'),
+        (30001, 40000, '30,001 - 40,000'),
+        (40001, 50000, '40,001 - 50,000'),
+        (50001, 100000, '50,001 - 100,000'),
+        (100001, None, 'Above 100,000')  # Use None instead of float('inf')
+    ]
+    
+    # Get counts for each range
+    distribution = []
+    for min_income, max_income, label in income_ranges:
+        if max_income is None:
+            # For the last range (Above 100,000)
+            count = Applicant.objects.filter(
+                background_info__monthly_income__gte=min_income
+            ).count()
+        else:
+            count = Applicant.objects.filter(
+                background_info__monthly_income__gte=min_income,
+                background_info__monthly_income__lt=max_income
+            ).count()
+        
+        distribution.append({
+            'range': label,
+            'count': count
+        })
+    
+    return Response(distribution)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def processing_time_by_type(request):
+    # Calculate average processing time for each assistance type
+    processing_times = Applicant.objects.exclude(
+        created_at__isnull=True
+    ).exclude(
+        date_filled__isnull=True
+    ).values(
+        'type_of_assistance'
+    ).annotate(
+        processing_time=Avg(
+            ExpressionWrapper(
+                F('date_filled') - F('created_at'),
+                output_field=DurationField()
+            )
+        )
+    ).order_by('type_of_assistance')
+    
+    # Format the data
+    formatted_data = [
+        {
+            'type': item['type_of_assistance'],
+            'minutes': round(item['processing_time'].total_seconds() / 60, 1) if item['processing_time'] and item['processing_time'].total_seconds() > 0 else 0
+        }
+        for item in processing_times
+    ]
+    
+    return Response(formatted_data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def summary_metrics(request):
+    # Get total applicants
+    total_applicants = Applicant.objects.count()
+    
+    # Get average processing time in minutes
+    avg_processing_time = Applicant.objects.exclude(
+        created_at__isnull=True
+    ).exclude(
+        date_filled__isnull=True
+    ).aggregate(
+        avg_time=Avg(
+            ExpressionWrapper(
+                F('date_filled') - F('created_at'),
+                output_field=DurationField()
+            )
+        )
+    )['avg_time']
+    
+    print(avg_processing_time)
+    
+    # Convert to minutes and round to 1 decimal place
+    avg_minutes = round(avg_processing_time.total_seconds() / 60, 1) if avg_processing_time and avg_processing_time.total_seconds() > 0 else 0
+    
+    # Get most common assistance type
+    most_common_type = Applicant.objects.values(
+        'type_of_assistance'
+    ).annotate(
+        count=Count('id')
+    ).order_by('-count').first()
+    
+    # Get barangay with highest applications
+    highest_barangay = Applicant.objects.values(
+        'background_info__barangay__name'
+    ).annotate(
+        count=Count('id')
+    ).order_by('-count').first()
+    
+    return Response({
+        'totalApplicants': total_applicants,
+        'averageProcessingTime': avg_minutes,
+        'mostCommonType': most_common_type['type_of_assistance'] if most_common_type else 'N/A',
+        'highestBarangay': highest_barangay['background_info__barangay__name'] if highest_barangay else 'N/A'
+    })
+
 #AYAKO NA UMAY 
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    try:
+        user = request.user
+        data = request.data
+
+        changes = []
+        if 'username' in data and data['username'] != user.username:
+            if User.objects.filter(username=data['username']).exists():
+                return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
+            user.username = data['username']
+            changes.append('username')
+
+        if 'email' in data and data['email'] != user.email:
+            if User.objects.filter(email=data['email']).exists():
+                return Response({"error": "Email already taken"}, status=status.HTTP_400_BAD_REQUEST)
+            user.email = data['email']
+            changes.append('email')
+
+        if 'first_name' in data and data['first_name'] != user.first_name:
+            user.first_name = data['first_name']
+            changes.append('first name')
+
+        if 'last_name' in data and data['last_name'] != user.last_name:
+            user.last_name = data['last_name']
+            changes.append('last name')
+
+        user.save()
+        
+        # Log the profile update
+        if changes:
+            log_staff_activity(
+                user, 
+                'PROFILE', 
+                f"Updated: {', '.join(changes)}", 
+                request
+            )
+
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role': user.role,
+            'is_superuser': user.is_superuser
+        })
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    try:
+        user = request.user
+        data = request.data
+
+        if not all(k in data for k in ['current_password', 'new_password']):
+            return Response(
+                {"error": "Both current_password and new_password are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not user.check_password(data['current_password']):
+            return Response(
+                {"error": "Current password is incorrect"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user.set_password(data['new_password'])
+        user.save()
+
+        # Log the password change
+        log_staff_activity(
+            user,
+            'PASSWORD',
+            'Password changed',
+            request
+        )
+
+        return Response({"message": "Password changed successfully"})
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_current_user(request):
+    try:
+        user = request.user
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role': user.role,
+            'is_superuser': user.is_superuser
+        })
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_staff_activity_logs(request):
+    try:
+        print(f"Fetching logs for user: {request.user.username} (superuser: {request.user.is_superuser})")
+        
+        # Check if there are any logs
+        total_logs = StaffActivityLog.objects.count()
+        print(f"Total logs in database: {total_logs}")
+        
+        if total_logs == 0:
+            # Create a test log if none exist
+            print("No logs found, creating test log...")
+            try:
+                StaffActivityLog.objects.create(
+                    staff=request.user,
+                    action='LOGIN',
+                    details='Initial login',
+                    ip_address=request.META.get('REMOTE_ADDR')
+                )
+                print("Test log created successfully")
+            except Exception as create_error:
+                print(f"Error creating test log: {str(create_error)}")
+                return Response(
+                    {"error": "Failed to create initial log", "details": str(create_error)},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+        
+        try:
+            # Only superusers can view all logs
+            if request.user.is_superuser:
+                logs = StaffActivityLog.objects.all().order_by('-timestamp')
+                print(f"Found {logs.count()} total logs")
+            else:
+                # Regular staff can only view their own logs
+                logs = StaffActivityLog.objects.filter(staff=request.user).order_by('-timestamp')
+                print(f"Found {logs.count()} logs for user {request.user.username}")
+            
+            # Format the logs for response
+            formatted_logs = []
+            for log in logs:
+                try:
+                    formatted_log = {
+                        'id': log.id,
+                        'staff_member': f"{log.staff.first_name} {log.staff.last_name}",
+                        'action': log.action,
+                        'details': log.details or '',
+                        'ip_address': log.ip_address or '',
+                        'timestamp': log.timestamp.isoformat() if log.timestamp else None
+                    }
+                    formatted_logs.append(formatted_log)
+                except Exception as log_error:
+                    print(f"Error formatting log {log.id}: {str(log_error)}")
+                    continue
+            
+            print(f"Successfully formatted {len(formatted_logs)} logs")
+            return Response(formatted_logs)
+        except Exception as query_error:
+            print(f"Error querying logs: {str(query_error)}")
+            return Response(
+                {"error": "Failed to query logs", "details": str(query_error)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    except Exception as e:
+        print(f"Error in get_staff_activity_logs: {str(e)}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return Response(
+            {"error": "Failed to fetch activity logs", "details": str(e)}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+# Helper function to log staff activities
+def log_staff_activity(staff, action, details=None, request=None):
+    try:
+        ip_address = request.META.get('REMOTE_ADDR') if request else None
+        StaffActivityLog.objects.create(
+            staff=staff,
+            action=action,
+            details=details,
+            ip_address=ip_address
+        )
+    except Exception as e:
+        print(f"Error logging staff activity: {str(e)}") 

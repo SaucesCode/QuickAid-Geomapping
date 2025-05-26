@@ -13,6 +13,9 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
       <div className="form-section">
         <h3 className="section-title">Address Information</h3>
         <div className="form-grid">
+          <div className="form-group address-group full-width">
+            <AddressDropdown onSelect={handleAddressSelect} initialValues={formData} />
+          </div>
           <div className="form-group">
             <label htmlFor="street_address">
               Street Address <span className="required">*</span>
@@ -28,10 +31,6 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
               required
             />
           </div>
-
-          <div className="form-group address-group full-width">
-            <AddressDropdown onSelect={handleAddressSelect} initialValues={formData} />
-          </div>
         </div>
       </div>
 
@@ -40,7 +39,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
         <div className="form-grid">
           <div className="form-group">
             <label htmlFor="birthday">
-              Date of Birth <span className="required">*</span>
+              Date of Birth (Day/Month/Year) <span className="required">*</span>
             </label>
             <input
               type="date"
@@ -94,7 +93,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
 
           <div className="form-group">
             <label htmlFor="occupation">
-              Occupation <span className="required">*</span>
+              Occupation (None if none) <span className="required">*</span>
             </label>
             <input
               type="text"

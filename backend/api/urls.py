@@ -41,4 +41,16 @@ urlpatterns = [
     path('analytics/by-gender/', applicants_by_gender, name='analytics-by-gender'),
     path('analytics/by-civil-status/', applicants_by_civil_status, name='analytics-by-civil-status'),
     path('analytics/by-age-group/', applicants_by_age_group, name='analytics-by-age-group'),
+    
+    # New Analytics Endpoints
+    path('analytics/monthly-trends/', monthly_trends, name='monthly-trends'),
+    path('analytics/income-distribution/', income_distribution, name='income-distribution'),
+    path('analytics/processing-time/', processing_time_by_type, name='processing-time'),
+    path('analytics/summary-metrics/', summary_metrics, name='summary-metrics'),
+
+    # User profile and settings endpoints
+    path('users/update-profile/', update_profile, name='update_profile'),
+    path('users/change-password/', change_password, name='change_password'),
+    path('users/me/', get_current_user, name='get_current_user'),
+    path('users/staff-activity/', get_staff_activity_logs, name='staff_activity_logs'),
 ]

@@ -69,17 +69,31 @@ class BackgroundInfoSerializer(serializers.ModelSerializer):
         barangay = validated_data.pop("barangay")
         return BackgroundInfo.objects.create(barangay=barangay, **validated_data)
 
+# New serializer for representative background info without barangay
+class RepresentativeBackgroundInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BackgroundInfo
+        fields = [
+            "first_name", "middle_initial", "last_name", "suffix",
+            "birthday", "street_address",
+            "sex", "civil_status", "occupation", "monthly_income"
+        ]
+
+    def create(self, validated_data):
+        # Get a default barangay (you might want to set this to a specific one)
+        default_barangay = Barangay.objects.first()
+        return BackgroundInfo.objects.create(barangay=default_barangay, **validated_data)
 
 class RepresentativeSerializer(serializers.ModelSerializer):
-    background_info = BackgroundInfoSerializer()
+    background_info = RepresentativeBackgroundInfoSerializer()
 
     class Meta:
         model = Representative
-        fields = ["id", "applicant", "background_info", "relationship"]
+        fields = ["id", "background_info", "relationship"]
 
     def create(self, validated_data):
         bg_data = validated_data.pop("background_info")
-        background_info = BackgroundInfoSerializer().create(bg_data)
+        background_info = RepresentativeBackgroundInfoSerializer().create(bg_data)
             
         return Representative.objects.create(
             background_info=background_info, 
@@ -89,7 +103,7 @@ class RepresentativeSerializer(serializers.ModelSerializer):
 
 class ApplicantSerializer(serializers.ModelSerializer):
     background_info = BackgroundInfoSerializer()
-    representative = RepresentativeSerializer(required=False, write_only=True)
+    representative = RepresentativeSerializer(required=False,allow_null=True, write_only=True)
     staff = serializers.CharField(source='staff.username', read_only=True)
     city = serializers.CharField(source='background_info.barangay.city.name', read_only=True)
     #
@@ -127,6 +141,36 @@ class ApplicantSerializer(serializers.ModelSerializer):
 
         return applicant
     
+    def update(self, instance, validated_data):
+        # Update background_info if present
+        bg_data = validated_data.pop("background_info", None)
+        if bg_data:
+            bg_instance = instance.background_info
+            for attr, value in bg_data.items():
+                setattr(bg_instance, attr, value)
+            bg_instance.save()
+
+        # Update representative if provided
+        rep_data = validated_data.pop("representative", None)
+        if rep_data:
+            if hasattr(instance, "representative"):
+                # Update existing representative
+                rep_instance = instance.representative
+                for attr, value in rep_data.items():
+                    setattr(rep_instance, attr, value)
+                rep_instance.save()
+            else:
+                # Create new representative if it doesn't exist
+                rep_serializer = RepresentativeSerializer(context={"applicant": instance})
+                rep_serializer.create({**rep_data, "applicant": instance})
+
+        # Update regular fields of the Applicant
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance
+
     def to_representation(self, instance):
         """
         Custom representation of the applicant, including representative data if it exists

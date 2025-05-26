@@ -2,21 +2,20 @@
 
 :root {
   /* Accessible & Modern Color Palette */
-  --primary-color: #005ea2; /* Deeper Accessible Blue */
-  --primary-light: #eaf3fa; /* Lighter Blue */
-  --primary-hover: #003e73; /* Darker Blue for Hover */
-  --accent-color: #fdb81e; /* Accessible Gold/Yellow */
-  --success-color: #00a91c; /* Accessible Green */
-  --error-color: #d83933; /* Accessible Red */
-  --error-hover: #b52d28; /* Darker Red for Hover */
-  --text-color: #333333; /* Very Dark Gray - High Contrast */
-  --text-muted: #5c5c5c; /* Medium Gray */
-  --body-bg: #f9f9f9; /* Very Light Off-White/Gray */
-  --card-bg: #ffffff; /* White */
-  --border-color: #cccccc; /* Lighter Gray Border */
-  --shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Slightly Softer Shadow */
-  --border-radius: 0.75rem; /* Slightly Larger Radius */
-  --transition: all 0.25s ease-in-out;
+  --primary-color: #4361ee;
+  --primary-hover: #3a56d4;
+  --primary-light: #e6ebff;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --text-color: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --card-bg: #ffffff;
+  --bg-light: #f8fafc;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --radius: 12px;
+  --transition: all 0.3s ease;
 
   /* Enhanced Readability */
   --font-family-sans: "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
@@ -41,11 +40,11 @@ body {
 .form-container {
   position: relative;
   background-color: var(--card-bg);
-  padding: 3rem 4rem; /* Adjusted Padding */
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
+  padding: 2rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
   width: calc(100% - 4rem); /* Full width minus some margin */
-  max-width: 1200px; /* Increased Max Width */
+  max-width: 800px;
   margin: 2rem auto; /* Centered with margin */
   box-sizing: border-box; /* Include padding in width */
   min-height: calc(100vh - 4rem); /* Ensure it takes vertical space */
@@ -57,51 +56,44 @@ body {
 /* Step Indicator - Much Smaller */
 .step-indicator {
   display: flex;
-  justify-content: space-around; /* Even spacing */
+  justify-content: space-between;
   align-items: center;
-  margin-bottom: 2.5rem; /* Reduced bottom margin */
-  padding: 1rem 2rem 0; /* Adjusted padding */
+  margin-bottom: 3rem;
   position: relative;
-  width: 100%; /* Ensure it spans the container */
-  box-sizing: border-box;
+  padding: 0 2rem;
 }
 
 .step-indicator::before {
   content: "";
   position: absolute;
-  top: calc(1rem + 1.25rem); /* Align with center of smaller step */
-  left: 15%; /* Adjust start/end points */
-  right: 15%;
-  height: 0.15rem; /* Thinner line */
-  background-color: var(--border-color);
-  transform: translateY(-50%);
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--border-color);
   z-index: 1;
 }
 
 .step {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem; /* Much Smaller Step Circles */
-  height: 2.5rem;
-  border-radius: 50%;
-  background-color: var(--primary-light);
-  border: 0.15rem solid var(--border-color); /* Thinner border */
   font-weight: 600;
-  font-size: 1rem; /* Smaller Font */
-  color: var(--text-muted); /* Muted color for inactive */
+  color: var(--text-secondary);
   position: relative;
   z-index: 2;
   transition: var(--transition);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Smaller shadow */
 }
 
 .step.active {
-  background-color: var(--primary-color);
+  background: var(--primary-color);
   border-color: var(--primary-color);
   color: white;
-  box-shadow: 0 0.3rem 0.6rem rgba(0, 94, 162, 0.2); /* Adjusted Shadow */
-  transform: scale(1.1); /* Slightly larger when active */
 }
 
 .step.completed {
@@ -112,34 +104,28 @@ body {
 
 /* Step Content Area */
 .step-content {
-  padding: 0; /* Remove padding here, handled by sections */
-  flex-grow: 1; /* Allow content to fill space */
-  animation: fadeStep 0.4s ease-in-out forwards;
+  position: relative;
+  min-height: 400px;
 }
 
 /* Form Step Header - Smaller Font */
 .form-step-header {
-  margin-bottom: 2.5rem; /* Adjusted margin */
-  padding: 1.2rem 2rem; /* Adjusted padding */
-  border-bottom: 1px solid var(--border-color); /* Subtle separator */
-  text-align: left;
-  background-color: var(--primary-light); /* Light blue background */
-  border-radius: var(--border-radius) var(--border-radius) 0 0; /* Round top corners */
-  margin-left: -2rem; /* Extend to edge of padding */
-  margin-right: -2rem;
-  margin-top: -1rem; /* Pull up slightly */
+  margin-bottom: 2rem;
+  text-align: center;
 }
 
 .step-title {
-  font-size: 1.8rem; /* Smaller Header Title */
+  font-size: 1.75rem;
   font-weight: 700;
-  color: var(--primary-color); /* Use primary color */
-  margin-bottom: 0.4rem; /* Adjusted spacing */
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
 }
 
 .step-description {
-  font-size: 1rem; /* Smaller Header Description */
-  color: var(--text-muted);
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 /* Form Grid - Responsive & Spaced */
@@ -148,4 +134,145 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem; /* Adjusted Gap */
   margin-bottom: 2.5rem; /* Adjusted Margin */
+}
+
+/* Navigation */
+.form-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Cancel Button - Always Visible */
+.cancel-btn {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background-color: var(--error-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  box-shadow: var(--shadow);
+  z-index: 1000;
+}
+
+.cancel-btn:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.cancel-btn::before {
+  content: "✕";
+  font-size: 1.1rem;
+}
+
+/* Navigation Buttons */
+.back-btn,
+.next-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+}
+
+.back-btn {
+  background-color: var(--bg-light);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.back-btn:hover {
+  background-color: var(--border-color);
+}
+
+.next-btn {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.next-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+/* Form Sections */
+.form-section {
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .form-container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .step-indicator {
+    padding: 0 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .step {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+
+  .form-navigation {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .back-btn,
+  .next-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cancel-btn {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .step-title {
+    font-size: 1.5rem;
+  }
+
+  .step-description {
+    font-size: 1rem;
+  }
 }

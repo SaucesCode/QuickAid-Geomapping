@@ -8,28 +8,28 @@
   --success-color: #06d6a0;
   --warning-color: #ffd166;
   --warning-hover: #e6bc5c;
-  --text-color: #333;
-  --text-secondary: #6c757d;
-  --border-color: #e9ecef;
-  --bg-color: #f8f9fa;
+  --text-color: #2d3748;
+  --text-secondary: #4a5568;
+  --border-color: #e2e8f0;
+  --bg-color: #f7fafc;
   --card-bg: #ffffff;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --border-radius: 10px;
-  --transition: all 0.3s ease;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --border-radius: 8px;
+  --transition: all 0.2s ease;
 }
 
 .admin-management {
-  padding: 20px;
+  padding: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .admin-management h2 {
   color: var(--text-color);
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: 24px;
-  padding-bottom: 12px;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -38,29 +38,30 @@
   background-color: var(--primary-color);
   color: white;
   border: none;
-  padding: 10px 18px;
+  padding: 0.5rem 1rem;
   border-radius: 6px;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   transition: var(--transition);
-  margin-bottom: 24px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
 }
 
 .admin-management > button:hover {
   background-color: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Message Styles */
 .message {
-  padding: 12px 18px;
+  padding: 0.75rem 1rem;
   border-radius: var(--border-radius);
-  margin: 16px 0;
+  margin: 1rem 0;
+  font-size: 0.875rem;
   font-weight: 500;
   animation: fadeIn 0.3s ease-in;
 }
@@ -68,13 +69,13 @@
 .message:nth-of-type(1n) {
   background-color: rgba(6, 214, 160, 0.1);
   color: var(--success-color);
-  border-left: 4px solid var(--success-color);
+  border-left: 3px solid var(--success-color);
 }
 
 .message:nth-of-type(2n) {
   background-color: rgba(239, 71, 111, 0.1);
   color: var(--danger-color);
-  border-left: 4px solid var(--danger-color);
+  border-left: 3px solid var(--danger-color);
 }
 
 /* Table Styles */
@@ -82,29 +83,34 @@ table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  margin-top: 20px;
+  margin-top: 1rem;
   background-color: var(--card-bg);
   border-radius: var(--border-radius);
   overflow: hidden;
   box-shadow: var(--shadow);
+  font-size: 0.875rem;
 }
 
 thead {
-  background-color: var(--primary-light);
+  background-color: var(--bg-color);
 }
 
 th {
   text-align: left;
-  padding: 16px;
+  padding: 0.75rem 1rem;
   font-weight: 600;
   color: var(--text-color);
   border-bottom: 1px solid var(--border-color);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 td {
-  padding: 16px;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-secondary);
+  font-size: 0.875rem;
 }
 
 tr:last-child td {
@@ -112,59 +118,67 @@ tr:last-child td {
 }
 
 tr:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: var(--bg-color);
 }
 
-/* Action Button Styles */
-td button {
-  margin-right: 8px;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: var(--transition);
-  font-weight: 500;
+/* Status Badge Styles */
+.status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border: none;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
-/* Delete button */
-td button:first-child {
-  background-color: rgba(239, 71, 111, 0.1);
-  color: var(--danger-color);
+.status-online {
+  background-color: rgba(6, 214, 160, 0.1);
+  color: var(--success-color);
 }
 
-td button:first-child:hover {
-  background-color: var(--danger-color);
-  color: white;
-}
-
-/* Edit button */
-td button:last-child {
+.status-idle {
   background-color: rgba(255, 209, 102, 0.1);
   color: var(--warning-color);
 }
 
-td button:last-child:hover {
-  background-color: var(--warning-color);
+.status-offline {
+  background-color: rgba(226, 232, 240, 0.5);
+  color: var(--text-secondary);
+}
+
+/* Action Button Styles */
+.action-button {
+  padding: 0.375rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.delete-button {
+  background-color: rgba(239, 71, 111, 0.1);
+  color: var(--danger-color);
+}
+
+.delete-button:hover {
+  background-color: var(--danger-color);
   color: white;
 }
 
-/* Fix for table layout with two buttons */
-td:last-child,
-td:nth-last-child(2) {
-  padding-right: 8px;
-  white-space: nowrap;
-  width: 1%;
+.edit-button {
+  background-color: rgba(255, 209, 102, 0.1);
+  color: var(--warning-color);
 }
 
-.status-online {
-  color: green;
-  font-weight: bold;
-}
-.status-offline {
-  color: gray;
+.edit-button:hover {
+  background-color: var(--warning-color);
+  color: white;
 }
 
 /* Modal Styles */
@@ -174,65 +188,76 @@ td:nth-last-child(2) {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.2s ease;
+  padding: 1rem;
 }
 
-/* .modal-content {
+.modal-content {
   background-color: var(--card-bg);
   border-radius: var(--border-radius);
-  padding: 30px;
+  padding: 1.5rem;
   width: 100%;
-  max-width: 500px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  animation: slideUp 0.3s ease;
-} */
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.2s ease;
+  position: relative;
+  margin: auto;
+}
 
 .modal-content h3 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem;
   color: var(--text-color);
   text-align: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modal-content input {
   width: 100%;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 0.625rem 0.875rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.875rem;
   transition: var(--transition);
+  background-color: var(--bg-color);
 }
 
 .modal-content input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.1);
 }
 
 .modal-buttons {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 20px;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.modal-buttons button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
 }
 
 .modal-buttons button:first-child {
   background-color: var(--primary-color);
   color: white;
   border: none;
-  padding: 12px 20px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  flex: 1;
 }
 
 .modal-buttons button:first-child:hover {
@@ -240,19 +265,13 @@ td:nth-last-child(2) {
 }
 
 .modal-buttons button:last-child {
-  background-color: #f8f9fa;
+  background-color: var(--bg-color);
   color: var(--text-secondary);
   border: 1px solid var(--border-color);
-  padding: 12px 20px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  flex: 1;
 }
 
 .modal-buttons button:last-child:hover {
-  background-color: #e9ecef;
+  background-color: var(--border-color);
 }
 
 /* Animations */
@@ -267,7 +286,7 @@ td:nth-last-child(2) {
 
 @keyframes slideUp {
   from {
-    transform: translateY(30px);
+    transform: translateY(10px);
     opacity: 0;
   }
   to {
@@ -279,12 +298,12 @@ td:nth-last-child(2) {
 /* Responsive Styles */
 @media (max-width: 768px) {
   .admin-management {
-    padding: 16px;
+    padding: 1rem;
   }
 
   .modal-content {
     width: 90%;
-    padding: 20px;
+    padding: 1.25rem;
   }
 
   table {
@@ -294,11 +313,10 @@ td:nth-last-child(2) {
 
   th,
   td {
-    padding: 12px;
+    padding: 0.625rem 0.875rem;
   }
 
-  td button {
-    padding: 6px 10px;
-    font-size: 0.9rem;
+  .action-button {
+    padding: 0.25rem 0.5rem;
   }
 }

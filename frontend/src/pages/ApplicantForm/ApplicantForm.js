@@ -37,16 +37,6 @@ const ApplicantForm = () => {
     console.log("Fetched applicants:", applicants);
   }, []);
 
-  const filteredApplicants = applicants.filter(
-    applicant =>
-      `${applicant.first_name} ${applicant.last_name}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      applicant.barangay.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      applicant.city_municipality.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      applicant.type_of_assistance.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const formatDate = dateString => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -57,6 +47,21 @@ const ApplicantForm = () => {
       hour: "numeric",
     });
   };
+
+  const filteredApplicants = applicants.filter(
+    applicant =>
+      `${applicant.background_info.first_name} ${applicant.background_info.last_name}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      applicant.background_info.barangay.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      applicant.background_info.barangay_details.city_name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      applicant.type_of_assistance.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      formatDate(new Date(applicant.created_at).toString().slice(0, 24))
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="applicant-dashboard">
@@ -74,12 +79,11 @@ const ApplicantForm = () => {
         <div className="search-container">
           <input
             type="text"
-            placeholder="Search applicants..."
+            placeholder="🔍 Search applicants..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="search-input"
           />
-          <span className="search-icon">🔍</span>
         </div>
         <div className="applicant-count">
           <span className="count">{applicants.length}</span> Total Applicants
@@ -112,7 +116,7 @@ const ApplicantForm = () => {
                   <td>
                     <span className="assistance-badge">{applicant.type_of_assistance}</span>
                   </td>
-                  <td>{formatDate(new Date(applicant.created_at).toString().slice(0, 24))}</td>
+                  <td>{formatDate(applicant.created_at)}</td>
                 </tr>
               ))}
             </tbody>

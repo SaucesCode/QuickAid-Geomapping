@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./SettingsPage.css";
 import { API_URL } from "../../services/api";
+import { format } from "date-fns";
 
 const SettingsPage = () => {
   const storedUser = localStorage.getItem("userData");
@@ -9,6 +10,11 @@ const SettingsPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
 
   const [editedUser, setEditedUser] = useState({
     username: "",
@@ -17,28 +23,20 @@ const SettingsPage = () => {
     email: "",
     role: "",
   });
+
   const [passwordData, setPasswordData] = useState({
     current_password: "",
     new_password: "",
     confirm_password: "",
   });
 
-  const [loginHistoryData, setLoginHistoryData] = useState([]);
-  const [isLoadingLoginHistory, setIsLoadingLoginHistory] = useState(false);
-  const [staffActivityLogData, setStaffActivityLogData] = useState([]);
-  const [isLoadingStaffActivityLogs, setIsLoadingStaffActivityLogs] = useState(false);
-
   const settingOptions = [
     { id: "profile", label: "Profile Info", icon: "👤" },
     { id: "password", label: "Change Password", icon: "🔐" },
     { id: "appearance", label: "Appearance", icon: "🎨" },
-    { id: "loginHistory", label: "Login History", icon: "🕒" },
   ];
 
-  const adminSettingOptions = [
-    { id: "staffActivityLogs", label: "Staff Activity Logs", icon: "👥" },
-    { id: "adminControls", label: "Admin Controls", icon: "🛠️" },
-  ];
+  const adminSettingOptions = [{ id: "adminControls", label: "Admin Controls", icon: "🛠️" }];
 
   useEffect(() => {
     document.title = "Quickaid | Settings";
@@ -48,48 +46,126 @@ const SettingsPage = () => {
   }, []);
 
   useEffect(() => {
-    try {
-      if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        setUser(parsed);
-        setEditedUser({
-          username: parsed.username || "",
-          first_name: parsed.first_name || "",
-          last_name: parsed.last_name || "",
-          email: parsed.email || "",
-          role: parsed.role || "",
-        });
-      } else {
-        console.warn("No user data found in localStorage");
+    const initializeUser = async () => {
+      try {
+        setIsLoading(true);
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          setUser(parsed);
+          setEditedUser({
+            username: parsed.username || "",
+            first_name: parsed.first_name || "",
+            last_name: parsed.last_name || "",
+            email: parsed.email || "",
+            role: parsed.role || "",
+          });
+        } else {
+          const token = localStorage.getItem("accessToken");
+          if (token) {
+            const response = await fetch(`${API_URL}/users/me/`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            if (response.ok) {
+              const userData = await response.json();
+              setUser(userData);
+              setEditedUser({
+                username: userData.username || "",
+                first_name: userData.first_name || "",
+                last_name: userData.last_name || "",
+                email: userData.email || "",
+                role: userData.role || "",
+              });
+              localStorage.setItem("userData", JSON.stringify(userData));
+            } else {
+              window.location.href = "/login";
+            }
+          } else {
+            window.location.href = "/login";
+          }
+        }
+      } catch (error) {
+        console.error("Error initializing user:", error);
+        setError("Failed to load user data. Please try logging in again.");
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error parsing userData:", error);
-    }
+    };
+
+    initializeUser();
   }, [storedUser]);
+
+  useEffect(() => {
+    const fetchActivityLogs = async () => {
+      if (!user?.is_superuser) return;
+
+      setIsLoadingLogs(true);
+      setError(null);
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        const response = await fetch(`${API_URL}/users/staff-activity/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(
+            errorData.details || errorData.error || "Failed to fetch activity logs"
+          );
+        }
+
+        const data = await response.json();
+        setActivityLogs(data);
+      } catch (error) {
+        console.error("Error fetching activity logs:", error);
+        setError(error.message || "Failed to load activity logs");
+      } finally {
+        setIsLoadingLogs(false);
+      }
+    };
+
+    if (user?.is_superuser) {
+      fetchActivityLogs();
+    }
+  }, [user?.is_superuser]);
 
   const handleSectionChange = sectionId => {
     setActiveSection(sectionId);
     setIsEditing(false);
+    setError(null);
+    setSuccess(null);
   };
 
   const handleEdit = () => setIsEditing(true);
+
   const handleChange = e => {
     const { name, value } = e.target;
     setEditedUser(prev => ({ ...prev, [name]: value }));
   };
 
-  if (!user) {
-    return <div className="no-user-alert">⚠️ No user data found. Please login again.</div>;
-  }
-
-  const availableSections = user.is_superuser
-    ? [...settingOptions, ...adminSettingOptions]
-    : settingOptions;
-
   const handleSave = async () => {
     try {
+      setError(null);
+      setSuccess(null);
       const token = localStorage.getItem("accessToken");
-      const response = await fetch(`${API_URL}/users/${user.id}/`, {
+
+      if (!token) {
+        throw new Error("Authentication token not found. Please login again.");
+      }
+
+      const response = await fetch(`${API_URL}/users/update-profile/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -99,302 +175,406 @@ const SettingsPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update user");
+        if (response.status === 401) {
+          throw new Error("Session expired. Please login again.");
+        }
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to update user");
+        } else {
+          throw new Error("Failed to update user. Please try again.");
+        }
       }
 
       const updatedUser = await response.json();
       setUser(updatedUser);
       localStorage.setItem("userData", JSON.stringify(updatedUser));
       setIsEditing(false);
-      console.log("User updated successfully:", updatedUser);
+      setSuccess("Profile updated successfully!");
     } catch (error) {
-      console.error("Error updating user:", error);
+      setError(error.message);
+      if (
+        error.message.includes("Session expired") ||
+        error.message.includes("Authentication token not found")
+      ) {
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+      }
     }
   };
 
-  const handlePasswordChange = () => {
-    // Simulate password change
-    console.log("Changing password:", passwordData);
-    setShowPasswordModal(false);
+  const handlePasswordChange = async () => {
+    try {
+      setError(null);
+      setSuccess(null);
+
+      if (passwordData.new_password !== passwordData.confirm_password) {
+        throw new Error("New passwords do not match");
+      }
+
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        throw new Error("Authentication token not found. Please login again.");
+      }
+
+      const response = await fetch(`${API_URL}/users/change-password/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(passwordData),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Session expired. Please login again.");
+        }
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to change password");
+        } else {
+          throw new Error("Failed to change password. Please try again.");
+        }
+      }
+
+      setPasswordData({
+        current_password: "",
+        new_password: "",
+        confirm_password: "",
+      });
+      setShowPasswordModal(false);
+      setSuccess("Password changed successfully!");
+    } catch (error) {
+      setError(error.message);
+      if (
+        error.message.includes("Session expired") ||
+        error.message.includes("Authentication token not found")
+      ) {
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+      }
+    }
   };
 
-  const handleClearArchives = () => {
-    // Simulate clearing archives
-    console.log("Clearing archives...");
-    setShowArchiveConfirm(false);
+  const handleClearArchives = async () => {
+    try {
+      setError(null);
+      setSuccess(null);
+      const token = localStorage.getItem("accessToken");
+
+      if (!token) {
+        throw new Error("Authentication token not found. Please login again.");
+      }
+
+      const response = await fetch(`${API_URL}/applicants/clear-archives/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Session expired. Please login again.");
+        }
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to clear archives");
+        } else {
+          throw new Error("Failed to clear archives. Please try again.");
+        }
+      }
+
+      setShowArchiveConfirm(false);
+      setSuccess("Archived applicants cleared successfully!");
+    } catch (error) {
+      setError(error.message);
+      if (
+        error.message.includes("Session expired") ||
+        error.message.includes("Authentication token not found")
+      ) {
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+      }
+    }
   };
+
+  if (isLoading) {
+    return <div className="loading-spinner">Loading settings...</div>;
+  }
+
+  if (!user) {
+    return <div className="no-user-alert">⚠️ No user data found. Please login again.</div>;
+  }
+
+  const availableSections = user.is_superuser
+    ? [...settingOptions, ...adminSettingOptions]
+    : settingOptions;
 
   return (
-    <div className="settings-container">
-      {/* <div className="settings-header">
-        <h2>Settings</h2>
-        <div className="header-user-info">
-          <div className="user-avatar">
-            {user.first_name && user.last_name
-              ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
-              : user.username.substring(0, 2)}
-          </div>
-          <div className="user-name">
-            {user.first_name} {user.last_name}
-          </div>
-        </div>
-      </div> */}
+    <div className="settings-page">
+      <div className="settings-header">
+        <h1>Settings</h1>
+        <p>Manage your account settings and preferences</p>
+      </div>
 
-      <div className="settings-body">
-        {/* Left Navigation Pane */}
-        <div className="settings-sidebar">
-          <ul className="settings-menu">
-            {availableSections.map(section => (
-              <li key={section.id}>
-                <button
-                  onClick={() => handleSectionChange(section.id)}
-                  className={`menu-item ${activeSection === section.id ? "active" : ""}`}
-                >
-                  <span className="menu-icon">{section.icon}</span>
-                  <span className="menu-label">{section.label}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="settings-container">
+        <div className="settings-body">
+          <div className="settings-sidebar">
+            <ul className="settings-menu">
+              {availableSections.map(section => (
+                <li key={section.id}>
+                  <button
+                    onClick={() => handleSectionChange(section.id)}
+                    className={`menu-item ${activeSection === section.id ? "active" : ""}`}
+                  >
+                    <span className="menu-icon">{section.icon}</span>
+                    <span className="menu-label">{section.label}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-        {/* Right Content Pane */}
-        <div className="settings-content">
-          {activeSection === "profile" && (
-            <div className="settings-section">
-              <h3>Profile Information</h3>
-              <div className="card">
-                {isEditing ? (
+          <div className="settings-content">
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">{success}</div>}
+
+            {activeSection === "profile" && (
+              <div className="settings-section">
+                <h3>Profile Information</h3>
+                <div className="card">
+                  {isEditing ? (
+                    <div className="form-group">
+                      <div className="form-row">
+                        <label>Username</label>
+                        <input
+                          type="text"
+                          name="username"
+                          value={editedUser.username}
+                          onChange={handleChange}
+                        />
+                      </div>
+                      <div className="form-row">
+                        <label>First Name</label>
+                        <input
+                          type="text"
+                          name="first_name"
+                          value={editedUser.first_name}
+                          onChange={handleChange}
+                        />
+                      </div>
+                      <div className="form-row">
+                        <label>Last Name</label>
+                        <input
+                          type="text"
+                          name="last_name"
+                          value={editedUser.last_name}
+                          onChange={handleChange}
+                        />
+                      </div>
+                      <div className="form-row">
+                        <label>Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={editedUser.email}
+                          readOnly
+                          className="readonly"
+                        />
+                      </div>
+                      <div className="button-group">
+                        <button className="btn primary" onClick={handleSave}>
+                          Save Profile
+                        </button>
+                        <button className="btn secondary" onClick={() => setIsEditing(false)}>
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="profile-info">
+                      <div className="profile-row">
+                        <span className="profile-label">Username</span>
+                        <span className="profile-value">{user.username}</span>
+                      </div>
+                      <div className="profile-row">
+                        <span className="profile-label">First Name</span>
+                        <span className="profile-value">{user.first_name}</span>
+                      </div>
+                      <div className="profile-row">
+                        <span className="profile-label">Last Name</span>
+                        <span className="profile-value">{user.last_name}</span>
+                      </div>
+                      <div className="profile-row">
+                        <span className="profile-label">Email</span>
+                        <span className="profile-value">{user.email}</span>
+                      </div>
+                      <div className="profile-row">
+                        <span className="profile-label">Role</span>
+                        <span className="profile-value">{user.role}</span>
+                      </div>
+                      <div className="button-group">
+                        <button className="btn primary" onClick={handleEdit}>
+                          Edit Profile
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeSection === "password" && (
+              <div className="settings-section">
+                <h3>Change Password</h3>
+                <div className="card">
                   <div className="form-group">
                     <div className="form-row">
-                      <label>Username</label>
+                      <label>Current Password</label>
                       <input
-                        type="text"
-                        name="username"
-                        value={editedUser.username}
-                        onChange={handleChange}
+                        type="password"
+                        value={passwordData.current_password}
+                        onChange={e =>
+                          setPasswordData({
+                            ...passwordData,
+                            current_password: e.target.value,
+                          })
+                        }
                       />
                     </div>
                     <div className="form-row">
-                      <label>First Name</label>
+                      <label>New Password</label>
                       <input
-                        type="text"
-                        name="first_name"
-                        value={editedUser.first_name}
-                        onChange={handleChange}
+                        type="password"
+                        value={passwordData.new_password}
+                        onChange={e =>
+                          setPasswordData({ ...passwordData, new_password: e.target.value })
+                        }
                       />
                     </div>
                     <div className="form-row">
-                      <label>Last Name</label>
+                      <label>Confirm New Password</label>
                       <input
-                        type="text"
-                        name="last_name"
-                        value={editedUser.last_name}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="form-row">
-                      <label>Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={editedUser.email}
-                        readOnly
-                        className="readonly"
+                        type="password"
+                        value={passwordData.confirm_password}
+                        onChange={e =>
+                          setPasswordData({
+                            ...passwordData,
+                            confirm_password: e.target.value,
+                          })
+                        }
                       />
                     </div>
                     <div className="button-group">
-                      <button className="btn primary" onClick={handleSave}>
-                        Save Profile
-                      </button>
-                      <button className="btn secondary" onClick={() => setIsEditing(false)}>
-                        Cancel
+                      <button className="btn primary" onClick={handlePasswordChange}>
+                        Update Password
                       </button>
                     </div>
                   </div>
-                ) : (
-                  <div className="profile-info">
-                    <div className="profile-row">
-                      <span className="profile-label">Username</span>
-                      <span className="profile-value">{user.username}</span>
-                    </div>
-                    <div className="profile-row">
-                      <span className="profile-label">First Name</span>
-                      <span className="profile-value">{user.first_name}</span>
-                    </div>
-                    <div className="profile-row">
-                      <span className="profile-label">Last Name</span>
-                      <span className="profile-value">{user.last_name}</span>
-                    </div>
-                    <div className="profile-row">
-                      <span className="profile-label">Email</span>
-                      <span className="profile-value">{user.email}</span>
-                    </div>
-                    <div className="profile-row">
-                      <span className="profile-label">Role</span>
-                      <span className="profile-value">{user.role}</span>
-                    </div>
-                    <div className="button-group">
-                      <button className="btn primary" onClick={handleEdit}>
-                        Edit Profile
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeSection === "password" && (
-            <div className="settings-section">
-              <h3>Change Password</h3>
-              <div className="card">
-                <p>Update your password to maintain account security.</p>
-                <p className="text-note">
-                  We recommend using a strong, unique password that you don't use elsewhere.
-                </p>
-
-                <div className="form-group">
-                  <div className="form-row">
-                    <label>Current Password</label>
-                    <input
-                      type="password"
-                      value={passwordData.current_password}
-                      onChange={e =>
-                        setPasswordData({ ...passwordData, current_password: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="form-row">
-                    <label>New Password</label>
-                    <input
-                      type="password"
-                      value={passwordData.new_password}
-                      onChange={e =>
-                        setPasswordData({ ...passwordData, new_password: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="form-row">
-                    <label>Confirm New Password</label>
-                    <input
-                      type="password"
-                      value={passwordData.confirm_password}
-                      onChange={e =>
-                        setPasswordData({ ...passwordData, confirm_password: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="button-group">
-                  <button className="btn primary" onClick={handlePasswordChange}>
-                    Update Password
-                  </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeSection === "appearance" && (
-            <div className="settings-section">
-              <h3>Appearance Settings</h3>
-              <div className="card">
-                <div className="toggle-row">
-                  <label className="toggle-container">
-                    <input type="checkbox" disabled />
-                    <span className="toggle-switch"></span>
-                    <span className="toggle-label">Enable Dark Mode (coming soon)</span>
-                  </label>
-                </div>
-                <div className="toggle-row">
-                  <label className="toggle-container">
-                    <input type="checkbox" disabled />
-                    <span className="toggle-switch"></span>
-                    <span className="toggle-label">Use High Contrast (coming soon)</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeSection === "loginHistory" && (
-            <div className="settings-section">
-              <h3>Your Login History</h3>
-              <div className="card">
-                {isLoadingLoginHistory ? (
-                  <div className="loading-spinner">Loading login history...</div>
-                ) : loginHistoryData.length > 0 ? (
-                  <div className="login-history-list">
-                    {loginHistoryData.map(log => (
-                      <div key={log.id} className="history-item">
-                        <div className="history-date">{log.date}</div>
-                        <div className="history-details">
-                          <span className="history-ip">IP: {log.ip_address}</span>
-                          <span className="history-device">{log.device}</span>
-                        </div>
+            {activeSection === "appearance" && (
+              <div className="settings-section">
+                <h3>Appearance Settings</h3>
+                <div className="card">
+                  <div className="admin-action-item">
+                    <div className="admin-action-info">
+                      <h4>Theme Settings</h4>
+                      <p>Customize the look and feel of your dashboard.</p>
+                    </div>
+                    <div className="appearance-options">
+                      <div className="toggle-row">
+                        <label className="toggle-container">
+                          <input type="checkbox" disabled />
+                          <span className="toggle-switch"></span>
+                          <span className="toggle-label">Dark Mode</span>
+                        </label>
+                        <span className="coming-soon">Coming Soon</span>
                       </div>
-                    ))}
+                      <div className="toggle-row">
+                        <label className="toggle-container">
+                          <input type="checkbox" disabled />
+                          <span className="toggle-switch"></span>
+                          <span className="toggle-label">High Contrast Mode</span>
+                        </label>
+                        <span className="coming-soon">Coming Soon</span>
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <p className="no-data">No login history found.</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {user.is_superuser && activeSection === "staffActivityLogs" && (
-            <div className="settings-section">
-              <h3>Staff Activity Logs</h3>
-              <div className="card">
-                {isLoadingStaffActivityLogs ? (
-                  <div className="loading-spinner">Loading staff activity logs...</div>
-                ) : staffActivityLogData.length > 0 ? (
-                  <div className="table-container">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Timestamp</th>
-                          <th>Staff Member</th>
-                          <th>Action</th>
-                          <th>Details</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {staffActivityLogData.map(log => (
-                          <tr key={log.id}>
-                            <td>{log.timestamp}</td>
-                            <td>{log.staff_member}</td>
-                            <td>{log.action}</td>
-                            <td>{log.details}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="no-data">No staff activity logs found.</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {user.is_superuser && activeSection === "adminControls" && (
-            <div className="settings-section">
-              <h3>Administrator Controls</h3>
-              <div className="card">
-                <div className="admin-action-item">
-                  <div className="admin-action-info">
-                    <h4>Clear Archived Applicants</h4>
-                    <p>This will permanently delete all archived applicant data.</p>
-                  </div>
-                  <button className="btn danger" onClick={() => setShowArchiveConfirm(true)}>
-                    Clear Archives
-                  </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {user.is_superuser && activeSection === "adminControls" && (
+              <div className="settings-section">
+                <h3>Administrator Controls</h3>
+                <div className="card">
+                  <div className="admin-action-item">
+                    <div className="admin-action-info">
+                      <h4>Staff Activity Logs</h4>
+                      <p>View all staff activities in the system.</p>
+                    </div>
+                    {isLoadingLogs ? (
+                      <div className="loading-spinner">Loading logs...</div>
+                    ) : error ? (
+                      <div className="error-message">{error}</div>
+                    ) : (
+                      <div className="activity-logs">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Date & Time</th>
+                              <th>Staff Member</th>
+                              <th>Action</th>
+                              <th>Details</th>
+                              <th>IP Address</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {activityLogs.length > 0 ? (
+                              activityLogs.map(log => (
+                                <tr key={log.id}>
+                                  <td>
+                                    {format(new Date(log.timestamp), "MMM d, yyyy h:mm a")}
+                                  </td>
+                                  <td>{log.staff_member}</td>
+                                  <td>
+                                    <span
+                                      className={`action-badge ${log.action.toLowerCase()}`}
+                                    >
+                                      {log.action}
+                                    </span>
+                                  </td>
+                                  <td>{log.details}</td>
+                                  <td>{log.ip_address}</td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan="5" className="no-data">
+                                  No activity logs found
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

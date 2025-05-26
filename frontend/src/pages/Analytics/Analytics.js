@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react"; // Removed useCallback as it's not strictly needed here with useEffect dependency management
+import React, { useEffect, useState, useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -13,30 +13,39 @@ import {
   PieChart,
   Pie,
   Cell,
+  AreaChart,
+  Area,
 } from "recharts";
 import { api } from "../../services/api";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-// import "./Analytics.css";
+import "./Analytics.css";
 
-// Colors for Pie Charts
-const GENDER_COLORS = ["#0088FE", "#FF8042", "#FFBB28"]; // Blue, Orange, Yellow
-const STATUS_COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#AF19FF", "#0088FE", "#FF1919"]; // Teal, Yellow, Orange, Purple, Blue, Red
+// Colors for Charts
+const GENDER_COLORS = ["#0088FE", "#FF8042", "#FFBB28"];
+const STATUS_COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#AF19FF", "#0088FE", "#FF1919"];
+const ASSISTANCE_COLORS = ["#4361ee", "#3a0ca3", "#4cc9f0", "#f72585", "#7209b7"];
 
 const Analytics = () => {
-  // Existing State
-  const [typeTrends, setTypeTrends] = useState([]);
-  const [barangayTypeBreakdown, setBarangayTypeBreakdown] = useState([]);
+  // State Management
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [selectedType, setSelectedType] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // --- New State for Demographics ---
+  // Analytics Data States
   const [genderData, setGenderData] = useState([]);
   const [civilStatusData, setCivilStatusData] = useState([]);
   const [ageGroupData, setAgeGroupData] = useState([]);
-  // --- End New State ---
+  const [monthlyTrends, setMonthlyTrends] = useState([]);
+  const [incomeDistribution, setIncomeDistribution] = useState([]);
+  const [processingTime, setProcessingTime] = useState([]);
+  const [summaryMetrics, setSummaryMetrics] = useState({
+    totalApplicants: 0,
+    averageProcessingTime: 0,
+    mostCommonType: "",
+    highestBarangay: "",
+  });
 
   const formatDate = date => date?.toISOString().split("T")[0] ?? null;
 
@@ -50,7 +59,7 @@ const Analytics = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const params = {}; // Params for date/type filtered endpoints
+      const params = {};
       if (startDate && endDate) {
         params.start = formatDate(startDate);
         params.end = formatDate(endDate);
@@ -60,45 +69,50 @@ const Analytics = () => {
       }
 
       try {
-        // Fetch existing and new data points
         const [
-          typeTrendRes,
-          brgyTypeRes,
-          genderRes, // New
-          civilStatusRes, // New
-          ageGroupRes, // New
+          genderRes,
+          civilStatusRes,
+          ageGroupRes,
+          monthlyTrendRes,
+          incomeDistRes,
+          processingTimeRes,
+          summaryRes,
         ] = await Promise.all([
-          api.get("/analytics/assistance-type-trend/", { params }),
-          api.get("/analytics/barangay-by-type/", { params }), // Ensure this endpoint exists & works
-          api.get("/analytics/by-gender/"), // New endpoint call
-          api.get("/analytics/by-civil-status/"), // New endpoint call
-          api.get("/analytics/by-age-group/"), // New endpoint call
+          api.get("/analytics/by-gender/"),
+          api.get("/analytics/by-civil-status/"),
+          api.get("/analytics/by-age-group/"),
+          api.get("/analytics/monthly-trends/"),
+          api.get("/analytics/income-distribution/"),
+          api.get("/analytics/processing-time/"),
+          api.get("/analytics/summary-metrics/"),
         ]);
 
-        setTypeTrends(typeTrendRes.data || []);
-        setBarangayTypeBreakdown(brgyTypeRes.data || []);
-        // --- Set New State ---
         setGenderData(genderRes.data || []);
         setCivilStatusData(civilStatusRes.data || []);
         setAgeGroupData(ageGroupRes.data || []);
-        // --- End Set New State ---
+        setMonthlyTrends(monthlyTrendRes.data || []);
+        setIncomeDistribution(incomeDistRes.data || []);
+        setProcessingTime(processingTimeRes.data || []);
+        setSummaryMetrics(summaryRes.data || {});
       } catch (error) {
         console.error("Analytics fetch error:", error);
-        // Clear state on error? Or show specific error messages?
-        setTypeTrends([]);
-        setBarangayTypeBreakdown([]);
+        // Clear all states on error
         setGenderData([]);
         setCivilStatusData([]);
         setAgeGroupData([]);
+        setMonthlyTrends([]);
+        setIncomeDistribution([]);
+        setProcessingTime([]);
+        setSummaryMetrics({});
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [startDate, endDate, selectedType]); // Dependencies for re-fetching filtered data
-  //
-  // --- Memoized data for charts ---
+  }, [startDate, endDate, selectedType]);
+
+  // Memoized data for charts
   const genderPieData = useMemo(
     () =>
       genderData.map(item => ({
@@ -121,13 +135,12 @@ const Analytics = () => {
     () => ageGroupData.map(item => ({ name: item.age_group, count: item.count })),
     [ageGroupData]
   );
-  // --- End Memoized data ---
 
   return (
     <div className="analytics-container">
-      <h1>📈 In-Depth Analytics</h1>
+      <h1>📈 Analytics Dashboard</h1>
 
-      {/* --- Filter Bar --- */}
+      {/* Filter Bar */}
       <div className="filter-bar">
         <DatePicker
           selected={startDate}
@@ -159,11 +172,30 @@ const Analytics = () => {
       </div>
 
       {loading ? (
-        <p>Loading insights...</p>
+        <div className="analytics-loading">Loading analytics data...</div>
       ) : (
-        // --- Main Content Area ---
         <div className="analytics-content">
-          {/* --- Demographics Row --- */}
+          {/* Summary Metrics */}
+          <div className="summary-metrics">
+            <div className="metric-card">
+              <div className="metric-label">Total Applicants</div>
+              <div className="metric-value">{summaryMetrics.totalApplicants}</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">Avg. Form Completion Time</div>
+              <div className="metric-value">{summaryMetrics.averageProcessingTime} mins</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">Most Common Type</div>
+              <div className="metric-value">{summaryMetrics.mostCommonType}</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">Highest Barangay</div>
+              <div className="metric-value">{summaryMetrics.highestBarangay}</div>
+            </div>
+          </div>
+
+          {/* Demographics Row */}
           <div className="analytics-row">
             {/* Gender Chart */}
             <div className="chart-card">
@@ -192,7 +224,7 @@ const Analytics = () => {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p>No gender data.</p>
+                <div className="no-data">No gender data available</div>
               )}
             </div>
 
@@ -223,7 +255,7 @@ const Analytics = () => {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p>No civil status data.</p>
+                <div className="no-data">No civil status data available</div>
               )}
             </div>
 
@@ -245,60 +277,84 @@ const Analytics = () => {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p>No age group data.</p>
+                <div className="no-data">No age group data available</div>
               )}
             </div>
           </div>
 
-          {/* --- Existing Charts Row --- */}
+          {/* Trends Row */}
           <div className="analytics-row">
-            {/* Assistance Type Trends */}
+            {/* Monthly Trends */}
             <div className="chart-card">
-              <h2>Assistance Type Trends Over Time</h2>
-              {typeTrends.length > 0 ? (
+              <h2>Monthly Application Trends</h2>
+              {monthlyTrends.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={typeTrends}>
-                    {/* ... Line chart definition same as before ... */}
+                  <AreaChart data={monthlyTrends}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis allowDecimals={false} />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Area
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#4361ee"
+                      fill="#4361ee"
+                      fillOpacity={0.2}
+                      name="Applications"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="no-data">No monthly trend data available</div>
+              )}
+            </div>
+
+            {/* Processing Time */}
+            <div className="chart-card">
+              <h2>Form Completion Time by Type</h2>
+              {processingTime.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={processingTime}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="type" />
+                    <YAxis />
                     <Tooltip />
                     <Legend />
                     <Line
                       type="monotone"
-                      dataKey="count"
-                      stroke="#3a0ca3"
-                      name="Applicants"
-                      strokeWidth={2}
+                      dataKey="minutes"
+                      stroke="#f72585"
+                      name="Completion Time (mins)"
                     />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <p>No trend data for selected period/type.</p>
+                <div className="no-data">No processing time data available</div>
               )}
             </div>
+          </div>
 
-            {/* Barangay Breakdown */}
+          {/* Income Distribution */}
+          <div className="analytics-row">
             <div className="chart-card">
-              <h2>Top Barangays by Assistance Type</h2>
-              {barangayTypeBreakdown.length > 0 ? (
+              <h2>Income Distribution</h2>
+              {incomeDistribution.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart
-                    data={barangayTypeBreakdown.slice(0, 10)}
-                    layout="vertical"
-                    margin={{ left: 30 }}
+                    data={incomeDistribution}
+                    margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
                   >
-                    {/* ... Bar chart definition same as before ... */}
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="barangay" type="category" width={90} interval={0} />
+                    <XAxis dataKey="range" />
+                    <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="count" fill="#4cc9f0" name="Applicants" />
+                    <Bar dataKey="count" fill="#7209b7" name="Applicants" />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p>No barangay breakdown data for selected period/type.</p>
+                <div className="no-data">No income distribution data available</div>
               )}
             </div>
           </div>
