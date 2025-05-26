@@ -1,76 +1,228 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { API_URL } from "../services/api";
+import { api } from "../services/api";
+import "./PrintPagebyID.css";
 
 const PrintPagebyID = () => {
   const { id } = useParams();
   const [applicant, setApplicant] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
-  console.log(id);
+
+  const formatDate = dateStr => {
+    if (!dateStr) return "N/A";
+    const date = new Date(dateStr);
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    return date.toLocaleDateString("en-PH", options);
+  };
 
   const fetchApplicant = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const token = localStorage.getItem("accessToken");
-      console.log(token);
-      const res = await fetch(`${API_URL}/applicants/${id}/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!res.ok) throw new Error(`Status ${res.status}`);
-      const data = await res.json();
+      const { data } = await api.get(`/applicants/${id}/`);
       setApplicant(data);
-      console.log("Fetched applicant data:", data);
     } catch (err) {
       console.error("Error loading applicant:", err);
-      // navigate("/dashboard");
+      setError("Failed to load applicant information. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchApplicant();
-  });
+  }, [id]);
 
-  if (!applicant) return <p className="p-4">Loading applicant info...</p>;
+  const handlePrint = () => {
+    window.print();
+  };
+
+  if (loading) {
+    return (
+      <div className="print-container">
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading applicant information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="print-container">
+        <div className="error-state">
+          <p>{error}</p>
+          <button onClick={() => navigate("/applicants")} className="btn secondary-btn">
+            Back to Applicants
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!applicant) {
+    return (
+      <div className="print-container">
+        <div className="error-state">
+          <p>Applicant not found</p>
+          <button onClick={() => navigate("/applicants")} className="btn secondary-btn">
+            Back to Applicants
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="print-container p-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Applicant Information</h1>
+    <div className="print-container">
+      <div className="print-content">
+        <div className="print-header">
+          <h1>Applicant Information</h1>
+          <div className="print-actions">
+            <button onClick={handlePrint} className="btn primary-btn">
+              Print
+            </button>
+            <button onClick={() => navigate("/applicants")} className="btn secondary-btn">
+              Back to Applicants
+            </button>
+          </div>
+        </div>
 
-      <div className="space-y-2 mb-6">
-        <p>
-          <strong>Full Name:</strong> {applicant.first_name} {applicant.middle_initial}{" "}
-          {applicant.last_name} {applicant.suffix}
-        </p>
-        <p>
-          <strong>Birthday:</strong> {applicant.birthday}
-        </p>
-        <p>
-          <strong>Gender:</strong> {applicant.gender}
-        </p>
-        <p>
-          <strong>Address:</strong> {applicant.purok}, {applicant.barangay},{" "}
-          {applicant.city_municipality}, {applicant.province}
-        </p>
-        <p>
-          <strong>Type of Assistance:</strong> {applicant.type_of_assistance}
-        </p>
-      </div>
+        <div className="print-details">
+          <div className="detail-group">
+            <h2>Personal Information</h2>
+            <div className="detail-row">
+              <div className="detail-item">
+                <span className="detail-label">Full Name</span>
+                <span className="detail-value">
+                  {applicant.background_info.first_name}{" "}
+                  {applicant.background_info.middle_initial}{" "}
+                  {applicant.background_info.last_name} {applicant.background_info.suffix}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Birthday</span>
+                <span className="detail-value">
+                  {formatDate(applicant.background_info.birthday)}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Gender</span>
+                <span className="detail-value">{applicant.background_info.sex}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Civil Status</span>
+                <span className="detail-value">{applicant.background_info.civil_status}</span>
+              </div>
+            </div>
+          </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <button
-          onClick={() => window.print()}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Print
-        </button>
-        <button
-          onClick={() => navigate("/applicants")}
-          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-        >
-          Back to Applicants
-        </button>
+          <div className="detail-group">
+            <h2>Contact Information</h2>
+            <div className="detail-row">
+              <div className="detail-item">
+                <span className="detail-label">Street Address</span>
+                <span className="detail-value">
+                  {applicant.background_info?.street_address || "Not specified"}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Barangay</span>
+                <span className="detail-value">
+                  {applicant.background_info?.barangay || "Not specified"}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">City/Municipality</span>
+                <span className="detail-value">
+                  {applicant.background_info?.barangay_details?.city_name || "Not specified"}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Province</span>
+                <span className="detail-value">
+                  {applicant.background_info?.barangay_details?.province_name ||
+                    "Not specified"}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Contact Number</span>
+                <span className="detail-value">
+                  {applicant.contact_number || "Not specified"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="detail-group">
+            <h2>Assistance Details</h2>
+            <div className="detail-row">
+              <div className="detail-item">
+                <span className="detail-label">Type of Assistance</span>
+                <span className="detail-value">{applicant.type_of_assistance}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Applicant Type</span>
+                <span className="detail-value">{applicant.applicant_type}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Date Filled</span>
+                <span className="detail-value">{formatDate(applicant.date_filled)}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Valid ID Presented</span>
+                <span className="detail-value">
+                  {applicant.valid_id_presented}
+                  {applicant.other_valid_id && ` (${applicant.other_valid_id})`}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {applicant.representative && (
+            <div className="detail-group">
+              <h2>Representative Information</h2>
+              <div className="detail-row">
+                <div className="detail-item">
+                  <span className="detail-label">Full Name</span>
+                  <span className="detail-value">
+                    {applicant.representative.background_info?.first_name || ""}{" "}
+                    {applicant.representative.background_info?.middle_initial || ""}{" "}
+                    {applicant.representative.background_info?.last_name || ""}{" "}
+                    {applicant.representative.background_info?.suffix || ""}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Relationship</span>
+                  <span className="detail-value">
+                    {applicant.representative.relationship || "Not specified"}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Address</span>
+                  <span className="detail-value">
+                    {[
+                      applicant.representative.background_info?.street_address,
+                      applicant.representative.background_info?.barangay,
+                      applicant.representative.background_info?.barangay_details?.city_name,
+                      applicant.representative.background_info?.barangay_details
+                        ?.province_name,
+                    ]
+                      .filter(Boolean)
+                      .join(", ") || "Not specified"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

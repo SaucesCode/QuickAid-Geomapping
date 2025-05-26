@@ -5,7 +5,6 @@ from opencage.geocoder import OpenCageGeocode
 import os
 
 OPENCAGE_API_KEY = os.environ.get('OPENCAGE_API_KEY')
-print(OPENCAGE_API_KEY)
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -111,5 +110,30 @@ class Representative(models.Model):
 
     def __str__(self):
         return f"{self.background_info.first_name} - Representative of {self.applicant}"
+
+class StaffActivityLog(models.Model):
+    ACTION_TYPES = [
+        ('LOGIN', 'Login'),
+        ('LOGOUT', 'Logout'),
+        ('CREATE', 'Create Application'),
+        ('UPDATE', 'Update Application'),
+        ('ARCHIVE', 'Archive Application'),
+        ('RESTORE', 'Restore Application'),
+        ('DELETE', 'Delete Application'),
+        ('PASSWORD', 'Change Password'),
+        ('PROFILE', 'Update Profile'),
+    ]
+
+    staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    action = models.CharField(max_length=20, choices=ACTION_TYPES)
+    details = models.TextField(blank=True, null=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.staff.username} - {self.action} - {self.timestamp}"
 
 

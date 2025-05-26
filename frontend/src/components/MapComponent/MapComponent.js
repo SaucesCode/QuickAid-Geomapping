@@ -1,42 +1,110 @@
-import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
+import React, { useEffect, useState, useRef } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  Circle,
+  GeoJSON,
+  useMap,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./MapComponent.css";
 import { API_URL } from "../../services/api";
 
+// ============= SETUP & CONFIGURATION =============
+// Import ng marker icons para sa map
+import icon from "leaflet/dist/images/marker-icon.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
+
+// Setup ng default marker icon
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Default center ng map (Quezon Province)
 const defaultCenter = [13.938, 121.508];
 
+// Colors para sa different types of assistance
 const assistanceColors = {
-  Medical: "#4caf50",
-  Burial: "#2196f3",
-  Educational: "#9c27b0",
+  Medical: "#4caf50", // Green
+  Burial: "#2196f3", // Blue
+  Educational: "#9c27b0", // Purple
 };
 
-const MapComponent = ({ province, city, barangay, applicantName }) => {
-  // Added propss
-  const [locations, setLocations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [typeFilter, setTypeFilter] = useState("");
-  const [cityFilter, setCityFilter] = useState("");
-  const [barangayFilter, setBarangayFilter] = useState("");
-  const [availableBarangays, setAvailableBarangays] = useState([]);
-  const [stats, setStats] = useState({});
-  const [mapCenter, setMapCenter] = useState(defaultCenter); // New state for map center
+// List ng available cities at assistance types
+const assistanceTypes = ["Medical", "Burial", "Educational"];
+const cities = ["Lucena City", "Sariaya", "Candelaria", "Tiaong", "San Antonio", "Dolores"];
 
-  const assistanceTypes = ["Medical", "Burial", "Educational"];
-  const cities = ["Lucena City", "Sariaya", "Candelaria", "Tiaong", "San Antonio", "Dolores"];
+// ============= MAP BOUNDS COMPONENT =============
+// Component para sa pag-adjust ng map view kapag may city na pinili
+const MapBounds = ({ cityGeoData }) => {
+  const map = useMap();
 
   useEffect(() => {
-    document.title = "Quickaid | Geolocation Map";
-    return () => {
-      document.title = "Quickaid | Home";
-    };
-  }, []);
+    if (cityGeoData) {
+      try {
+        // Kunin yung boundaries ng city
+        const bounds = L.geoJSON(cityGeoData).getBounds();
+        // Dagdag ng konting space sa paligid (3%)
+        const paddedBounds = bounds.pad(0.01);
+        // I-adjust yung view ng map para makita yung buong city
+        map.fitBounds(paddedBounds, {
+          padding: [20, 20],
+          maxZoom: 50,
+          animate: true,
+          duration: 1,
+        });
+      } catch (error) {
+        console.error("Error sa pag-set ng map bounds:", error);
+      }
+    }
+  }, [cityGeoData, map]);
 
+  return null;
+};
+
+// ============= MAIN MAP COMPONENT =============
+const MapComponent = ({ province, city, barangay, applicantName }) => {
+  // ============= STATE VARIABLES =============
+  const [locations, setLocations] = useState([]); // List ng applicants
+  const [loading, setLoading] = useState(true); // Loading state
+  const [typeFilter, setTypeFilter] = useState(""); // Filter by assistance type
+  const [cityFilter, setCityFilter] = useState(""); // Filter by city
+  const [barangayFilter, setBarangayFilter] = useState(""); // Filter by barangay
+  const [availableBarangays, setAvailableBarangays] = useState([]); // List ng available barangays
+  const [stats, setStats] = useState({}); // Statistics ng applicants
+  const [mapCenter, setMapCenter] = useState(defaultCenter); // Center ng map
+  const [markerOffsets, setMarkerOffsets] = useState({}); // Para sa marker positions
+  const [geoData, setGeoData] = useState(null); // GeoJSON data ng buong province
+  const [cityGeoData, setCityGeoData] = useState(null); // GeoJSON data ng selected city
+
+  // ============= UTILITY FUNCTIONS =============
+  // Get color based on assistance type
+  const getColor = type => assistanceColors[type] || "#ff5722";
+
+  // Reset all filters
+  const resetFilters = () => {
+    setTypeFilter("");
+    setCityFilter("");
+    setBarangayFilter("");
+    setCityGeoData("");
+  };
+
+  // ============= DATA FETCHING FUNCTIONS =============
+  // Function para kunin yung locations ng applicants
   const fetchLocations = async () => {
     setLoading(true);
     try {
+      // Build yung URL with filters
       let url = `${API_URL}/applicant-locations/`;
       const params = new URLSearchParams();
       if (typeFilter) params.append("type", typeFilter);
@@ -44,29 +112,61 @@ const MapComponent = ({ province, city, barangay, applicantName }) => {
       if (barangayFilter) params.append("barangay", barangayFilter);
       if ([...params].length) url += `?${params.toString()}`;
 
+      // Fetch data
       const response = await fetch(url);
       const data = await response.json();
-      setLocations(data);
 
+      // Filter out invalid locations
+      const validLocations = data.filter(
+        loc => loc.latitude && loc.longitude && !isNaN(loc.latitude) && !isNaN(loc.longitude)
+      );
+
+      setLocations(validLocations);
+
+      // Add random offset sa markers para hindi mag-overlap
+      const offsets = {};
+      validLocations.forEach(loc => {
+        const key = loc.id || loc.full_name;
+        offsets[key] = {
+          latOffset: (Math.random() - 0.5) * 0.0005,
+          lngOffset: (Math.random() - 0.5) * 0.0005,
+        };
+      });
+      setMarkerOffsets(offsets);
+
+      // Calculate statistics
       const typeCounts = {};
       assistanceTypes.forEach(type => {
-        typeCounts[type] = data.filter(loc => loc.type_of_assistance === type).length;
+        typeCounts[type] = validLocations.filter(
+          loc => loc.type_of_assistance === type
+        ).length;
       });
       setStats(typeCounts);
     } catch (error) {
-      console.error("Error fetching locations:", error);
+      console.error("Error sa pag-fetch ng locations:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  // ============= EFFECTS & DATA LOADING =============
+  // Set page title
+  useEffect(() => {
+    document.title = "Quickaid | Geolocation Map";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
+  // Fetch locations kapag nagbago yung filters
   useEffect(() => {
     fetchLocations();
   }, [typeFilter, cityFilter, barangayFilter]);
 
+  // Update available barangays kapag nagbago yung city
   useEffect(() => {
     const brgys = locations
-      .filter(loc => (cityFilter ? loc.city_municipality === cityFilter : true))
+      .filter(loc => (cityFilter ? loc.city === cityFilter : true))
       .map(loc => loc.barangay);
     setAvailableBarangays([...new Set(brgys)].sort());
 
@@ -75,46 +175,38 @@ const MapComponent = ({ province, city, barangay, applicantName }) => {
     }
   }, [locations, cityFilter]);
 
-  const getColor = type => assistanceColors[type] || "#ff5722";
-
-  const resetFilters = () => {
-    setTypeFilter("");
-    setCityFilter("");
-    setBarangayFilter("");
-  };
-
-  // Geocoding and Map Update Effect
+  // Load city GeoJSON data
   useEffect(() => {
-    const geocodeAddress = async () => {
-      if (!province || !city || !barangay) return; // Don't geocode if address is incomplete
+    const loadCityGeoJSON = async () => {
+      if (!cityFilter) {
+        setCityGeoData(null);
+        return;
+      }
 
-      const addressString = `${barangay}, ${city}, ${province}`;
+      const fileName = cityFilter.toLowerCase().replace(/ /g, "_", " ") + ".geojson";
       try {
-        // Replace with your actual geocoding API call
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-            addressString
-          )}&format=json`
-        );
-        const data = await response.json();
+        const response = await fetch(`/${fileName}`);
+        if (!response.ok) throw new Error("Error sa pag-load ng GeoJSON");
 
-        if (data && data.length > 0) {
-          const { lat, lon } = data[0]; // Use the first result
-          setMapCenter([parseFloat(lat), parseFloat(lon)]); // Update map center state
-        } else {
-          console.error("Geocoding failed for:", addressString);
-          // Optionally, set a default center or display an error message
-          setMapCenter(defaultCenter); // Revert to default if geocoding fails
-        }
+        const data = await response.json();
+        setCityGeoData(data);
       } catch (error) {
-        console.error("Geocoding error:", error);
-        setMapCenter(defaultCenter); // Revert to default on error
+        console.error("Error sa pag-load ng city geojson:", error);
+        setCityGeoData(null);
       }
     };
 
-    geocodeAddress();
-  }, [province, city, barangay]); // Re-run when address props change
+    loadCityGeoJSON();
+  }, [cityFilter]);
 
+  // Load province GeoJSON data
+  useEffect(() => {
+    fetch("/all_cities.geojson")
+      .then(res => res.json())
+      .then(data => setGeoData(data));
+  }, []);
+
+  // ============= RENDER =============
   return (
     <div className="map-wrapper">
       <div className="map-container">
@@ -127,67 +219,81 @@ const MapComponent = ({ province, city, barangay, applicantName }) => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
-            {/* Single Marker for Edited Applicant */}
-            {province && city && barangay && (
-              <Marker
-                position={mapCenter}
-                icon={L.icon({
-                  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-                  iconSize: [25, 41],
-                  iconAnchor: [12, 41],
-                })}
-              >
-                <Popup>
-                  <strong>{applicantName}</strong>
-                  <br />
-                  {barangay}, {city}, {province}
-                </Popup>
-              </Marker>
+            <MapBounds cityGeoData={cityGeoData} />
+
+            {/* Province boundary */}
+            {geoData && (
+              <GeoJSON
+                data={geoData}
+                style={{
+                  color: "red",
+                  weight: 1,
+                  fillOpacity: 0,
+                  opacity: 0.5,
+                }}
+              />
             )}
 
-            {locations.map((loc, index) => {
-              const offset = (Math.random() - 0.5) * 0.0005; // very tiny offset
-              const adjustedLat = loc.latitude + offset;
-              const adjustedLng = loc.longitude + offset;
+            {/* City boundary */}
+            {cityGeoData && (
+              <GeoJSON
+                data={cityGeoData}
+                style={{
+                  color: "blue",
+                  weight: 3,
+                  fillOpacity: 0,
+                  opacity: 0.8,
+                }}
+              />
+            )}
 
-              return (
-                <React.Fragment key={loc.id || `${loc.full_name}-${index}`}>
-                  <Marker
-                    position={[adjustedLat, adjustedLng]}
-                    icon={L.icon({
-                      iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-                      iconSize: [25, 41],
-                      iconAnchor: [12, 41],
-                    })}
-                  >
-                    <Popup>
-                      <strong>{loc.full_name}</strong>
-                      <br />
-                      {loc.address}
-                      <br />
-                      <em className={loc.type_of_assistance}>{loc.type_of_assistance}</em>
-                    </Popup>
-                  </Marker>
+            {/* Applicant markers - only show if there are valid locations */}
+            {locations.length > 0 &&
+              locations.map((loc, index) => {
+                if (
+                  !loc.latitude ||
+                  !loc.longitude ||
+                  isNaN(loc.latitude) ||
+                  isNaN(loc.longitude)
+                ) {
+                  return null;
+                }
 
-                  <Circle
-                    center={[adjustedLat, adjustedLng]}
-                    radius={50}
-                    pathOptions={{
-                      color: getColor(loc.type_of_assistance),
-                      fillOpacity: 0.2,
-                      weight: 2,
-                    }}
-                  />
-                </React.Fragment>
-              );
-            })}
+                const key = loc.id || loc.full_name;
+                const offset = markerOffsets[key] || { latOffset: 0, lngOffset: 0 };
+                const adjustedLat = loc.latitude + offset.latOffset;
+                const adjustedLng = loc.longitude + offset.lngOffset;
+
+                return (
+                  <React.Fragment key={loc.id || `${loc.full_name}-${index}`}>
+                    <Marker position={[adjustedLat, adjustedLng]} icon={DefaultIcon}>
+                      <Popup>
+                        <strong>{loc.full_name}</strong>
+                        <br />
+                        {loc.address}
+                        <br />
+                        <em className={loc.type_of_assistance}>{loc.type_of_assistance}</em>
+                      </Popup>
+                    </Marker>
+
+                    <Circle
+                      center={[adjustedLat, adjustedLng]}
+                      radius={50}
+                      pathOptions={{
+                        color: getColor(loc.type_of_assistance),
+                        fillOpacity: 0.2,
+                        weight: 2,
+                      }}
+                    />
+                  </React.Fragment>
+                );
+              })}
           </MapContainer>
         )}
       </div>
 
       <aside className="map-filters">
         <h2>Filter Applicants</h2>
-
         <label>Type of Assistance</label>
         <select onChange={e => setTypeFilter(e.target.value)} value={typeFilter}>
           <option value="">All Types</option>

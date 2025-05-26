@@ -6,13 +6,9 @@ import { logoutUser } from "../../services/api";
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-
   const user = JSON.parse(localStorage.getItem("userData"));
 
   const toggleSidebar = () => setCollapsed(!collapsed);
-  useEffect(() => {
-    console.log(user);
-  });
 
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -61,19 +57,21 @@ const Sidebar = () => {
             className={({ isActive }) => (isActive ? "active" : "")}
           >
             <span className="icon">➕</span>
-            {!collapsed && <span className="link-text">Input Applicant</span>}
+            {!collapsed && <span className="link-text">New Applicant</span>}
           </NavLink>
 
           <NavLink to="/applicants" className={({ isActive }) => (isActive ? "active" : "")}>
             <span className="icon">👥</span>
             {!collapsed && <span className="link-text">Applicants</span>}
           </NavLink>
+
           {user && user.is_superuser && (
             <NavLink to="/analytics" className={({ isActive }) => (isActive ? "active" : "")}>
               <span className="icon">📈</span>
               {!collapsed && <span className="link-text">Analytics</span>}
             </NavLink>
           )}
+
           <NavLink
             to="/archived-applicants"
             className={({ isActive }) => (isActive ? "active" : "")}
@@ -88,7 +86,7 @@ const Sidebar = () => {
               className={({ isActive }) => (isActive ? "active" : "")}
             >
               <span className="icon">🛠️</span>
-              {!collapsed && <span className="link-text">Admin Management</span>}
+              {!collapsed && <span className="link-text">Admin</span>}
             </NavLink>
           )}
 
@@ -110,7 +108,7 @@ const Sidebar = () => {
         <header className="content-header">
           <div className="header-left">
             <button className="toggle-sidebar-btn" onClick={toggleSidebar}>
-              {collapsed ? "▶️" : "◀️"}
+              {collapsed ? "▶" : "◀"}
             </button>
             <h1>{getPageTitle()}</h1>
           </div>
