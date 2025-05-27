@@ -301,7 +301,6 @@ def get_applicant_locations(request):
             "city": city_name,
         })
 
-    print(data) 
     return JsonResponse(data, safe=False)
 
 
@@ -407,7 +406,6 @@ def top_barangays(request):
         qs = qs.filter(date_filled__date__range=[start_date, end_date])
     
     data = qs.values('background_info__barangay__name').annotate(count=Count('id')).order_by('-count')[:10]
-    print(data)
     return Response(list(data))
 
 @api_view(['GET'])
@@ -593,8 +591,7 @@ def summary_metrics(request):
             )
         )
     )['avg_time']
-    
-    print(avg_processing_time)
+
     
     # Convert to minutes and round to 1 decimal place
     avg_minutes = round(avg_processing_time.total_seconds() / 60, 1) if avg_processing_time and avg_processing_time.total_seconds() > 0 else 0
