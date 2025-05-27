@@ -3,6 +3,14 @@ import { jwtDecode } from "jwt-decode";
 
 export const API_URL = "https://quickaidmap.pythonanywhere.com/api"; // Django backend URL
 
+// ✅ Create an axios instance with authentication headers
+export const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 // ✅ Function to store tokens in localStorage
 const storeTokens = (access, refresh) => {
   localStorage.setItem("accessToken", access);
@@ -30,14 +38,6 @@ export const refreshAccessToken = async () => {
     return null;
   }
 };
-
-// ✅ Create an axios instance with authentication headers
-export const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
 
 // ✅ Axios request interceptor to auto-refresh token
 api.interceptors.request.use(

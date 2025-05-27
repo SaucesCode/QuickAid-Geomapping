@@ -15,16 +15,29 @@ const PSGC_BASE = "https://psgc.gitlab.io/api";
 
 const AddressDropdown = ({ onSelect, initialValues = {} }) => {
   /* ----------------------- State ----------------------- */
-  const [selectedCityCode, setSelectedCityCode] = useState(
-    initialValues.city_municipalityCode || ""
-  );
+  const [selectedCityCode, setSelectedCityCode] = useState("");
   const [barangays, setBarangays] = useState([]); // array of {code,name}
-  const [selectedBrgyCode, setSelectedBrgyCode] = useState(initialValues.barangay || "");
-  //
+  const [selectedBrgyCode, setSelectedBrgyCode] = useState("");
+
   /* -------------------- Side effects ------------------- */
+  // Initialize city code from initialValues
+  useEffect(() => {
+    console.log("Initial Values:", initialValues); // Debug log
+    if (initialValues.city_municipality) {
+      const city = CITY_OPTIONS.find(c => c.name === initialValues.city_municipality);
+      if (city) {
+        console.log("Found city:", city); // Debug log
+        setSelectedCityCode(city.code);
+        onSelect("city_municipalityCode", city.code);
+        onSelect("city_municipality", city.name);
+      }
+    }
+  }, [initialValues.city_municipality]);
+
   // When component mounts OR initial values change (edit mode), fetch brgys.
   useEffect(() => {
     if (selectedCityCode) {
+      console.log("Fetching barangays for city code:", selectedCityCode); // Debug log
       fetchBarangays(selectedCityCode);
     }
   }, [selectedCityCode]);
@@ -41,6 +54,21 @@ const AddressDropdown = ({ onSelect, initialValues = {} }) => {
         name: b.name.replace(/ \(Pob\.\)/i, "").trim(),
       }));
       setBarangays(formatted);
+      console.log("Loaded barangays:", formatted); // Debug log
+
+      // If we have an initial barangay code, select it after loading barangays
+      if (initialValues.barangay) {
+        console.log("Looking for barangay code:", initialValues.barangay); // Debug log
+        const matchingBarangay = formatted.find(b => b.code === initialValues.barangay);
+        if (matchingBarangay) {
+          console.log("Found matching barangay:", matchingBarangay); // Debug log
+          setSelectedBrgyCode(matchingBarangay.code);
+          onSelect("barangay", matchingBarangay.code);
+          onSelect("barangay_name", matchingBarangay.name);
+        } else {
+          console.log("No matching barangay found"); // Debug log
+        }
+      }
     } catch (err) {
       console.error("Error fetching barangays:", err);
       setBarangays([]);

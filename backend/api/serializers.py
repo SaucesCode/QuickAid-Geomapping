@@ -103,10 +103,10 @@ class RepresentativeSerializer(serializers.ModelSerializer):
 
 class ApplicantSerializer(serializers.ModelSerializer):
     background_info = BackgroundInfoSerializer()
-    representative = RepresentativeSerializer(required=False,allow_null=True, write_only=True)
+    representative = RepresentativeSerializer(required=False, allow_null=True)
     staff = serializers.CharField(source='staff.username', read_only=True)
     city = serializers.CharField(source='background_info.barangay.city.name', read_only=True)
-    #
+
     class Meta:
         model = Applicant
         fields = [
@@ -117,7 +117,7 @@ class ApplicantSerializer(serializers.ModelSerializer):
             "representative", "longitude", "latitude",
             "city", "date_filled", "created_at", "is_archived"
         ]
-        read_only_fields = ["id", "staff","longitude", "latitude", "date_filled", "created_at"]
+        read_only_fields = ["id", "staff", "longitude", "latitude", "date_filled", "created_at"]
 
     def create(self, validated_data):
             
@@ -156,6 +156,16 @@ class ApplicantSerializer(serializers.ModelSerializer):
             if hasattr(instance, "representative"):
                 # Update existing representative
                 rep_instance = instance.representative
+                rep_bg_data = rep_data.pop("background_info", None)
+                
+                # Update representative's background info
+                if rep_bg_data:
+                    rep_bg_instance = rep_instance.background_info
+                    for attr, value in rep_bg_data.items():
+                        setattr(rep_bg_instance, attr, value)
+                    rep_bg_instance.save()
+                
+                # Update representative's other fields
                 for attr, value in rep_data.items():
                     setattr(rep_instance, attr, value)
                 rep_instance.save()

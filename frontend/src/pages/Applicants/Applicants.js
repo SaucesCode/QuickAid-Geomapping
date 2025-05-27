@@ -705,23 +705,32 @@ const Applicants = () => {
                       <div className="form-row">
                         <div className="form-field">
                           <label htmlFor="sex">Sex</label>
-                          <input
+                          <select
                             id="sex"
                             name="sex"
-                            placeholder="Sex"
                             value={editingApplicant.background_info?.sex || ""}
                             onChange={handleChange}
-                          />
+                          >
+                            <option value="">Select Sex</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                          </select>
                         </div>
                         <div className="form-field">
                           <label htmlFor="civil_status">Civil Status</label>
-                          <input
+                          <select
                             id="civil_status"
                             name="civil_status"
-                            placeholder="Civil Status"
                             value={editingApplicant.background_info?.civil_status || ""}
                             onChange={handleChange}
-                          />
+                          >
+                            <option value="">Select Civil Status</option>
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                            <option value="Widowed">Widowed</option>
+                            <option value="Separated">Separated</option>
+                            <option value="Divorced">Divorced</option>
+                          </select>
                         </div>
                       </div>
                     </div>
@@ -778,21 +787,14 @@ const Applicants = () => {
                                   barangay: value,
                                 },
                               }));
-                            } else if (field === "barangay_name") {
-                              setEditingApplicant(prev => ({
-                                ...prev,
-                                background_info: {
-                                  ...prev.background_info,
-                                  barangay_details: {
-                                    ...prev.background_info.barangay_details,
-                                    name: value,
-                                  },
-                                },
-                              }));
                             }
                           }}
                           initialValues={{
-                            barangay: editingApplicant.background_info?.barangay,
+                            barangay:
+                              editingApplicant.background_info?.barangay_details?.psgc_code ||
+                              editingApplicant.background_info?.barangay,
+                            city_municipality:
+                              editingApplicant.background_info?.barangay_details?.city_name,
                           }}
                         />
                       </div>
@@ -802,15 +804,55 @@ const Applicants = () => {
                       <div className="form-row">
                         <div className="form-field">
                           <label htmlFor="type_of_assistance">Type of Assistance</label>
-                          <input
+                          <select
                             id="type_of_assistance"
                             name="type_of_assistance"
-                            placeholder="Type of Assistance"
                             value={editingApplicant.type_of_assistance || ""}
                             onChange={handleChange}
-                          />
+                          >
+                            <option value="">Select Type of Assistance</option>
+                            <option value="Medical">Medical</option>
+                            <option value="Burial">Burial</option>
+                            <option value="Educational">Educational</option>
+                          </select>
+                        </div>
+                        <div className="form-field">
+                          <label htmlFor="valid_id_presented">Valid ID Presented</label>
+                          <select
+                            id="valid_id_presented"
+                            name="valid_id_presented"
+                            value={editingApplicant.valid_id_presented || ""}
+                            onChange={handleChange}
+                          >
+                            <option value="">Select Valid ID</option>
+                            <option value="Passport">Passport</option>
+                            <option value="Driver's License">Driver's License</option>
+                            <option value="SSS ID">SSS ID</option>
+                            <option value="GSIS ID">GSIS ID</option>
+                            <option value="UMID">UMID</option>
+                            <option value="PhilHealth ID">PhilHealth ID</option>
+                            <option value="TIN ID">TIN ID</option>
+                            <option value="Postal ID">Postal ID</option>
+                            <option value="Voter's ID">Voter's ID</option>
+                            <option value="Senior Citizen ID">Senior Citizen ID</option>
+                            <option value="Other">Other</option>
+                          </select>
                         </div>
                       </div>
+                      {editingApplicant.valid_id_presented === "Other" && (
+                        <div className="form-row">
+                          <div className="form-field">
+                            <label htmlFor="other_valid_id">Specify Other ID</label>
+                            <input
+                              id="other_valid_id"
+                              name="other_valid_id"
+                              value={editingApplicant.other_valid_id || ""}
+                              onChange={handleChange}
+                              placeholder="Specify other valid ID"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Representative Information Section */}
@@ -892,7 +934,42 @@ const Applicants = () => {
                             </select>
                           </div>
                         </div>
-
+                        <div className="form-row">
+                          <div className="form-field">
+                            <label htmlFor="rep_sex">Sex</label>
+                            <select
+                              id="rep_sex"
+                              name="rep_bg_sex"
+                              value={
+                                editingApplicant.representative.background_info?.sex || ""
+                              }
+                              onChange={handleChange}
+                            >
+                              <option value="">Select Sex</option>
+                              <option value="Male">Male</option>
+                              <option value="Female">Female</option>
+                            </select>
+                          </div>
+                          <div className="form-field">
+                            <label htmlFor="rep_civil_status">Civil Status</label>
+                            <select
+                              id="rep_civil_status"
+                              name="rep_bg_civil_status"
+                              value={
+                                editingApplicant.representative.background_info
+                                  ?.civil_status || ""
+                              }
+                              onChange={handleChange}
+                            >
+                              <option value="">Select Civil Status</option>
+                              <option value="Single">Single</option>
+                              <option value="Married">Married</option>
+                              <option value="Widowed">Widowed</option>
+                              <option value="Separated">Separated</option>
+                              <option value="Divorced">Divorced</option>
+                            </select>
+                          </div>
+                        </div>
                         <div className="form-row">
                           <div className="form-field">
                             <label htmlFor="rep_address">Full Address</label>
