@@ -1,11 +1,46 @@
 // ✅ Step1.js — Personal Info
-import React from "react";
+import React, { useState } from "react";
 import "./Steps.css";
 
 const Step1 = ({ formData, handleChange, nextStep }) => {
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.first_name?.trim()) {
+      newErrors.first_name = "First name is required";
+    }
+    if (!formData.last_name?.trim()) {
+      newErrors.last_name = "Last name is required";
+    }
+    if (formData.middle_initial?.trim() && !/^[A-Za-z]$/.test(formData.middle_initial)) {
+      newErrors.middle_initial = "Middle initial must be a single letter";
+    }
+    if (!formData.contact_number?.trim()) {
+      newErrors.contact_number = "Contact number is required";
+    } else if (!/^[0-9]{11}$/.test(formData.contact_number)) {
+      newErrors.contact_number = "Please enter a valid 11-digit mobile number";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = e => {
     e.preventDefault();
-    nextStep();
+    if (validateForm()) {
+      nextStep();
+    }
+  };
+
+  const handleInputChange = e => {
+    const { name, value } = e.target;
+    handleChange(e);
+    // Clear error when field is filled
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
   };
 
   return (
@@ -29,12 +64,12 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                 id="first_name"
                 name="first_name"
                 value={formData.first_name}
-                onChange={handleChange}
-                required
-                className="form-control"
+                onChange={handleInputChange}
+                className={`form-control ${errors.first_name ? "error" : ""}`}
                 placeholder="Enter your first name"
                 autoComplete="given-name"
               />
+              {errors.first_name && <div className="error-message">{errors.first_name}</div>}
             </div>
 
             <div className="form-group">
@@ -45,11 +80,14 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                 name="middle_initial"
                 maxLength={1}
                 value={formData.middle_initial}
-                onChange={handleChange}
-                className="form-control"
+                onChange={handleInputChange}
+                className={`form-control ${errors.middle_initial ? "error" : ""}`}
                 placeholder="Enter middle initial"
                 autoComplete="additional-name"
               />
+              {errors.middle_initial && (
+                <div className="error-message">{errors.middle_initial}</div>
+              )}
             </div>
 
             <div className="form-group">
@@ -61,12 +99,12 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                 id="last_name"
                 name="last_name"
                 value={formData.last_name}
-                onChange={handleChange}
-                required
-                className="form-control"
+                onChange={handleInputChange}
+                className={`form-control ${errors.last_name ? "error" : ""}`}
                 placeholder="Enter your last name"
                 autoComplete="family-name"
               />
+              {errors.last_name && <div className="error-message">{errors.last_name}</div>}
             </div>
 
             <div className="form-group">
@@ -75,7 +113,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                 id="suffix"
                 name="suffix"
                 value={formData.suffix}
-                onChange={handleChange}
+                onChange={handleInputChange}
                 className="form-control"
               >
                 <option value="">None</option>
@@ -97,14 +135,14 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                 id="contact_number"
                 name="contact_number"
                 value={formData.contact_number}
-                onChange={handleChange}
-                required
-                className="form-control"
+                onChange={handleInputChange}
+                className={`form-control ${errors.contact_number ? "error" : ""}`}
                 placeholder="e.g. 09123456789"
-                pattern="[0-9]{11}"
-                title="Please enter a valid 11-digit mobile number"
                 autoComplete="tel"
               />
+              {errors.contact_number && (
+                <div className="error-message">{errors.contact_number}</div>
+              )}
               <small className="form-text">Enter your 11-digit mobile number</small>
             </div>
           </div>

@@ -55,6 +55,7 @@ const Applicants = () => {
     setLoading(true);
     try {
       const res = await api.get("/applicants/");
+      console.log("Fetched applicants data:", res.data);
       setApplicants(res.data);
     } catch (err) {
       console.error("Fetch applicants failed:", err);
@@ -65,11 +66,24 @@ const Applicants = () => {
 
   useEffect(() => {
     fetchApplicants();
-    console.log(applicants);
   }, []);
 
   const openEditView = applicant => {
-    setEditingApplicant({ ...applicant });
+    console.log("Opening edit view for applicant:", applicant);
+    console.log("Valid ID data:", {
+      valid_id_presented: applicant.valid_id_presented,
+      other_valid_id: applicant.other_valid_id,
+    });
+
+    // Create a deep copy of the applicant data
+    const applicantCopy = {
+      ...applicant,
+      valid_id_presented: applicant.valid_id_presented || "",
+      other_valid_id: applicant.other_valid_id || "",
+    };
+
+    console.log("Applicant copy for editing:", applicantCopy);
+    setEditingApplicant(applicantCopy);
     setEditView(true);
     document.body.classList.add("dialog-open");
   };
@@ -121,8 +135,18 @@ const Applicants = () => {
 
   const handleChange = e => {
     const { name, value } = e.target;
+    console.log("Handling change:", { name, value, currentState: editingApplicant });
 
-    if (
+    if (name === "valid_id_presented" || name === "other_valid_id") {
+      setEditingApplicant(prev => {
+        const newState = {
+          ...prev,
+          [name]: value,
+        };
+        console.log("New state after valid ID change:", newState);
+        return newState;
+      });
+    } else if (
       [
         "first_name",
         "middle_initial",
@@ -162,7 +186,10 @@ const Applicants = () => {
         },
       }));
     } else {
-      setEditingApplicant(prev => ({ ...prev, [name]: value }));
+      setEditingApplicant(prev => ({
+        ...prev,
+        [name]: value,
+      }));
     }
   };
 
@@ -643,115 +670,144 @@ const Applicants = () => {
               <>
                 <div className="dialog-header">
                   <h2>Edit Applicant</h2>
-                  <button className="close-btn" onClick={closeEditView}>
-                    ×
-                  </button>
                 </div>
                 <div className="dialog-content">
                   <form id="edit-applicant-form" onSubmit={handleSave}>
-                    <div className="form-section">
-                      <h3>Personal Information</h3>
-                      <div className="form-row">
-                        <div className="form-field">
-                          <label htmlFor="first_name">First Name</label>
-                          <input
-                            id="first_name"
-                            name="first_name"
-                            placeholder="First Name"
-                            value={editingApplicant.background_info?.first_name || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="form-field">
-                          <label htmlFor="middle_initial">Middle Initial</label>
-                          <input
-                            id="middle_initial"
-                            name="middle_initial"
-                            placeholder="Middle Initial"
-                            value={editingApplicant.background_info?.middle_initial || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="form-row">
-                        <div className="form-field">
-                          <label htmlFor="last_name">Last Name</label>
-                          <input
-                            id="last_name"
-                            name="last_name"
-                            placeholder="Last Name"
-                            value={editingApplicant.background_info?.last_name || ""}
-                            onChange={handleChange}
-                          />
-                        </div>
-                        <div className="form-field">
-                          <label htmlFor="suffix">Suffix</label>
-                          <select
-                            id="suffix"
-                            name="suffix"
-                            value={editingApplicant.background_info?.suffix || ""}
-                            onChange={handleChange}
-                          >
-                            <option value="">None</option>
-                            <option value="Jr.">Jr.</option>
-                            <option value="Sr.">Sr.</option>
-                            <option value="I">I</option>
-                            <option value="II">II</option>
-                            <option value="III">III</option>
-                            <option value="IV">IV</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="form-row">
-                        <div className="form-field">
-                          <label htmlFor="sex">Sex</label>
-                          <select
-                            id="sex"
-                            name="sex"
-                            value={editingApplicant.background_info?.sex || ""}
-                            onChange={handleChange}
-                          >
-                            <option value="">Select Sex</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                          </select>
-                        </div>
-                        <div className="form-field">
-                          <label htmlFor="civil_status">Civil Status</label>
-                          <select
-                            id="civil_status"
-                            name="civil_status"
-                            value={editingApplicant.background_info?.civil_status || ""}
-                            onChange={handleChange}
-                          >
-                            <option value="">Select Civil Status</option>
-                            <option value="Single">Single</option>
-                            <option value="Married">Married</option>
-                            <option value="Widowed">Widowed</option>
-                            <option value="Separated">Separated</option>
-                            <option value="Divorced">Divorced</option>
-                          </select>
+                    <div className="applicant-details">
+                      <div className="detail-group">
+                        <h3>Personal Information</h3>
+                        <div className="detail-row">
+                          <div className="detail-item">
+                            <label htmlFor="first_name">First Name</label>
+                            <input
+                              id="first_name"
+                              name="first_name"
+                              placeholder="First Name"
+                              value={editingApplicant.background_info?.first_name || ""}
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div className="detail-item">
+                            <label htmlFor="middle_initial">Middle Initial</label>
+                            <input
+                              id="middle_initial"
+                              name="middle_initial"
+                              placeholder="Middle Initial"
+                              value={editingApplicant.background_info?.middle_initial || ""}
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div className="detail-item">
+                            <label htmlFor="last_name">Last Name</label>
+                            <input
+                              id="last_name"
+                              name="last_name"
+                              placeholder="Last Name"
+                              value={editingApplicant.background_info?.last_name || ""}
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div className="detail-item">
+                            <label htmlFor="suffix">Suffix</label>
+                            <select
+                              id="suffix"
+                              name="suffix"
+                              value={editingApplicant.background_info?.suffix || ""}
+                              onChange={handleChange}
+                            >
+                              <option value="">None</option>
+                              <option value="Jr.">Jr.</option>
+                              <option value="Sr.">Sr.</option>
+                              <option value="I">I</option>
+                              <option value="II">II</option>
+                              <option value="III">III</option>
+                              <option value="IV">IV</option>
+                            </select>
+                          </div>
+                          <div className="detail-item">
+                            <label htmlFor="sex">Sex</label>
+                            <select
+                              id="sex"
+                              name="sex"
+                              value={editingApplicant.background_info?.sex || ""}
+                              onChange={handleChange}
+                            >
+                              <option value="">Select Sex</option>
+                              <option value="Male">Male</option>
+                              <option value="Female">Female</option>
+                            </select>
+                          </div>
+                          <div className="detail-item">
+                            <label htmlFor="civil_status">Civil Status</label>
+                            <select
+                              id="civil_status"
+                              name="civil_status"
+                              value={editingApplicant.background_info?.civil_status || ""}
+                              onChange={handleChange}
+                            >
+                              <option value="">Select Civil Status</option>
+                              <option value="Single">Single</option>
+                              <option value="Married">Married</option>
+                              <option value="Widowed">Widowed</option>
+                              <option value="Separated">Separated</option>
+                              <option value="Divorced">Divorced</option>
+                            </select>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="form-section">
-                      <h3>Contact Information</h3>
-                      <div className="form-row">
-                        <div className="form-field">
-                          <label htmlFor="contact_number">Contact Number</label>
-                          <input
-                            id="contact_number"
-                            type="tel"
-                            name="contact_number"
-                            value={editingApplicant.contact_number || ""}
-                            onChange={handleChange}
-                            required
-                            placeholder="e.g. 09123456789"
-                          />
+
+                      <div className="detail-group">
+                        <h3>Contact Information</h3>
+                        <div className="detail-row">
+                          <div className="detail-item">
+                            <label htmlFor="contact_number">Contact Number</label>
+                            <input
+                              id="contact_number"
+                              type="tel"
+                              name="contact_number"
+                              value={editingApplicant.contact_number || ""}
+                              onChange={handleChange}
+                              required
+                              placeholder="e.g. 09123456789"
+                            />
+                          </div>
+
+                          <div className="detail-item address-dropdown-container">
+                            <AddressDropdown
+                              onSelect={(field, value) => {
+                                if (field === "city_municipality") {
+                                  setEditingApplicant(prev => ({
+                                    ...prev,
+                                    background_info: {
+                                      ...prev.background_info,
+                                      barangay_details: {
+                                        ...prev.background_info.barangay_details,
+                                        city_name: value,
+                                      },
+                                    },
+                                  }));
+                                } else if (field === "barangay") {
+                                  setEditingApplicant(prev => ({
+                                    ...prev,
+                                    background_info: {
+                                      ...prev.background_info,
+                                      barangay: value,
+                                    },
+                                  }));
+                                }
+                              }}
+                              initialValues={{
+                                barangay:
+                                  editingApplicant.background_info?.barangay_details
+                                    ?.psgc_code || editingApplicant.background_info?.barangay,
+                                city_municipality:
+                                  editingApplicant.background_info?.barangay_details
+                                    ?.city_name,
+                              }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="form-row">
-                        <div className="form-field">
+                        <div className="detail-item">
                           <label htmlFor="street_address">Street Address</label>
                           <input
                             id="street_address"
@@ -765,229 +821,189 @@ const Applicants = () => {
                         </div>
                       </div>
 
-                      <div className="form-field address-dropdown-container">
-                        <AddressDropdown
-                          onSelect={(field, value) => {
-                            if (field === "city_municipality") {
-                              setEditingApplicant(prev => ({
-                                ...prev,
-                                background_info: {
-                                  ...prev.background_info,
-                                  barangay_details: {
-                                    ...prev.background_info.barangay_details,
-                                    city_name: value,
-                                  },
-                                },
-                              }));
-                            } else if (field === "barangay") {
-                              setEditingApplicant(prev => ({
-                                ...prev,
-                                background_info: {
-                                  ...prev.background_info,
-                                  barangay: value,
-                                },
-                              }));
-                            }
-                          }}
-                          initialValues={{
-                            barangay:
-                              editingApplicant.background_info?.barangay_details?.psgc_code ||
-                              editingApplicant.background_info?.barangay,
-                            city_municipality:
-                              editingApplicant.background_info?.barangay_details?.city_name,
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div className="form-section">
-                      <h3>Assistance Information</h3>
-                      <div className="form-row">
-                        <div className="form-field">
-                          <label htmlFor="type_of_assistance">Type of Assistance</label>
-                          <select
-                            id="type_of_assistance"
-                            name="type_of_assistance"
-                            value={editingApplicant.type_of_assistance || ""}
-                            onChange={handleChange}
-                          >
-                            <option value="">Select Type of Assistance</option>
-                            <option value="Medical">Medical</option>
-                            <option value="Burial">Burial</option>
-                            <option value="Educational">Educational</option>
-                          </select>
-                        </div>
-                        <div className="form-field">
-                          <label htmlFor="valid_id_presented">Valid ID Presented</label>
-                          <select
-                            id="valid_id_presented"
-                            name="valid_id_presented"
-                            value={editingApplicant.valid_id_presented || ""}
-                            onChange={handleChange}
-                          >
-                            <option value="">Select Valid ID</option>
-                            <option value="Passport">Passport</option>
-                            <option value="Driver's License">Driver's License</option>
-                            <option value="SSS ID">SSS ID</option>
-                            <option value="GSIS ID">GSIS ID</option>
-                            <option value="UMID">UMID</option>
-                            <option value="PhilHealth ID">PhilHealth ID</option>
-                            <option value="TIN ID">TIN ID</option>
-                            <option value="Postal ID">Postal ID</option>
-                            <option value="Voter's ID">Voter's ID</option>
-                            <option value="Senior Citizen ID">Senior Citizen ID</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                      </div>
-                      {editingApplicant.valid_id_presented === "Other" && (
-                        <div className="form-row">
-                          <div className="form-field">
-                            <label htmlFor="other_valid_id">Specify Other ID</label>
-                            <input
-                              id="other_valid_id"
-                              name="other_valid_id"
-                              value={editingApplicant.other_valid_id || ""}
+                      <div className="detail-group">
+                        <h3>Assistance Information</h3>
+                        <div className="detail-row">
+                          <div className="detail-item">
+                            <label htmlFor="type_of_assistance">Type of Assistance</label>
+                            <select
+                              id="type_of_assistance"
+                              name="type_of_assistance"
+                              value={editingApplicant.type_of_assistance || ""}
                               onChange={handleChange}
-                              placeholder="Specify other valid ID"
-                            />
+                            >
+                              <option value="">Select Type of Assistance</option>
+                              <option value="Medical">Medical</option>
+                              <option value="Burial">Burial</option>
+                              <option value="Educational">Educational</option>
+                            </select>
+                          </div>
+                          <div className="detail-item">
+                            <label htmlFor="valid_id_presented">Valid ID Presented</label>
+                            <select
+                              id="valid_id_presented"
+                              name="valid_id_presented"
+                              value={editingApplicant?.valid_id_presented || ""}
+                              onChange={handleChange}
+                            >
+                              <option value="">Select Valid ID</option>
+                              <option value="National ID">National ID</option>
+                              <option value="Driver's License">Driver's License</option>
+                              <option value="Voter's ID">Voter's ID</option>
+                              <option value="Passport">Passport</option>
+                              <option value="SSS ID">SSS ID</option>
+                              <option value="GSIS ID">GSIS ID</option>
+                              <option value="UMID">UMID</option>
+                              <option value="PhilHealth ID">PhilHealth ID</option>
+                              <option value="TIN ID">TIN ID</option>
+                              <option value="Postal ID">Postal ID</option>
+                              <option value="Senior Citizen ID">Senior Citizen ID</option>
+                              <option value="Others">Others</option>
+                            </select>
+                          </div>
+                          {editingApplicant?.valid_id_presented === "Others" && (
+                            <div className="detail-item">
+                              <label htmlFor="other_valid_id">Specify Other ID</label>
+                              <input
+                                id="other_valid_id"
+                                name="other_valid_id"
+                                value={editingApplicant?.other_valid_id || ""}
+                                onChange={handleChange}
+                                placeholder="Specify other valid ID"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Representative Information Section */}
+                      {editingApplicant.representative && (
+                        <div className="detail-group">
+                          <h3>Representative Information</h3>
+                          <div className="detail-row">
+                            <div className="detail-item">
+                              <label htmlFor="rep_relationship">
+                                Relationship to Applicant
+                              </label>
+                              <input
+                                id="rep_relationship"
+                                name="rep_relationship"
+                                type="text"
+                                value={editingApplicant.representative.relationship || ""}
+                                onChange={handleChange}
+                                placeholder="Enter relationship to applicant"
+                              />
+                            </div>
+                            <div className="detail-item">
+                              <label htmlFor="rep_first_name">First Name</label>
+                              <input
+                                id="rep_first_name"
+                                name="rep_bg_first_name"
+                                placeholder="First Name"
+                                value={
+                                  editingApplicant.representative.background_info
+                                    ?.first_name || ""
+                                }
+                                onChange={handleChange}
+                              />
+                            </div>
+                            <div className="detail-item">
+                              <label htmlFor="rep_middle_initial">Middle Initial</label>
+                              <input
+                                id="rep_middle_initial"
+                                name="rep_bg_middle_initial"
+                                placeholder="Middle Initial"
+                                value={
+                                  editingApplicant.representative.background_info
+                                    ?.middle_initial || ""
+                                }
+                                onChange={handleChange}
+                              />
+                            </div>
+                            <div className="detail-item">
+                              <label htmlFor="rep_last_name">Last Name</label>
+                              <input
+                                id="rep_last_name"
+                                name="rep_bg_last_name"
+                                placeholder="Last Name"
+                                value={
+                                  editingApplicant.representative.background_info?.last_name ||
+                                  ""
+                                }
+                                onChange={handleChange}
+                              />
+                            </div>
+                            <div className="detail-item">
+                              <label htmlFor="rep_suffix">Suffix</label>
+                              <select
+                                id="rep_suffix"
+                                name="rep_bg_suffix"
+                                value={
+                                  editingApplicant.representative.background_info?.suffix || ""
+                                }
+                                onChange={handleChange}
+                              >
+                                <option value="">None</option>
+                                <option value="Jr.">Jr.</option>
+                                <option value="Sr.">Sr.</option>
+                                <option value="I">I</option>
+                                <option value="II">II</option>
+                                <option value="III">III</option>
+                                <option value="IV">IV</option>
+                              </select>
+                            </div>
+                            <div className="detail-item">
+                              <label htmlFor="rep_sex">Sex</label>
+                              <select
+                                id="rep_sex"
+                                name="rep_bg_sex"
+                                value={
+                                  editingApplicant.representative.background_info?.sex || ""
+                                }
+                                onChange={handleChange}
+                              >
+                                <option value="">Select Sex</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                              </select>
+                            </div>
+                            <div className="detail-item">
+                              <label htmlFor="rep_civil_status">Civil Status</label>
+                              <select
+                                id="rep_civil_status"
+                                name="rep_bg_civil_status"
+                                value={
+                                  editingApplicant.representative.background_info
+                                    ?.civil_status || ""
+                                }
+                                onChange={handleChange}
+                              >
+                                <option value="">Select Civil Status</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Widowed">Widowed</option>
+                                <option value="Separated">Separated</option>
+                                <option value="Divorced">Divorced</option>
+                              </select>
+                            </div>
+                            <div className="detail-item">
+                              <label htmlFor="rep_address">Full Address</label>
+                              <input
+                                id="rep_address"
+                                name="rep_bg_street_address"
+                                type="text"
+                                value={
+                                  editingApplicant.representative.background_info
+                                    ?.street_address || ""
+                                }
+                                onChange={handleChange}
+                                placeholder="Enter Full Address"
+                              />
+                            </div>
                           </div>
                         </div>
                       )}
                     </div>
-
-                    {/* Representative Information Section */}
-                    {editingApplicant.representative && (
-                      <div className="form-section">
-                        <h3>Representative Information</h3>
-                        <div className="form-row">
-                          <div className="form-field">
-                            <label htmlFor="rep_relationship">Relationship to Applicant</label>
-                            <input
-                              id="rep_relationship"
-                              name="rep_relationship"
-                              type="text"
-                              value={editingApplicant.representative.relationship || ""}
-                              onChange={handleChange}
-                              placeholder="Enter relationship to applicant"
-                            />
-                          </div>
-                        </div>
-                        <div className="form-row">
-                          <div className="form-field">
-                            <label htmlFor="rep_first_name">First Name</label>
-                            <input
-                              id="rep_first_name"
-                              name="rep_bg_first_name"
-                              placeholder="First Name"
-                              value={
-                                editingApplicant.representative.background_info?.first_name ||
-                                ""
-                              }
-                              onChange={handleChange}
-                            />
-                          </div>
-                          <div className="form-field">
-                            <label htmlFor="rep_middle_initial">Middle Initial</label>
-                            <input
-                              id="rep_middle_initial"
-                              name="rep_bg_middle_initial"
-                              placeholder="Middle Initial"
-                              value={
-                                editingApplicant.representative.background_info
-                                  ?.middle_initial || ""
-                              }
-                              onChange={handleChange}
-                            />
-                          </div>
-                        </div>
-                        <div className="form-row">
-                          <div className="form-field">
-                            <label htmlFor="rep_last_name">Last Name</label>
-                            <input
-                              id="rep_last_name"
-                              name="rep_bg_last_name"
-                              placeholder="Last Name"
-                              value={
-                                editingApplicant.representative.background_info?.last_name ||
-                                ""
-                              }
-                              onChange={handleChange}
-                            />
-                          </div>
-                          <div className="form-field">
-                            <label htmlFor="rep_suffix">Suffix</label>
-                            <select
-                              id="rep_suffix"
-                              name="rep_bg_suffix"
-                              value={
-                                editingApplicant.representative.background_info?.suffix || ""
-                              }
-                              onChange={handleChange}
-                            >
-                              <option value="">None</option>
-                              <option value="Jr.">Jr.</option>
-                              <option value="Sr.">Sr.</option>
-                              <option value="I">I</option>
-                              <option value="II">II</option>
-                              <option value="III">III</option>
-                              <option value="IV">IV</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div className="form-row">
-                          <div className="form-field">
-                            <label htmlFor="rep_sex">Sex</label>
-                            <select
-                              id="rep_sex"
-                              name="rep_bg_sex"
-                              value={
-                                editingApplicant.representative.background_info?.sex || ""
-                              }
-                              onChange={handleChange}
-                            >
-                              <option value="">Select Sex</option>
-                              <option value="Male">Male</option>
-                              <option value="Female">Female</option>
-                            </select>
-                          </div>
-                          <div className="form-field">
-                            <label htmlFor="rep_civil_status">Civil Status</label>
-                            <select
-                              id="rep_civil_status"
-                              name="rep_bg_civil_status"
-                              value={
-                                editingApplicant.representative.background_info
-                                  ?.civil_status || ""
-                              }
-                              onChange={handleChange}
-                            >
-                              <option value="">Select Civil Status</option>
-                              <option value="Single">Single</option>
-                              <option value="Married">Married</option>
-                              <option value="Widowed">Widowed</option>
-                              <option value="Separated">Separated</option>
-                              <option value="Divorced">Divorced</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div className="form-row">
-                          <div className="form-field">
-                            <label htmlFor="rep_address">Full Address</label>
-                            <input
-                              id="rep_address"
-                              name="rep_bg_street_address"
-                              type="text"
-                              value={
-                                editingApplicant.representative.background_info
-                                  ?.street_address || ""
-                              }
-                              onChange={handleChange}
-                              placeholder="Enter Full Address"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </form>
                 </div>
                 <div className="dialog-footer">

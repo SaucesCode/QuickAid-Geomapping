@@ -22,11 +22,9 @@ const AddressDropdown = ({ onSelect, initialValues = {} }) => {
   /* -------------------- Side effects ------------------- */
   // Initialize city code from initialValues
   useEffect(() => {
-    console.log("Initial Values:", initialValues); // Debug log
     if (initialValues.city_municipality) {
       const city = CITY_OPTIONS.find(c => c.name === initialValues.city_municipality);
       if (city) {
-        console.log("Found city:", city); // Debug log
         setSelectedCityCode(city.code);
         onSelect("city_municipalityCode", city.code);
         onSelect("city_municipality", city.name);
@@ -37,7 +35,6 @@ const AddressDropdown = ({ onSelect, initialValues = {} }) => {
   // When component mounts OR initial values change (edit mode), fetch brgys.
   useEffect(() => {
     if (selectedCityCode) {
-      console.log("Fetching barangays for city code:", selectedCityCode); // Debug log
       fetchBarangays(selectedCityCode);
     }
   }, [selectedCityCode]);
@@ -54,14 +51,11 @@ const AddressDropdown = ({ onSelect, initialValues = {} }) => {
         name: b.name.replace(/ \(Pob\.\)/i, "").trim(),
       }));
       setBarangays(formatted);
-      console.log("Loaded barangays:", formatted); // Debug log
 
       // If we have an initial barangay code, select it after loading barangays
       if (initialValues.barangay) {
-        console.log("Looking for barangay code:", initialValues.barangay); // Debug log
         const matchingBarangay = formatted.find(b => b.code === initialValues.barangay);
         if (matchingBarangay) {
-          console.log("Found matching barangay:", matchingBarangay); // Debug log
           setSelectedBrgyCode(matchingBarangay.code);
           onSelect("barangay", matchingBarangay.code);
           onSelect("barangay_name", matchingBarangay.name);

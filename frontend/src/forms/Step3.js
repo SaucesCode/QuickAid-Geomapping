@@ -1,32 +1,34 @@
 import React, { useState } from "react";
 import "./Steps.css";
 
-const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
+const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
   const [errors, setErrors] = useState({});
 
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.valid_id_presented) {
-      newErrors.valid_id_presented = "Please select a valid ID";
+      newErrors.valid_id_presented = "Valid ID is required";
     }
 
-    if (formData.valid_id_presented === "Others" && !formData.other_valid_id) {
+    if (formData.valid_id_presented === "Others" && !formData.other_valid_id?.trim()) {
       newErrors.other_valid_id = "Please specify the ID type";
     }
 
     if (!formData.type_of_assistance) {
-      newErrors.type_of_assistance = "Please select a type of assistance";
+      newErrors.type_of_assistance = "Type of assistance is required";
     }
 
     if (formData.applicant_type === "Representative") {
-      if (!formData.rep_first_name) newErrors.rep_first_name = "First name is required";
-      if (!formData.rep_last_name) newErrors.rep_last_name = "Last name is required";
-      if (!formData.rep_address) newErrors.rep_address = "Address is required";
+      if (!formData.rep_first_name?.trim())
+        newErrors.rep_first_name = "First name is required";
+      if (!formData.rep_last_name?.trim()) newErrors.rep_last_name = "Last name is required";
+      if (!formData.rep_address?.trim()) newErrors.rep_address = "Address is required";
       if (!formData.rep_birthday) newErrors.rep_birthday = "Birthday is required";
-      if (!formData.rep_gender) newErrors.rep_gender = "Gender is required";
+      if (!formData.rep_gender) newErrors.rep_gender = "Sex is required";
       if (!formData.rep_civil_status) newErrors.rep_civil_status = "Civil status is required";
-      if (!formData.rep_relationship) newErrors.rep_relationship = "Relationship is required";
+      if (!formData.rep_relationship?.trim())
+        newErrors.rep_relationship = "Relationship is required";
     }
 
     setErrors(newErrors);
@@ -54,7 +56,19 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
         <div className="form-section">
           <h3 className="section-title">Valid ID Information</h3>
           <div className="id-options">
-            {["National ID", "Driver's License", "Voter's ID", "Passport"].map(id => (
+            {[
+              "National ID",
+              "Driver's License",
+              "Voter's ID",
+              "Passport",
+              "SSS ID",
+              "GSIS ID",
+              "UMID",
+              "PhilHealth ID",
+              "TIN ID",
+              "Postal ID",
+              "Senior Citizen ID",
+            ].map(id => (
               <label key={id} className="radio-wrapper">
                 <input
                   type="radio"
@@ -243,6 +257,27 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                   <label htmlFor="rep_address">
                     Address <span className="required">*</span>
                   </label>
+                  <div className="same-address-option">
+                    <label className="checkbox-wrapper">
+                      <input
+                        type="checkbox"
+                        name="use_same_address"
+                        checked={formData.use_same_address}
+                        onChange={e => {
+                          const newValue = e.target.checked;
+                          setFormData(prev => ({
+                            ...prev,
+                            use_same_address: newValue,
+                            rep_address: newValue
+                              ? `${prev.street_address}, ${prev.barangay_name}, ${prev.city_municipality}, ${prev.province}`
+                              : "",
+                          }));
+                        }}
+                        className="checkbox-input"
+                      />
+                      <span className="checkbox-label">Same as applicant's address</span>
+                    </label>
+                  </div>
                   <input
                     type="text"
                     id="rep_address"
@@ -252,6 +287,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                     className={`form-control ${errors.rep_address ? "error" : ""}`}
                     placeholder="Enter complete address"
                     required
+                    disabled={formData.use_same_address}
                   />
                   {errors.rep_address && (
                     <div className="error-message">{errors.rep_address}</div>
@@ -278,7 +314,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
 
                 <div className="form-group">
                   <label htmlFor="rep_gender">
-                    Gender <span className="required">*</span>
+                    Sex <span className="required">*</span>
                   </label>
                   <select
                     id="rep_gender"
@@ -288,7 +324,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep }) => {
                     className={`form-control ${errors.rep_gender ? "error" : ""}`}
                     required
                   >
-                    <option value="">Select Gender</option>
+                    <option value="">Select Sex</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                   </select>

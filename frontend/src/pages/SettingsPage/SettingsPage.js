@@ -8,13 +8,10 @@ const SettingsPage = () => {
   const [user, setUser] = useState(null);
   const [activeSection, setActiveSection] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activityLogs, setActivityLogs] = useState([]);
-  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
 
   const [editedUser, setEditedUser] = useState({
     username: "",
@@ -99,47 +96,6 @@ const SettingsPage = () => {
 
     initializeUser();
   }, [storedUser]);
-
-  useEffect(() => {
-    const fetchActivityLogs = async () => {
-      if (!user?.is_superuser) return;
-
-      setIsLoadingLogs(true);
-      setError(null);
-      try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          throw new Error("No authentication token found");
-        }
-
-        const response = await fetch(`${API_URL}/users/staff-activity/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(
-            errorData.details || errorData.error || "Failed to fetch activity logs"
-          );
-        }
-
-        const data = await response.json();
-        setActivityLogs(data);
-      } catch (error) {
-        console.error("Error fetching activity logs:", error);
-        setError(error.message || "Failed to load activity logs");
-      } finally {
-        setIsLoadingLogs(false);
-      }
-    };
-
-    if (user?.is_superuser) {
-      fetchActivityLogs();
-    }
-  }, [user?.is_superuser]);
 
   const handleSectionChange = sectionId => {
     setActiveSection(sectionId);
@@ -246,7 +202,7 @@ const SettingsPage = () => {
         new_password: "",
         confirm_password: "",
       });
-      setShowPasswordModal(false);
+      setShowArchiveConfirm(false);
       setSuccess("Password changed successfully!");
     } catch (error) {
       setError(error.message);
@@ -524,52 +480,26 @@ const SettingsPage = () => {
                       <h4>Staff Activity Logs</h4>
                       <p>View all staff activities in the system.</p>
                     </div>
-                    {isLoadingLogs ? (
-                      <div className="loading-spinner">Loading logs...</div>
-                    ) : error ? (
-                      <div className="error-message">{error}</div>
-                    ) : (
-                      <div className="activity-logs">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>Date & Time</th>
-                              <th>Staff Member</th>
-                              <th>Action</th>
-                              <th>Details</th>
-                              <th>IP Address</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {activityLogs.length > 0 ? (
-                              activityLogs.map(log => (
-                                <tr key={log.id}>
-                                  <td>
-                                    {format(new Date(log.timestamp), "MMM d, yyyy h:mm a")}
-                                  </td>
-                                  <td>{log.staff_member}</td>
-                                  <td>
-                                    <span
-                                      className={`action-badge ${log.action.toLowerCase()}`}
-                                    >
-                                      {log.action}
-                                    </span>
-                                  </td>
-                                  <td>{log.details}</td>
-                                  <td>{log.ip_address}</td>
-                                </tr>
-                              ))
-                            ) : (
-                              <tr>
-                                <td colSpan="5" className="no-data">
-                                  No activity logs found
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                    <div className="activity-logs">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Date & Time</th>
+                            <th>Staff Member</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                            <th>IP Address</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td colSpan="5" className="no-data">
+                              Activity logs not available in this version
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>

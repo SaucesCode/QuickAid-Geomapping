@@ -18,607 +18,43 @@ from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer, Repre
 
 User = get_user_model()
 
-# REGISTER STAFF (Only Admins Can Do This)
-@api_view(['POST'])
-@permission_classes([IsAdminUser])  # Only superusers can access
-def register_staff(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    first_name = request.data.get('first_name')
-    last_name = request.data.get('last_name')
-    email = request.data.get('email')
+# =============================================
+# AUTHENTICATION & USER MANAGEMENT
+# =============================================
 
-    if not all([username, password, first_name, last_name, email]):
-        return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Check for duplicate username, full name, or email
-    if User.objects.filter(username=username).exists():
-        return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
-    if User.objects.filter(first_name=first_name, last_name=last_name).exists():
-        return Response({"error": "A user with the same full name already exists"}, status=status.HTTP_400_BAD_REQUEST)
-    if User.objects.filter(email=email).exists():
-        return Response({"error": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Create staff user
-    user = User.objects.create_user(
-        username=username,
-        password=password,
-        first_name=first_name,
-        last_name=last_name,
-        email=email,
-        is_staff=True,
-        role='staff'
-    )
-
-    return Response({"message": "Staff registered successfully"}, status=status.HTTP_201_CREATED)
-
-
-# LIST ALL STAFF
-@api_view(['GET'])
-@permission_classes([IsAdminUser])
-def list_staff(request):
-    staff_users = User.objects.filter(is_staff=True).values('id', 'username', 'first_name', 'last_name', 'email', 'last_active').order_by('last_active')
-    return Response(list(staff_users))
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def recent_applicants(request):
-    applicants = Applicant.objects.all().order_by('-date_filled')[:5]
-    serializer = ApplicantSerializer(applicants, many=True)
-    return Response(serializer.data)
-
-
-# LIST APPLICANTS
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def list_applicants(request):
-    applicants = Applicant.objects.filter(is_archived=False).order_by('-date_filled')
-    serializer = ApplicantSerializer(applicants, many=True)
-    return Response(serializer.data)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def recent_applicants(request):
-    applicants = Applicant.objects.all().order_by('-date_filled')[:5]
-    serializer = ApplicantSerializer(applicants, many=True)
-    return Response(serializer.data)
-
-# GET, PUT, DELETE a single applicant
-@api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
-def applicant_detail(request, applicant_id):
-    try:
-        applicant = Applicant.objects.get(pk=applicant_id)
-    except Applicant.DoesNotExist:
-        return Response({'error': 'Applicant not found'}, status=500)
-
-    if request.method == 'GET':
-        serializer = ApplicantSerializer(applicant)
-        return Response(serializer.data)
-
-    elif request.method == 'PUT':
-        serializer = ApplicantSerializer(applicant, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            # Log the update
-            log_staff_activity(
-                request.user,
-                'UPDATE',
-                f"Updated application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
-                request
-            )
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
-
-    elif request.method == 'DELETE':
-        applicant.is_archived = True
-        applicant.save()
-        # Log the archive
-        log_staff_activity(
-            request.user,
-            'ARCHIVE',
-            f"Archived application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
-            request
-        )
-        return Response({"message": "Applicant archived successfully"})
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def list_archived_applicants(request):
-    applicants = Applicant.objects.filter(is_archived=True)
-    serializer = ApplicantSerializer(applicants, many=True)
-    return Response(serializer.data)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def restore_archived_applicant(request, pk):
-    try:
-        applicant = Applicant.objects.get(pk=pk)
-        applicant.is_archived = False
-        applicant.save()
-        # Log the restore
-        log_staff_activity(
-            request.user,
-            'RESTORE',
-            f"Restored application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
-            request
-        )
-        return Response({"message": "Applicant restored successfully"})
-    except Applicant.DoesNotExist:
-        return Response({"error": "Applicant not found"}, status=404)
-
-# EDIT STAFF INFO
-@api_view(['PUT'])
-@permission_classes([IsAdminUser])
-def update_staff(request, pk):
-    try:
-        user = User.objects.get(pk=pk, is_staff=True)
-    except User.DoesNotExist:
-        return Response({"error": "Staff not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    data = request.data
-
-    if 'username' in data and data['username'] != user.username:
-        if User.objects.filter(username=data['username']).exists():
-            return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
-        user.username = data['username']
-
-    if 'email' in data and data['email'] != user.email:
-        if User.objects.filter(email=data['email']).exists():
-            return Response({"error": "Email already taken"}, status=status.HTTP_400_BAD_REQUEST)
-        user.email = data['email']
-
-    if 'first_name' in data:
-        user.first_name = data['first_name']
-    if 'last_name' in data:
-        user.last_name = data['last_name']
-
-    user.save()
-    return Response({"message": "Staff updated successfully"})
-
-# DELETE STAFF
-@api_view(['DELETE'])
-@permission_classes([IsAdminUser])
-def delete_staff(request, pk):
-    try:
-        user = User.objects.get(pk=pk, is_staff=True)
-        user.delete()
-        return Response({"message": "Staff deleted successfully"})
-    except User.DoesNotExist:
-        return Response({"error": "Staff not found"}, status=status.HTTP_404_NOT_FOUND)
-
+# TOKEN OBTAIN
+# Function to handle JWT token authentication
 class MyTokenObtainView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-@api_view(['PUT'])
-@permission_classes([IsAdminUser])
-def update_staff(request, staff_id):
-    try:
-        user = CustomUser.objects.get(id=staff_id)
-    except CustomUser.DoesNotExist:
-        return Response({"error": "User not found"}, status=404)
-
-    data = request.data
-    username = data.get("username")
-    email = data.get("email")
-    first_name = data.get("first_name")
-    last_name = data.get("last_name")
-    password = data.get("password")  # Optional
-
-    # Duplicate check
-    if CustomUser.objects.exclude(id=staff_id).filter(username=username).exists():
-        return Response({"error": "Username already exists"}, status=400)
-    if CustomUser.objects.exclude(id=staff_id).filter(email=email).exists():
-        return Response({"error": "Email already exists"}, status=400)
-
-    user.username = username
-    user.email = email
-    user.first_name = first_name
-    user.last_name = last_name
-
-    if password:
-        user.set_password(password)
-
-    user.save()
-    return Response({"message": "Staff updated successfully"})
-
-
-# Protected route (for testing authentication)
+# PROTECTED VIEW
+# Function to test authentication status
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def protected_view(request):
     return Response({"message": f"Hello, {request.user.username}! You are authenticated as {'Admin' if request.user.is_superuser else 'Staff'}."})
 
-
-@api_view(["POST"])
+# GET CURRENT USER
+# Function to get current user information
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
-@csrf_exempt
-def submit_applicant(request):
-    data = request.data
-
-    serializer = ApplicantSerializer(data=data)
-
-    if serializer.is_valid():
-        # Save the applicant with the current timestamp
-        applicant = serializer.save(staff=request.user)
-        
-        # Set date_filled to current time when form is submitted
-        current_time = timezone.now()
-        applicant.date_filled = current_time
-        
-        # If created_at is not set (first time), set it to current time
-        if not applicant.created_at:
-            applicant.created_at = current_time
-        
-        applicant.save()
-
-        # Log the application creation
-        log_staff_activity(
-            request.user,
-            'CREATE',
-            f"Created application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
-            request
-        )
-
-        return Response(ApplicantSerializer(applicant).data, status=201)
-
-    return Response(serializer.errors, status=400)
-
-
-    
-#THIS IS FOR THE GEOSPATIAL 
-def get_applicant_locations(request):
-    # Use select_related to prefetch related objects
-    # Adjust 'background_info__barangay__city' based on your actual ForeignKey field names
-    applicants = Applicant.objects.select_related(
-        'background_info__barangay__city'
-    ).exclude(latitude__isnull=True, longitude__isnull=True)
-
-    type_filter = request.GET.get("type")
-    city_filter = request.GET.get("city")
-    barangay_filter = request.GET.get("barangay")
-
-    if type_filter:
-        applicants = applicants.filter(type_of_assistance=type_filter)
-    if city_filter:
-        applicants = applicants.filter(background_info__barangay__city__name=city_filter)
-    if barangay_filter:
-        applicants = applicants.filter(background_info__barangay__name=barangay_filter)
-
-    data = []
-    for app in applicants:
-        barangay_name = app.background_info.barangay.name if app.background_info and app.background_info.barangay else "N/A"
-        city_name = app.background_info.barangay.city.name if app.background_info and app.background_info.barangay and app.background_info.barangay.city else "N/A"
-
-        data.append({
-            "id": app.id,
-            "full_name": f"{app.background_info.first_name} {app.background_info.last_name}",
-            "latitude": app.latitude,
-            "longitude": app.longitude,
-            "address": f"{app.background_info.street_address}, {barangay_name}, {city_name}",
-            "type_of_assistance": app.type_of_assistance,
-            "barangay": barangay_name,
-            "city": city_name,
-        })
-
-    return JsonResponse(data, safe=False)
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def update_coordinates(request):
-    applicant_id = request.data.get('id')
-    barangay = request.data.get('background_info', {}).get('barangay')
-    city_name = request.data.get('background_info', {}).get('barangay_details', {}).get('city_name')
-
+def get_current_user(request):
     try:
-        applicant = Applicant.objects.get(pk=applicant_id)
-
-        # Build the location query with Quezon, Philippines to ensure correct location
-        location_query = f"{barangay}, {city_name}, Quezon, Philippines"
-        latitude, longitude = applicant.get_coordinates(location_query)
-
-        if latitude and longitude:
-            applicant.latitude = latitude
-            applicant.longitude = longitude
-            applicant.save()
-            return Response({'latitude': latitude, 'longitude': longitude})
-        else:
-            return Response({'error': 'Could not retrieve coordinates'}, status=400)
-
-    except Applicant.DoesNotExist:
-        return Response({'error': 'Applicant not found'}, status=404)
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
-
-
-# ANALYTICS VIEWS
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def total_applicants(request):
-    today = now().date()
-    one_week_ago = today - timedelta(days=7)
-    one_month_ago = today - timedelta(days=30)
-
-    daily_count = Applicant.objects.filter(date_filled__date=today).count()
-    weekly_count = Applicant.objects.filter(date_filled__gte=one_week_ago).count()
-    monthly_count = Applicant.objects.filter(date_filled__gte=one_month_ago).count()
-
-    return Response({
-        "daily": daily_count,
-        "weekly": weekly_count,
-        "monthly": monthly_count
-    })
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def applicants_by_assistance_type(request):
-    assistance_type = request.GET.get("type")
-    start_date = request.GET.get("start")
-    end_date = request.GET.get("end")
-
-    qs = Applicant.objects.all()
-
-    if assistance_type:
-        qs = qs.filter(type_of_assistance=assistance_type)
-
-    if start_date and end_date:
-        qs = qs.filter(date_filled__date__range=[start_date, end_date])
-
-    data = qs.values('type_of_assistance').annotate(count=Count('id'))
-    return Response(list(data))
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def applicants_by_location(request):
-    data = Applicant.objects.values('city_municipality','barangay', 'latitude', 'longitude').annotate(count=Count('id'))
-    return Response(list(data))
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def trends_over_time(request):
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-    qs = Applicant.objects.all()
-    if start_date and end_date:
-        qs = qs.filter(date_filled__range=[start_date, end_date])
-    data = qs.annotate(date=TruncDate('date_filled')).values('date').annotate(count=Count('id')).order_by('date')
-    return Response(list(data))
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def staff_activity_logs(request):
-    data = Applicant.objects.values('staff__username').annotate(count=Count('id')).order_by('-count')
-    return Response(list(data))
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def top_barangays(request):
-    assistance_type = request.GET.get("type")
-    start_date = request.GET.get("start")
-    end_date = request.GET.get("end")
-
-    qs = Applicant.objects.all()
-    if assistance_type:
-        qs = qs.filter(type_of_assistance=assistance_type)
-    if start_date and end_date:
-        qs = qs.filter(date_filled__date__range=[start_date, end_date])
-    
-    data = qs.values('background_info__barangay__name').annotate(count=Count('id')).order_by('-count')[:10]
-    return Response(list(data))
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def average_processing_time(request):
-    data = Applicant.objects.exclude(created_at__isnull=True).exclude(date_filled__isnull=True).annotate(
-        processing_time=ExpressionWrapper(F('date_filled') - F('created_at'), output_field=DurationField())
-    ).aggregate(avg_time=Avg('processing_time'))
-
-    # Convert seconds to minutes and round to 1 decimal place
-    avg_minutes = round(data['avg_time'].total_seconds() / 60, 1) if data['avg_time'] else 0
-
-    return Response({
-        "average_processing_time": avg_minutes
-    })
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def assistance_type_trend(request):
-    assistance_type = request.GET.get('type')
-    start_date = request.GET.get("start")
-    end_date = request.GET.get("end")
-
-    qs = Applicant.objects.all()
-    if assistance_type:
-        qs = qs.filter(type_of_assistance=assistance_type)
-    if start_date and end_date:
-        qs = qs.filter(date_filled__date__range=[start_date, end_date])
-        
-    data = qs.annotate(date=TruncDate('date_filled')).values('date').annotate(count=Count('id')).order_by('date')
-    return Response(list(data))
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def barangay_by_type(request):
-    data = Applicant.objects.values('background_info__barangay', 'type_of_assistance').annotate(count=Count('id')).order_by('-count')
-    return Response(list(data))
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def applicants_by_gender(request):
-    data = Applicant.objects.values("background_info__sex").annotate(count=Count("id"))
-    return Response(list(data))
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def applicants_by_civil_status(request):
-    data = Applicant.objects.values("background_info__civil_status").annotate(count=Count("id"))
-    return Response(list(data))
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def applicants_by_age_group(request):
-    today = datetime.date.today()
-    qs = Applicant.objects.annotate(
-        age=ExpressionWrapper(
-            today.year - ExtractYear("background_info__birthday"),
-            output_field=IntegerField()
-        )
-    )
-
-    age_groups = {
-        "0-17": qs.filter(age__lte=17).count(),
-        "18-25": qs.filter(age__gte=18, age__lte=25).count(),
-        "26-35": qs.filter(age__gte=26, age__lte=35).count(),
-        "36-45": qs.filter(age__gte=36, age__lte=45).count(),
-        "46-60": qs.filter(age__gte=46, age__lte=60).count(),
-        "60+": qs.filter(age__gt=60).count(),
-    }
-
-    formatted = [{"age_group": group, "count": count} for group, count in age_groups.items()]
-    return Response(formatted)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def monthly_trends(request):
-    # Get the last 12 months of data
-    end_date = timezone.now()
-    start_date = end_date - timedelta(days=365)
-    
-    # Get monthly counts
-    monthly_data = Applicant.objects.filter(
-        date_filled__range=[start_date, end_date]
-    ).annotate(
-        month=TruncDate('date_filled')
-    ).values('month').annotate(
-        count=Count('id')
-    ).order_by('month')
-    
-    # Format the data for the frontend
-    formatted_data = [
-        {
-            'month': item['month'].strftime('%Y-%m'),
-            'count': item['count']
-        }
-        for item in monthly_data
-    ]
-    
-    return Response(formatted_data)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def income_distribution(request):
-    # Define income ranges with a reasonable maximum
-    income_ranges = [
-        (0, 10000, 'Below 10,000'),
-        (10001, 20000, '10,001 - 20,000'),
-        (20001, 30000, '20,001 - 30,000'),
-        (30001, 40000, '30,001 - 40,000'),
-        (40001, 50000, '40,001 - 50,000'),
-        (50001, 100000, '50,001 - 100,000'),
-        (100001, None, 'Above 100,000')  # Use None instead of float('inf')
-    ]
-    
-    # Get counts for each range
-    distribution = []
-    for min_income, max_income, label in income_ranges:
-        if max_income is None:
-            # For the last range (Above 100,000)
-            count = Applicant.objects.filter(
-                background_info__monthly_income__gte=min_income
-            ).count()
-        else:
-            count = Applicant.objects.filter(
-                background_info__monthly_income__gte=min_income,
-                background_info__monthly_income__lt=max_income
-            ).count()
-        
-        distribution.append({
-            'range': label,
-            'count': count
+        user = request.user
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role': user.role,
+            'is_superuser': user.is_superuser
         })
-    
-    return Response(distribution)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def processing_time_by_type(request):
-    # Calculate average processing time for each assistance type
-    processing_times = Applicant.objects.exclude(
-        created_at__isnull=True
-    ).exclude(
-        date_filled__isnull=True
-    ).values(
-        'type_of_assistance'
-    ).annotate(
-        processing_time=Avg(
-            ExpressionWrapper(
-                F('date_filled') - F('created_at'),
-                output_field=DurationField()
-            )
-        )
-    ).order_by('type_of_assistance')
-    
-    # Format the data
-    formatted_data = [
-        {
-            'type': item['type_of_assistance'],
-            'minutes': round(item['processing_time'].total_seconds() / 60, 1) if item['processing_time'] and item['processing_time'].total_seconds() > 0 else 0
-        }
-        for item in processing_times
-    ]
-    
-    return Response(formatted_data)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def summary_metrics(request):
-    # Get total applicants
-    total_applicants = Applicant.objects.count()
-    
-    # Get average processing time in minutes
-    avg_processing_time = Applicant.objects.exclude(
-        created_at__isnull=True
-    ).exclude(
-        date_filled__isnull=True
-    ).aggregate(
-        avg_time=Avg(
-            ExpressionWrapper(
-                F('date_filled') - F('created_at'),
-                output_field=DurationField()
-            )
-        )
-    )['avg_time']
-
-    
-    # Convert to minutes and round to 1 decimal place
-    avg_minutes = round(avg_processing_time.total_seconds() / 60, 1) if avg_processing_time and avg_processing_time.total_seconds() > 0 else 0
-    
-    # Get most common assistance type
-    most_common_type = Applicant.objects.values(
-        'type_of_assistance'
-    ).annotate(
-        count=Count('id')
-    ).order_by('-count').first()
-    
-    # Get barangay with highest applications
-    highest_barangay = Applicant.objects.values(
-        'background_info__barangay__name'
-    ).annotate(
-        count=Count('id')
-    ).order_by('-count').first()
-    
-    return Response({
-        'totalApplicants': total_applicants,
-        'averageProcessingTime': avg_minutes,
-        'mostCommonType': most_common_type['type_of_assistance'] if most_common_type else 'N/A',
-        'highestBarangay': highest_barangay['background_info__barangay__name'] if highest_barangay else 'N/A'
-    })
-
-#AYAKO NA UMAY 
-
+# UPDATE PROFILE
+# Function to update user profile information
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
@@ -670,6 +106,8 @@ def update_profile(request):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+# CHANGE PASSWORD
+# Function to change user password
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def change_password(request):
@@ -704,23 +142,101 @@ def change_password(request):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_current_user(request):
-    try:
-        user = request.user
-        return Response({
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'role': user.role,
-            'is_superuser': user.is_superuser
-        })
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+# =============================================
+# STAFF MANAGEMENT
+# =============================================
 
+# REGISTER STAFF
+# Function to register new staff members (admin only)
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def register_staff(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    email = request.data.get('email')
+
+    if not all([username, password, first_name, last_name, email]):
+        return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Check for duplicate username, full name, or email
+    if User.objects.filter(username=username).exists():
+        return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(first_name=first_name, last_name=last_name).exists():
+        return Response({"error": "A user with the same full name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(email=email).exists():
+        return Response({"error": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create staff user
+    user = User.objects.create_user(
+        username=username,
+        password=password,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        is_staff=True,
+        role='staff'
+    )
+
+    return Response({"message": "Staff registered successfully"}, status=status.HTTP_201_CREATED)
+
+# LIST ALL STAFF
+# Function to retrieve list of all staff members
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def list_staff(request):
+    staff_users = User.objects.filter(is_staff=True).values('id', 'username', 'first_name', 'last_name', 'email', 'last_active').order_by('last_active')
+    return Response(list(staff_users))
+
+# UPDATE STAFF INFO
+# Function to update staff member information
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])
+def update_staff(request, staff_id):
+    try:
+        user = CustomUser.objects.get(id=staff_id)
+    except CustomUser.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
+
+    data = request.data
+    username = data.get("username")
+    email = data.get("email")
+    first_name = data.get("first_name")
+    last_name = data.get("last_name")
+    password = data.get("password")  # Optional
+
+    # Duplicate check
+    if CustomUser.objects.exclude(id=staff_id).filter(username=username).exists():
+        return Response({"error": "Username already exists"}, status=400)
+    if CustomUser.objects.exclude(id=staff_id).filter(email=email).exists():
+        return Response({"error": "Email already exists"}, status=400)
+
+    user.username = username
+    user.email = email
+    user.first_name = first_name
+    user.last_name = last_name
+
+    if password:
+        user.set_password(password)
+
+    user.save()
+    return Response({"message": "Staff updated successfully"})
+
+# DELETE STAFF
+# Function to delete a staff member
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def delete_staff(request, pk):
+    try:
+        user = User.objects.get(pk=pk, is_staff=True)
+        user.delete()
+        return Response({"message": "Staff deleted successfully"})
+    except User.DoesNotExist:
+        return Response({"error": "Staff not found"}, status=status.HTTP_404_NOT_FOUND)
+
+# GET STAFF ACTIVITY LOGS
+# Function to retrieve detailed staff activity logs
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_staff_activity_logs(request):
@@ -768,7 +284,6 @@ def get_staff_activity_logs(request):
                         'staff_member': f"{log.staff.first_name} {log.staff.last_name}",
                         'action': log.action,
                         'details': log.details or '',
-                        'ip_address': log.ip_address or '',
                         'timestamp': log.timestamp.isoformat() if log.timestamp else None
                     }
                     formatted_logs.append(formatted_log)
@@ -794,6 +309,525 @@ def get_staff_activity_logs(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+# =============================================
+# APPLICANT MANAGEMENT
+# =============================================
+
+# SUBMIT APPLICANT
+# Function to create a new applicant record
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@csrf_exempt
+def submit_applicant(request):
+    data = request.data
+
+    serializer = ApplicantSerializer(data=data)
+
+    if serializer.is_valid():
+        # Save the applicant with the current timestamp
+        applicant = serializer.save(staff=request.user)
+        
+        # Set date_filled to current time when form is submitted
+        current_time = timezone.now()
+        applicant.date_filled = current_time
+        
+        # If created_at is not set (first time), set it to current time
+        if not applicant.created_at:
+            applicant.created_at = current_time
+        
+        applicant.save()
+
+        # Log the application creation
+        log_staff_activity(
+            request.user,
+            'CREATE',
+            f"Created application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
+            request
+        )
+
+        return Response(ApplicantSerializer(applicant).data, status=201)
+
+    return Response(serializer.errors, status=400)
+
+# LIST APPLICANTS
+# Function to get all non-archived applicants
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_applicants(request):
+    applicants = Applicant.objects.filter(is_archived=False).order_by('-date_filled')
+    serializer = ApplicantSerializer(applicants, many=True)
+    return Response(serializer.data)
+
+# RECENT APPLICANTS
+# Function to get the 5 most recent applicants
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def recent_applicants(request):
+    applicants = Applicant.objects.all().order_by('-date_filled')[:5]
+    serializer = ApplicantSerializer(applicants, many=True)
+    return Response(serializer.data)
+
+# APPLICANT DETAILS
+# Function to get, update, or delete a specific applicant
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def applicant_detail(request, applicant_id):
+    try:
+        applicant = Applicant.objects.get(pk=applicant_id)
+    except Applicant.DoesNotExist:
+        return Response({'error': 'Applicant not found'}, status=500)
+
+    if request.method == 'GET':
+        serializer = ApplicantSerializer(applicant)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = ApplicantSerializer(applicant, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            # Log the update
+            log_staff_activity(
+                request.user,
+                'UPDATE',
+                f"Updated application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
+                request
+            )
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    elif request.method == 'DELETE':
+        applicant.is_archived = True
+        applicant.save()
+        # Log the archive
+        log_staff_activity(
+            request.user,
+            'ARCHIVE',
+            f"Archived application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
+            request
+        )
+        return Response({"message": "Applicant archived successfully"})
+
+# LIST ARCHIVED APPLICANTS
+# Function to get all archived applicants
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_archived_applicants(request):
+    applicants = Applicant.objects.filter(is_archived=True)
+    serializer = ApplicantSerializer(applicants, many=True)
+    return Response(serializer.data)
+
+# RESTORE ARCHIVED APPLICANT
+# Function to restore an archived applicant
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def restore_archived_applicant(request, pk):
+    try:
+        applicant = Applicant.objects.get(pk=pk)
+        applicant.is_archived = False
+        applicant.save()
+        # Log the restore
+        log_staff_activity(
+            request.user,
+            'RESTORE',
+            f"Restored application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
+            request
+        )
+        return Response({"message": "Applicant restored successfully"})
+    except Applicant.DoesNotExist:
+        return Response({"error": "Applicant not found"}, status=404)
+
+# =============================================
+# GEOSPATIAL FUNCTIONS
+# =============================================
+
+# GET APPLICANT LOCATIONS
+# Function to retrieve applicant locations for mapping
+def get_applicant_locations(request):
+    applicants = Applicant.objects.select_related(
+        'background_info__barangay__city'
+    ).exclude(latitude__isnull=True, longitude__isnull=True)
+
+    type_filter = request.GET.get("type")
+    city_filter = request.GET.get("city")
+    barangay_filter = request.GET.get("barangay")
+
+    if type_filter:
+        applicants = applicants.filter(type_of_assistance=type_filter)
+    if city_filter:
+        applicants = applicants.filter(background_info__barangay__city__name=city_filter)
+    if barangay_filter:
+        applicants = applicants.filter(background_info__barangay__name=barangay_filter)
+
+    data = []
+    for app in applicants:
+        barangay_name = app.background_info.barangay.name if app.background_info and app.background_info.barangay else "N/A"
+        city_name = app.background_info.barangay.city.name if app.background_info and app.background_info.barangay and app.background_info.barangay.city else "N/A"
+
+        data.append({
+            "id": app.id,
+            "full_name": f"{app.background_info.first_name} {app.background_info.last_name}",
+            "latitude": app.latitude,
+            "longitude": app.longitude,
+            "address": f"{app.background_info.street_address}, {barangay_name}, {city_name}",
+            "type_of_assistance": app.type_of_assistance,
+            "barangay": barangay_name,
+            "city": city_name,
+        })
+
+    return JsonResponse(data, safe=False)
+
+# UPDATE COORDINATES
+# Function to update applicant's geographical coordinates
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_coordinates(request):
+    applicant_id = request.data.get('id')
+    barangay = request.data.get('background_info', {}).get('barangay')
+    city_name = request.data.get('background_info', {}).get('barangay_details', {}).get('city_name')
+
+    try:
+        applicant = Applicant.objects.get(pk=applicant_id)
+
+        # Build the location query with Quezon, Philippines to ensure correct location
+        location_query = f"{barangay}, {city_name}, Quezon, Philippines"
+        latitude, longitude = applicant.get_coordinates(location_query)
+
+        if latitude and longitude:
+            applicant.latitude = latitude
+            applicant.longitude = longitude
+            applicant.save()
+            return Response({'latitude': latitude, 'longitude': longitude})
+        else:
+            return Response({'error': 'Could not retrieve coordinates'}, status=400)
+
+    except Applicant.DoesNotExist:
+        return Response({'error': 'Applicant not found'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+# =============================================
+# ANALYTICS & REPORTING
+# =============================================
+
+# TOTAL APPLICANTS
+# Function to get applicant counts for different time periods
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def total_applicants(request):
+    today = now().date()
+    one_week_ago = today - timedelta(days=7)
+    one_month_ago = today - timedelta(days=30)
+
+    daily_count = Applicant.objects.filter(date_filled__date=today).count()
+    weekly_count = Applicant.objects.filter(date_filled__gte=one_week_ago).count()
+    monthly_count = Applicant.objects.filter(date_filled__gte=one_month_ago).count()
+
+    return Response({
+        "daily": daily_count,
+        "weekly": weekly_count,
+        "monthly": monthly_count
+    })
+
+# APPLICANTS BY ASSISTANCE TYPE
+# Function to get applicant counts by assistance type
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def applicants_by_assistance_type(request):
+    assistance_type = request.GET.get("type")
+    start_date = request.GET.get("start")
+    end_date = request.GET.get("end")
+
+    qs = Applicant.objects.all()
+
+    if assistance_type:
+        qs = qs.filter(type_of_assistance=assistance_type)
+
+    if start_date and end_date:
+        qs = qs.filter(date_filled__date__range=[start_date, end_date])
+
+    data = qs.values('type_of_assistance').annotate(count=Count('id'))
+    return Response(list(data))
+
+# APPLICANTS BY LOCATION
+# Function to get applicant counts by location
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def applicants_by_location(request):
+    data = Applicant.objects.values('city_municipality','barangay', 'latitude', 'longitude').annotate(count=Count('id'))
+    return Response(list(data))
+
+# TRENDS OVER TIME
+# Function to get applicant trends over a time period
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def trends_over_time(request):
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    qs = Applicant.objects.all()
+    if start_date and end_date:
+        qs = qs.filter(date_filled__range=[start_date, end_date])
+    data = qs.annotate(date=TruncDate('date_filled')).values('date').annotate(count=Count('id')).order_by('date')
+    return Response(list(data))
+
+# STAFF ACTIVITY LOGS
+# Function to get staff activity statistics
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def staff_activity_logs(request):
+    data = Applicant.objects.values('staff__username').annotate(count=Count('id')).order_by('-count')
+    return Response(list(data))
+
+# TOP BARANGAYS
+# Function to get top barangays by applicant count
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def top_barangays(request):
+    assistance_type = request.GET.get("type")
+    start_date = request.GET.get("start")
+    end_date = request.GET.get("end")
+
+    qs = Applicant.objects.all()
+    if assistance_type:
+        qs = qs.filter(type_of_assistance=assistance_type)
+    if start_date and end_date:
+        qs = qs.filter(date_filled__date__range=[start_date, end_date])
+    
+    data = qs.values('background_info__barangay__name').annotate(count=Count('id')).order_by('-count')[:10]
+    return Response(list(data))
+
+# AVERAGE PROCESSING TIME
+# Function to calculate average application processing time
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def average_processing_time(request):
+    data = Applicant.objects.exclude(created_at__isnull=True).exclude(date_filled__isnull=True).annotate(
+        processing_time=ExpressionWrapper(F('date_filled') - F('created_at'), output_field=DurationField())
+    ).aggregate(avg_time=Avg('processing_time'))
+
+    # Convert seconds to minutes and round to 1 decimal place
+    avg_minutes = round(data['avg_time'].total_seconds() / 60, 1) if data['avg_time'] else 0
+
+    return Response({
+        "average_processing_time": avg_minutes
+    })
+
+# ASSISTANCE TYPE TREND
+# Function to get trends for specific assistance types
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def assistance_type_trend(request):
+    assistance_type = request.GET.get('type')
+    start_date = request.GET.get("start")
+    end_date = request.GET.get("end")
+
+    qs = Applicant.objects.all()
+    if assistance_type:
+        qs = qs.filter(type_of_assistance=assistance_type)
+    if start_date and end_date:
+        qs = qs.filter(date_filled__date__range=[start_date, end_date])
+        
+    data = qs.annotate(date=TruncDate('date_filled')).values('date').annotate(count=Count('id')).order_by('date')
+    return Response(list(data))
+
+# BARANGAY BY TYPE
+# Function to get applicant counts by barangay and assistance type
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def barangay_by_type(request):
+    data = Applicant.objects.values('background_info__barangay', 'type_of_assistance').annotate(count=Count('id')).order_by('-count')
+    return Response(list(data))
+
+# APPLICANTS BY GENDER
+# Function to get applicant counts by gender
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def applicants_by_gender(request):
+    data = Applicant.objects.values("background_info__sex").annotate(count=Count("id"))
+    return Response(list(data))
+
+# APPLICANTS BY CIVIL STATUS
+# Function to get applicant counts by civil status
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def applicants_by_civil_status(request):
+    data = Applicant.objects.values("background_info__civil_status").annotate(count=Count("id"))
+    return Response(list(data))
+
+# APPLICANTS BY AGE GROUP
+# Function to get applicant counts by age groups
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def applicants_by_age_group(request):
+    today = datetime.date.today()
+    qs = Applicant.objects.annotate(
+        age=ExpressionWrapper(
+            today.year - ExtractYear("background_info__birthday"),
+            output_field=IntegerField()
+        )
+    )
+
+    age_groups = {
+        "0-17": qs.filter(age__lte=17).count(),
+        "18-25": qs.filter(age__gte=18, age__lte=25).count(),
+        "26-35": qs.filter(age__gte=26, age__lte=35).count(),
+        "36-45": qs.filter(age__gte=36, age__lte=45).count(),
+        "46-60": qs.filter(age__gte=46, age__lte=60).count(),
+        "60+": qs.filter(age__gt=60).count(),
+    }
+
+    formatted = [{"age_group": group, "count": count} for group, count in age_groups.items()]
+    return Response(formatted)
+
+# MONTHLY TRENDS
+# Function to get monthly applicant trends
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def monthly_trends(request):
+    # Get the last 12 months of data
+    end_date = timezone.now()
+    start_date = end_date - timedelta(days=365)
+    
+    # Get monthly counts
+    monthly_data = Applicant.objects.filter(
+        date_filled__range=[start_date, end_date]
+    ).annotate(
+        month=TruncDate('date_filled')
+    ).values('month').annotate(
+        count=Count('id')
+    ).order_by('month')
+    
+    # Format the data for the frontend
+    formatted_data = [
+        {
+            'month': item['month'].strftime('%Y-%m'),
+            'count': item['count']
+        }
+        for item in monthly_data
+    ]
+    
+    return Response(formatted_data)
+
+# INCOME DISTRIBUTION
+# Function to get applicant counts by income ranges
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def income_distribution(request):
+    # Define income ranges with a reasonable maximum
+    income_ranges = [
+        (0, 10000, 'Below 10,000'),
+        (10001, 20000, '10,001 - 20,000'),
+        (20001, 30000, '20,001 - 30,000'),
+        (30001, 40000, '30,001 - 40,000'),
+        (40001, 50000, '40,001 - 50,000'),
+        (50001, 100000, '50,001 - 100,000'),
+        (100001, None, 'Above 100,000')  # Use None instead of float('inf')
+    ]
+    
+    # Get counts for each range
+    distribution = []
+    for min_income, max_income, label in income_ranges:
+        if max_income is None:
+            # For the last range (Above 100,000)
+            count = Applicant.objects.filter(
+                background_info__monthly_income__gte=min_income
+            ).count()
+        else:
+            count = Applicant.objects.filter(
+                background_info__monthly_income__gte=min_income,
+                background_info__monthly_income__lt=max_income
+            ).count()
+        
+        distribution.append({
+            'range': label,
+            'count': count
+        })
+    
+    return Response(distribution)
+
+# PROCESSING TIME BY TYPE
+# Function to get average processing time by assistance type
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def processing_time_by_type(request):
+    # Calculate average processing time for each assistance type
+    processing_times = Applicant.objects.exclude(
+        created_at__isnull=True
+    ).exclude(
+        date_filled__isnull=True
+    ).values(
+        'type_of_assistance'
+    ).annotate(
+        processing_time=Avg(
+            ExpressionWrapper(
+                F('date_filled') - F('created_at'),
+                output_field=DurationField()
+            )
+        )
+    ).order_by('type_of_assistance')
+    
+    # Format the data
+    formatted_data = [
+        {
+            'type': item['type_of_assistance'],
+            'minutes': round(item['processing_time'].total_seconds() / 60, 1) if item['processing_time'] and item['processing_time'].total_seconds() > 0 else 0
+        }
+        for item in processing_times
+    ]
+    
+    return Response(formatted_data)
+
+# SUMMARY METRICS
+# Function to get overall application statistics
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def summary_metrics(request):
+    # Get total applicants
+    total_applicants = Applicant.objects.count()
+    
+    # Get average processing time in minutes
+    avg_processing_time = Applicant.objects.exclude(
+        created_at__isnull=True
+    ).exclude(
+        date_filled__isnull=True
+    ).aggregate(
+        avg_time=Avg(
+            ExpressionWrapper(
+                F('date_filled') - F('created_at'),
+                output_field=DurationField()
+            )
+        )
+    )['avg_time']
+
+    
+    # Convert to minutes and round to 1 decimal place
+    avg_minutes = round(avg_processing_time.total_seconds() / 60, 1) if avg_processing_time and avg_processing_time.total_seconds() > 0 else 0
+    
+    # Get most common assistance type
+    most_common_type = Applicant.objects.values(
+        'type_of_assistance'
+    ).annotate(
+        count=Count('id')
+    ).order_by('-count').first()
+    
+    # Get barangay with highest applications
+    highest_barangay = Applicant.objects.values(
+        'background_info__barangay__name'
+    ).annotate(
+        count=Count('id')
+    ).order_by('-count').first()
+    
+    return Response({
+        'totalApplicants': total_applicants,
+        'averageProcessingTime': avg_minutes,
+        'mostCommonType': most_common_type['type_of_assistance'] if most_common_type else 'N/A',
+        'highestBarangay': highest_barangay['background_info__barangay__name'] if highest_barangay else 'N/A'
+    })
+
+# =============================================
+# HELPER FUNCTIONS
+# =============================================
+
+# LOG STAFF ACTIVITY
 # Helper function to log staff activities
 def log_staff_activity(staff, action, details=None, request=None):
     try:
