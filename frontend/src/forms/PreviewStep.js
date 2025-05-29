@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./PreviewStep.css";
 import { useNavigate } from "react-router-dom";
 import { submitApplicant } from "../services/api";
@@ -6,6 +6,8 @@ import { submitApplicant } from "../services/api";
 const PreviewStep = ({ formData, prevStep }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [errorModal, setErrorModal] = useState({ show: false, message: "" });
+  const [cancelModal, setCancelModal] = useState({ show: false });
   const navigate = useNavigate();
 
   const handleSubmit = async e => {
@@ -20,10 +22,28 @@ const PreviewStep = ({ formData, prevStep }) => {
       }, 500);
     } catch (error) {
       console.error("Submission Error:", error);
-      alert("Error submitting applicant. Please try again.");
+      let errorMessage = "Error submitting applicant. ";
+      if (error.response) {
+        errorMessage +=
+          error.response.data.error || error.response.data.detail || "Please try again.";
+      } else if (error.request) {
+        errorMessage += "No response from server. Please check your connection.";
+      } else {
+        errorMessage += error.message || "Please try again.";
+      }
+      setErrorModal({ show: true, message: errorMessage });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleBack = () => {
+    setCancelModal({ show: true });
+  };
+
+  const confirmCancel = () => {
+    setCancelModal({ show: false });
+    prevStep();
   };
 
   const getFullName = () => {
@@ -134,8 +154,8 @@ const PreviewStep = ({ formData, prevStep }) => {
                 <div className="info-value">{formData.rep_birthday}</div>
               </div>
               <div className="info-group">
-                <div className="info-label">Representative Gender</div>
-                <div className="info-value">{formData.rep_gender}</div>
+                <div className="info-label">Representative Sex</div>
+                <div className="info-value">{formData.rep_sex}</div>
               </div>
               <div className="info-group">
                 <div className="info-label">Representative Civil Status</div>
@@ -161,7 +181,7 @@ const PreviewStep = ({ formData, prevStep }) => {
       <div className="preview-actions">
         <button
           type="button"
-          onClick={prevStep}
+          onClick={handleBack}
           className="btn back-btn"
           disabled={isSubmitting}
         >
@@ -182,6 +202,45 @@ const PreviewStep = ({ formData, prevStep }) => {
             : "Submit Application"}
         </button>
       </div>
+
+      {/* Error Modal */}
+      {errorModal.show && (
+        <div className="modal-overlay">
+          <div className="modal-content error-modal">
+            <h3>Error</h3>
+            <p>{errorModal.message}</p>
+            <div className="modal-actions">
+              <button
+                className="btn primary-btn"
+                onClick={() => setErrorModal({ show: false, message: "" })}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Confirmation Modal */}
+      {cancelModal.show && (
+        <div className="modal-overlay">
+          <div className="modal-content confirm-modal">
+            <h3>Confirm Cancellation</h3>
+            <p>Are you sure you want to go back? Any unsaved changes will be lost.</p>
+            <div className="modal-actions">
+              <button className="btn primary-btn" onClick={confirmCancel}>
+                Yes, Go Back
+              </button>
+              <button
+                className="btn secondary-btn"
+                onClick={() => setCancelModal({ show: false })}
+              >
+                No, Stay Here
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

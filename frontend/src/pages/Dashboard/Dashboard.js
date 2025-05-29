@@ -160,7 +160,7 @@ const Dashboard = () => {
         <div className="stat-box">
           <div className="stat-icon">⏱️</div>
           <div className="stat-content">
-            <h3>Avg. Processing Time</h3>
+            <h3>Avg. Form Completion Time</h3>
             <div className="stat-number">{formatProcessingTime(avgProcessing)}</div>
           </div>
         </div>
@@ -203,10 +203,20 @@ const Dashboard = () => {
             <h2 className="chart-title">Top Barangays</h2>
             {topBarangaysData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={topBarangaysData} layout="vertical" margin={{ left: 30 }}>
+                <BarChart
+                  data={topBarangaysData}
+                  layout="vertical"
+                  margin={{ left: 20, right: 10, top: 5, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" />
-                  <YAxis dataKey="name" type="category" width={90} interval={0} />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    width={110}
+                    interval={0}
+                    tick={{ fontSize: 12 }}
+                  />
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="count" fill="#4361ee" name="Applicants" />
