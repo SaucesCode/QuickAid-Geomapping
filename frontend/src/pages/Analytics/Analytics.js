@@ -199,7 +199,7 @@ const Analytics = () => {
           <div className="analytics-row">
             {/* Gender Chart */}
             <div className="chart-card">
-              <h2>Applicants by Gender</h2>
+              <h2>Applicants by Sex</h2>
               {genderPieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
