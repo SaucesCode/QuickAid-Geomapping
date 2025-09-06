@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import Applicant, Representative, BackgroundInfo, Barangay
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
+from datetime import *
+from django.utils import timezone
 
 # Para sa login, customize the JWT token at response
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -54,6 +55,7 @@ class BackgroundInfoSerializer(serializers.ModelSerializer):
             "birthday", "street_address", "barangay","barangay_details",
             "sex", "civil_status", "occupation", "monthly_income"
         ]
+        validators = []
 
     def validate_barangay(self, value):
         print(f"Validating barangay PSGC code: {value}")
@@ -120,24 +122,54 @@ class ApplicantSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "staff", "longitude", "latitude", "date_filled", "created_at"]
 
     def create(self, validated_data):
-            
-        # Handle background info
         bg_data = validated_data.pop("background_info")
-        background_info = BackgroundInfoSerializer().create(bg_data)
-        
-        # Handle representative if provided
         rep_data = validated_data.pop("representative", None)
+
+        # The 'barangay' in bg_data is already a validated Barangay object.
+        # We need to separate the unique identifiers from the rest of the data for get_or_create.
+        unique_identifiers = {
+            'first_name': bg_data.get('first_name'),
+            'last_name': bg_data.get('last_name'),
+            'birthday': bg_data.get('birthday'),
+        }
         
-        # Create applicant
+        background_info, created = BackgroundInfo.objects.get_or_create(
+            **unique_identifiers,
+            defaults=bg_data
+        )
+
+        # If the person already existed, update their info with any new details.
+        if not created:
+            for key, value in bg_data.items():
+                setattr(background_info, key, value)
+            background_info.save()
+
+        # --- 3-Month Rule ---
+        three_months_ago = timezone.now() - timedelta(days=90)
+        if Applicant.objects.filter(background_info=background_info, date_filled__gte=three_months_ago).exists():
+            last_app = Applicant.objects.filter(background_info=background_info).latest('date_filled')
+            next_eligible = last_app.date_filled + timedelta(days=90)
+            raise serializers.ValidationError(
+                f"This person last applied on {last_app.date_filled.strftime('%B %d, %Y')}. "
+                f"They can only apply once every 3 months. "
+                f"Their next eligible application date is {next_eligible.strftime('%B %d, %Y')}."
+            )
+        
+        # If all checks pass, create the new application.
         applicant = Applicant.objects.create(
             background_info=background_info, 
             **validated_data
         )
 
-        # Create representative if needed
+        # Handle representative (same logic as before)
         if rep_data and validated_data.get("applicant_type") == "Representative":
-            rep_serializer = RepresentativeSerializer(context={"applicant": applicant})
-            rep_serializer.create({**rep_data, "applicant": applicant})
+            rep_bg_data = rep_data.pop("background_info")
+            rep_bg = RepresentativeBackgroundInfoSerializer().create(rep_bg_data)
+            Representative.objects.create(
+                applicant=applicant,
+                background_info=rep_bg,
+                relationship=rep_data["relationship"]
+            )
 
         return applicant
     
