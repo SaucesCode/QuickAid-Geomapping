@@ -9,6 +9,6 @@ Pillow
 python-decouple
 gunicorn
 whitenoise
-quickaid_update
+python-dotenv
 opencage
-corsheaders
+dj-database-url
