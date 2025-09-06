@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 import requests
 from django.views.decorators.csrf import csrf_exempt
-from .models import Applicant, CustomUser, Representative, StaffActivityLog
+from .models import Applicant, CustomUser, Representative, StaffActivityLog, BackgroundInfo, ApplicantHistory
 from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer, RepresentativeSerializer
 
 User = get_user_model()
@@ -320,28 +320,32 @@ def get_staff_activity_logs(request):
 @csrf_exempt
 def submit_applicant(request):
     data = request.data
-
     serializer = ApplicantSerializer(data=data)
 
     if serializer.is_valid():
-        # Save the applicant with the current timestamp
         applicant = serializer.save(staff=request.user)
-        
-        # Set date_filled to current time when form is submitted
+
+        # Update timestamps
         current_time = timezone.now()
         applicant.date_filled = current_time
-        
-        # If created_at is not set (first time), set it to current time
         if not applicant.created_at:
             applicant.created_at = current_time
-        
         applicant.save()
 
-        # Log the application creation
+        # Get the background info from the created applicant
+        background = applicant.background_info
+
+        # Log new application in history
+        ApplicantHistory.objects.create(
+            background_info=background,
+            applicant=applicant,
+            type_of_assistance=applicant.type_of_assistance
+        )
+
         log_staff_activity(
             request.user,
             'CREATE',
-            f"Created application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
+            f"Application recorded for {background.first_name} {background.last_name}",
             request
         )
 
@@ -357,6 +361,30 @@ def list_applicants(request):
     applicants = Applicant.objects.filter(is_archived=False).order_by('-date_filled')
     serializer = ApplicantSerializer(applicants, many=True)
     return Response(serializer.data)
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def applicant_history(request, background_id):
+    try:
+        background = BackgroundInfo.objects.get(pk=background_id)
+        applications = background.application_history()
+        data = [
+            {
+                "id": app.id,
+                "type_of_assistance": app.type_of_assistance,
+                "date_filled": app.date_filled,
+                "is_archived": app.is_archived,
+            }
+            for app in applications
+        ]
+        return Response({
+            "applicant": str(background),
+            "application_count": background.application_count(),
+            "applications": data
+        })
+    except BackgroundInfo.DoesNotExist:
+        return Response({"error": "Applicant not found"}, status=404)
+
 
 # RECENT APPLICANTS
 # Function to get the 5 most recent applicants
@@ -521,6 +549,8 @@ def total_applicants(request):
     daily_count = Applicant.objects.filter(date_filled__date=today).count()
     weekly_count = Applicant.objects.filter(date_filled__gte=one_week_ago).count()
     monthly_count = Applicant.objects.filter(date_filled__gte=one_month_ago).count()
+
+    print(daily_count, weekly_count, monthly_count)
 
     return Response({
         "daily": daily_count,

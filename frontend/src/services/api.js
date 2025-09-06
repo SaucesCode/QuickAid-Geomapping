@@ -24,7 +24,7 @@ export const refreshAccessToken = async () => {
   if (!refreshToken) return null; // No refresh token available
 
   try {
-    const response = await axios.post(`${API_URL}/token/refresh/`, { refresh: refreshToken });
+    const response = await api.post(`/token/refresh/`, { refresh: refreshToken });
 
     if (response.status === 200) {
       const { access } = response.data;
@@ -59,7 +59,7 @@ api.interceptors.request.use(
 
 export const loginStaff = async (username, password) => {
   try {
-    const response = await axios.post(`${API_URL}/token/`, { username, password });
+    const response = await api.post(`/token/`, { username, password });
 
     if (response.status === 200) {
       const { access, refresh, staff_info: user } = response.data;
@@ -156,7 +156,7 @@ export const submitApplicant = async data => {
       };
     }
 
-    const response = await axios.post(`${API_URL}/submit-applicant/`, payload, {
+    const response = await api.post(`/submit-applicant/`, payload, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -169,5 +169,3 @@ export const submitApplicant = async data => {
     throw error.response?.data || "Submission failed";
   }
 };
-
-//

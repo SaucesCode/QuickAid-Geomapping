@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Applicant, CustomUser, Representative, BackgroundInfo
+from .models import Applicant, CustomUser, Representative, BackgroundInfo, ApplicantHistory, StaffActivityLog   
 
 #
 class ApplicantAdmin(admin.ModelAdmin):
@@ -77,6 +77,35 @@ class CustomUserAdmin(admin.ModelAdmin):
     search_fields = ("username", "email")
     list_filter = ("role", "is_superuser", "is_active")
 
+
+class ApplicantHistoryAdmin(admin.ModelAdmin):
+    list_display = (
+        "background_info", 
+        "applicant", 
+        "type_of_assistance", 
+        "date_applied"
+    )
+    search_fields = (
+        "background_info__first_name", 
+        "background_info__last_name", 
+        "type_of_assistance"
+    )
+    list_filter = ("type_of_assistance", "date_applied")
+    ordering = ("-date_applied",)
+
+
+class StaffActivityLogAdmin(admin.ModelAdmin):
+    list_display = (
+        "staff", "action", "details", "ip_address", "timestamp"
+    )
+    search_fields = ("staff__username", "action", "details")
+    list_filter = ("action", "timestamp")
+    ordering = ("-timestamp",)
+
+
+# Register new models
+admin.site.register(ApplicantHistory, ApplicantHistoryAdmin)
+admin.site.register(StaffActivityLog, StaffActivityLogAdmin)
 admin.site.register(Applicant, ApplicantAdmin)
 admin.site.register(Representative, RepresentativeAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)

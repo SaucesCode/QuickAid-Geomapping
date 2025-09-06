@@ -1,30 +1,25 @@
 import React, { useState, useEffect } from "react";
-import "./ApplicationForm.css";
 import { NavLink } from "react-router-dom";
-import { API_URL } from "../../services/api";
+import { api } from "../../services/api";
 
 const ApplicantForm = () => {
   const [applicants, setApplicants] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    document.title = "Quickaid | Applicant Form";
+    document.title = "QuickAid | Applicant Form";
     return () => {
-      document.title = "Quickaid | Home";
+      document.title = "QuickAid | Home";
     };
   }, []);
 
   const fetchApplicants = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await fetch(`${API_URL}/applicants/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await api.get(`/applicants/`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      const data = await response.json();
-
+      const data = await response.data;
       setApplicants(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching applicants:", error);
@@ -34,7 +29,6 @@ const ApplicantForm = () => {
 
   useEffect(() => {
     fetchApplicants();
-    console.log("Fetched applicants:", applicants);
   }, []);
 
   const formatDate = dateString => {
@@ -43,8 +37,8 @@ const ApplicantForm = () => {
       year: "numeric",
       month: "short",
       day: "numeric",
-      minute: "numeric",
       hour: "numeric",
+      minute: "numeric",
     });
   };
 
@@ -58,79 +52,91 @@ const ApplicantForm = () => {
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       applicant.type_of_assistance.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      formatDate(new Date(applicant.created_at).toString().slice(0, 24))
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+      formatDate(applicant.created_at).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="applicant-dashboard">
-      <div className="dashboard-header">
-        <div className="dashboard-title">
-          <h1>New Applicant</h1>
-          <p>Input and View assistance applicants</p>
+    <div className="p-6 lg:p-12 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">New Applicants</h1>
+          <p className="text-gray-400">Input and view assistance applicants</p>
         </div>
-        <NavLink className="add-applicant-btn" to={"/new-applicant"}>
+        <NavLink
+          to="/new-applicant"
+          className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2 rounded-lg font-medium transition-colors"
+        >
           + New Applicant
         </NavLink>
       </div>
 
-      <div className="dashboard-tools">
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="🔍 Search applicants..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-        <div className="applicant-count">
-          <span className="count">{applicants.length}</span> Total Applicants
+      {/* Tools */}
+      <div className="flex flex-col lg:flex-row justify-between items-center mb-6 gap-4">
+        <input
+          type="text"
+          placeholder="🔍 Search applicants..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="w-full lg:w-1/3 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+        />
+        <div className="text-gray-800 font-medium">
+          <span className="text-teal-500 font-bold">{applicants.length}</span> Total Applicants
         </div>
       </div>
 
+      {/* Table or Empty State */}
       {filteredApplicants.length > 0 ? (
-        <div className="applicant-table-container">
-          <table className="applicant-table">
-            <thead>
+        <div className="overflow-x-auto bg-white rounded-xl shadow-md">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-teal-500 text-white">
               <tr>
-                <th>#</th>
-                <th>Full Name</th>
-                <th>Barangay</th>
-                <th>City</th>
-                <th>Assistance Type</th>
-                <th>Date Filled</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">#</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Full Name</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Barangay</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">City</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Assistance Type</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Date Filled</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100">
               {filteredApplicants.map((applicant, index) => (
-                <tr key={index}>
-                  <td>{filteredApplicants.length - index}</td>
-                  <td className="applicant-name">
+                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {filteredApplicants.length - index}
+                  </td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-800">
                     {applicant.background_info.first_name}{" "}
                     {applicant.background_info.last_name}
                   </td>
-                  <td>{applicant.background_info.barangay}</td>
-                  <td>{applicant.background_info.barangay_details.city_name}</td>
-                  <td>
-                    <span className="assistance-badge">{applicant.type_of_assistance}</span>
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {applicant.background_info.barangay}
                   </td>
-                  <td>{formatDate(applicant.created_at)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {applicant.background_info.barangay_details.city_name}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <span className="px-2 py-1 rounded-full text-xs text-white bg-teal-500">
+                      {applicant.type_of_assistance}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {formatDate(applicant.created_at)}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       ) : (
-        <div className="empty-state">
-          <div className="empty-icon">📋</div>
-          <h3>No applicants found</h3>
-          <p>Add new applicants or adjust your search criteria</p>
+        <div className="flex flex-col items-center justify-center mt-16 text-center text-gray-400 bg-white rounded-xl shadow-md py-16">
+          <div className="text-6xl mb-4">📋</div>
+          <h3 className="text-xl font-semibold mb-2 text-gray-800">No applicants found</h3>
+          <p className="text-sm">Add new applicants or adjust your search criteria</p>
         </div>
       )}
     </div>
   );
 };
-//
+
 export default ApplicantForm;

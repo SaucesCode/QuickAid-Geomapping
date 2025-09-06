@@ -66,6 +66,14 @@ class BackgroundInfo(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    
+    def application_count(self):
+        return self.applicant_set.count()
+
+    def application_history(self):
+        return self.applicant_set.order_by('-date_filled')
+    class Meta:
+        unique_together = ("first_name", "last_name", "birthday")
 
 class Applicant(models.Model):
     ASSISTANCE_TYPES = [
@@ -86,6 +94,7 @@ class Applicant(models.Model):
     date_filled = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(null=True, blank=True)
     is_archived = models.BooleanField(default=False)
+
 
     def save(self, *args, **kwargs):
         if not self.latitude or not self.longitude:
@@ -110,6 +119,16 @@ class Representative(models.Model):
 
     def __str__(self):
         return f"{self.background_info.first_name} - Representative of {self.applicant}"
+    
+class ApplicantHistory(models.Model):
+    background_info = models.ForeignKey(BackgroundInfo, on_delete=models.CASCADE, related_name="histories")
+    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, related_name="history_entry")
+    type_of_assistance = models.CharField(max_length=50)
+    date_applied = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.background_info} applied for {self.type_of_assistance} on {self.date_applied}"
+
 
 class StaffActivityLog(models.Model):
     ACTION_TYPES = [

@@ -16,6 +16,7 @@ urlpatterns = [
     path("update-staff/<int:staff_id>/", update_staff, name="update-staff"),
 
     path('applicants/', list_applicants, name='applicants'),
+    path("applicants/history/<int:background_id>/", applicant_history, name="applicant_history"),
     path('recent_applicants/', recent_applicants, name='recent_applicants'),
     path('applicants/<int:applicant_id>/', applicant_detail, name='applicant_detail'),
     path('list-archived-applicants/', list_archived_applicants, name='list_archived_applicants'),

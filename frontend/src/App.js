@@ -1,13 +1,14 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "./components/Login/Login";
 import ApplicantForm from "./pages/ApplicantForm/ApplicantForm";
-import MapComponent from "./components/MapComponent/MapComponent";
+import MapComponent from "./pages/MapComponent/MapComponent";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Sidebar from "./components/Sidebar/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
 import AdminManagement from "./pages/AdminManagement/AdminManagement";
 import Analytics from "./pages/Analytics/Analytics";
 import Applicants from "./pages/Applicants/Applicants";
+import Approved from "./pages/Approved";
 import Navbar from "./components/LandingPage/Navbar";
 import ChallengesSection from "./components/Sections/ChallengesSection";
 import GoalsSection from "./components/Sections/GoalsSection";
@@ -73,6 +74,7 @@ function App() {
           <Route path="admin-management" element={<AdminManagement />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="applicants" element={<Applicants />} />
+          <Route path="approved" element={<Approved />} />
           <Route path="archived-applicants" element={<ArchiveApplicants />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
