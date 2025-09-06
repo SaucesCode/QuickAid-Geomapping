@@ -1,95 +1,96 @@
-// File: frontend/src/forms/AddressDropdown.js
 import React, { useState, useEffect } from "react";
 import "./MultiStepForm.css";
 
-const AddressDropdown = ({ onSelect, initialValues }) => {
-  const [selectedCity, setSelectedCity] = useState(initialValues?.city_municipalityCode || "");
-  const [barangays, setBarangays] = useState([]);
-  const [selectedBarangay, setSelectedBarangay] = useState(initialValues?.barangay || "");
+// Hard‑coded list of six Quezon cities / municipalities your UI supports
+const CITY_OPTIONS = [
+  { name: "Lucena City", code: "045624000" },
+  { name: "Sariaya", code: "045645000" },
+  { name: "Candelaria", code: "045608000" },
+  { name: "Tiaong", code: "045648000" },
+  { name: "San Antonio", code: "045641000" },
+  { name: "Dolores", code: "045615000" },
+];
 
-  const cities = [
-    { name: "Lucena City", code: "045624000" },
-    { name: "Sariaya", code: "045645000" },
-    { name: "Candelaria", code: "045608000" },
-    { name: "Tiaong", code: "045648000" },
-    { name: "San Antonio", code: "045641000" },
-    { name: "Dolores", code: "045615000" },
-  ];
+const PSGC_BASE = "https://psgc.gitlab.io/api";
 
+const AddressDropdown = ({ onSelect, initialValues = {} }) => {
+  /* ----------------------- State ----------------------- */
+  const [selectedCityCode, setSelectedCityCode] = useState(
+    initialValues.city_municipalityCode || ""
+  );
+  const [barangays, setBarangays] = useState([]); // array of {code,name}
+  const [selectedBrgyCode, setSelectedBrgyCode] = useState(initialValues.barangay || "");
+  //
+  /* -------------------- Side effects ------------------- */
+  // When component mounts OR initial values change (edit mode), fetch brgys.
   useEffect(() => {
-    if (initialValues?.city_municipalityCode) {
-      fetchBarangays(initialValues.city_municipalityCode);
+    if (selectedCityCode) {
+      fetchBarangays(selectedCityCode);
     }
-  }, [initialValues?.city_municipalityCode]);
+  }, [selectedCityCode]);
 
-  // Log for debugging - remove in production
-  useEffect(() => {
-    console.log("Selected City:", selectedCity);
-    console.log("Selected Barangay:", selectedBarangay);
-    console.log("values:", initialValues);
-  }, [selectedCity, selectedBarangay, initialValues]);
-
-  const fetchBarangays = async code => {
+  /* ------------------- Helper funcs -------------------- */
+  const fetchBarangays = async cityCode => {
     try {
-      const response = await fetch(
-        `https://psgc.gitlab.io/api/cities-municipalities/${code}/barangays/`
-      );
-      const data = await response.json();
-      const processedBarangays = data.map(brgy => ({
-        ...brgy,
-        name: brgy.name.replace(" (Pob.)", "").trim(),
+      const res = await fetch(`${PSGC_BASE}/cities-municipalities/${cityCode}/barangays/`);
+      if (!res.ok) throw new Error("Failed brgy request");
+      const data = await res.json();
+      // Remove "(Pob.)" suffixes for cleaner display
+      const formatted = data.map(b => ({
+        code: b.code,
+        name: b.name.replace(/ \(Pob\.\)/i, "").trim(),
       }));
-      setBarangays(processedBarangays);
-    } catch (error) {
-      console.error("Error fetching barangays:", error);
+      setBarangays(formatted);
+    } catch (err) {
+      console.error("Error fetching barangays:", err);
+      setBarangays([]);
     }
   };
 
-  const handleCityChange = async e => {
+  /* ------------------- Event handlers ------------------ */
+  const handleCityChange = e => {
     const code = e.target.value;
-    setSelectedCity(code);
+    setSelectedCityCode(code);
 
-    // Find the city name from code
-    const city = cities.find(city => city.code === code);
-    const cityName = city ? city.name : "";
+    // Get readable name from lookup
+    const cityObj = CITY_OPTIONS.find(c => c.code === code) || {};
 
-    // Update both the code and name in the parent component
+    // Notify parent of both code & name
     onSelect("city_municipalityCode", code);
-    onSelect("city_municipality", cityName);
+    onSelect("city_municipality", cityObj.name || "");
 
-    // Reset barangay when city changes
-    setSelectedBarangay("");
+    // Reset barangay selection whenever city changes
+    setSelectedBrgyCode("");
     onSelect("barangay", "");
-
-    if (code) {
-      await fetchBarangays(code);
-    }
+    onSelect("barangay_name", "");
   };
 
   const handleBarangayChange = e => {
-    const barangayName = e.target.value;
-    setSelectedBarangay(barangayName);
-    onSelect("barangay", barangayName);
+    const code = e.target.value;
+    setSelectedBrgyCode(code);
+
+    // Find selected barangay readable name
+    const brgyObj = barangays.find(b => b.code === code) || {};
+
+    // Return both code and human name
+    onSelect("barangay", code);
+    onSelect("barangay_name", brgyObj.name || "");
   };
 
+  /* ---------------------- Render ----------------------- */
   return (
     <div className="address-dropdown-container">
+      {/* Province is fixed to Quezon */}
       <div className="form-group">
         <label htmlFor="province">
           Province <span className="required">*</span>
         </label>
-        <select
-          id="province"
-          className="form-control"
-          defaultValue="Quezon"
-          onChange={() => onSelect("province", "Quezon")}
-          required
-          disabled
-        >
+        <select id="province" className="form-control" value="Quezon" disabled>
           <option value="Quezon">Quezon</option>
         </select>
       </div>
 
+      {/* City / Municipality */}
       <div className="form-group">
         <label htmlFor="city_municipality">
           City / Municipality <span className="required">*</span>
@@ -97,19 +98,20 @@ const AddressDropdown = ({ onSelect, initialValues }) => {
         <select
           id="city_municipality"
           className="form-control"
-          value={selectedCity}
+          value={selectedCityCode}
           onChange={handleCityChange}
           required
         >
           <option value="">Select City or Municipality</option>
-          {cities.map(city => (
-            <option key={city.code} value={city.code}>
-              {city.name}
+          {CITY_OPTIONS.map(c => (
+            <option key={c.code} value={c.code}>
+              {c.name}
             </option>
           ))}
         </select>
       </div>
 
+      {/* Barangay */}
       <div className="form-group">
         <label htmlFor="barangay">
           Barangay <span className="required">*</span>
@@ -117,15 +119,15 @@ const AddressDropdown = ({ onSelect, initialValues }) => {
         <select
           id="barangay"
           className="form-control"
-          value={selectedBarangay}
+          value={selectedBrgyCode}
           onChange={handleBarangayChange}
+          disabled={!selectedCityCode}
           required
-          disabled={!selectedCity}
         >
           <option value="">Select Barangay</option>
-          {barangays.map(brgy => (
-            <option key={brgy.code} value={brgy.name}>
-              {brgy.name}
+          {barangays.map(b => (
+            <option key={b.code} value={b.code}>
+              {b.name}
             </option>
           ))}
         </select>

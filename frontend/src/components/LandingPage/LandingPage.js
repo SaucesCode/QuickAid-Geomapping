@@ -1,194 +1,202 @@
-import React from 'react';
-import './LandingPage.css';
-import { motion } from "framer-motion";
-
-
-// Assets
-import qaWithout from '../../assets/qa-withoutText.png';
-import qaText from '../../assets/quickaid-text.png';
-import worktime from '../../assets/working-time.png';
-import location from '../../assets/location.png';
-import phone from '../../assets/call.png';
-
-import james from '../../assets/Carl.jpg';
-import dswd from '../../assets/dswd-logo.png';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Clock, MapPin, Phone, ChevronDown, ArrowRight } from 'lucide-react';
+import Navbar from '../Navigation/Navbar';
+import Footer from '../Footer/Footer';
 import aics from '../../assets/AICS-OFFICIAL.png';
 
-import EducationIcon from '../../assets/mortarboard.png';
-import MedicalIcon from '../../assets/healthcare.png';
-import BurialIcon from '../../assets/memorial.png';
-import educ from '../../assets/education.png';
-import patient from '../../assets/patient.png';
 
-// Beneficiaries Data
+// Mock assets - replace with actual imports
+const qaWithout = 'https://via.placeholder.com/100x100/2563eb/ffffff?text=QA';
+const qaText = 'https://via.placeholder.com/150x40/ffffff/2563eb?text=QuickAid';
+const heroImage = 'https://via.placeholder.com/600x400/f3f4f6/374151?text=AICS+Services';
+const educIcon = 'https://via.placeholder.com/60x60/3b82f6/ffffff?text=📚';
+const medicalIcon = 'https://via.placeholder.com/60x60/10b981/ffffff?text=🏥';
+const burialIcon = 'https://via.placeholder.com/60x60/6366f1/ffffff?text=⚰️';
+
 const beneficiaries = [
   {
-    icon: educ,
+    icon: educIcon,
     title: 'Students',
     description: 'Individuals who are currently enrolled in educational institutions and require financial assistance for their studies.',
-    alt: 'Student Icon',
   },
   {
-    icon: patient,
+    icon: medicalIcon,
     title: 'Patients',
-    description: 'Individuals who are currently undergoing medical treatment.',
-    alt: 'Patient Icon',
+    description: 'Individuals who are currently undergoing medical treatment and need financial support.',
   },
   {
-    icon: BurialIcon,
-    title: 'Burial',
-    description: 'Individuals who require assistance with burial or funeral services.',
-    alt: 'Burial Icon',
+    icon: burialIcon,
+    title: 'Burial Services',
+    description: 'Individuals who require assistance with burial or funeral services for their loved ones.',
   },
 ];
 
-// Services Data
 const services = [
+  { icon: educIcon, title: 'Educational Assistance', desc: 'Support for tuition and school supplies' },
+  { icon: medicalIcon, title: 'Medical Assistance', desc: 'Healthcare and medical expenses coverage' },
+  { icon: burialIcon, title: 'Burial Assistance', desc: 'Funeral and burial service support' },
+];
+
+const faqs = [
   {
-    icon: EducationIcon,
-    title: 'Educational Assistance',
+    question: 'Where do I download the AICS Application Form?',
+    answer: 'You can download the AICS Application Form (AF-AICS) from our official website under the "Downloads" section. The form is available in PDF format.'
   },
   {
-    icon: MedicalIcon,
-    title: 'Medical Assistance',
+    question: 'What documents are required for submission?',
+    answer: 'Required documents include: Completed AF-AICS form, Proof of identity, Proof of address, and supporting documents as applicable.'
   },
   {
-    icon: BurialIcon,
-    title: 'Burial Assistance',
+    question: 'How can I contact the AICS Program?',
+    answer: 'For inquiries, contact us via email at aics@example.com or call our hotline at +123 456 7890.'
   },
+  {
+    question: 'How do I get started on the AICS Program?',
+    answer: 'Visit our website, download the AF-AICS form, fill it out with required documents. We\'ll review your application within 5 business days.'
+  }
 ];
 
 const LandingPage = () => {
+  const [openFaq, setOpenFaq] = useState(null);
+
   return (
-    <div>
-
-      {/* Header */}
-      <header className="bg-white">
-        <div className="container mx-auto flex justify-between items-center py-2">
-          <div className="logo-group">
-            <img src={qaWithout} alt="QuickAid Logo" className="logo-icon" />
-            <img src={qaText} alt="QuickAid Text" className="logo-text" />
-          </div>
-          <div className="contact-info-container">
-            <div className='contact-item'>
-              <img src={worktime} alt="Clock" className="contact-icon" />
-              <div>
-                <span className="contact-label">Working Hours</span><br />
-                <span className="contact-value">Mon - Fri 9am to 5pm</span>
-              </div>
-            </div>
-            <div className='contact-item'>
-              <img src={location} alt="Location" className="contact-icon" />
-              <div>
-                <span className="contact-label">Our address</span><br />
-                <p className="contact-value">Barangay</p>
-              </div>
-            </div>
-            <div className='contact-item'>
-              <img src={phone} alt="Phone" className="contact-icon" />
-              <div>
-                <span>Call us</span><br />
-                <p className="text-sm">09123456789</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <nav className="navbar">
-          <div className="nav-container">
-            <ul className="nav-links">
-              <li><a href="#home">Home</a></li>
-              <li><a href="#about">About Us</a></li>
-              <li><a href="#ServicesSection">Services</a></li>
-              <li><a href="#contact">Contact Us</a></li>
-            </ul>
-            <button className="focus:outline-none">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </nav>
-      </header>
-
+    <div className="font-sans min-h-screen">
+      {/* Sticky Navbar */}
+      <Navbar />
       {/* Hero Section */}
-      <section className="hero-section">
-        <div className="AIC">
-          <div className="logo-row">
-            <img src={dswd} alt="DSWD Logo" className="dswdLogo" />
-            <img src={aics} alt="AICS Logo" className="aicsLogo" />
-          </div>
-          <div className="aicsText">
-            Assistance to Individuals in Crisis Situation (AICS)
-          </div>
-        </div>
-        <div className="hero-container">
-          <div className="hero-text-content">
-            <h1 className="hero-title">Assistance to Individuals in Crisis Situation (AICS)</h1>
-            <p className="hero-description">
-              AICS (Assistance to Individuals in Crisis Situation) is a DSWD program that provides medical, burial, transport, education, food, or financial aid to individuals or families in need.
-            </p>
-            <div className="hero-buttons">
-              <button className="hero-btn-primary">Get Started</button>
-              <button className="hero-btn-secondary">Learn More</button>
-            </div>
-          </div>
-          <div className="hero-image-container">
-            <img src={james} alt="Document Icon" className="carl" />
+      <section id="home" className="pt-48 pb-20 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Logos Section removed as requested */}
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+                <span className="text-blue-600 text-4xl lg:text-6xl">Assistance</span> to Individuals in{' '}
+                <span className="text-blue-600 text-4xl lg:text-6xl">Crisis</span> Situation
+              </h1>
+              
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                AICS is a DSWD program providing medical, burial, transport, education, food, and financial aid to individuals or families in crisis situations.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                {/* <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-colors duration-200 flex items-center gap-2 group">
+                  Know More
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
+                </button> */}
+                {/* <button className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 rounded-full font-semibold text-lg transition-colors duration-200">
+                  Learn More
+                </button> */}
+              </div>
+
+              <div className="flex items-center gap-6 text-sm text-gray-500">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>24/7 Support Available</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span>Fast Processing</span>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="relative"
+            >
+              <img
+                src={aics}
+                alt="AICS Services"
+                className="relative z-10 w-auto mx-auto rounded-2xl shadow-2xl object-contain"
+                style={{ width: 320 }}
+              />
+            </motion.div>
           </div>
         </div>
       </section>
+
+      
 
       {/* Services Section */}
-      <section id="ServicesSection" className="services-section">
-        <div className="section-container">
-          <div className="services-row">
-            <div className="services-text">
-              <h2 className="section-title">AICS ASSISTANCE</h2>
-              <p className="services-subtitle">SERVICES</p>
-              <h3 className="blue-heading">We Provide <br /> Awesome <br /> Services</h3>
-              <p className="services-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit</p>
-            </div>
-            <div className="services-cards-wrapper">
-              <div className="services-bg-bar"></div>
-              <div className="services-cards">
-                {services.map((service, index) => (
-                  <motion.div 
-                    key={index}
-                    className="service-card"
-                    initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.4 }}
-                    transition={{ duration: 0.5, delay: index * 0.2 }}
-                  >
-                    <div className="service-icon-circle">
-                      <img src={service.icon} alt={service.title} className="service-icon" />
-                    </div>
-                    <h4 className="service-title">{service.title.toUpperCase()}</h4>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+      <section id="services" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+              Our <span className="text-blue-600 text-4xl lg:text-5xl">Services</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              We provide comprehensive assistance programs designed to help individuals and families overcome crisis situations.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {services.map((service, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                whileHover={{ y: -10, scale: 1.02 }}
+                className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 text-center group hover:shadow-2xl transition-all duration-300"
+              >
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <img src={service.icon} alt={service.title} className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{service.title}</h3>
+                <p className="text-gray-600">{service.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Who We Serve */}
-      <section className="bg-blue-500 text-white py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-4">Who We Serve</h2>
-          <p className="text-center text-lg mb-12">
-            Our application management system is designed to assist a determined range of beneficiaries.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {beneficiaries.map((b, index) => (
-              <motion.div key={index} 
-                className="bg-white text-blue-600 p-6 rounded-xl shadow-md text-center"
-                whileHover={{ scale: 1.05, boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.2)" }}
-                transition={{ type: "spring", stiffness: 300 }}
-            >
-                <img src={b.icon} alt={b.alt} className="w-14 h-14 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">{b.title}</h3>
-                <p className="text-sm">{b.description}</p>
+      {/* Who We Serve Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">Who We Serve</h2>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+              Our application management system is designed to assist a diverse range of beneficiaries in need of support.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {beneficiaries.map((beneficiary, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                whileHover={{ y: -10, scale: 1.05 }}
+                className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20 text-center hover:bg-white/15 transition-all duration-300"
+              >
+                <div className="w-16 h-16 mx-auto mb-6">
+                  <img src={beneficiary.icon} alt={beneficiary.title} className="w-full h-full rounded-xl" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4">{beneficiary.title}</h3>
+                <p className="text-blue-100 leading-relaxed">{beneficiary.description}</p>
               </motion.div>
             ))}
           </div>
@@ -196,77 +204,65 @@ const LandingPage = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="bg-white py-16">
-        <div className="container mx-auto">
-          <h2 className="text-2xl font-bold mb-8 text-center">Frequently Asked Questions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white shadow-md p-4 rounded">
-              <h3 className="text-lg font-bold mb-2">Where do I download the AICS Application Form?</h3>
-              <p className="text-gray-600">
-                You can download the AICS Application Form (AF-AICS) from our official website under the "Downloads" section. The form is available in PDF format and requires Adobe Acrobat Reader for viewing.
-              </p>
-            </div>
-            <div className="bg-white shadow-md p-4 rounded">
-              <h3 className="text-lg font-bold mb-2">What documents are required for submission?</h3>
-              <p className="text-gray-600">
-                The following documents are required for submission: Completed AF-AICS form, Proof of identity (e.g., passport, driver's license), Proof of address, and supporting documents as applicable.
-              </p>
-            </div>
-            <div className="bg-white shadow-md p-4 rounded">
-              <h3 className="text-lg font-bold mb-2">How can I contact the AICS Program?</h3>
-              <p className="text-gray-600">
-                For inquiries, you may contact us via email at aics@example.com or call our hotline at +123 456 7890.
-              </p>
-            </div>
-            <div className="bg-white shadow-md p-4 rounded">
-              <h3 className="text-lg font-bold mb-2">How do I get started on the AICS Program?</h3>
-              <p className="text-gray-600">
-                To get started, visit our website and download the AF-AICS form. Fill it out and submit with all required documents. Our team will review your application within 5 business days.
-              </p>
-            </div>
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+              Frequently Asked <span className="text-blue-600 text-4xl lg:text-5xl">Questions</span>
+            </h2>
+            <p className="text-xl text-gray-600">
+              Find answers to common questions about the AICS program and application process.
+            </p>
+          </motion.div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                  className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <h3 className="text-lg font-semibold text-gray-900">{faq.question}</h3>
+                  <motion.div
+                    animate={{ rotate: openFaq === index ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ChevronDown className="w-5 h-5 text-gray-500" />
+                  </motion.div>
+                </button>
+                <AnimatePresence>
+                  {openFaq === index && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="border-t border-gray-100"
+                    >
+                      <p className="p-6 text-gray-600 leading-relaxed">{faq.answer}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-200 text-gray-600 py-8">
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-          <div>
-            <img src="/assets/logo-footer.png" alt="Logo" className="w-32 mb-4 md:mb-0" />
-          </div>
-          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8">
-            <div>
-              <h3 className="text-lg font-bold mb-2">QUICK LINKS</h3>
-              <ul>
-                <li><a href="#home" className="hover:underline">Home</a></li>
-                <li><a href="#about" className="hover:underline">About Us</a></li>
-                <li><a href="#services" className="hover:underline">Services</a></li>
-                <li><a href="#contact" className="hover:underline">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-2">SERVICES</h3>
-              <ul>
-                <li>Education Assistance</li>
-                <li>Medical Assistance</li>
-                <li>Burial Assistance</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-2">CONTACT</h3>
-              <p>
-                Address: 123 Main Street, City, Country<br />
-                Phone: +123 456 7890<br />
-                Email: info@example.com
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="mt-8 text-center text-gray-400">
-          © 2023 Government Applied Management System (GAMS). All rights reserved.
-        </div>
-      </footer>
-
+      <Footer />
     </div>
   );
 };

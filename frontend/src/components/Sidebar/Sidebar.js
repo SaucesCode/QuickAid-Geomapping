@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import "./Sidebar.css";
 import { logoutUser } from "../../services/api";
@@ -10,6 +10,9 @@ const Sidebar = () => {
   const user = JSON.parse(localStorage.getItem("userData"));
 
   const toggleSidebar = () => setCollapsed(!collapsed);
+  useEffect(() => {
+    console.log(user);
+  });
 
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -23,6 +26,8 @@ const Sidebar = () => {
         return "Applicants";
       case "/analytics":
         return "Analytics";
+      case "/archived-applicants":
+        return "Archived Applicants";
       case "/admin-management":
         return "Admin Management";
       case "/settings":
@@ -69,6 +74,13 @@ const Sidebar = () => {
               {!collapsed && <span className="link-text">Analytics</span>}
             </NavLink>
           )}
+          <NavLink
+            to="/archived-applicants"
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
+            <span className="icon">🗂️</span>
+            {!collapsed && <span className="link-text">Archived</span>}
+          </NavLink>
 
           {user && user.is_superuser && (
             <NavLink
@@ -92,12 +104,6 @@ const Sidebar = () => {
             {!collapsed && <span className="link-text">Logout</span>}
           </NavLink>
         </nav>
-
-        {!collapsed && (
-          <div className="sidebar-footer">
-            <p>QuickAid v1.0</p>
-          </div>
-        )}
       </aside>
 
       <main className="main-content">

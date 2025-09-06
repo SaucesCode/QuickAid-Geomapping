@@ -2,11 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../services/api";
 import { CSVLink } from "react-csv";
-import Modal from "react-modal";
 import AddressDropdown from "../../forms/AddressDropdown";
 import "./Applicants.css";
-
-Modal.setAppElement("#root");
+import { useNavigate } from "react-router-dom";
 
 const csvHeaders = [
   { label: "ID", key: "id" },
@@ -20,34 +18,32 @@ const csvHeaders = [
   { label: "City/Municipality", key: "city_municipality" },
   { label: "Province", key: "province" },
   { label: "Birthday", key: "birthday" },
-  { label: "Gender", key: "gender" },
+  { label: "Sex", key: "gender" },
   { label: "Civil Status", key: "civil_status" },
   { label: "Occupation", key: "occupation" },
   { label: "Monthly Income", key: "monthly_income" },
   { label: "Valid ID", key: "valid_id_presented" },
   { label: "Assistance Type", key: "type_of_assistance" },
   { label: "Applicant Type", key: "applicant_type" },
-  { label: "Date Filled", key: "processed_at" },
-  { label: "Representative First Name", key: "rep_first_name" },
-  { label: "Representative Last Name", key: "rep_last_name" },
-  { label: "Representative Middle Initial", key: "rep_middle_initial" },
-  { label: "Representative Suffix", key: "rep_suffix" },
-  { label: "Representative Address", key: "rep_address" },
-  { label: "Representative Gender", key: "rep_gender" },
-  { label: "Representative Civil Status", key: "rep_civil_status" },
-  { label: "Representative Occupation", key: "rep_occupation" },
-  { label: "Representative Monthly Income", key: "rep_monthly_income" },
-  { label: "Representative Relationship to Applcaint", key: "rep_relationship" },
-
-  // Add or remove fields as needed
+  { label: "Date Filled", key: "date_filled" },
 ];
 
 const Applicants = () => {
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [editView, setEditView] = useState(false);
   const [editingApplicant, setEditingApplicant] = useState(null);
+  const [previewView, setPreviewView] = useState(false);
+  const [previewApplicant, setPreviewApplicant] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = "Quickaid | Applicants";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
 
   const fetchApplicants = async () => {
     setLoading(true);
@@ -60,36 +56,55 @@ const Applicants = () => {
       setLoading(false);
     }
   };
-  useEffect(() => {
-    if (
-      editingApplicant?.barangay &&
-      editingApplicant?.city_municipality &&
-      editingApplicant?.province
-    ) {
-      updateCoordinates();
-    }
-  }, [
-    editingApplicant?.barangay,
-    editingApplicant?.city_municipality,
-    editingApplicant?.province,
-  ]);
+
+  // useEffect(() => {
+  //   if (
+  //     editingApplicant?.barangay &&
+  //     editingApplicant?.city_municipality &&
+  //     editingApplicant?.province
+  //   ) {
+  //     updateCoordinates();
+  //   }
+  // }, [
+  //   editingApplicant?.barangay,
+  //   editingApplicant?.city_municipality,
+  //   editingApplicant?.province,
+  // ]);
 
   useEffect(() => {
     fetchApplicants();
   }, []);
-  console.log(applicants);
 
-  const openEditModal = applicant => {
+  const openEditView = applicant => {
     setEditingApplicant({ ...applicant });
-    setModalIsOpen(true);
+    setEditView(true);
+    // Add a class to body to prevent scrolling
+    document.body.classList.add("dialog-open");
   };
 
-  const closeModal = () => {
+  const goPrintPage = applicant => {
+    navigate(`/print/${applicant.id}`);
+  };
+
+  const closeEditView = () => {
     setEditingApplicant(null);
-    setModalIsOpen(false);
+    setEditView(false);
+    document.body.classList.remove("dialog-open");
   };
 
-  const handleDelete = async applicant_id => {
+  const openPreviewView = applicant => {
+    setPreviewApplicant({ ...applicant });
+    setPreviewView(true);
+    document.body.classList.add("dialog-open");
+  };
+
+  const closePreviewView = () => {
+    setPreviewApplicant(null);
+    setPreviewView(false);
+    document.body.classList.remove("dialog-open");
+  };
+
+  const handleArchive = async applicant_id => {
     if (!window.confirm("Are you sure you want to delete this applicant?")) return;
 
     try {
@@ -98,7 +113,6 @@ const Applicants = () => {
     } catch (err) {
       console.error("Delete failed:", err);
       alert("Failed to delete applicant.");
-      console.log("Applicant deleted:", applicant_id);
     }
   };
 
@@ -126,7 +140,7 @@ const Applicants = () => {
       await api.put(`/applicants/${editingApplicant.id}/`, updatedApplicant);
 
       fetchApplicants(); // Refresh the table
-      closeModal();
+      closeEditView();
     } catch (err) {
       console.error("Save failed:", err);
       alert("Failed to save applicant.");
@@ -215,6 +229,7 @@ const Applicants = () => {
             <tr>
               <th>Name</th>
               <th>Barangay</th>
+              <th>City or Municipality</th>
               <th>Assistance</th>
               <th>Date Filled</th>
               <th>Actions</th>
@@ -224,23 +239,22 @@ const Applicants = () => {
             {filteredApplicants.length > 0 ? (
               filteredApplicants.map((applicant, id) => (
                 <tr key={id}>
-                  <td>{`${applicant.first_name || ""} ${applicant.last_name || ""}`}</td>
-                  <td>{applicant.barangay}</td>
+                  <td className="link-button" onClick={() => openPreviewView(applicant)}>
+                    {`${applicant.background_info.first_name || ""} ${
+                      applicant.background_info.last_name || ""
+                    }`}
+                  </td>
+
+                  <td>{applicant.background_info.barangay}</td>
+                  <td>{applicant.background_info.barangay_details.city_name}</td>
                   <td>{applicant.type_of_assistance}</td>
                   <td>
-                    {formatDate(
-                      new Date(applicant.processed_at).toLocaleString().slice(0, 24)
-                    )}
+                    {formatDate(new Date(applicant.date_filled).toLocaleString().slice(0, 24))}
                   </td>
                   <td>
-                    <button onClick={() => openEditModal(applicant)}>Edit</button>
-                    <button
-                      onClick={() => {
-                        handleDelete(applicant.id);
-                      }}
-                    >
-                      Delete
-                    </button>
+                    <button onClick={() => openEditView(applicant)}>Edit</button>
+                    <button onClick={() => handleArchive(applicant.id)}>Archive</button>
+                    <button onClick={() => goPrintPage(applicant)}>Print</button>
                   </td>
                 </tr>
               ))
@@ -253,116 +267,267 @@ const Applicants = () => {
         </table>
       )}
 
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={closeModal}
-        contentLabel="Edit Applicant"
-        className="modal"
-        overlayClassName="overlay"
-      >
-        {editingApplicant && (
-          <form onSubmit={handleSave}>
-            <h2>Edit Applicant</h2>
-
-            <input
-              name="first_name"
-              placeholder="First Name"
-              value={editingApplicant.first_name || ""}
-              onChange={handleChange}
-            />
-            <input
-              name="middle_initial"
-              placeholder="Middle Initial"
-              value={editingApplicant.middle_initial || ""}
-              onChange={handleChange}
-            />
-            <input
-              name="last_name"
-              placeholder="Last Name"
-              value={editingApplicant.last_name || ""}
-              onChange={handleChange}
-            />
-            <select
-              name="suffix"
-              value={editingApplicant.suffix || ""}
-              onChange={handleChange}
-            >
-              <option value="">None</option>
-              <option value="Jr.">Jr.</option>
-              <option value="Sr.">Sr.</option>
-              <option value="I">I</option>
-              <option value="II">II</option>
-              <option value="III">III</option>
-              <option value="IV">IV</option>
-            </select>
-            <input
-              type="tel"
-              name="contact_number"
-              value={editingApplicant.contact_number || ""}
-              onChange={handleChange}
-              required
-              placeholder="e.g. 09123456789"
-            />
-            <input
-              type="text"
-              name="purok"
-              value={editingApplicant.purok || ""}
-              onChange={handleChange}
-              required
-              placeholder="Enter your purok"
-            />
-            <div className="form-group address-group full-width">
-              <AddressDropdown
-                onSelect={(field, value) => {
-                  setEditingApplicant(prev => ({
-                    ...prev,
-                    [field]: value,
-                  }));
-                }}
-                initialValues={{
-                  province: editingApplicant.province,
-                  city_municipality: editingApplicant.city_municipality,
-                  city_municipalityCode: editingApplicant.city_municipalityCode,
-                  barangay: editingApplicant.barangay,
-                }}
-              />
+      {/* Preview Dialog */}
+      {previewView && (
+        <div className="dialog-backdrop">
+          <div className="dialog preview-dialog">
+            <div className="dialog-header">
+              <h2>Applicant Preview</h2>
             </div>
-            <input
-              name="type_of_assistance"
-              placeholder="Type of Assistance"
-              value={editingApplicant.type_of_assistance || ""}
-              onChange={handleChange}
-            />
-            <input
-              name="gender"
-              placeholder="Gender"
-              value={editingApplicant.gender || ""}
-              onChange={handleChange}
-            />
-            <input
-              name="civil_status"
-              placeholder="Civil Status"
-              value={editingApplicant.civil_status || ""}
-              onChange={handleChange}
-            />
-            <input
-              name="contact_number"
-              placeholder="Contact Number"
-              value={editingApplicant.contact_number || ""}
-              onChange={handleChange}
-            />
+            <div className="dialog-content">
+              {previewApplicant && (
+                <div className="applicant-details">
+                  <div className="detail-group">
+                    <h3>Personal Information</h3>
+                    <div className="detail-row">
+                      <div className="detail-item">
+                        <span className="detail-label">Full Name</span>
+                        <span className="detail-value">
+                          {previewApplicant.background_info.first_name}{" "}
+                          {previewApplicant.background_info.middle_initial}{" "}
+                          {previewApplicant.background_info.last_name}{" "}
+                          {previewApplicant.background_info.suffix}
+                        </span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Sex</span>
+                        <span className="detail-value">
+                          {previewApplicant.background_info.sex}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="detail-row">
+                      <div className="detail-item">
+                        <span className="detail-label">Birthday</span>
+                        <span className="detail-value">
+                          {previewApplicant.background_info.birthday}
+                        </span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Civil Status</span>
+                        <span className="detail-value">
+                          {previewApplicant.background_info.civil_status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-            <div className="modal-actions">
-              <button type="submit">Save</button>
-              <button type="button" onClick={closeModal}>
-                Cancel
+                  <div className="detail-group">
+                    <h3>Contact Information</h3>
+                    <div className="detail-row">
+                      <div className="detail-item">
+                        <span className="detail-label">Address</span>
+                        <span className="detail-value">
+                          {previewApplicant.background_info.street_address},{" "}
+                          {previewApplicant.background_info.barangay},{" "}
+                          {previewApplicant.background_info.barangay_details.city_name},{" "}
+                          {previewApplicant.background_info.barangay_details.province_name}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="detail-row">
+                      <div className="detail-item">
+                        <span className="detail-label">Contact Number</span>
+                        <span className="detail-value">{previewApplicant.contact_number}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="detail-group">
+                    <h3>Assistance Details</h3>
+                    <div className="detail-row">
+                      <div className="detail-item">
+                        <span className="detail-label">Assistance Type</span>
+                        <span className="detail-value">
+                          {previewApplicant.type_of_assistance}
+                        </span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Applicant Type</span>
+                        <span className="detail-value">{previewApplicant.applicant_type}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="dialog-footer">
+              <button className="btn dialog-btn" onClick={closePreviewView}>
+                Close
               </button>
             </div>
-          </form>
-        )}
-      </Modal>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Dialog */}
+      {editView && (
+        <div className="dialog-backdrop">
+          <div className="dialog edit-dialog">
+            {editingApplicant && (
+              <>
+                <div className="dialog-header">
+                  <h2>Edit Applicant</h2>
+                </div>
+                <div className="dialog-content">
+                  <form id="edit-applicant-form">
+                    {/* onSubmit={handleSave} */}
+                    <div className="form-section">
+                      <h3>Personal Information</h3>
+                      <div className="form-row">
+                        <div className="form-field">
+                          <label htmlFor="first_name">First Name</label>
+                          <input
+                            id="first_name"
+                            name="first_name"
+                            placeholder="First Name"
+                            value={editingApplicant.background_info.first_name || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                        <div className="form-field">
+                          <label htmlFor="middle_initial">Middle Initial</label>
+                          <input
+                            id="middle_initial"
+                            name="middle_initial"
+                            placeholder="Middle Initial"
+                            value={editingApplicant.background_info.middle_initial || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="form-row">
+                        <div className="form-field">
+                          <label htmlFor="last_name">Last Name</label>
+                          <input
+                            id="last_name"
+                            name="last_name"
+                            placeholder="Last Name"
+                            value={editingApplicant.background_info.last_name || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                        <div className="form-field">
+                          <label htmlFor="suffix">Suffix</label>
+                          <select
+                            id="suffix"
+                            name="suffix"
+                            value={editingApplicant.background_info.suffix || ""}
+                            onChange={handleChange}
+                          >
+                            <option value="">None</option>
+                            <option value="Jr.">Jr.</option>
+                            <option value="Sr.">Sr.</option>
+                            <option value="I">I</option>
+                            <option value="II">II</option>
+                            <option value="III">III</option>
+                            <option value="IV">IV</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="form-row">
+                        <div className="form-field">
+                          <label htmlFor="gender">Sex</label>
+                          <input
+                            id="sex"
+                            name="sex"
+                            placeholder="sex"
+                            value={editingApplicant.background_info.sex || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                        <div className="form-field">
+                          <label htmlFor="civil_status">Civil Status</label>
+                          <input
+                            id="civil_status"
+                            name="civil_status"
+                            placeholder="Civil Status"
+                            value={editingApplicant.background_info.civil_status || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="form-section">
+                      <h3>Contact Information</h3>
+                      <div className="form-row">
+                        <div className="form-field">
+                          <label htmlFor="contact_number">Contact Number</label>
+                          <input
+                            id="contact_number"
+                            type="tel"
+                            name="contact_number"
+                            value={editingApplicant.contact_number || ""}
+                            onChange={handleChange}
+                            required
+                            placeholder="e.g. 09123456789"
+                          />
+                        </div>
+                      </div>
+                      <div className="form-row">
+                        <div className="form-field">
+                          <label htmlFor="purok">Purok</label>
+                          <input
+                            id="street_address"
+                            type="text"
+                            name="street_address"
+                            value={editingApplicant.background_info.street_address || ""}
+                            onChange={handleChange}
+                            required
+                            placeholder="Enter your purok"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-field address-dropdown-container">
+                        <AddressDropdown
+                          onSelect={(field, value) => {
+                            setEditingApplicant(prev => ({
+                              ...prev,
+                              [field]: value,
+                            }));
+                          }}
+                          initialValues={{
+                            province: editingApplicant.province,
+                            city_municipality: editingApplicant.city_municipality,
+                            city_municipalityCode: editingApplicant.city_municipalityCode,
+                            barangay: editingApplicant.barangay,
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="form-section">
+                      <h3>Assistance Information</h3>
+                      <div className="form-row">
+                        <div className="form-field">
+                          <label htmlFor="type_of_assistance">Type of Assistance</label>
+                          <input
+                            id="type_of_assistance"
+                            name="type_of_assistance"
+                            placeholder="Type of Assistance"
+                            value={editingApplicant.type_of_assistance || ""}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div className="dialog-footer">
+                  <button type="submit" form="edit-applicant-form" className="btn primary-btn">
+                    Save Changes
+                  </button>
+                  <button type="button" className="btn secondary-btn" onClick={closeEditView}>
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
-
+//
 export default Applicants;
