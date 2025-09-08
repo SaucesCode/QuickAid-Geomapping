@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../services/api";
 import { useNavigate } from "react-router-dom";
+import { formatDate } from "../../utils/FormatDate";
 import ApplicantsHeader from "./components/ApplicantsHeader";
 import ApplicantActions from "./components/ApplicantActions";
 import ApplicantTable from "./components/ApplicantTable";
-import Pagination from "./components/Pagination";
+import Pagination from "../../components/Pagination";
 import PreviewModal from "./components/PreviewModal";
-import ArchiveModal from "./components/ArchiveModal";
 import EditModal from "./components/EditModal";
+import ArchiveModal from "./components/ArchiveModal";
 
 const csvHeaders = [
   { label: "ID", key: "id" },
@@ -51,12 +52,10 @@ const Applicants = () => {
       document.title = "Quickaid | Home";
     };
   }, []);
-
   const fetchApplicants = async () => {
     setLoading(true);
     try {
       const res = await api.get("/applicants/");
-      console.log("Fetched applicants data:", res.data);
       setApplicants(res.data);
     } catch (err) {
       console.error("Fetch applicants failed:", err);
@@ -220,17 +219,6 @@ const Applicants = () => {
     }
   };
 
-  const formatPreviewDate = dateStr => {
-    if (!dateStr) return "N/A";
-    const date = new Date(dateStr);
-    const options = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
-    return date.toLocaleDateString("en-PH", options);
-  };
-
   const handleSort = key => {
     let direction = "ascending";
     if (sortConfig.key === key && sortConfig.direction === "ascending") {
@@ -268,7 +256,7 @@ const Applicants = () => {
       (a.background_info?.first_name || "").toLowerCase().includes(keyword) ||
       (a.background_info?.last_name || "").toLowerCase().includes(keyword) ||
       (a.background_info?.barangay || "").toLowerCase().includes(keyword) ||
-      (formatPreviewDate(a.date_filled) || "").toLowerCase().includes(keyword) ||
+      (formatDate(a.date_filled) || "").toLowerCase().includes(keyword) ||
       (a.type_of_assistance || "").toLowerCase().includes(keyword)
     );
   });
@@ -290,51 +278,51 @@ const Applicants = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 p-6">
       <ApplicantsHeader />
-      <div className="p-6">
-        <ApplicantActions
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          applicants={applicants}
-          csvHeaders={csvHeaders}
-        />
-        {loading ? (
-          <div className="bg-white rounded-xl shadow-md p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mb-4"></div>
-            <p className="text-gray-600">Loading applicants...</p>
-          </div>
-        ) : (
-          <>
-            <ApplicantTable
-              currentItems={currentItems}
-              sortConfig={sortConfig}
-              handleSort={handleSort}
-              openPreviewView={openPreviewView}
-              openEditView={openEditView}
-              openArchiveModal={openArchiveModal}
-              goPrintPage={goPrintPage}
-              formatPreviewDate={formatPreviewDate}
-            />
+      <ApplicantActions
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        applicants={applicants}
+        csvHeaders={csvHeaders}
+      />
+      {loading ? (
+        <div className="bg-white rounded-xl shadow-md p-12 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mb-4"></div>
+          <p className="text-gray-600">Loading applicants...</p>
+        </div>
+      ) : (
+        <>
+          <ApplicantTable
+            currentItems={currentItems}
+            sortConfig={sortConfig}
+            handleSort={handleSort}
+            openPreviewView={openPreviewView}
+            openEditView={openEditView}
+            openArchiveModal={openArchiveModal}
+            goPrintPage={goPrintPage}
+            formatDate={formatDate}
+          />
+          {sortedApplicants.length > 0 && (
             <Pagination
-              indexOfFirstItem={indexOfFirstItem}
-              indexOfLastItem={indexOfLastItem}
-              sortedApplicants={sortedApplicants}
-              itemsPerPage={itemsPerPage}
-              handleItemsPerPageChange={handleItemsPerPageChange}
               currentPage={currentPage}
               totalPages={totalPages}
               handlePageChange={handlePageChange}
+              itemsPerPage={itemsPerPage}
+              handleItemsPerPageChange={handleItemsPerPageChange}
+              totalItems={sortedApplicants.length}
+              indexOfFirstItem={indexOfFirstItem}
+              indexOfLastItem={indexOfLastItem}
             />
-          </>
-        )}
-      </div>
+          )}
+        </>
+      )}
 
       {previewView && previewApplicant && (
         <PreviewModal
           previewApplicant={previewApplicant}
           closePreviewView={closePreviewView}
-          formatPreviewDate={formatPreviewDate}
+          formatDate={formatDate}
         />
       )}
 

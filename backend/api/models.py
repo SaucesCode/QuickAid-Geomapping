@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from opencage.geocoder import OpenCageGeocode
 import os
+import uuid
 
 OPENCAGE_API_KEY = os.environ.get('OPENCAGE_API_KEY')
 
@@ -15,6 +16,10 @@ class CustomUser(AbstractUser):
     last_active = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    ref_code = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+
+    def __str__(self):
+        return self.username
 
 class Region(models.Model):
     name = models.CharField(max_length=255)
@@ -53,7 +58,7 @@ class BackgroundInfo(models.Model):
     SEX_CHOICES = [('Male', 'Male'), ('Female', 'Female')]
     #
     first_name = models.CharField(max_length=100)
-    middle_initial = models.CharField(max_length=5, blank=True, null=True)
+    middle_initial = models.CharField(max_length=20, blank=True, null=True)
     last_name = models.CharField(max_length=100)
     suffix = models.CharField(max_length=10, blank=True, null=True)
     birthday = models.DateField()
@@ -82,7 +87,7 @@ class Applicant(models.Model):
         ('Educational', 'Educational'),
     ]
 
-    staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     background_info = models.ForeignKey(BackgroundInfo, on_delete=models.CASCADE)
     contact_number = models.CharField(max_length=15)
     valid_id_presented = models.CharField(max_length=255)
@@ -128,6 +133,38 @@ class ApplicantHistory(models.Model):
 
     def __str__(self):
         return f"{self.background_info} applied for {self.type_of_assistance} on {self.date_applied}"
+    
+class Approval(models.Model):
+    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, related_name="approvals")
+    batch = models.ForeignKey("ApprovalBatch", on_delete=models.CASCADE, related_name="approvals", null=True, blank=True)
+    approved_at = models.DateTimeField(auto_now_add=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="approvals"
+    )
+    notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Approval for {self.applicant} at {self.approved_at}"
+
+class ApprovalBatch(models.Model):
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="approval_batches"
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    file_name = models.CharField(max_length=255)
+    total_processed = models.IntegerField(default=0)
+    total_approved = models.IntegerField(default=0)
+    total_already_approved = models.IntegerField(default=0)
+    total_not_found = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Batch {self.id} by {self.uploaded_by} on {self.uploaded_at}"
 
 
 class StaffActivityLog(models.Model):
@@ -143,7 +180,7 @@ class StaffActivityLog(models.Model):
         ('PROFILE', 'Update Profile'),
     ]
 
-    staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     action = models.CharField(max_length=20, choices=ACTION_TYPES)
     details = models.TextField(blank=True, null=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)

@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Avg, Count, ExpressionWrapper, F, DurationField, IntegerField
+from django.db.models import Avg, Count, ExpressionWrapper, F, DurationField, IntegerField, Max, Q
 from django.db.models.functions import TruncDate, ExtractYear
 from django.http import JsonResponse
 from django.utils import timezone
@@ -8,13 +8,16 @@ from django.utils.timezone import now, timedelta
 from django.views import View
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import parser_classes
 import requests
 from django.views.decorators.csrf import csrf_exempt
-from .models import Applicant, CustomUser, Representative, StaffActivityLog, BackgroundInfo, ApplicantHistory
-from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer, RepresentativeSerializer
+from .models import Applicant, CustomUser, StaffActivityLog, BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch
+from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer
+import pandas as pd 
 
 User = get_user_model()
 
@@ -316,74 +319,265 @@ def get_staff_activity_logs(request):
 # SUBMIT APPLICANT
 # Function to create a new applicant record
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])  # allow QR submissions
 @csrf_exempt
 def submit_applicant(request):
-    data = request.data
-    serializer = ApplicantSerializer(data=data)
+    staff = None
+
+    # Case 1: staff is logged in
+    if request.user.is_authenticated:
+        staff = request.user
+    # Case 2: staff_ref_code from QR link
+    else:
+        staff_ref_code = request.data.get("staff_ref_code")
+        if staff_ref_code:
+            try:
+                staff = CustomUser.objects.get(ref_code=staff_ref_code)
+            except CustomUser.DoesNotExist:
+                staff = None
+
+    serializer = ApplicantSerializer(data=request.data, context={"request": request})
 
     if serializer.is_valid():
-        applicant = serializer.save(staff=request.user)
+        applicant = serializer.save(staff=staff)
 
-        # Update timestamps
-        current_time = timezone.now()
-        applicant.date_filled = current_time
-        if not applicant.created_at:
-            applicant.created_at = current_time
-        applicant.save()
-
-        # Get the background info from the created applicant
-        background = applicant.background_info
-
-        # Log new application in history
+        # ✅ Always add to history
         ApplicantHistory.objects.create(
-            background_info=background,
+            background_info=applicant.background_info,
             applicant=applicant,
-            type_of_assistance=applicant.type_of_assistance
+            type_of_assistance=applicant.type_of_assistance,
+            date_applied=timezone.now(),  # or created_at if your model already has it
         )
 
-        log_staff_activity(
-            request.user,
-            'CREATE',
-            f"Application recorded for {background.first_name} {background.last_name}",
-            request
-        )
+        if staff:
+            log_staff_activity(
+                staff,
+                "CREATE",
+                f"Application recorded for {applicant.background_info.first_name} {applicant.background_info.last_name}",
+                request,
+            )
 
         return Response(ApplicantSerializer(applicant).data, status=201)
 
     return Response(serializer.errors, status=400)
+
 
 # LIST APPLICANTS
 # Function to get all non-archived applicants
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_applicants(request):
-    applicants = Applicant.objects.filter(is_archived=False).order_by('-date_filled')
+    applicants = Applicant.objects.filter(is_archived=False).select_related("background_info")
     serializer = ApplicantSerializer(applicants, many=True)
-    return Response(serializer.data)
-    
+
+    data = serializer.data
+
+    # Attach application history to each applicant
+    for idx, applicant in enumerate(applicants):
+        history_qs = ApplicantHistory.objects.filter(
+            background_info=applicant.background_info
+        ).order_by("-date_applied")
+
+        history_data = [
+            {
+                "id": h.id,
+                "type_of_assistance": h.type_of_assistance,
+                "applicant_id": h.applicant.id if h.applicant else None,
+                "date": h.date_applied,
+            }
+            for h in history_qs
+        ]
+
+        data[idx]["application_history"] = history_data
+
+    return Response(data)
+
+#APPROVED UPLOAD
+# Function to upload and process approved applicants list
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def upload_approved_list(request):
+    file_obj = request.FILES.get("file")
+    if not file_obj:
+        return Response({"error": "No file uploaded"}, status=400)
+
+    try:
+        if file_obj.name.endswith(".csv"):
+            df = pd.read_csv(file_obj)
+        else:
+            df = pd.read_excel(file_obj, engine="openpyxl")
+        df.columns = df.columns.str.strip().str.lower()
+    except Exception as e:
+        return Response({"error": f"Failed to read file: {str(e)}"}, status=400)
+
+    # create batch first
+    batch = ApprovalBatch.objects.create(
+        uploaded_by=request.user,
+        file_name=file_obj.name,
+        total_processed=0,
+        total_approved=0,
+        total_already_approved=0,
+        total_not_found=0,
+    )
+
+    matched, not_found, already_approved = [], [], []
+
+    for _, row in df.iterrows():
+        last_name = str(row.get("last name", "")).strip()
+        first_name = str(row.get("first name", "")).strip()
+        middle_name = str(row.get("middle name", "")).strip()
+        barangay = str(row.get("barangay", "")).strip()
+        municipal = str(row.get("municipal", "")).strip()
+        assistance_type = str(row.get("type of assistance", "")).strip()
+        amount = row.get("amount of assistance")
+
+        try:
+            background = BackgroundInfo.objects.get(
+                first_name__iexact=first_name,
+                last_name__iexact=last_name,
+                barangay__name__iexact=barangay,
+                barangay__city__name__iexact=municipal,
+            )
+
+            applicant = (
+                Applicant.objects.filter(
+                    background_info=background,
+                    type_of_assistance__iexact=assistance_type
+                )
+                .order_by("-date_filled")
+                .first()
+            )
+
+            if not applicant:
+                not_found.append(f"{first_name} {last_name} - {barangay} ({assistance_type})")
+                continue
+
+            if hasattr(applicant, "approval"):
+                already_approved.append(f"{first_name} {last_name} - {barangay} ({assistance_type})")
+            else:
+                Approval.objects.create(
+                    applicant=applicant,
+                    batch=batch,  # 👈 link approval to this batch
+                    approved_by=request.user,
+                    notes=f"Approved amount: {amount}"
+                )
+                matched.append(f"{first_name} {last_name} - {barangay} ({assistance_type})")
+
+        except BackgroundInfo.DoesNotExist:
+            not_found.append(f"{first_name} {last_name} - {barangay} ({assistance_type})")
+
+    # update batch summary
+    batch.total_processed = len(df)
+    batch.total_approved = len(matched)
+    batch.total_already_approved = len(already_approved)
+    batch.total_not_found = len(not_found)
+    batch.save()
+
+    return Response({
+        "approved": matched,
+        "already_approved": already_approved,
+        "not_found": not_found,
+        "total_processed": len(df)
+    })
+
+
+
+#APPROVED APPLICANTS
+# Function to get approved applicants
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def applicant_history(request, background_id):
-    try:
-        background = BackgroundInfo.objects.get(pk=background_id)
-        applications = background.application_history()
-        data = [
-            {
-                "id": app.id,
-                "type_of_assistance": app.type_of_assistance,
-                "date_filled": app.date_filled,
-                "is_archived": app.is_archived,
-            }
-            for app in applications
-        ]
-        return Response({
-            "applicant": str(background),
-            "application_count": background.application_count(),
-            "applications": data
-        })
-    except BackgroundInfo.DoesNotExist:
-        return Response({"error": "Applicant not found"}, status=404)
+def approved_applicants(request):
+    approvals = Approval.objects.select_related(
+        "applicant__background_info",
+        "approved_by"
+    ).order_by("-approved_at")
+
+    data = [
+        {
+            "id": approval.id,
+            "first_name": approval.applicant.background_info.first_name,
+            "last_name": approval.applicant.background_info.last_name,
+            "barangay": approval.applicant.background_info.barangay.name,
+            "municipal": approval.applicant.background_info.barangay.city.name,
+            "type_of_assistance": approval.applicant.type_of_assistance,
+            "amount": approval.notes,  # stored in notes for now
+            "approved_at": approval.approved_at.isoformat(),
+            "approved_by": approval.approved_by.username if approval.approved_by else "System",
+        }
+        for approval in approvals
+    ]
+    return Response(data)
+
+#APPROVAL BATCHES
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def approval_batches(request):
+    batches = ApprovalBatch.objects.order_by("-uploaded_at").all()
+    data = [
+        {
+            "id": batch.id,
+            "file_name": batch.file_name,
+            "uploaded_by": batch.uploaded_by.username if batch.uploaded_by else "System",
+            "uploaded_at": batch.uploaded_at.isoformat(),
+            "total_processed": batch.total_processed,
+            "total_approved": batch.total_approved,
+            "total_already_approved": batch.total_already_approved,
+            "total_not_found": batch.total_not_found,
+        }
+        for batch in batches
+    ]
+    return Response(data)
+
+#APPROVED APPLICANTS BY BATCH
+#
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def approvals_for_batch(request, batch_id):
+    approvals = Approval.objects.filter(batch_id=batch_id).select_related(
+        "applicant__background_info", "approved_by"
+    )
+
+    data = [
+        {
+            "id": approval.id,
+            "first_name": approval.applicant.background_info.first_name,
+            "last_name": approval.applicant.background_info.last_name,
+            "barangay": approval.applicant.background_info.barangay.name,
+            "municipal": approval.applicant.background_info.barangay.city.name,
+            "type_of_assistance": approval.applicant.type_of_assistance,
+            "amount": approval.notes,
+            "approved_at": approval.approved_at.isoformat(),
+            "approved_by": approval.approved_by.username if approval.approved_by else "System",
+        }
+        for approval in approvals
+    ]
+    return Response(data)
+
+
+
+
+#APPROVAL HISTORY
+# Function to get history of approval batches
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def approval_batch_history(request):
+    batches = ApprovalBatch.objects.all().order_by("-uploaded_at")
+    data = [
+        {
+            "id": batch.id,
+            "uploaded_by": batch.uploaded_by.username if batch.uploaded_by else "System",
+            "uploaded_at": batch.uploaded_at.isoformat(),
+            "file_name": batch.file_name,
+            "total_processed": batch.total_processed,
+            "total_approved": batch.total_approved,
+            "total_already_approved": batch.total_already_approved,
+            "total_not_found": batch.total_not_found,
+        }
+        for batch in batches
+    ]
+    return Response(data)
 
 
 # RECENT APPLICANTS
@@ -395,25 +589,42 @@ def recent_applicants(request):
     serializer = ApplicantSerializer(applicants, many=True)
     return Response(serializer.data)
 
-# APPLICANT DETAILS
-# Function to get, update, or delete a specific applicant
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def applicant_detail(request, applicant_id):
     try:
         applicant = Applicant.objects.get(pk=applicant_id)
     except Applicant.DoesNotExist:
-        return Response({'error': 'Applicant not found'}, status=500)
+        return Response({'error': 'Applicant not found'}, status=404)
 
     if request.method == 'GET':
         serializer = ApplicantSerializer(applicant)
-        return Response(serializer.data)
+
+        # Include full history for this applicant’s BackgroundInfo
+        history_qs = ApplicantHistory.objects.filter(
+            background_info=applicant.background_info
+        ).order_by("-created_at")
+
+        history_data = [
+            {
+                "id": h.id,
+                "type_of_assistance": h.type_of_assistance,
+                "applicant_id": h.applicant.id if h.applicant else None,
+                "date": h.date_applied,
+            }
+            for h in history_qs
+        ]
+
+
+        response_data = serializer.data
+        response_data["application_history"] = history_data
+
+        return Response(response_data)
 
     elif request.method == 'PUT':
-        serializer = ApplicantSerializer(applicant, data=request.data)
+        serializer = ApplicantSerializer(applicant, data=request.data, context={"request": request})
         if serializer.is_valid():
             serializer.save()
-            # Log the update
             log_staff_activity(
                 request.user,
                 'UPDATE',
@@ -426,7 +637,6 @@ def applicant_detail(request, applicant_id):
     elif request.method == 'DELETE':
         applicant.is_archived = True
         applicant.save()
-        # Log the archive
         log_staff_activity(
             request.user,
             'ARCHIVE',
@@ -434,6 +644,8 @@ def applicant_detail(request, applicant_id):
             request
         )
         return Response({"message": "Applicant archived successfully"})
+
+
 
 # LIST ARCHIVED APPLICANTS
 # Function to get all archived applicants
@@ -537,6 +749,92 @@ def update_coordinates(request):
 # ANALYTICS & REPORTING
 # =============================================
 
+# ---------------------------------------------
+# Applicant Demographics
+# ---------------------------------------------
+
+# APPLICANTS BY GENDER
+# Function to get applicant counts by gender
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def applicants_by_gender(request):
+    data = Applicant.objects.values("background_info__sex").annotate(count=Count("id"))
+    return Response(list(data))
+
+# APPLICANTS BY CIVIL STATUS
+# Function to get applicant counts by civil status
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def applicants_by_civil_status(request):
+    data = Applicant.objects.values("background_info__civil_status").annotate(count=Count("id"))
+    return Response(list(data))
+
+# APPLICANTS BY AGE GROUP
+# Function to get applicant counts by age groups
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def applicants_by_age_group(request):
+    today = datetime.date.today()
+    qs = Applicant.objects.annotate(
+        age=ExpressionWrapper(
+            today.year - ExtractYear("background_info__birthday"),
+            output_field=IntegerField()
+        )
+    )
+
+    age_groups = {
+        "0-17": qs.filter(age__lte=17).count(),
+        "18-25": qs.filter(age__gte=18, age__lte=25).count(),
+        "26-35": qs.filter(age__gte=26, age__lte=35).count(),
+        "36-45": qs.filter(age__gte=36, age__lte=45).count(),
+        "46-60": qs.filter(age__gte=46, age__lte=60).count(),
+        "60+": qs.filter(age__gt=60).count(),
+    }
+
+    formatted = [{"age_group": group, "count": count} for group, count in age_groups.items()]
+    return Response(formatted)
+
+# INCOME DISTRIBUTION
+# Function to get applicant counts by income ranges
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def income_distribution(request):
+    # Define income ranges with a reasonable maximum
+    income_ranges = [
+        (0, 10000, 'Below 10,000'),
+        (10001, 20000, '10,001 - 20,000'),
+        (20001, 30000, '20,001 - 30,000'),
+        (30001, 40000, '30,001 - 40,000'),
+        (40001, 50000, '40,001 - 50,000'),
+        (50001, 100000, '50,001 - 100,000'),
+        (100001, None, 'Above 100,000')  # Use None instead of float('inf')
+    ]
+    
+    # Get counts for each range
+    distribution = []
+    for min_income, max_income, label in income_ranges:
+        if max_income is None:
+            # For the last range (Above 100,000)
+            count = Applicant.objects.filter(
+                background_info__monthly_income__gte=min_income
+            ).count()
+        else:
+            count = Applicant.objects.filter(
+                background_info__monthly_income__gte=min_income,
+                background_info__monthly_income__lt=max_income
+            ).count()
+        
+        distribution.append({
+            'range': label,
+            'count': count
+        })
+    
+    return Response(distribution)
+
+# ---------------------------------------------
+# Applicant Statistics
+# ---------------------------------------------
+
 # TOTAL APPLICANTS
 # Function to get applicant counts for different time periods
 @api_view(['GET'])
@@ -586,27 +884,6 @@ def applicants_by_location(request):
     data = Applicant.objects.values('city_municipality','barangay', 'latitude', 'longitude').annotate(count=Count('id'))
     return Response(list(data))
 
-# TRENDS OVER TIME
-# Function to get applicant trends over a time period
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def trends_over_time(request):
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-    qs = Applicant.objects.all()
-    if start_date and end_date:
-        qs = qs.filter(date_filled__range=[start_date, end_date])
-    data = qs.annotate(date=TruncDate('date_filled')).values('date').annotate(count=Count('id')).order_by('date')
-    return Response(list(data))
-
-# STAFF ACTIVITY LOGS
-# Function to get staff activity statistics
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def staff_activity_logs(request):
-    data = Applicant.objects.values('staff__username').annotate(count=Count('id')).order_by('-count')
-    return Response(list(data))
-
 # TOP BARANGAYS
 # Function to get top barangays by applicant count
 @api_view(['GET'])
@@ -625,21 +902,30 @@ def top_barangays(request):
     data = qs.values('background_info__barangay__name').annotate(count=Count('id')).order_by('-count')[:10]
     return Response(list(data))
 
-# AVERAGE PROCESSING TIME
-# Function to calculate average application processing time
+# BARANGAY BY TYPE
+# Function to get applicant counts by barangay and assistance type
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def average_processing_time(request):
-    data = Applicant.objects.exclude(created_at__isnull=True).exclude(date_filled__isnull=True).annotate(
-        processing_time=ExpressionWrapper(F('date_filled') - F('created_at'), output_field=DurationField())
-    ).aggregate(avg_time=Avg('processing_time'))
+def barangay_by_type(request):
+    data = Applicant.objects.values('background_info__barangay', 'type_of_assistance').annotate(count=Count('id')).order_by('-count')
+    return Response(list(data))
 
-    # Convert seconds to minutes and round to 1 decimal place
-    avg_minutes = round(data['avg_time'].total_seconds() / 60, 1) if data['avg_time'] else 0
+# ---------------------------------------------
+# Trend Analysis
+# ---------------------------------------------
 
-    return Response({
-        "average_processing_time": avg_minutes
-    })
+# TRENDS OVER TIME
+# Function to get applicant trends over a time period
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def trends_over_time(request):
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    qs = Applicant.objects.all()
+    if start_date and end_date:
+        qs = qs.filter(date_filled__range=[start_date, end_date])
+    data = qs.annotate(date=TruncDate('date_filled')).values('date').annotate(count=Count('id')).order_by('date')
+    return Response(list(data))
 
 # ASSISTANCE TYPE TREND
 # Function to get trends for specific assistance types
@@ -658,55 +944,6 @@ def assistance_type_trend(request):
         
     data = qs.annotate(date=TruncDate('date_filled')).values('date').annotate(count=Count('id')).order_by('date')
     return Response(list(data))
-
-# BARANGAY BY TYPE
-# Function to get applicant counts by barangay and assistance type
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def barangay_by_type(request):
-    data = Applicant.objects.values('background_info__barangay', 'type_of_assistance').annotate(count=Count('id')).order_by('-count')
-    return Response(list(data))
-
-# APPLICANTS BY GENDER
-# Function to get applicant counts by gender
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def applicants_by_gender(request):
-    data = Applicant.objects.values("background_info__sex").annotate(count=Count("id"))
-    return Response(list(data))
-
-# APPLICANTS BY CIVIL STATUS
-# Function to get applicant counts by civil status
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def applicants_by_civil_status(request):
-    data = Applicant.objects.values("background_info__civil_status").annotate(count=Count("id"))
-    return Response(list(data))
-
-# APPLICANTS BY AGE GROUP
-# Function to get applicant counts by age groups
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def applicants_by_age_group(request):
-    today = datetime.date.today()
-    qs = Applicant.objects.annotate(
-        age=ExpressionWrapper(
-            today.year - ExtractYear("background_info__birthday"),
-            output_field=IntegerField()
-        )
-    )
-
-    age_groups = {
-        "0-17": qs.filter(age__lte=17).count(),
-        "18-25": qs.filter(age__gte=18, age__lte=25).count(),
-        "26-35": qs.filter(age__gte=26, age__lte=35).count(),
-        "36-45": qs.filter(age__gte=36, age__lte=45).count(),
-        "46-60": qs.filter(age__gte=46, age__lte=60).count(),
-        "60+": qs.filter(age__gt=60).count(),
-    }
-
-    formatted = [{"age_group": group, "count": count} for group, count in age_groups.items()]
-    return Response(formatted)
 
 # MONTHLY TRENDS
 # Function to get monthly applicant trends
@@ -737,42 +974,25 @@ def monthly_trends(request):
     
     return Response(formatted_data)
 
-# INCOME DISTRIBUTION
-# Function to get applicant counts by income ranges
+# ---------------------------------------------
+# Performance Metrics
+# ---------------------------------------------
+
+# AVERAGE PROCESSING TIME
+# Function to calculate average application processing time
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def income_distribution(request):
-    # Define income ranges with a reasonable maximum
-    income_ranges = [
-        (0, 10000, 'Below 10,000'),
-        (10001, 20000, '10,001 - 20,000'),
-        (20001, 30000, '20,001 - 30,000'),
-        (30001, 40000, '30,001 - 40,000'),
-        (40001, 50000, '40,001 - 50,000'),
-        (50001, 100000, '50,001 - 100,000'),
-        (100001, None, 'Above 100,000')  # Use None instead of float('inf')
-    ]
-    
-    # Get counts for each range
-    distribution = []
-    for min_income, max_income, label in income_ranges:
-        if max_income is None:
-            # For the last range (Above 100,000)
-            count = Applicant.objects.filter(
-                background_info__monthly_income__gte=min_income
-            ).count()
-        else:
-            count = Applicant.objects.filter(
-                background_info__monthly_income__gte=min_income,
-                background_info__monthly_income__lt=max_income
-            ).count()
-        
-        distribution.append({
-            'range': label,
-            'count': count
-        })
-    
-    return Response(distribution)
+def average_processing_time(request):
+    data = Applicant.objects.exclude(created_at__isnull=True).exclude(date_filled__isnull=True).annotate(
+        processing_time=ExpressionWrapper(F('date_filled') - F('created_at'), output_field=DurationField())
+    ).aggregate(avg_time=Avg('processing_time'))
+
+    # Convert seconds to minutes and round to 1 decimal place
+    avg_minutes = round(data['avg_time'].total_seconds() / 60, 1) if data['avg_time'] else 0
+
+    return Response({
+        "average_processing_time": avg_minutes
+    })
 
 # PROCESSING TIME BY TYPE
 # Function to get average processing time by assistance type
@@ -805,6 +1025,18 @@ def processing_time_by_type(request):
     ]
     
     return Response(formatted_data)
+
+# STAFF ACTIVITY LOGS
+# Function to get staff activity statistics
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def staff_activity_logs(request):
+    data = Applicant.objects.values('staff__username').annotate(count=Count('id')).order_by('-count')
+    return Response(list(data))
+
+# ---------------------------------------------
+# Summary
+# ---------------------------------------------
 
 # SUMMARY METRICS
 # Function to get overall application statistics
@@ -853,6 +1085,47 @@ def summary_metrics(request):
         'highestBarangay': highest_barangay['background_info__barangay__name'] if highest_barangay else 'N/A'
     })
 
+#APPROVAL RATE 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def approval_rate(request):
+    total = Applicant.objects.count()
+    approved = Approval.objects.count()
+    rate = (approved / total * 100) if total > 0 else 0
+
+    return Response({
+        "total_applicants": total,
+        "approved_applications": approved,
+        "approval_rate": round(rate, 2)
+    })
+
+#APPROVAL RATE BY GROUP
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def approval_rate_by_group(request):
+    group_by = request.GET.get("group", "type_of_assistance")  
+
+    groups = Applicant.objects.values(group_by).annotate(
+        total=Count("id"),
+        approved=Count("id", filter=Q(approval__isnull=False))
+    )
+
+    results = []
+    for g in groups:
+        total = g["total"]
+        approved = g["approved"]
+        rate = (approved / total * 100) if total > 0 else 0
+        results.append({
+            "group": g[group_by],
+            "total": total,
+            "approved": approved,
+            "approval_rate": round(rate, 2)
+        })
+
+    return Response(results)
+
+
+
 # =============================================
 # HELPER FUNCTIONS
 # =============================================
@@ -869,4 +1142,4 @@ def log_staff_activity(staff, action, details=None, request=None):
             ip_address=ip_address
         )
     except Exception as e:
-        print(f"Error logging staff activity: {str(e)}") 
+        print(f"Error logging staff activity: {str(e)}")

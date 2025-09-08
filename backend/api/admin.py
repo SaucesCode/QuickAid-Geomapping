@@ -1,5 +1,14 @@
 from django.contrib import admin
-from .models import Applicant, CustomUser, Representative, BackgroundInfo, ApplicantHistory, StaffActivityLog   
+from .models import (
+    Applicant,
+    CustomUser,
+    Representative,
+    BackgroundInfo,
+    ApplicantHistory,
+    StaffActivityLog,
+    Approval,
+    ApprovalBatch,
+)
 
 #
 class ApplicantAdmin(admin.ModelAdmin):
@@ -59,6 +68,7 @@ class ApplicantAdmin(admin.ModelAdmin):
             return True
         return obj.staff == request.user or request.user.is_superuser
 
+
 class RepresentativeAdmin(admin.ModelAdmin):
     list_display = (
         "applicant", "get_first_name", "get_last_name", "relationship",
@@ -72,6 +82,7 @@ class RepresentativeAdmin(admin.ModelAdmin):
         return obj.background_info.last_name
     get_last_name.short_description = "Last Name"
 
+
 class CustomUserAdmin(admin.ModelAdmin):
     list_display = ("username", "email", "role", "is_staff", "is_active")
     search_fields = ("username", "email")
@@ -80,14 +91,14 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 class ApplicantHistoryAdmin(admin.ModelAdmin):
     list_display = (
-        "background_info", 
-        "applicant", 
-        "type_of_assistance", 
+        "background_info",
+        "applicant",
+        "type_of_assistance",
         "date_applied"
     )
     search_fields = (
-        "background_info__first_name", 
-        "background_info__last_name", 
+        "background_info__first_name",
+        "background_info__last_name",
         "type_of_assistance"
     )
     list_filter = ("type_of_assistance", "date_applied")
@@ -103,10 +114,39 @@ class StaffActivityLogAdmin(admin.ModelAdmin):
     ordering = ("-timestamp",)
 
 
-# Register new models
+class ApprovalAdmin(admin.ModelAdmin):
+    list_display = ("applicant", "approved_by", "approved_at", "notes")
+    search_fields = (
+        "applicant__background_info__first_name",
+        "applicant__background_info__last_name",
+        "approved_by__username",
+    )
+    list_filter = ("approved_at", "approved_by")
+    ordering = ("-approved_at",)
+
+
+class ApprovalBatchAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "uploaded_by",
+        "file_name",
+        "uploaded_at",
+        "total_processed",
+        "total_approved",
+        "total_already_approved",
+        "total_not_found",
+    )
+    search_fields = ("file_name", "uploaded_by__username")
+    list_filter = ("uploaded_at",)
+    ordering = ("-uploaded_at",)
+
+
+# Register models
 admin.site.register(ApplicantHistory, ApplicantHistoryAdmin)
 admin.site.register(StaffActivityLog, StaffActivityLogAdmin)
 admin.site.register(Applicant, ApplicantAdmin)
 admin.site.register(Representative, RepresentativeAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(BackgroundInfo)
+admin.site.register(Approval, ApprovalAdmin)
+admin.site.register(ApprovalBatch, ApprovalBatchAdmin)

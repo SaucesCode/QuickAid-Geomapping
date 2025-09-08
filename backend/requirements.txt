@@ -12,3 +12,4 @@ whitenoise
 quickaid_update
 opencage
 corsheaders
+openpyxl

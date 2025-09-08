@@ -16,11 +16,15 @@ urlpatterns = [
     path("update-staff/<int:staff_id>/", update_staff, name="update-staff"),
 
     path('applicants/', list_applicants, name='applicants'),
-    path("applicants/history/<int:background_id>/", applicant_history, name="applicant_history"),
     path('recent_applicants/', recent_applicants, name='recent_applicants'),
     path('applicants/<int:applicant_id>/', applicant_detail, name='applicant_detail'),
     path('list-archived-applicants/', list_archived_applicants, name='list_archived_applicants'),
     path('restore-applicant/<int:pk>/', restore_archived_applicant, name='restore_applicant'),
+    path("approved/upload/", upload_approved_list, name="upload_approved_list"),
+    path("approved/batches/", approval_batches, name="approval-batches"),
+    path("approved/batch/<int:batch_id>/approvals/", approvals_for_batch, name="approvals-for-batch"),
+    path("approved/list/", approved_applicants, name="approved-applicants"),
+    path("approved/history/", approval_batch_history, name="approval_batch_history"),
     path('update_coordinates/', update_coordinates, name='update_coordinates'),
     #
     # Protected API Route (Only Authenticated Staff)
@@ -42,6 +46,8 @@ urlpatterns = [
     path('analytics/by-gender/', applicants_by_gender, name='analytics-by-gender'),
     path('analytics/by-civil-status/', applicants_by_civil_status, name='analytics-by-civil-status'),
     path('analytics/by-age-group/', applicants_by_age_group, name='analytics-by-age-group'),
+    path("analytics/approval-rate/", approval_rate, name="approval_rate"),
+    path("analytics/approval-rate-by-group/", approval_rate_by_group, name="approval_rate_by_group"),
     
     # New Analytics Endpoints
     path('analytics/monthly-trends/', monthly_trends, name='monthly-trends'),
