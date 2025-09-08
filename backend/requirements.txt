@@ -11,4 +11,9 @@ gunicorn
 whitenoise
 python-dotenv
 opencage
+<<<<<<< HEAD
+corsheaders
+openpyxl
+=======
 dj-database-url
+>>>>>>> 2176ce6fdf50ace09b3d4ffb87dc84f571c4ae6a

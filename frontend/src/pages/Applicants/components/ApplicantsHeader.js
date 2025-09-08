@@ -1,16 +1,14 @@
 import React from "react";
+import { Users } from "lucide-react";
 
 const ApplicantsHeader = () => {
   return (
-    <div className="bg-white shadow border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Applicants</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Manage and view applicant records
-          </p>
-        </div>
+    <div className="mb-8">
+      <div className="flex items-center gap-3 mb-2">
+        <Users className="w-8 h-8 text-teal-500" />
+        <h1 className="text-3xl font-bold text-gray-800">Applicants</h1>
       </div>
+      <p className="text-gray-400">Manage and view applicant records</p>
     </div>
   );
 };

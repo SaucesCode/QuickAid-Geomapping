@@ -6,9 +6,6 @@ export const API_URL = "https://quickaid-geomapping.onrender.com/api"; // Django
 // ✅ Create an axios instance with authentication headers
 export const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // ✅ Function to store tokens in localStorage
@@ -104,12 +101,8 @@ export const logoutUser = () => {
 // ✅ Register Applicant Function
 export const submitApplicant = async data => {
   try {
-    let token = localStorage.getItem("accessToken");
-
-    if (!token) {
-      token = await refreshAccessToken();
-      if (!token) throw new Error("No authentication token found");
-    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const staffRefCode = urlParams.get("staff_ref_code");
 
     // Prepare background_info block
     const background_info = {
@@ -127,6 +120,7 @@ export const submitApplicant = async data => {
     };
 
     const payload = {
+      staff_ref_code: staffRefCode,
       background_info,
       contact_number: data.contact_number,
       valid_id_presented: data.valid_id_presented,
@@ -156,12 +150,17 @@ export const submitApplicant = async data => {
       };
     }
 
-    const response = await api.post(`/submit-applicant/`, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    if (staffRefCode) {
+      payload.staff_ref_code = staffRefCode;
+    }
+
+    let headers = { "Content-Type": "application/json" };
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await api.post(`/submit-applicant/`, payload, { headers });
 
     return response.data;
   } catch (error) {

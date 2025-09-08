@@ -1,29 +1,33 @@
 import { Routes, Route } from "react-router-dom";
-import Login from "./components/Login/Login";
-import ApplicantForm from "./pages/ApplicantForm/ApplicantForm";
-import MapComponent from "./pages/MapComponent/MapComponent";
-import Dashboard from "./pages/Dashboard/Dashboard";
-import Sidebar from "./components/Sidebar/Sidebar";
+import Login from "./pages/auth/Login";
+import SettingsPage from "./pages/auth/SettingsPage";
+
+import Dashboard from "./pages/dashboard/Dashboard";
+import Analytics from "./pages/dashboard/Analytics";
+import MapComponent from "./pages/dashboard/MapComponent";
+import AdminManagement from "./pages/dashboard/AdminManagement";
+
+import ApplicantForm from "./pages/applicants/ApplicantForm";
+import Applicants from "./pages/applicants/Applicants";
+import Approved from "./pages/applicants/Approved";
+import ArchiveApplicants from "./pages/applicants/ArchiveApplicants";
+
+import MultiStepForm from "./pages/forms/MultiStepForm";
+import PrintPage from "./pages/print/PrintPage";
+import PrintPagebyID from "./pages/print/PrintPagebyID";
+
+import Sidebar from "./components/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
-import AdminManagement from "./pages/AdminManagement/AdminManagement";
-import Analytics from "./pages/Analytics/Analytics";
-import Applicants from "./pages/Applicants/Applicants";
-import Approved from "./pages/Approved";
-import Navbar from "./components/LandingPage/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 import ChallengesSection from "./components/Sections/ChallengesSection";
 import GoalsSection from "./components/Sections/GoalsSection";
 import ServicesSection from "./components/Sections/ServicesSection";
 import MissionSection from "./components/Sections/MissionSection";
 import HeroSection from "./components/Sections/HeroSection";
 import BeneficiariesSection from "./components/Sections/BeneficiariesSection";
-import "./index.css";
 import Footer from "./components/LandingPage/Footer";
-import MultiStepForm from "./forms/MultiStepForm";
-import PrintPage from "./forms/PrintPage";
-import PrintPagebyID from "./forms/PrintPagebyID";
-import ArchiveApplicants from "./pages/Archive/ArchiveApplicants";
-import SettingsPage from "./pages/SettingsPage/SettingsPage";
-import ProtectedRoute from "./components/ProtectedRoute";
+import "./index.css";
 
 //
 function App() {

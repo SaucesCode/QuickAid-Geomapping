@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Applicant, Representative, BackgroundInfo, Barangay
+from .models import Applicant, Representative, BackgroundInfo, Barangay, Approval
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from datetime import *
 from django.utils import timezone
@@ -19,20 +19,25 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
+        user = self.user
+        # Update last_active timestamp
+        user.last_active = timezone.now()
+        user.save(update_fields=['last_active'])
 
         # Put the staff info sa response (para sa frontend)
         data['staff_info'] = {
-            'id': self.user.id,
-            'username': self.user.username,
-            'first_name': self.user.first_name,
-            'last_name': self.user.last_name,
-            'email': self.user.email,
-            'role': self.user.role,
-            'is_superuser': self.user.is_superuser,
-            'last_active': self.user.last_active.isoformat() if self.user.last_active else None
+            'id': user.id,
+            'ref_code': user.ref_code,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+            'role': user.role,
+            'is_superuser': user.is_superuser,
+            'last_active': user.last_active.isoformat() if user.last_active else None
         }
         return data
-
+    
 
 class BarangayDetailSerializer(serializers.ModelSerializer):
     city_name = serializers.CharField(source='city.name', read_only=True)
@@ -102,43 +107,55 @@ class RepresentativeSerializer(serializers.ModelSerializer):
             **validated_data
         )
 
+class ApprovalSerializer(serializers.ModelSerializer):
+    approved_by = serializers.CharField(source="approved_by.username", read_only=True)
+    batch_file = serializers.CharField(source="batch.file_name", read_only=True)
+
+    class Meta:
+        model = Approval
+        fields = ["id", "approved_at", "approved_by", "batch_file", "notes"]
+
 
 class ApplicantSerializer(serializers.ModelSerializer):
     background_info = BackgroundInfoSerializer()
     representative = RepresentativeSerializer(required=False, allow_null=True)
     staff = serializers.CharField(source='staff.username', read_only=True)
     city = serializers.CharField(source='background_info.barangay.city.name', read_only=True)
+    staff_ref_code = serializers.UUIDField(source='staff.ref_code', read_only=True)
+    approval_count = serializers.IntegerField(source="approvals.count", read_only=True)
+    approvals = ApprovalSerializer(many=True, read_only=True)
 
     class Meta:
         model = Applicant
         fields = [
-            "id", "staff",
+            "id", "staff", "staff_ref_code",
             "background_info", "contact_number",
             "valid_id_presented", "other_valid_id",
             "applicant_type", "type_of_assistance",
             "representative", "longitude", "latitude",
-            "city", "date_filled", "created_at", "is_archived"
+            "city", "date_filled", "created_at", "is_archived", "approvals", "approval_count"
         ]
-        read_only_fields = ["id", "staff", "longitude", "latitude", "date_filled", "created_at"]
+        read_only_fields = ["id", "staff", "staff_ref_code", "longitude", "latitude", "date_filled", "created_at"]
 
     def create(self, validated_data):
+        request = self.context.get("request")
+        staff_user = request.user if request and request.user.is_authenticated else None
+
         bg_data = validated_data.pop("background_info")
         rep_data = validated_data.pop("representative", None)
 
-        # The 'barangay' in bg_data is already a validated Barangay object.
-        # We need to separate the unique identifiers from the rest of the data for get_or_create.
+        # Identify the person by first_name + last_name + birthday
         unique_identifiers = {
-            'first_name': bg_data.get('first_name'),
-            'last_name': bg_data.get('last_name'),
-            'birthday': bg_data.get('birthday'),
+            "first_name": bg_data.get("first_name"),
+            "last_name": bg_data.get("last_name"),
+            "birthday": bg_data.get("birthday"),
         }
-        
+
         background_info, created = BackgroundInfo.objects.get_or_create(
             **unique_identifiers,
-            defaults=bg_data
+            defaults=bg_data,
         )
 
-        # If the person already existed, update their info with any new details.
         if not created:
             for key, value in bg_data.items():
                 setattr(background_info, key, value)
@@ -154,24 +171,36 @@ class ApplicantSerializer(serializers.ModelSerializer):
                 f"They can only apply once every 3 months. "
                 f"Their next eligible application date is {next_eligible.strftime('%B %d, %Y')}."
             )
-        
-        # If all checks pass, create the new application.
-        applicant = Applicant.objects.create(
-            background_info=background_info, 
-            **validated_data
+     
+
+        # ✅ Get or create the applicant (per person)
+        applicant, created = Applicant.objects.get_or_create(
+            background_info=background_info,
+            defaults={**validated_data, "staff": staff_user},
         )
 
-        # Handle representative (same logic as before)
+        if not created:
+            # Update applicant fields if they already exist
+            for key, value in validated_data.items():
+                setattr(applicant, key, value)
+            applicant.staff = staff_user
+            applicant.save()
+
+        # ✅ Handle representative
         if rep_data and validated_data.get("applicant_type") == "Representative":
             rep_bg_data = rep_data.pop("background_info")
             rep_bg = RepresentativeBackgroundInfoSerializer().create(rep_bg_data)
-            Representative.objects.create(
+            Representative.objects.update_or_create(
                 applicant=applicant,
-                background_info=rep_bg,
-                relationship=rep_data["relationship"]
+                defaults={
+                    "background_info": rep_bg,
+                    "relationship": rep_data["relationship"],
+                },
             )
 
         return applicant
+
+    
     
     def update(self, instance, validated_data):
         # Update background_info if present
@@ -227,3 +256,5 @@ class ApplicantSerializer(serializers.ModelSerializer):
             representation['representative'] = None
             
         return representation
+    
+

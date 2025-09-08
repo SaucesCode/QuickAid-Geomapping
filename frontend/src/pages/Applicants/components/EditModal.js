@@ -1,6 +1,5 @@
-import React from "react";
 import { X } from "lucide-react";
-import AddressDropdown from "../../../forms/AddressDropdown";
+import AddressDropdown from "../../forms/AddressDropdown";
 
 const EditModal = ({
   editingApplicant,
@@ -17,60 +16,68 @@ const EditModal = ({
           <button
             onClick={closeEditView}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Close edit modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="p-6">
-          <form id="edit-applicant-form" onSubmit={handleSave}>
+          <form id="edit-applicant-form" onSubmit={handleSave} noValidate>
             <div className="space-y-6">
               {/* Personal Information */}
-              <div>
+              <section>
                 <h3 className="text-xl font-medium text-gray-800 mb-4">
                   Personal Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[
+                    {
+                      label: "First Name",
+                      name: "first_name",
+                      type: "text",
+                      value: editingApplicant.background_info?.first_name || "",
+                    },
+                    {
+                      label: "Middle Initial",
+                      name: "middle_initial",
+                      type: "text",
+                      value: editingApplicant.background_info?.middle_initial || "",
+                    },
+                    {
+                      label: "Last Name",
+                      name: "last_name",
+                      type: "text",
+                      value: editingApplicant.background_info?.last_name || "",
+                    },
+                  ].map(({ label, name, type, value }) => (
+                    <div key={name}>
+                      <label
+                        htmlFor={name}
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        {label}
+                      </label>
+                      <input
+                        id={name}
+                        name={name}
+                        type={type}
+                        value={value}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      />
+                    </div>
+                  ))}
+
+                  {/* Suffix */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      First Name
-                    </label>
-                    <input
-                      name="first_name"
-                      placeholder="First Name"
-                      value={editingApplicant.background_info?.first_name || ""}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Middle Initial
-                    </label>
-                    <input
-                      name="middle_initial"
-                      placeholder="Middle Initial"
-                      value={editingApplicant.background_info?.middle_initial || ""}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Last Name
-                    </label>
-                    <input
-                      name="last_name"
-                      placeholder="Last Name"
-                      value={editingApplicant.background_info?.last_name || ""}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="suffix"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Suffix
                     </label>
                     <select
+                      id="suffix"
                       name="suffix"
                       value={editingApplicant.background_info?.suffix || ""}
                       onChange={handleChange}
@@ -85,11 +92,17 @@ const EditModal = ({
                       <option value="IV">IV</option>
                     </select>
                   </div>
+
+                  {/* Sex */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="sex"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Sex
                     </label>
                     <select
+                      id="sex"
                       name="sex"
                       value={editingApplicant.background_info?.sex || ""}
                       onChange={handleChange}
@@ -100,11 +113,17 @@ const EditModal = ({
                       <option value="Female">Female</option>
                     </select>
                   </div>
+
+                  {/* Civil Status */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="civil_status"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Civil Status
                     </label>
                     <select
+                      id="civil_status"
                       name="civil_status"
                       value={editingApplicant.background_info?.civil_status || ""}
                       onChange={handleChange}
@@ -119,20 +138,22 @@ const EditModal = ({
                     </select>
                   </div>
                 </div>
-              </div>
+              </section>
 
               {/* Contact Information */}
-              <div>
-                <h3 className="text-xl font-medium text-gray-800 mb-4">
-                  Contact Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <section>
+                <h3 className="text-xl font-medium text-gray-800 mb-4">Contact Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="contact_number"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Contact Number
                     </label>
                     <input
                       type="tel"
+                      id="contact_number"
                       name="contact_number"
                       value={editingApplicant.contact_number || ""}
                       onChange={handleChange}
@@ -176,11 +197,15 @@ const EditModal = ({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="street_address"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Street Address
                   </label>
                   <input
                     type="text"
+                    id="street_address"
                     name="street_address"
                     value={editingApplicant.background_info?.street_address || ""}
                     onChange={handleChange}
@@ -189,19 +214,23 @@ const EditModal = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
                 </div>
-              </div>
+              </section>
 
               {/* Assistance Information */}
-              <div>
+              <section>
                 <h3 className="text-xl font-medium text-gray-800 mb-4">
                   Assistance Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="type_of_assistance"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Type of Assistance
                     </label>
                     <select
+                      id="type_of_assistance"
                       name="type_of_assistance"
                       value={editingApplicant.type_of_assistance || ""}
                       onChange={handleChange}
@@ -214,10 +243,14 @@ const EditModal = ({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="valid_id_presented"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Valid ID Presented
                     </label>
                     <select
+                      id="valid_id_presented"
                       name="valid_id_presented"
                       value={editingApplicant?.valid_id_presented || ""}
                       onChange={handleChange}
@@ -240,10 +273,14 @@ const EditModal = ({
                   </div>
                   {editingApplicant?.valid_id_presented === "Others" && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="other_valid_id"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
                         Specify Other ID
                       </label>
                       <input
+                        id="other_valid_id"
                         name="other_valid_id"
                         value={editingApplicant?.other_valid_id || ""}
                         onChange={handleChange}
@@ -253,20 +290,24 @@ const EditModal = ({
                     </div>
                   )}
                 </div>
-              </div>
+              </section>
 
               {/* Representative Information */}
               {editingApplicant.representative && (
-                <div>
+                <section>
                   <h3 className="text-xl font-medium text-gray-800 mb-4">
                     Representative Information
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="rep_relationship"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
                         Relationship to Applicant
                       </label>
                       <input
+                        id="rep_relationship"
                         name="rep_relationship"
                         type="text"
                         value={editingApplicant.representative.relationship || ""}
@@ -275,58 +316,55 @@ const EditModal = ({
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       />
                     </div>
+                    {[
+                      {
+                        label: "First Name",
+                        name: "rep_bg_first_name",
+                        value:
+                          editingApplicant.representative.background_info?.first_name || "",
+                      },
+                      {
+                        label: "Middle Initial",
+                        name: "rep_bg_middle_initial",
+                        value:
+                          editingApplicant.representative.background_info?.middle_initial ||
+                          "",
+                      },
+                      {
+                        label: "Last Name",
+                        name: "rep_bg_last_name",
+                        value:
+                          editingApplicant.representative.background_info?.last_name || "",
+                      },
+                    ].map(({ label, name, value }) => (
+                      <div key={name}>
+                        <label
+                          htmlFor={name}
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          {label}
+                        </label>
+                        <input
+                          id={name}
+                          name={name}
+                          type="text"
+                          value={value}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        />
+                      </div>
+                    ))}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        First Name
-                      </label>
-                      <input
-                        name="rep_bg_first_name"
-                        placeholder="First Name"
-                        value={
-                          editingApplicant.representative.background_info?.first_name || ""
-                        }
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Middle Initial
-                      </label>
-                      <input
-                        name="rep_bg_middle_initial"
-                        placeholder="Middle Initial"
-                        value={
-                          editingApplicant.representative.background_info
-                            ?.middle_initial || ""
-                        }
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Last Name
-                      </label>
-                      <input
-                        name="rep_bg_last_name"
-                        placeholder="Last Name"
-                        value={
-                          editingApplicant.representative.background_info?.last_name || ""
-                        }
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="rep_bg_suffix"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
                         Suffix
                       </label>
                       <select
+                        id="rep_bg_suffix"
                         name="rep_bg_suffix"
-                        value={
-                          editingApplicant.representative.background_info?.suffix || ""
-                        }
+                        value={editingApplicant.representative.background_info?.suffix || ""}
                         onChange={handleChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       >
@@ -340,10 +378,14 @@ const EditModal = ({
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="rep_bg_sex"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
                         Sex
                       </label>
                       <select
+                        id="rep_bg_sex"
                         name="rep_bg_sex"
                         value={editingApplicant.representative.background_info?.sex || ""}
                         onChange={handleChange}
@@ -355,14 +397,17 @@ const EditModal = ({
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="rep_bg_civil_status"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
                         Civil Status
                       </label>
                       <select
+                        id="rep_bg_civil_status"
                         name="rep_bg_civil_status"
                         value={
-                          editingApplicant.representative.background_info?.civil_status ||
-                          ""
+                          editingApplicant.representative.background_info?.civil_status || ""
                         }
                         onChange={handleChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
@@ -376,15 +421,18 @@ const EditModal = ({
                       </select>
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="rep_bg_street_address"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
                         Full Address
                       </label>
                       <input
+                        id="rep_bg_street_address"
                         name="rep_bg_street_address"
                         type="text"
                         value={
-                          editingApplicant.representative.background_info
-                            ?.street_address || ""
+                          editingApplicant.representative.background_info?.street_address || ""
                         }
                         onChange={handleChange}
                         placeholder="Enter Full Address"
@@ -392,12 +440,12 @@ const EditModal = ({
                       />
                     </div>
                   </div>
-                </div>
+                </section>
               )}
             </div>
           </form>
         </div>
-        <div className="border-t border-gray-200 px-6 py-4 flex gap-3">
+        <div className="border-t border-gray-200 px-6 py-4 flex gap-3 justify-end">
           <button
             type="submit"
             form="edit-applicant-form"
