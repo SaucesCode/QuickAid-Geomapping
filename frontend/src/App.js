@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import SettingsPage from "./pages/auth/SettingsPage";
 
-import Dashboard from "./pages/dashboard/Dashboard";
+import Dashboard from "./pages/Dashboard/Dashboard";
 import Analytics from "./pages/dashboard/Analytics";
 import MapComponent from "./pages/dashboard/MapComponent";
 import AdminManagement from "./pages/dashboard/AdminManagement";
