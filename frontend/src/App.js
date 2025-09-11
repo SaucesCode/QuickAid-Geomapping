@@ -2,10 +2,15 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import SettingsPage from "./pages/auth/SettingsPage";
 
+
 import Dashboard from "./pages/dashboard/Dashboard";
 import Analytics from "./pages/analytics/Analytics";
 import MapComponent from "./pages/maps/MapComponent";
 import AdminManagement from "./pages/dashboard/AdminManagement";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import Analytics from "./pages/Dashboard/Analytics";
+import MapComponent from "./pages/Dashboard/MapComponent";
+import AdminManagement from "./pages/Dashboard/AdminManagement";
 
 import ApplicantForm from "./pages/applicants/ApplicantForm";
 import Applicants from "./pages/applicants/Applicants";
