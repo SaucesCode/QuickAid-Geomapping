@@ -1,2 +1,17 @@
 backend/.env
 frontend/.env.local
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore migrations cache
+*.sqlite3
+*.log
+*.pot
+
+# Ignore virtual environments
+venv/
+.env/
