@@ -302,39 +302,6 @@ const Analytics = () => {
                   )}
                 </div>
 
-          {/* Demographics Row */}
-          <div className="analytics-row">
-            {/* Gender Chart */}
-            <div className="chart-card">
-              <h2>Applicants by Sex</h2>
-              {genderPieData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={genderPieData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label
-                    >
-                      {genderPieData.map((entry, index) => (
-                        <Cell
-                          key={`cell-gender-${index}`}
-                          fill={GENDER_COLORS[index % GENDER_COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="no-data">No gender data available</div>
-              )}
-            </div>
-
                 <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
                   <h2 className="text-lg font-semibold text-quickaid-text-primary mb-2">
                     Applicants by Civil Status

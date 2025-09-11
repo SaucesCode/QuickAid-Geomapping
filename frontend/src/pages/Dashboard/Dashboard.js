@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { api } from "../../services/api";
+import toast from "react-hot-toast";
 import "react-datepicker/dist/react-datepicker.css";
 import {
   BarChart,
@@ -17,7 +18,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
-  Users,
   Clock,
   TrendingUp,
   Calendar,
@@ -27,10 +27,11 @@ import {
   BarChart3,
   PieChart as PieChartIcon,
   Timer,
-  UserCheck,
+  LayoutDashboard,
 } from "lucide-react";
 
-const COLORS = ["#38b2ac", "#1a202c", "#2d3748", "#4ade80", "#fbbf24", "#f87171"];
+// COLORS array for charts from the primary accent and its shades
+const CHART_COLORS = ["#2563eb", "#1d4ed8", "#3b82f6", "#60a5fa", "#93c5fd", "#dbeafe"];
 
 const Dashboard = () => {
   const [totalApplicants, setTotalApplicants] = useState({ daily: 0, weekly: 0, monthly: 0 });
@@ -51,6 +52,7 @@ const Dashboard = () => {
 
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
+
     try {
       const [totalRes, avgRes, staffRes, recentRes, assistTypesRes, trendsRes, topBrgysRes] =
         await Promise.all([
@@ -72,6 +74,14 @@ const Dashboard = () => {
       setTopBarangays(topBrgysRes.data || []);
     } catch (err) {
       console.error("Dashboard fetch error:", err);
+      toast.error("Failed to load dashboard data. Please try again later.", {
+        duration: 3000,
+        style: {
+          background: "#1e293b",
+          color: "#f1f5f9",
+          border: "1px solid #334155",
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -122,338 +132,333 @@ const Dashboard = () => {
     });
   };
 
+  // Reusable card component
+  const Card = ({ title, icon: Icon, children, className = "" }) => (
+    <div
+      className={`bg-quickaid-surface rounded-lg shadow p-3 border border-slate-200 ${className}`}
+    >
+      <div className="flex items-center gap-3 mb-3">
+        {Icon && (
+          <div className="w-8 h-8 bg-quickaid-accent/10 rounded-md flex items-center justify-center">
+            <Icon className="w-5 h-5 text-quickaid-accent" />
+          </div>
+        )}
+        <h2 className="text-lg font-semibold text-quickaid-text-primary">{title}</h2>
+      </div>
+      {children}
+    </div>
+  );
+
+  // Reusable stat card component
+  const StatCard = ({
+    icon: Icon,
+    title,
+    value,
+    bgColor = "bg-quickaid-accent/10",
+    iconColor = "text-quickaid-accent",
+  }) => (
+    <div className="bg-quickaid-surface rounded-lg shadow p-3 border border-slate-200">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs font-medium text-quickaid-text-secondary mb-1">{title}</p>
+          <p className="text-lg font-bold text-quickaid-text-primary">{value}</p>
+        </div>
+        <div className={`w-8 h-8 ${bgColor} rounded-md flex items-center justify-center`}>
+          <Icon className={`w-5 h-5 ${iconColor}`} />
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="p-6 bg-quickaid-bg min-h-screen">
-        <div className="max-w-7xl mx-auto">
-          <header className="mb-8">
-            <h1 className="text-3xl font-bold text-quickaid-text-primary flex items-center gap-3">
-              <BarChart3 className="w-8 h-8 text-quickaid-accent" />
-              QuickAid Dashboard
-            </h1>
-            <p className="text-quickaid-text-secondary mt-2">
-              Analytics and insights overview
-            </p>
-          </header>
-          <div className="flex justify-center items-center h-96">
-            <div className="flex flex-col items-center">
-              <div className="w-16 h-16 border-4 border-gray-200 border-t-quickaid-accent rounded-full animate-spin"></div>
-              <span className="mt-4 text-quickaid-text-secondary">
-                Loading dashboard data...
-              </span>
-            </div>
-          </div>
+      <div className="p-4 bg-quickaid-bg">
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)]">
+          <span className="loading loading-spinner loading-lg text-quickaid-accent mb-4"></span>
+          <p className="text-quickaid-text-secondary font-medium">Loading dashboard data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-quickaid-bg min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-quickaid-text-primary flex items-center gap-3">
-            <BarChart3 className="w-8 h-8 text-quickaid-accent" />
-            QuickAid Dashboard
-          </h1>
-          <p className="text-quickaid-text-secondary mt-2">Analytics and insights overview</p>
-        </header>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-quickaid-accent bg-opacity-10 rounded-xl flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-quickaid-accent" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-quickaid-text-secondary mb-1">
-                  Today's Applicants
-                </h3>
-                <div className="text-2xl font-bold text-quickaid-text-primary">
-                  {totalApplicants.daily ?? 0}
-                </div>
-              </div>
-            </div>
+    <div className="p-4 space-y-3 bg-quickaid-bg min-h-screen">
+      {/* Header */}
+      <header className="mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-quickaid-accent/10 rounded-md flex items-center justify-center">
+            <LayoutDashboard className="w-5 h-5 text-quickaid-accent" />
           </div>
-
-          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-quickaid-accent bg-opacity-10 rounded-xl flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-quickaid-accent" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-quickaid-text-secondary mb-1">
-                  Weekly Applicants
-                </h3>
-                <div className="text-2xl font-bold text-quickaid-text-primary">
-                  {totalApplicants.weekly ?? 0}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-quickaid-accent bg-opacity-10 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-quickaid-accent" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-quickaid-text-secondary mb-1">
-                  Monthly Applicants
-                </h3>
-                <div className="text-2xl font-bold text-quickaid-text-primary">
-                  {totalApplicants.monthly ?? 0}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-quickaid-accent bg-opacity-10 rounded-xl flex items-center justify-center">
-                <Timer className="w-6 h-6 text-quickaid-accent" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-quickaid-text-secondary mb-1">
-                  Avg. Form Completion Time
-                </h3>
-                <div className="text-2xl font-bold text-quickaid-text-primary">
-                  {formatProcessingTime(avgProcessing)}
-                </div>
-              </div>
-            </div>
-          </div>
+          <h1 className="text-xl font-bold text-quickaid-text-primary">Dashboard</h1>
         </div>
+        <p className="text-sm text-quickaid-text-secondary">
+          Analytics and insights overview for QuickAid.
+        </p>
+      </header>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-center gap-3 mb-6">
-              <PieChartIcon className="w-5 h-5 text-quickaid-accent" />
-              <h2 className="text-xl font-semibold text-quickaid-text-primary">
-                Assistance Types
-              </h2>
-            </div>
-            {assistancePieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={assistancePieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {assistancePieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-72 text-quickaid-text-secondary">
-                <div className="text-center">
-                  <PieChartIcon className="w-12 h-12 text-quickaid-text-secondary mx-auto mb-2 opacity-50" />
-                  <p>No assistance type data available</p>
-                </div>
-              </div>
-            )}
-          </div>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard
+          icon={Calendar}
+          title="Today's Applicants"
+          value={totalApplicants.daily ?? 0}
+          bgColor="bg-blue-100"
+          iconColor="text-blue-600"
+        />
+        <StatCard
+          icon={BarChart3}
+          title="Weekly Applicants"
+          value={totalApplicants.weekly ?? 0}
+          bgColor="bg-indigo-100"
+          iconColor="text-indigo-600"
+        />
+        <StatCard
+          icon={TrendingUp}
+          title="Monthly Applicants"
+          value={totalApplicants.monthly ?? 0}
+          bgColor="bg-purple-100"
+          iconColor="text-purple-600"
+        />
+        <StatCard
+          icon={Timer}
+          title="Avg. Completion Time"
+          value={formatProcessingTime(avgProcessing)}
+          bgColor="bg-emerald-100"
+          iconColor="text-emerald-600"
+        />
+      </div>
 
-          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-center gap-3 mb-6">
-              <MapPin className="w-5 h-5 text-quickaid-accent" />
-              <h2 className="text-xl font-semibold text-quickaid-text-primary">
-                Top Barangays
-              </h2>
-            </div>
-            {topBarangaysData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={topBarangaysData}
-                  layout="vertical"
-                  margin={{ left: 20, right: 10, top: 5, bottom: 5 }}
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <Card title="Assistance Types" icon={PieChartIcon}>
+          {assistancePieData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={192}>
+              <PieChart>
+                <Pie
+                  data={assistancePieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={70}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    width={110}
-                    interval={0}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#38b2ac" name="Applicants" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-72 text-quickaid-text-secondary">
-                <div className="text-center">
-                  <MapPin className="w-12 h-12 text-quickaid-text-secondary mx-auto mb-2 opacity-50" />
-                  <p>No barangay data available</p>
-                </div>
+                  {assistancePieData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend
+                  iconSize={12}
+                  iconType="square"
+                  verticalAlign="bottom"
+                  align="center"
+                  wrapperStyle={{ fontSize: 10, paddingTop: "10px" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-48 text-center text-quickaid-text-secondary">
+              <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                <PieChartIcon className="w-6 h-6 text-slate-400" />
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Trends Section */}
-        <div className="mb-8">
-          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-center gap-3 mb-6">
-              <TrendingUp className="w-5 h-5 text-quickaid-accent" />
-              <h2 className="text-xl font-semibold text-quickaid-text-primary">
-                Applicant Trends (Last 30 Days)
-              </h2>
+              <p className="text-slate-500 text-sm font-medium">
+                No assistance type data available
+              </p>
             </div>
-            {trendsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
-                  data={trendsData}
-                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+          )}
+        </Card>
+
+        <Card title="Top Barangays" icon={MapPin}>
+          {topBarangaysData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={192}>
+              <BarChart
+                data={topBarangaysData}
+                layout="vertical"
+                margin={{ left: 20, right: 10, top: 5, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis type="number" tick={{ fontSize: 10, fill: "#64748b" }} />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  width={110}
+                  interval={0}
+                  tick={{ fontSize: 10, fill: "#64748b" }}
+                />
+                <Tooltip />
+                <Bar dataKey="count" fill="#2563eb" name="Applicants" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-48 text-center text-quickaid-text-secondary">
+              <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                <MapPin className="w-6 h-6 text-slate-400" />
+              </div>
+              <p className="text-slate-500 text-sm font-medium">No barangay data available</p>
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Trends Section */}
+      <div className="w-full">
+        <Card title="Applicant Trends (Last 30 Days)" icon={TrendingUp}>
+          {trendsData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={192}>
+              <LineChart data={trendsData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#64748b" }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "#64748b" }} />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#2563eb"
+                  strokeWidth={2}
+                  name="Applicants"
+                  dot={{ fill: "#2563eb", strokeWidth: 1, r: 3 }}
+                  activeDot={{ r: 5, fill: "#1d4ed8" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-48 text-center text-quickaid-text-secondary">
+              <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                <TrendingUp className="w-6 h-6 text-slate-400" />
+              </div>
+              <p className="text-slate-500 text-sm font-medium">No trend data available</p>
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Staff Activity and Recent Submissions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <Card title="Top Staff Activity" icon={Activity}>
+          {staffActivity.length > 0 ? (
+            <div className="space-y-2">
+              {staffActivity.slice(0, 6).map((s, index) => (
+                <div
+                  key={s.staff__username}
+                  className="flex justify-between items-center px-3 py-2 bg-slate-50 rounded-lg"
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="count"
-                    stroke="#38b2ac"
-                    strokeWidth={2}
-                    name="Applicants"
-                    dot={false}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-72 text-quickaid-text-secondary">
-                <div className="text-center">
-                  <TrendingUp className="w-12 h-12 text-quickaid-text-secondary mx-auto mb-2 opacity-50" />
-                  <p>No trend data available</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Staff Activity and Recent Submissions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-center gap-3 mb-6">
-              <Activity className="w-5 h-5 text-quickaid-accent" />
-              <h2 className="text-xl font-semibold text-quickaid-text-primary">
-                Top Staff Activity
-              </h2>
-            </div>
-            {staffActivity.length > 0 ? (
-              <div className="space-y-3">
-                {staffActivity.slice(0, 5).map((s, index) => (
-                  <div
-                    key={s.staff__username}
-                    className="flex justify-between items-center bg-quickaid-bg p-4 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-quickaid-accent bg-opacity-10 rounded-full flex items-center justify-center">
-                        <UserCheck className="w-4 h-4 text-quickaid-accent" />
-                      </div>
-                      <span className="font-medium text-quickaid-text-primary">
-                        {s.staff__username}
-                      </span>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-8 h-8 rounded-md flex items-center justify-center text-white font-semibold text-sm ${
+                        index === 0
+                          ? "bg-gradient-to-br from-yellow-400 to-amber-500"
+                          : index === 1
+                          ? "bg-gradient-to-br from-gray-300 to-gray-500"
+                          : index === 2
+                          ? "bg-gradient-to-br from-amber-600 to-amber-700"
+                          : "bg-gradient-to-br from-blue-500 to-blue-600"
+                      }`}
+                    >
+                      {s.staff__username.charAt(0).toUpperCase()}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-quickaid-text-secondary bg-quickaid-surface px-3 py-1 rounded-full border">
-                        {s.count} applicants
-                      </span>
-                      {index === 0 && (
-                        <span className="text-xs bg-quickaid-accent text-white px-2 py-1 rounded-full">
-                          Top
-                        </span>
-                      )}
+                    <div>
+                      <p className="font-semibold text-sm text-quickaid-text-primary">
+                        {s.staff__username}
+                      </p>
+                      <p className="text-xs text-quickaid-text-secondary">Staff Member</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-48 text-quickaid-text-secondary">
-                <div className="text-center">
-                  <Activity className="w-12 h-12 text-quickaid-text-secondary mx-auto mb-2 opacity-50" />
-                  <p>No activity recorded</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-center gap-3 mb-6">
-              <Clock className="w-5 h-5 text-quickaid-accent" />
-              <h2 className="text-xl font-semibold text-quickaid-text-primary">
-                Recent Submissions
-              </h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-quickaid-text-secondary uppercase bg-quickaid-bg">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium">Name</th>
-                    <th className="px-4 py-3 text-left font-medium">Barangay</th>
-                    <th className="px-4 py-3 text-left font-medium">Assistance</th>
-                    <th className="px-4 py-3 text-left font-medium">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentApplicants.length > 0 ? (
-                    recentApplicants.slice(0, 5).map((a, idx) => (
-                      <tr
-                        key={a.id || idx}
-                        className="border-b border-gray-100 last:border-b-0 hover:bg-quickaid-bg transition-colors duration-200"
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-slate-600 bg-white px-2 py-1 rounded-full border border-slate-200">
+                      {s.count} applications
+                    </span>
+                    {index < 3 && (
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full font-bold ${
+                          index === 0
+                            ? "bg-yellow-100 text-yellow-800"
+                            : index === 1
+                            ? "bg-gray-100 text-gray-800"
+                            : "bg-amber-100 text-amber-800"
+                        }`}
                       >
-                        <td className="px-4 py-3 text-quickaid-text-primary font-medium">
+                        #{index + 1}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-56 text-center text-quickaid-text-secondary">
+              <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                <Activity className="w-6 h-6 text-slate-400" />
+              </div>
+              <p className="text-slate-500 text-sm font-medium">No activity recorded</p>
+            </div>
+          )}
+        </Card>
+
+        <Card title="Recent Submissions" icon={Clock}>
+          <div className="overflow-x-auto bg-quickaid-surface rounded-lg shadow-sm">
+            <table className="table w-full text-xs md:text-sm">
+              <thead>
+                <tr className="text-left bg-gray-100 text-gray-700 text-xs uppercase">
+                  <th className="py-1.5 px-2 font-semibold rounded-l-lg">Name</th>
+                  <th className="py-1.5 px-2 font-semibold">Barangay</th>
+                  <th className="py-1.5 px-2 font-semibold">Assistance</th>
+                  <th className="py-1.5 px-2 font-semibold rounded-r-lg">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentApplicants.length > 0 ? (
+                  recentApplicants.slice(0, 5).map((a, idx) => (
+                    <tr
+                      key={a.id || idx}
+                      className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="py-1.5 px-2">
+                        <p className="font-medium text-quickaid-text-primary">
                           {`${a.background_info.first_name || ""} ${
                             a.background_info.last_name || ""
                           }`.trim()}
-                        </td>
-                        <td className="px-4 py-3 text-quickaid-text-secondary">
+                        </p>
+                      </td>
+                      <td className="py-1.5 px-2">
+                        <p className="text-xs text-quickaid-text-secondary">
                           {a.background_info.barangay}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-xs bg-quickaid-accent bg-opacity-10 text-quickaid-accent px-2 py-1 rounded-full">
-                            {a.type_of_assistance}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-quickaid-text-secondary text-xs">
+                        </p>
+                      </td>
+                      <td className="py-1.5 px-2">
+                        <span className="badge badge-primary badge-outline text-xs">
+                          {a.type_of_assistance}
+                        </span>
+                      </td>
+                      <td className="py-1.5 px-2">
+                        <p className="text-xs text-quickaid-text-secondary">
                           {formatDate(new Date(a.date_filled))}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan="4"
-                        className="text-center px-4 py-8 text-quickaid-text-secondary"
-                      >
-                        <div className="flex flex-col items-center">
-                          <FileText className="w-8 h-8 text-quickaid-text-secondary mb-2 opacity-50" />
-                          <p>No recent applicants</p>
-                        </div>
+                        </p>
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="text-center py-6">
+                      <div className="flex flex-col items-center text-quickaid-text-secondary">
+                        <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                          <FileText className="w-6 h-6 text-slate-400" />
+                        </div>
+                        <p className="text-slate-500 text-sm font-medium">
+                          No recent applicants
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

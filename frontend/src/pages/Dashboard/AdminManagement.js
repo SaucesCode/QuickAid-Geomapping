@@ -13,6 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  CheckCircle,
+  AlertTriangle,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -25,11 +27,12 @@ const AdminManagement = () => {
     last_name: "",
     email: "",
   });
-  const [message, setMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showEditPassword, setShowEditPassword] = useState(false);
+  const [approvalHistory, setApprovalHistory] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const token = localStorage.getItem("accessToken");
 
   // Activity logs states
@@ -49,6 +52,7 @@ const AdminManagement = () => {
   useEffect(() => {
     fetchStaff();
     fetchActivityLogs();
+    fetchApprovalHistory();
   }, [currentPage]);
 
   const fetchStaff = async () => {
@@ -93,6 +97,20 @@ const AdminManagement = () => {
     }
   };
 
+  const fetchApprovalHistory = async () => {
+    setIsLoadingHistory(true);
+    try {
+      const res = await api.get(`/approved/history/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setApprovalHistory(res.data || []);
+    } catch {
+      toast.error("Error loading approval batch history");
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
   const handleChange = e => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -120,33 +138,42 @@ const AdminManagement = () => {
     toast(
       t => (
         <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center">
-          <p className="text-gray-800">Are you sure you want to delete this staff member?</p>
-          <div className="mt-4 space-x-2">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+            <p className="text-gray-800 font-medium">Confirm Deletion</p>
+          </div>
+          <p className="text-gray-600 text-sm text-center mb-4">
+            Are you sure you want to delete this staff member? This action cannot be undone.
+          </p>
+          <div className="flex gap-2 w-full">
             <button
-              className="btn btn-error"
+              className="flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
               onClick={async () => {
                 toast.dismiss(t.id);
                 try {
                   await api.delete(`/delete-staff/${id}/`, {
                     headers: { Authorization: `Bearer ${token}` },
                   });
-                  toast.success("✅ Staff deleted");
+                  toast.success("Staff deleted successfully");
                   fetchStaff();
                 } catch {
-                  toast.error("❌ Failed to delete staff");
+                  toast.error("Failed to delete staff");
                 }
               }}
             >
-              <Trash2 size={16} /> Delete
+              <Trash2 size={14} /> Delete
             </button>
-            <button className="btn" onClick={() => toast.dismiss(t.id)}>
+            <button
+              className="flex-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+              onClick={() => toast.dismiss(t.id)}
+            >
               Cancel
             </button>
           </div>
         </div>
       ),
       { duration: Infinity }
-    ); // Set duration to Infinity to keep the toast open until a button is clicked
+    );
   };
 
   const handleUpdate = async () => {
@@ -169,8 +196,8 @@ const AdminManagement = () => {
   const getStatusBadge = lastActive => {
     if (!lastActive) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+          <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
           Offline
         </span>
       );
@@ -182,23 +209,23 @@ const AdminManagement = () => {
 
     if (diff < 60) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+          <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
           Online
         </span>
       );
     }
     if (diff < 300) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+          <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></div>
           Idle
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+        <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
         Offline
       </span>
     );
@@ -216,7 +243,9 @@ const AdminManagement = () => {
     const style = actionStyles[action?.toLowerCase()] || "bg-gray-100 text-gray-800";
 
     return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${style}`}>
+      <span
+        className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${style}`}
+      >
         {action || "Unknown"}
       </span>
     );
@@ -262,7 +291,9 @@ const AdminManagement = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-quickaid-text-primary flex items-center gap-3">
-              <Users className="w-8 h-8 text-quickaid-accent" />
+              <div className="w-10 h-10 bg-quickaid-accent/10 rounded-xl flex items-center justify-center">
+                <Users className="w-6 h-6 text-quickaid-accent" />
+              </div>
               Admin Management
             </h1>
             <p className="text-quickaid-text-secondary mt-2">
@@ -271,38 +302,111 @@ const AdminManagement = () => {
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="btn bg-quickaid-accent hover:bg-teal-600 text-white border-quickaid-accent flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-quickaid-accent hover:bg-teal-600 text-white rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             <UserPlus className="w-4 h-4" />
             Add Staff
           </button>
         </div>
 
+        {/* Staff Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-quickaid-text-secondary">Total Staff</p>
+                <p className="text-2xl font-bold text-quickaid-text-primary">
+                  {staffList.length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-quickaid-text-secondary">
+                  Online Staff
+                </p>
+                <p className="text-2xl font-bold text-green-600">
+                  {
+                    staffList.filter(staff => {
+                      if (!staff.last_active) return false;
+                      const diff = (new Date() - new Date(staff.last_active)) / 1000;
+                      return diff < 60;
+                    }).length
+                  }
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-quickaid-text-secondary">
+                  Recent Activities
+                </p>
+                <p className="text-2xl font-bold text-quickaid-text-primary">
+                  {activityLogs.length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                <Activity className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* Staff List Section */}
           <div className="xl:col-span-2">
-            <div className="card bg-quickaid-surface shadow-md rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <Users className="w-5 h-5 text-quickaid-accent" />
-                <h2 className="text-xl font-semibold text-quickaid-text-primary">
-                  Staff List
-                </h2>
+            <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-quickaid-accent/10 rounded-lg flex items-center justify-center">
+                    <Users className="w-4 h-4 text-quickaid-accent" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-quickaid-text-primary">
+                    Staff Members
+                  </h2>
+                </div>
+                <div className="text-sm text-quickaid-text-secondary">
+                  {staffList.length} total
+                </div>
               </div>
 
               {isLoadingStaff ? (
-                <div className="flex items-center justify-center h-48">
-                  <Loader2 className="w-8 h-8 text-quickaid-accent animate-spin" />
+                <div className="flex flex-col items-center justify-center h-48">
+                  <Loader2 className="w-8 h-8 text-quickaid-accent animate-spin mb-3" />
+                  <p className="text-quickaid-text-secondary">Loading staff members...</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="text-quickaid-text-secondary uppercase bg-quickaid-bg">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-medium">Status</th>
-                        <th className="px-4 py-3 text-left font-medium">Username</th>
-                        <th className="px-4 py-3 text-left font-medium">Full Name</th>
-                        <th className="px-4 py-3 text-left font-medium">Email</th>
-                        <th className="px-4 py-3 text-center font-medium">Actions</th>
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="px-4 py-3 text-left font-medium text-quickaid-text-secondary">
+                          Status
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-quickaid-text-secondary">
+                          Username
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-quickaid-text-secondary">
+                          Full Name
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-quickaid-text-secondary">
+                          Email
+                        </th>
+                        <th className="px-4 py-3 text-center font-medium text-quickaid-text-secondary">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -310,23 +414,23 @@ const AdminManagement = () => {
                         staffList.map(staff => (
                           <tr
                             key={staff.id}
-                            className="border-b border-gray-100 last:border-b-0 hover:bg-quickaid-bg transition-colors"
+                            className="border-b border-gray-50 last:border-b-0 hover:bg-quickaid-bg/50 transition-colors"
                           >
-                            <td className="px-4 py-3">{getStatusBadge(staff.last_active)}</td>
-                            <td className="px-4 py-3 font-medium text-quickaid-text-primary">
+                            <td className="px-4 py-4">{getStatusBadge(staff.last_active)}</td>
+                            <td className="px-4 py-4 font-medium text-quickaid-text-primary">
                               {staff.username}
                             </td>
-                            <td className="px-4 py-3 text-quickaid-text-secondary">
+                            <td className="px-4 py-4 text-quickaid-text-secondary">
                               {staff.first_name} {staff.last_name}
                             </td>
-                            <td className="px-4 py-3 text-quickaid-text-secondary">
+                            <td className="px-4 py-4 text-quickaid-text-secondary">
                               {staff.email}
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-4 py-4">
                               <div className="flex items-center justify-center gap-2">
                                 <button
                                   onClick={() => setEditData(staff)}
-                                  className="p-2 text-quickaid-accent hover:bg-quickaid-bg rounded-lg transition-colors"
+                                  className="p-2 text-quickaid-accent hover:bg-quickaid-accent/10 rounded-lg transition-colors"
                                   title="Edit Staff"
                                 >
                                   <Edit3 className="w-4 h-4" />
@@ -346,11 +450,18 @@ const AdminManagement = () => {
                         <tr>
                           <td
                             colSpan="5"
-                            className="text-center px-4 py-8 text-quickaid-text-secondary"
+                            className="text-center px-4 py-12 text-quickaid-text-secondary"
                           >
                             <div className="flex flex-col items-center">
-                              <Users className="w-8 h-8 text-quickaid-text-secondary mb-2 opacity-50" />
-                              <p>No staff members found</p>
+                              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                <Users className="w-8 h-8 text-quickaid-text-secondary opacity-50" />
+                              </div>
+                              <p className="text-lg font-medium mb-1">
+                                No staff members found
+                              </p>
+                              <p className="text-sm">
+                                Start by adding your first staff member
+                              </p>
                             </div>
                           </td>
                         </tr>
@@ -364,17 +475,20 @@ const AdminManagement = () => {
 
           {/* Activity Logs Section */}
           <div className="xl:col-span-1">
-            <div className="card bg-quickaid-surface shadow-md rounded-xl p-6">
+            <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <Activity className="w-5 h-5 text-quickaid-accent" />
+                <div className="w-8 h-8 bg-quickaid-accent/10 rounded-lg flex items-center justify-center">
+                  <Activity className="w-4 h-4 text-quickaid-accent" />
+                </div>
                 <h2 className="text-xl font-semibold text-quickaid-text-primary">
                   Recent Activity
                 </h2>
               </div>
 
               {isLoadingLogs ? (
-                <div className="flex items-center justify-center h-48">
-                  <Loader2 className="w-8 h-8 text-quickaid-accent animate-spin" />
+                <div className="flex flex-col items-center justify-center h-48">
+                  <Loader2 className="w-8 h-8 text-quickaid-accent animate-spin mb-3" />
+                  <p className="text-quickaid-text-secondary">Loading activities...</p>
                 </div>
               ) : (
                 <>
@@ -383,13 +497,13 @@ const AdminManagement = () => {
                       currentItems.map(log => (
                         <div
                           key={log.id}
-                          className="p-3 bg-quickaid-bg rounded-lg border border-gray-100"
+                          className="p-4 bg-quickaid-bg/50 rounded-xl border border-gray-100 hover:border-quickaid-accent/20 transition-colors"
                         >
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <span className="text-sm font-medium text-quickaid-text-primary">
                               {log.staff_member || "Unknown"}
                             </span>
-                            <span className="text-xs text-quickaid-text-secondary">
+                            <span className="text-xs text-quickaid-text-secondary whitespace-nowrap">
                               {format(new Date(log.timestamp), "MMM d, h:mm a")}
                             </span>
                           </div>
@@ -401,8 +515,13 @@ const AdminManagement = () => {
                       ))
                     ) : (
                       <div className="text-center py-8 text-quickaid-text-secondary">
-                        <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p>No activity logs found</p>
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                          <Activity className="w-8 h-8 opacity-50" />
+                        </div>
+                        <p className="font-medium mb-1">No activity logs found</p>
+                        <p className="text-xs">
+                          Activity will appear here when staff members perform actions
+                        </p>
                       </div>
                     )}
                   </div>
@@ -422,7 +541,7 @@ const AdminManagement = () => {
                             setItemsPerPage(Number(e.target.value));
                             setCurrentPage(1);
                           }}
-                          className="select select-sm select-bordered text-xs"
+                          className="select select-sm select-bordered text-xs border-gray-200 focus:border-quickaid-accent"
                         >
                           <option value={5}>5 per page</option>
                           <option value={10}>10 per page</option>
@@ -433,11 +552,11 @@ const AdminManagement = () => {
                         <button
                           onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                           disabled={currentPage === 1}
-                          className="p-1 text-quickaid-text-secondary hover:text-quickaid-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-1.5 text-quickaid-text-secondary hover:text-quickaid-accent hover:bg-quickaid-accent/10 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           <ChevronLeft className="w-4 h-4" />
                         </button>
-                        <span className="text-xs text-quickaid-text-secondary px-2">
+                        <span className="text-xs text-quickaid-text-secondary px-3 py-1.5">
                           {currentPage} / {totalPages}
                         </span>
                         <button
@@ -445,7 +564,7 @@ const AdminManagement = () => {
                             setCurrentPage(prev => Math.min(prev + 1, totalPages))
                           }
                           disabled={currentPage === totalPages}
-                          className="p-1 text-quickaid-text-secondary hover:text-quickaid-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-1.5 text-quickaid-text-secondary hover:text-quickaid-accent hover:bg-quickaid-accent/10 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           <ChevronRight className="w-4 h-4" />
                         </button>
@@ -458,16 +577,126 @@ const AdminManagement = () => {
           </div>
         </div>
 
+        {/* Approval Batch History Section */}
+        <div className="mt-8">
+          <div className="card bg-quickaid-surface shadow-md rounded-xl p-6 border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-quickaid-accent/10 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-4 h-4 text-quickaid-accent" />
+                </div>
+                <h2 className="text-xl font-semibold text-quickaid-text-primary">
+                  Approval Batch History
+                </h2>
+              </div>
+              <div className="text-sm text-quickaid-text-secondary">
+                {approvalHistory.length} batches
+              </div>
+            </div>
+
+            {isLoadingHistory ? (
+              <div className="flex flex-col items-center justify-center h-48">
+                <Loader2 className="w-8 h-8 text-quickaid-accent animate-spin mb-3" />
+                <p className="text-quickaid-text-secondary">Loading approval history...</p>
+              </div>
+            ) : approvalHistory && approvalHistory.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="px-4 py-3 text-left font-medium text-quickaid-text-secondary">
+                        File
+                      </th>
+                      <th className="px-4 py-3 text-left font-medium text-quickaid-text-secondary">
+                        Uploaded By
+                      </th>
+                      <th className="px-4 py-3 text-left font-medium text-quickaid-text-secondary">
+                        Date
+                      </th>
+                      <th className="px-4 py-3 text-center font-medium text-quickaid-text-secondary">
+                        Processed
+                      </th>
+                      <th className="px-4 py-3 text-center font-medium text-quickaid-text-secondary">
+                        Approved
+                      </th>
+                      <th className="px-4 py-3 text-center font-medium text-quickaid-text-secondary">
+                        Already Approved
+                      </th>
+                      <th className="px-4 py-3 text-center font-medium text-quickaid-text-secondary">
+                        Not Found
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {approvalHistory.map(batch => (
+                      <tr
+                        key={batch.id}
+                        className="border-b border-gray-50 last:border-b-0 hover:bg-quickaid-bg/50 transition-colors"
+                      >
+                        <td className="px-4 py-4 font-medium text-quickaid-text-primary">
+                          {batch.file_name}
+                        </td>
+                        <td className="px-4 py-4 text-quickaid-text-secondary">
+                          {batch.uploaded_by}
+                        </td>
+                        <td className="px-4 py-4 text-quickaid-text-secondary">
+                          {format(new Date(batch.uploaded_at), "MMM d, yyyy h:mm a")}
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                            {batch.total_processed}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                            {batch.total_approved}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                            {batch.total_already_approved}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                            {batch.total_not_found}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-quickaid-text-secondary">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                  <CheckCircle className="w-8 h-8 opacity-50" />
+                </div>
+                <p className="text-lg font-medium mb-1">No approval batches found</p>
+                <p className="text-sm">
+                  Approval batches will appear here when files are processed
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Add Staff Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="modal-box bg-quickaid-surface rounded-xl shadow-lg p-6 w-full max-w-md">
-              <h3 className="text-xl font-semibold text-quickaid-text-primary mb-6 flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-quickaid-accent" />
-                Register New Staff
-              </h3>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-lg w-full max-w-md">
+              {/* Modal Header */}
+              <div className="flex items-center gap-3 p-6 border-b border-gray-100">
+                <div className="w-10 h-10 bg-quickaid-accent/10 rounded-full flex items-center justify-center">
+                  <UserPlus className="w-5 h-5 text-quickaid-accent" />
+                </div>
+                <h2 className="text-xl font-semibold text-quickaid-text-primary">
+                  Register New Staff
+                </h2>
+              </div>
 
-              <div className="space-y-4">
+              {/* Modal Content */}
+              <div className="p-6 space-y-4">
                 <div className="form-control">
                   <label className="block text-sm font-medium text-quickaid-text-primary mb-1">
                     Username
@@ -477,7 +706,7 @@ const AdminManagement = () => {
                     value={formData.username}
                     onChange={handleChange}
                     placeholder="Enter username"
-                    className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent"
+                    className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent border-gray-200"
                   />
                 </div>
 
@@ -492,7 +721,7 @@ const AdminManagement = () => {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Enter password"
-                      className="input input-bordered w-full pr-10 focus:ring-2 focus:ring-quickaid-accent"
+                      className="input input-bordered w-full pr-10 focus:ring-2 focus:ring-quickaid-accent border-gray-200"
                     />
                     <button
                       type="button"
@@ -518,7 +747,7 @@ const AdminManagement = () => {
                       value={formData.first_name}
                       onChange={handleChange}
                       placeholder="First name"
-                      className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent"
+                      className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent border-gray-200"
                     />
                   </div>
 
@@ -531,7 +760,7 @@ const AdminManagement = () => {
                       value={formData.last_name}
                       onChange={handleChange}
                       placeholder="Last name"
-                      className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent"
+                      className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent border-gray-200"
                     />
                   </div>
                 </div>
@@ -546,24 +775,25 @@ const AdminManagement = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Enter email address"
-                    className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent"
+                    className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent border-gray-200"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={handleSubmit}
-                  className="btn flex-1 bg-quickaid-accent hover:bg-teal-600 text-white border-quickaid-accent"
-                >
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Register Staff
-                </button>
+              {/* Modal Footer */}
+              <div className="flex gap-3 p-6 border-t border-gray-100 bg-gray-50/50">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="btn flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  className="flex-1 px-4 py-2.5 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors font-medium"
                 >
                   Cancel
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-quickaid-accent hover:bg-teal-600 text-white rounded-lg transition-colors font-medium"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Register Staff
                 </button>
               </div>
             </div>
@@ -572,14 +802,20 @@ const AdminManagement = () => {
 
         {/* Edit Staff Modal */}
         {editData && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="modal-box bg-quickaid-surface rounded-xl shadow-lg p-6 w-full max-w-md">
-              <h3 className="text-xl font-semibold text-quickaid-text-primary mb-6 flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-quickaid-accent" />
-                Edit Staff Member
-              </h3>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-lg w-full max-w-md">
+              {/* Modal Header */}
+              <div className="flex items-center gap-3 p-6 border-b border-gray-100">
+                <div className="w-10 h-10 bg-quickaid-accent/10 rounded-full flex items-center justify-center">
+                  <Edit3 className="w-5 h-5 text-quickaid-accent" />
+                </div>
+                <h2 className="text-xl font-semibold text-quickaid-text-primary">
+                  Edit Staff Member
+                </h2>
+              </div>
 
-              <div className="space-y-4">
+              {/* Modal Content */}
+              <div className="p-6 space-y-4">
                 <div className="form-control">
                   <label className="block text-sm font-medium text-quickaid-text-primary mb-1">
                     Username
@@ -588,7 +824,7 @@ const AdminManagement = () => {
                     name="username"
                     value={editData.username}
                     onChange={e => setEditData({ ...editData, username: e.target.value })}
-                    className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent"
+                    className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent border-gray-200"
                   />
                 </div>
 
@@ -601,7 +837,7 @@ const AdminManagement = () => {
                       name="first_name"
                       value={editData.first_name}
                       onChange={e => setEditData({ ...editData, first_name: e.target.value })}
-                      className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent"
+                      className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent border-gray-200"
                     />
                   </div>
 
@@ -613,7 +849,7 @@ const AdminManagement = () => {
                       name="last_name"
                       value={editData.last_name}
                       onChange={e => setEditData({ ...editData, last_name: e.target.value })}
-                      className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent"
+                      className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent border-gray-200"
                     />
                   </div>
                 </div>
@@ -627,7 +863,7 @@ const AdminManagement = () => {
                     type="email"
                     value={editData.email}
                     onChange={e => setEditData({ ...editData, email: e.target.value })}
-                    className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent"
+                    className="input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent border-gray-200"
                   />
                 </div>
 
@@ -641,7 +877,7 @@ const AdminManagement = () => {
                       type={showEditPassword ? "text" : "password"}
                       placeholder="Enter new password or leave blank"
                       onChange={e => setEditData({ ...editData, password: e.target.value })}
-                      className="input input-bordered w-full pr-10 focus:ring-2 focus:ring-quickaid-accent"
+                      className="input input-bordered w-full pr-10 focus:ring-2 focus:ring-quickaid-accent border-gray-200"
                     />
                     <button
                       type="button"
@@ -658,19 +894,20 @@ const AdminManagement = () => {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={handleUpdate}
-                  className="btn flex-1 bg-quickaid-accent hover:bg-teal-600 text-white border-quickaid-accent"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </button>
+              {/* Modal Footer */}
+              <div className="flex gap-3 p-6 border-t border-gray-100 bg-gray-50/50">
                 <button
                   onClick={() => setEditData(null)}
-                  className="btn flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  className="flex-1 px-4 py-2.5 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors font-medium"
                 >
                   Cancel
+                </button>
+                <button
+                  onClick={handleUpdate}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-quickaid-accent hover:bg-teal-600 text-white rounded-lg transition-colors font-medium"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Changes
                 </button>
               </div>
             </div>

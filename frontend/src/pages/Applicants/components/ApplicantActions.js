@@ -1,8 +1,9 @@
 import React from "react";
-import { CSVLink } from "react-csv";
-import { Search, Download } from "lucide-react";
+import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const ApplicantActions = ({ searchTerm, setSearchTerm, applicants, csvHeaders }) => {
+const ApplicantActions = ({ searchTerm, setSearchTerm }) => {
+  const navigate = useNavigate();
   return (
     <div className="bg-white rounded-xl shadow-md p-6 mb-6">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
@@ -16,15 +17,12 @@ const ApplicantActions = ({ searchTerm, setSearchTerm, applicants, csvHeaders })
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
         </div>
-        <CSVLink
-          data={applicants}
-          headers={csvHeaders}
-          filename="applicants.csv"
-          className="flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg transition-colors"
+        <button
+          onClick={() => navigate("/export-applicants")}
+          className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg transition-colors"
         >
-          <Download className="w-4 h-4" />
-          Export CSV
-        </CSVLink>
+          Go to Export Page
+        </button>
       </div>
     </div>
   );
