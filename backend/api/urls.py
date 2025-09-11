@@ -12,7 +12,7 @@ urlpatterns = [
     # Staff Registration (Only Admins Can Do This)
     path("register_staff/", register_staff, name="register_staff"),
     path("staff-list/", list_staff, name="staff_list"),
-    path("delete-staff/<int:user_id>/", delete_staff, name="delete_staff"),
+    path("delete-staff/<int:staff_id>/", delete_staff, name="delete_staff"),
     path("update-staff/<int:staff_id>/", update_staff, name="update-staff"),
 
     path('applicants/', list_applicants, name='applicants'),
@@ -20,6 +20,7 @@ urlpatterns = [
     path('applicants/<int:applicant_id>/', applicant_detail, name='applicant_detail'),
     path('list-archived-applicants/', list_archived_applicants, name='list_archived_applicants'),
     path('restore-applicant/<int:pk>/', restore_archived_applicant, name='restore_applicant'),
+    path("export-applicants/", export_applicants_csv, name="export_applicants"),
     path("approved/upload/", upload_approved_list, name="upload_approved_list"),
     path("approved/batches/", approval_batches, name="approval-batches"),
     path("approved/batch/<int:batch_id>/approvals/", approvals_for_batch, name="approvals-for-batch"),

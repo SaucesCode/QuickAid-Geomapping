@@ -29,7 +29,18 @@ const Login = () => {
 
     try {
       await loginStaff(username, password);
-      toast.success("Login successful 🎉");
+      toast.success("Successfully logged in", {
+        duration: 3000,
+        style: {
+          background: "#1e293b",
+          color: "#f1f5f9",
+          border: "1px solid #334155",
+        },
+        iconTheme: {
+          primary: "#22c55e",
+          secondary: "#f1f5f9",
+        },
+      });
       navigate("/dashboard");
     } catch (err) {
       setError("Invalid credentials. Please try again.");
@@ -48,7 +59,14 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex bg-quickaid-bg">
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        containerStyle={{
+          top: 80,
+          right: 20,
+        }}
+      />
 
       {/* Left Image Section */}
       <div className="hidden lg:flex lg:w-1/2 relative">

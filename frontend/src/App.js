@@ -2,6 +2,11 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import SettingsPage from "./pages/auth/SettingsPage";
 
+
+import Dashboard from "./pages/dashboard/Dashboard";
+import Analytics from "./pages/analytics/Analytics";
+import MapComponent from "./pages/maps/MapComponent";
+import AdminManagement from "./pages/dashboard/AdminManagement";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Analytics from "./pages/Dashboard/Analytics";
 import MapComponent from "./pages/Dashboard/MapComponent";
@@ -11,6 +16,7 @@ import ApplicantForm from "./pages/applicants/ApplicantForm";
 import Applicants from "./pages/applicants/Applicants";
 import Approved from "./pages/applicants/Approved";
 import ArchiveApplicants from "./pages/applicants/ArchiveApplicants";
+import ExportApplicants from "./pages/applicants/ExportApplicants";
 
 import MultiStepForm from "./pages/forms/MultiStepForm";
 import PrintPage from "./pages/print/PrintPage";
@@ -28,6 +34,7 @@ import HeroSection from "./components/Sections/HeroSection";
 import BeneficiariesSection from "./components/Sections/BeneficiariesSection";
 import Footer from "./components/LandingPage/Footer";
 import "./index.css";
+import HeatMap from "./pages/maps/HeatMap";
 
 //
 function App() {
@@ -75,9 +82,11 @@ function App() {
           />
           <Route path="register-applicant" element={<ApplicantForm />} />
           <Route path="geomapping" element={<MapComponent />} />
+          <Route path="heatmap" element={<HeatMap />} />
           <Route path="admin-management" element={<AdminManagement />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="applicants" element={<Applicants />} />
+          <Route path="export-applicants" element={<ExportApplicants />} />
           <Route path="approved" element={<Approved />} />
           <Route path="archived-applicants" element={<ArchiveApplicants />} />
           <Route path="settings" element={<SettingsPage />} />

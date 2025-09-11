@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { User, Lock, Palette, Check, X, Edit3, Mail, UserCheck } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 import { API_URL } from "../../services/api";
 
 const SettingsPage = () => {
@@ -6,9 +8,11 @@ const SettingsPage = () => {
   const [user, setUser] = useState(null);
   const [activeSection, setActiveSection] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Appearance states
+  const [fontSize, setFontSize] = useState(localStorage.getItem("fontSize") || "base");
+  const [language, setLanguage] = useState(localStorage.getItem("language") || "en");
 
   const [editedUser, setEditedUser] = useState({
     username: "",
@@ -25,11 +29,12 @@ const SettingsPage = () => {
   });
 
   const settingOptions = [
-    { id: "profile", label: "Profile Info", icon: "👤" },
-    { id: "password", label: "Change Password", icon: "🔐" },
-    { id: "appearance", label: "Appearance", icon: "🎨" },
+    { id: "profile", label: "Profile Info", icon: User },
+    { id: "password", label: "Change Password", icon: Lock },
+    { id: "appearance", label: "Appearance", icon: Palette },
   ];
 
+  // ===== EFFECTS =====
   useEffect(() => {
     document.title = "QuickAid | Settings";
     return () => {
@@ -37,6 +42,20 @@ const SettingsPage = () => {
     };
   }, []);
 
+  // Font size persistence
+  useEffect(() => {
+    document.documentElement.classList.remove("text-sm", "text-base", "text-lg");
+    document.documentElement.classList.add(`text-${fontSize}`);
+    localStorage.setItem("fontSize", fontSize);
+  }, [fontSize]);
+
+  // Language persistence
+  useEffect(() => {
+    localStorage.setItem("language", language);
+    // Hook into i18n here if needed: i18n.changeLanguage(language)
+  }, [language]);
+
+  // ===== USER INIT =====
   useEffect(() => {
     const initializeUser = async () => {
       try {
@@ -78,7 +97,7 @@ const SettingsPage = () => {
         }
       } catch (error) {
         console.error("Error initializing user:", error);
-        setError("Failed to load user data. Please try logging in again.");
+        toast.error("Failed to load user data. Please try logging in again.");
         setTimeout(() => {
           window.location.href = "/login";
         }, 2000);
@@ -90,11 +109,10 @@ const SettingsPage = () => {
     initializeUser();
   }, [storedUser]);
 
+  // ===== HANDLERS =====
   const handleSectionChange = sectionId => {
     setActiveSection(sectionId);
     setIsEditing(false);
-    setError(null);
-    setSuccess(null);
   };
 
   const handleEdit = () => setIsEditing(true);
@@ -106,10 +124,11 @@ const SettingsPage = () => {
 
   const handleSave = async () => {
     try {
-      setError(null);
-      setSuccess(null);
       const token = localStorage.getItem("accessToken");
-      if (!token) throw new Error("Authentication token not found. Please login again.");
+      if (!token) {
+        toast.error("Authentication token not found. Please login again.");
+        return;
+      }
 
       const response = await fetch(`${API_URL}/users/update-profile/`, {
         method: "PUT",
@@ -121,30 +140,37 @@ const SettingsPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update user. Please try again.");
+        toast.error("Failed to update profile. Please try again.");
+        return;
       }
 
       const updatedUser = await response.json();
       setUser(updatedUser);
       localStorage.setItem("userData", JSON.stringify(updatedUser));
       setIsEditing(false);
-      setSuccess("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
     } catch (error) {
-      setError(error.message);
+      toast.error("An error occurred while updating your profile.");
     }
   };
 
   const handlePasswordChange = async () => {
     try {
-      setError(null);
-      setSuccess(null);
-
       if (passwordData.new_password !== passwordData.confirm_password) {
-        throw new Error("New passwords do not match");
+        toast.error("New passwords do not match");
+        return;
+      }
+
+      if (passwordData.new_password.length < 8) {
+        toast.error("Password must be at least 8 characters long");
+        return;
       }
 
       const token = localStorage.getItem("accessToken");
-      if (!token) throw new Error("Authentication token not found. Please login again.");
+      if (!token) {
+        toast.error("Authentication token not found. Please login again.");
+        return;
+      }
 
       const response = await fetch(`${API_URL}/users/change-password/`, {
         method: "POST",
@@ -156,7 +182,8 @@ const SettingsPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to change password. Please try again.");
+        toast.error("Failed to change password. Please check your current password.");
+        return;
       }
 
       setPasswordData({
@@ -164,238 +191,443 @@ const SettingsPage = () => {
         new_password: "",
         confirm_password: "",
       });
-      setSuccess("Password changed successfully!");
+      toast.success("Password changed successfully!");
     } catch (error) {
-      setError(error.message);
+      toast.error("An error occurred while changing your password.");
     }
   };
 
+  // ===== RENDER =====
   if (isLoading) {
-    return <div className="text-center text-gray-500">Loading settings...</div>;
+    return (
+      <div className="p-4 bg-quickaid-bg min-h-screen">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="loading loading-spinner loading-lg text-quickaid-accent"></div>
+            <span className="ml-3 text-quickaid-text-secondary">Loading settings...</span>
+          </div>
+        </div>
+        <Toaster />
+      </div>
+    );
   }
 
   if (!user) {
     return (
-      <div className="text-center text-red-500">
-        ⚠️ No user data found. Please login again.
+      <div className="p-4 bg-quickaid-bg min-h-screen">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <X className="w-8 h-8 text-red-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-red-600 mb-2">No User Data Found</h2>
+            <p className="text-xs text-quickaid-text-secondary">
+              Please login again to access settings.
+            </p>
+          </div>
+        </div>
+        <Toaster />
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-quickaid-bg min-h-screen">
+    <div className="p-4 bg-quickaid-bg min-h-screen">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-quickaid-text-primary">Settings</h1>
+        <div className="mb-8">
+          <h1 className="text-xl font-bold text-quickaid-text-primary mb-2">Settings</h1>
           <p className="text-sm text-quickaid-text-secondary">
             Manage your account settings and preferences
           </p>
         </div>
 
-        {/* Layout */}
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-3">
           {/* Sidebar */}
-          <div className="w-64 bg-quickaid-surface shadow-md rounded-xl p-4">
-            <ul className="space-y-2">
-              {settingOptions.map(section => (
-                <li key={section.id}>
-                  <button
-                    onClick={() => handleSectionChange(section.id)}
-                    className={`w-full flex items-center px-4 py-2 rounded-lg transition ${
-                      activeSection === section.id
-                        ? "bg-quickaid-accent text-white"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    <span className="mr-2">{section.icon}</span>
-                    {section.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
+          <div className="lg:w-64 w-full">
+            <div className="bg-quickaid-surface shadow-md rounded-xl p-4 sticky top-6">
+              <nav className="space-y-2">
+                {settingOptions.map(section => {
+                  const IconComponent = section.icon;
+                  return (
+                    <button
+                      key={section.id}
+                      onClick={() => handleSectionChange(section.id)}
+                      className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
+                        activeSection === section.id
+                          ? "bg-quickaid-accent text-white shadow-sm"
+                          : "text-quickaid-text-primary hover:bg-gray-50 hover:text-quickaid-accent"
+                      }`}
+                    >
+                      <IconComponent className="w-5 h-5 mr-3" />
+                      <span className="font-medium">{section.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
           </div>
 
           {/* Content */}
           <div className="flex-1">
-            {error && <div className="mb-4 text-sm text-error">{error}</div>}
-            {success && <div className="mb-4 text-sm text-success">{success}</div>}
-
+            {/* Profile Section */}
             {activeSection === "profile" && (
-              <div className="card bg-base-100 shadow-md rounded-xl p-6">
-                <h3 className="text-xl font-medium text-quickaid-text-primary mb-4">
-                  Profile Information
-                </h3>
+              <div className="bg-quickaid-surface shadow-md rounded-xl p-4">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-quickaid-accent bg-opacity-10 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-quickaid-accent" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-quickaid-text-primary">
+                        Profile Information
+                      </h2>
+                      <p className="text-sm text-quickaid-text-secondary">
+                        Update your personal details
+                      </p>
+                    </div>
+                  </div>
+                  {!isEditing && (
+                    <button
+                      onClick={handleEdit}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-quickaid-accent hover:bg-teal-600 text-white rounded-md transition-colors text-sm"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      Edit Profile
+                    </button>
+                  )}
+                </div>
+
                 {isEditing ? (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Username
-                      </label>
-                      <input
-                        type="text"
-                        name="username"
-                        value={editedUser.username}
-                        onChange={handleChange}
-                        className="input input-bordered w-full"
-                      />
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="relative">
+                        <label className="block text-sm font-medium text-quickaid-text-secondary mb-2">
+                          Username
+                        </label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="text"
+                            name="username"
+                            value={editedUser.username}
+                            onChange={handleChange}
+                            className="input input-bordered w-full pl-10 focus:ring-2 focus:ring-quickaid-accent text-sm"
+                            placeholder="Enter username"
+                          />
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <label className="block text-sm font-medium text-quickaid-text-secondary mb-2">
+                          Email Address
+                        </label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="email"
+                            name="email"
+                            value={editedUser.email}
+                            readOnly
+                            className="input input-bordered w-full pl-10 bg-gray-50 cursor-not-allowed text-sm"
+                            placeholder="Email cannot be changed"
+                          />
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <label className="block text-sm font-medium text-quickaid-text-secondary mb-2">
+                          First Name
+                        </label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="text"
+                            name="first_name"
+                            value={editedUser.first_name}
+                            onChange={handleChange}
+                            className="input input-bordered w-full pl-10 focus:ring-2 focus:ring-quickaid-accent text-sm"
+                            placeholder="Enter first name"
+                          />
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <label className="block text-sm font-medium text-quickaid-text-secondary mb-2">
+                          Last Name
+                        </label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="text"
+                            name="last_name"
+                            value={editedUser.last_name}
+                            onChange={handleChange}
+                            className="input input-bordered w-full pl-10 focus:ring-2 focus:ring-quickaid-accent text-sm"
+                            placeholder="Enter last name"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        First Name
-                      </label>
-                      <input
-                        type="text"
-                        name="first_name"
-                        value={editedUser.first_name}
-                        onChange={handleChange}
-                        className="input input-bordered w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        name="last_name"
-                        value={editedUser.last_name}
-                        onChange={handleChange}
-                        className="input input-bordered w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={editedUser.email}
-                        readOnly
-                        className="input input-bordered w-full bg-gray-100 cursor-not-allowed"
-                      />
-                    </div>
-                    <div className="flex gap-3">
+
+                    <div className="flex justify-end gap-3 pt-4 border-t">
                       <button
-                        className="bg-quickaid-accent hover:bg-teal-600 text-white rounded-lg px-4 py-2"
-                        onClick={handleSave}
-                      >
-                        Save Profile
-                      </button>
-                      <button
-                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg px-4 py-2"
                         onClick={() => setIsEditing(false)}
+                        className="px-3 py-1.5 text-quickaid-text-primary hover:bg-gray-100 rounded-md transition-colors text-sm"
                       >
                         Cancel
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-quickaid-accent hover:bg-teal-600 text-white rounded-md transition-colors text-sm"
+                      >
+                        <Check className="w-4 h-4" />
+                        Save Changes
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-700">Username</span>
-                      <span>{user.username}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-quickaid-text-secondary mb-1">
+                            Username
+                          </label>
+                          <p className="text-quickaid-text-primary font-medium text-sm">
+                            {user.username || "Not provided"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-quickaid-text-secondary mb-1">
+                            First Name
+                          </label>
+                          <p className="text-quickaid-text-primary font-medium text-sm">
+                            {user.first_name || "Not provided"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-quickaid-text-secondary mb-1">
+                            Role
+                          </label>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-quickaid-accent bg-opacity-10 text-quickaid-accent">
+                            {user.role || "User"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-quickaid-text-secondary mb-1">
+                            Email Address
+                          </label>
+                          <p className="text-quickaid-text-primary font-medium text-sm">
+                            {user.email || "Not provided"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-quickaid-text-secondary mb-1">
+                            Last Name
+                          </label>
+                          <p className="text-quickaid-text-primary font-medium text-sm">
+                            {user.last_name || "Not provided"}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-700">First Name</span>
-                      <span>{user.first_name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-700">Last Name</span>
-                      <span>{user.last_name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-700">Email</span>
-                      <span>{user.email}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-700">Role</span>
-                      <span>{user.role}</span>
-                    </div>
-                    <button
-                      className="mt-4 bg-quickaid-accent hover:bg-teal-600 text-white rounded-lg px-4 py-2"
-                      onClick={handleEdit}
-                    >
-                      Edit Profile
-                    </button>
                   </div>
                 )}
               </div>
             )}
 
+            {/* Password Section */}
             {activeSection === "password" && (
-              <div className="card bg-base-100 shadow-md rounded-xl p-6">
-                <h3 className="text-xl font-medium text-quickaid-text-primary mb-4">
-                  Change Password
-                </h3>
-                <div className="space-y-4">
+              <div className="bg-quickaid-surface shadow-md rounded-xl p-4">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-red-600" />
+                  </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <h2 className="text-lg font-semibold text-quickaid-text-primary">
+                      Change Password
+                    </h2>
+                    <p className="text-sm text-quickaid-text-secondary">
+                      Update your account password
+                    </p>
+                  </div>
+                </div>
+
+                <div className="max-w-md space-y-3">
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-quickaid-text-secondary mb-2">
                       Current Password
                     </label>
-                    <input
-                      type="password"
-                      value={passwordData.current_password}
-                      onChange={e =>
-                        setPasswordData({ ...passwordData, current_password: e.target.value })
-                      }
-                      className="input input-bordered w-full"
-                    />
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="password"
+                        value={passwordData.current_password}
+                        onChange={e =>
+                          setPasswordData({
+                            ...passwordData,
+                            current_password: e.target.value,
+                          })
+                        }
+                        className="input input-bordered w-full pl-10 focus:ring-2 focus:ring-quickaid-accent text-sm"
+                        placeholder="Enter current password"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-quickaid-text-secondary mb-2">
                       New Password
                     </label>
-                    <input
-                      type="password"
-                      value={passwordData.new_password}
-                      onChange={e =>
-                        setPasswordData({ ...passwordData, new_password: e.target.value })
-                      }
-                      className="input input-bordered w-full"
-                    />
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="password"
+                        value={passwordData.new_password}
+                        onChange={e =>
+                          setPasswordData({ ...passwordData, new_password: e.target.value })
+                        }
+                        className="input input-bordered w-full pl-10 focus:ring-2 focus:ring-quickaid-accent text-sm"
+                        placeholder="Enter new password (min. 8 characters)"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-quickaid-text-secondary mb-2">
                       Confirm New Password
                     </label>
-                    <input
-                      type="password"
-                      value={passwordData.confirm_password}
-                      onChange={e =>
-                        setPasswordData({ ...passwordData, confirm_password: e.target.value })
-                      }
-                      className="input input-bordered w-full"
-                    />
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="password"
+                        value={passwordData.confirm_password}
+                        onChange={e =>
+                          setPasswordData({
+                            ...passwordData,
+                            confirm_password: e.target.value,
+                          })
+                        }
+                        className="input input-bordered w-full pl-10 focus:ring-2 focus:ring-quickaid-accent text-sm"
+                        placeholder="Confirm new password"
+                      />
+                    </div>
                   </div>
                   <button
-                    className="bg-quickaid-accent hover:bg-teal-600 text-white rounded-lg px-4 py-2"
                     onClick={handlePasswordChange}
+                    disabled={
+                      !passwordData.current_password ||
+                      !passwordData.new_password ||
+                      !passwordData.confirm_password
+                    }
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-md transition-colors text-sm"
                   >
+                    <Lock className="w-4 h-4" />
                     Update Password
                   </button>
                 </div>
               </div>
             )}
 
+            {/* Appearance Section */}
             {activeSection === "appearance" && (
-              <div className="card bg-base-100 shadow-md rounded-xl p-6">
-                <h3 className="text-xl font-medium text-quickaid-text-primary mb-4">
-                  Appearance Settings
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 text-gray-700">
-                      <input type="checkbox" disabled className="checkbox" />
-                      Dark Mode
-                    </label>
-                    <span className="text-sm text-gray-400">Coming Soon</span>
+              <div className="bg-quickaid-surface shadow-md rounded-xl p-4">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Palette className="w-5 h-5 text-purple-600" />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 text-gray-700">
-                      <input type="checkbox" disabled className="checkbox" />
-                      High Contrast Mode
+                  <div>
+                    <h2 className="text-lg font-semibold text-quickaid-text-primary">
+                      Appearance Settings
+                    </h2>
+                    <p className="text-sm text-quickaid-text-secondary">
+                      Customize your interface preferences
+                    </p>
+                  </div>
+                </div>
+
+                <div className="max-w-md space-y-3">
+                  {/* Font Size */}
+                  <div>
+                    <label className="block text-sm font-medium text-quickaid-text-secondary mb-3">
+                      Font Size
                     </label>
-                    <span className="text-sm text-gray-400">Coming Soon</span>
+                    <div className="space-y-3">
+                      {[
+                        {
+                          value: "sm",
+                          label: "Small",
+                          description: "Compact text for more content",
+                        },
+                        {
+                          value: "base",
+                          label: "Default",
+                          description: "Standard readable size",
+                        },
+                        {
+                          value: "lg",
+                          label: "Large",
+                          description: "Larger text for better readability",
+                        },
+                      ].map(option => (
+                        <label key={option.value} className="flex items-start cursor-pointer">
+                          <input
+                            type="radio"
+                            name="fontSize"
+                            value={option.value}
+                            checked={fontSize === option.value}
+                            onChange={e => setFontSize(e.target.value)}
+                            className="radio radio-accent mt-1"
+                          />
+                          <div className="ml-3">
+                            <div className="font-medium text-quickaid-text-primary">
+                              {option.label}
+                            </div>
+                            <div className="text-sm text-quickaid-text-secondary">
+                              {option.description}
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Language */}
+                  <div>
+                    <label className="block text-sm font-medium text-quickaid-text-secondary mb-3">
+                      Language
+                    </label>
+                    <div className="space-y-3">
+                      {[
+                        {
+                          value: "en",
+                          label: "English",
+                          description: "Display interface in English",
+                        },
+                        {
+                          value: "fil",
+                          label: "Filipino",
+                          description: "Display interface in Filipino",
+                        },
+                      ].map(option => (
+                        <label key={option.value} className="flex items-start cursor-pointer">
+                          <input
+                            type="radio"
+                            name="language"
+                            value={option.value}
+                            checked={language === option.value}
+                            onChange={e => setLanguage(e.target.value)}
+                            className="radio radio-accent mt-1"
+                          />
+                          <div className="ml-3">
+                            <div className="font-medium text-quickaid-text-primary">
+                              {option.label}
+                            </div>
+                            <div className="text-sm text-quickaid-text-secondary">
+                              {option.description}
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -403,6 +635,7 @@ const SettingsPage = () => {
           </div>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 };

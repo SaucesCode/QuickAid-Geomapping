@@ -1,23 +1,41 @@
-from django.contrib.auth import get_user_model
-from django.db.models import Avg, Count, ExpressionWrapper, F, DurationField, IntegerField, Max, Q
-from django.db.models.functions import TruncDate, ExtractYear
-from django.http import JsonResponse
-from django.utils import timezone
+# Standard library
+import csv
 import datetime
+import requests
+import pandas as pd
+
+# Django
+from django.contrib.auth import get_user_model
+from django.db.models import (
+    Avg, Count, ExpressionWrapper, F, DurationField,
+    IntegerField, Max, Q
+)
+from django.db.models.functions import TruncDate, ExtractYear
+from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
 from django.utils.timezone import now, timedelta
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+
+# Django REST Framework
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
+from rest_framework.decorators import (
+    api_view, permission_classes, parser_classes
+)
+from rest_framework.permissions import (
+    IsAdminUser, IsAuthenticated, AllowAny
+)
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.decorators import parser_classes
-import requests
-from django.views.decorators.csrf import csrf_exempt
-from .models import Applicant, CustomUser, StaffActivityLog, BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch
+
+# Local
+from .models import (
+    Applicant, CustomUser, StaffActivityLog,
+    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch
+)
 from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer
-import pandas as pd 
+
 
 User = get_user_model()
 
@@ -230,9 +248,9 @@ def update_staff(request, staff_id):
 # Function to delete a staff member
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])
-def delete_staff(request, pk):
+def delete_staff(request, staff_id):
     try:
-        user = User.objects.get(pk=pk, is_staff=True)
+        user = User.objects.get(pk=staff_id, is_staff=True)
         user.delete()
         return Response({"message": "Staff deleted successfully"})
     except User.DoesNotExist:
@@ -556,8 +574,6 @@ def approvals_for_batch(request, batch_id):
     return Response(data)
 
 
-
-
 #APPROVAL HISTORY
 # Function to get history of approval batches
 @api_view(['GET'])
@@ -578,6 +594,52 @@ def approval_batch_history(request):
         for batch in batches
     ]
     return Response(data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_applicants_csv(request):
+    from datetime import datetime
+
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+    assistance_type = request.GET.get("assistance_type")
+
+    qs = Applicant.objects.filter(is_archived=False)
+
+    if start_date and end_date:
+        try:
+            start = timezone.make_aware(datetime.strptime(start_date, "%Y-%m-%d"))
+            end = timezone.make_aware(datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1))
+            qs = qs.filter(date_filled__range=[start, end])
+        except ValueError:
+            print("Invalid date format received")
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="applicants.csv"'
+    writer = csv.writer(response)
+
+    writer.writerow([
+        "ID", "First Name", "Middle Initial", "Last Name", "Suffix",
+        "Contact Number", "Barangay", "City", "Province",
+        "Birthday", "Sex", "Civil Status", "Occupation",
+        "Monthly Income", "Valid ID", "Assistance Type",
+        "Applicant Type", "Date Filled"
+    ])
+
+    for app in qs:
+        bg = app.background_info
+        writer.writerow([
+            app.id,
+            bg.first_name, bg.middle_initial or "", bg.last_name, bg.suffix or "",
+            app.contact_number,
+            bg.barangay.name, bg.barangay.city.name, bg.barangay.city.province.name,
+            bg.birthday, bg.sex, bg.civil_status, bg.occupation or "",
+            bg.monthly_income or "", app.valid_id_presented, app.type_of_assistance,
+            app.applicant_type, app.date_filled.strftime("%Y-%m-%d %H:%M:%S"),
+        ])
+
+    print(f"Exported {qs.count()} applicants to CSV")
+    return response
 
 
 # RECENT APPLICANTS
@@ -603,7 +665,7 @@ def applicant_detail(request, applicant_id):
         # Include full history for this applicant’s BackgroundInfo
         history_qs = ApplicantHistory.objects.filter(
             background_info=applicant.background_info
-        ).order_by("-created_at")
+        ).order_by("-date_applied")
 
         history_data = [
             {
