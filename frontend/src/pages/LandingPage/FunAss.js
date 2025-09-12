@@ -1,19 +1,29 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Navbar from '../components/Navigation/Navbar';
-import Footer from '../components/Footer/Footer';
-import { CheckCircle, Users, Heart, FileText, User, Shield, ClipboardList, Cross, ArrowLeft } from 'lucide-react';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import Navbar from "../../components/Navigation/Navbar";
+import Footer from "../../components/Footer/Footer";
+import {
+  CheckCircle,
+  Users,
+  Heart,
+  FileText,
+  User,
+  Shield,
+  ClipboardList,
+  Cross,
+  ArrowLeft,
+} from "lucide-react";
 
 export default function FuneralAssistanceProgram() {
-  const [currentTab, setCurrentTab] = useState('requirements');
+  const [currentTab, setCurrentTab] = useState("requirements");
 
   const TabButton = ({ id, label, isActive, onClick }) => (
     <button
       onClick={() => onClick(id)}
       className={`px-6 py-3 font-medium text-sm transition-all duration-200 border-b-2 ${
-        isActive 
-          ? 'text-blue-600 border-blue-600 bg-blue-50' 
-          : 'text-gray-600 border-transparent hover:text-blue-600 hover:border-blue-300'
+        isActive
+          ? "text-blue-600 border-blue-600 bg-blue-50"
+          : "text-gray-600 border-transparent hover:text-blue-600 hover:border-blue-300"
       }`}
     >
       {label}
@@ -22,7 +32,9 @@ export default function FuneralAssistanceProgram() {
 
   const BenefitCard = ({ icon: Icon, title, description, color = "blue" }) => (
     <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
-      <div className={`w-12 h-12 bg-${color}-100 rounded-lg flex items-center justify-center mb-4`}>
+      <div
+        className={`w-12 h-12 bg-${color}-100 rounded-lg flex items-center justify-center mb-4`}
+      >
         <Icon className={`w-6 h-6 text-${color}-600`} />
       </div>
       <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
@@ -66,7 +78,7 @@ export default function FuneralAssistanceProgram() {
 
   const renderContent = () => {
     switch (currentTab) {
-      case 'benefits':
+      case "benefits":
         return (
           <div className="space-y-8">
             <div>
@@ -97,7 +109,7 @@ export default function FuneralAssistanceProgram() {
           </div>
         );
 
-      case 'application':
+      case "application":
         return (
           <div className="space-y-8">
             <div>
@@ -129,14 +141,18 @@ export default function FuneralAssistanceProgram() {
           </div>
         );
 
-      case 'requirements':
+      case "requirements":
         return (
           <div className="space-y-8">
             {/* Requirements for Funeral Bill Payment */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Requirements for Funeral Bill Payment</h2>
-              <p className="text-gray-600 mb-6">Basic requirements needed for all types of funeral assistance:</p>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Requirements for Funeral Bill Payment
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Basic requirements needed for all types of funeral assistance:
+              </p>
+
               <div className="space-y-4">
                 <RequirementCard
                   icon={Cross}
@@ -158,8 +174,10 @@ export default function FuneralAssistanceProgram() {
 
             {/* Requirements for Transfer or Cadaver */}
             <div className="mt-12">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Requirements for Transfer or Cadaver</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                Requirements for Transfer or Cadaver
+              </h2>
+
               <div className="space-y-4">
                 <RequirementCard
                   icon={Cross}
@@ -177,8 +195,8 @@ export default function FuneralAssistanceProgram() {
             <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
               <h3 className="font-semibold text-yellow-800 mb-2">Important Note:</h3>
               <p className="text-yellow-700 text-sm">
-                All documents must be original or certified copies. Additional requirements may be needed 
-                depending on the specific circumstances of the case.
+                All documents must be original or certified copies. Additional requirements may
+                be needed depending on the specific circumstances of the case.
               </p>
             </div>
           </div>
@@ -191,60 +209,63 @@ export default function FuneralAssistanceProgram() {
 
   return (
     <>
-    <Navbar />
-    <div className="min-h-screen bg-gray-50 pt-32">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-900 to-blue-600 text-white py-14 shadow-sm">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-wide uppercase">Funeral Assistance Program</h1>
-          <p className="mt-3 text-blue-100 text-base md:text-lg max-w-2xl mx-auto">
-            The Department of Social Welfare and Development (DSWD) provides funeral assistance to help
-            Filipinos with their burial and memorial needs.
-          </p>
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="flex space-x-1">
-            <TabButton
-              id="requirements"
-              label="Requirements"
-              isActive={currentTab === 'requirements'}
-              onClick={setCurrentTab}
-            />
-            <TabButton
-              id="application"
-              label="Application Process"
-              isActive={currentTab === 'application'}
-              onClick={setCurrentTab}
-            />
-            <TabButton
-              id="benefits"
-              label="Benefits"
-              isActive={currentTab === 'benefits'}
-              onClick={setCurrentTab}
-            />
+      <Navbar />
+      <div className="min-h-screen bg-gray-50 pt-32">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-900 to-blue-600 text-white py-14 shadow-sm">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-wide uppercase">
+              Funeral Assistance Program
+            </h1>
+            <p className="mt-3 text-blue-100 text-base md:text-lg max-w-2xl mx-auto">
+              The Department of Social Welfare and Development (DSWD) provides funeral
+              assistance to help Filipinos with their burial and memorial needs.
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        {renderContent()}
-      </div>
+        {/* Navigation Tabs */}
+        <div className="bg-white shadow-sm">
+          <div className="max-w-4xl mx-auto px-6">
+            <div className="flex space-x-1">
+              <TabButton
+                id="requirements"
+                label="Requirements"
+                isActive={currentTab === "requirements"}
+                onClick={setCurrentTab}
+              />
+              <TabButton
+                id="application"
+                label="Application Process"
+                isActive={currentTab === "application"}
+                onClick={setCurrentTab}
+              />
+              <TabButton
+                id="benefits"
+                label="Benefits"
+                isActive={currentTab === "benefits"}
+                onClick={setCurrentTab}
+              />
+            </div>
+          </div>
+        </div>
 
-      {/* Back to Services at bottom */}
-      <div className="max-w-4xl mx-auto px-6 pb-12">
-        <Link to="/services" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Services
-        </Link>
-      </div>
+        {/* Content */}
+        <div className="max-w-4xl mx-auto px-6 py-12">{renderContent()}</div>
 
-      <Footer />
-    </div>
+        {/* Back to Services at bottom */}
+        <div className="max-w-4xl mx-auto px-6 pb-12">
+          <Link
+            to="/services"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Services
+          </Link>
+        </div>
+
+        <Footer />
+      </div>
     </>
   );
 }
