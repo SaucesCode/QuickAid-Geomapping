@@ -1,0 +1,18 @@
+.main-description {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.main-description p {
+  font-size: 1.25rem;
+  line-height: 1.8;
+  color: #475569;
+}
+
+@media (max-width: 768px) {
+  .main-description p {
+    font-size: 1rem;
+  }
+} 

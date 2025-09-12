@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mui/icons-material": "^6.4.5",
-    "@mui/material": "^6.4.5",
+    "@mui/material": "^6.5.0",
     "@react-google-maps/api": "^2.20.6",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -14,6 +16,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.9",
     "file-saver": "^2.0.5",
+    "framer-motion": "^12.23.12",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
@@ -58,8 +61,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "daisyui": "^3.9.4"
   }
 }

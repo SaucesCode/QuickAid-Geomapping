@@ -1,2 +1,47 @@
+# ======================
+# Backend (Django/Python)
+# ======================
+
+# Envs
 backend/.env
 frontend/.env.local
+.env
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Migrations cache / db files
+*.sqlite3
+*.log
+*.pot
+
+# ======================
+# Frontend (React/Node)
+# ======================
+
+# Dependencies
+node_modules/
+
+# Lock files (often cause merge conflicts)
+package-lock.json
+yarn.lock
+
+# Build output
+frontend/build/
+dist/
+*.cache
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ======================
+# OS files
+# ======================
+.DS_Store
+Thumbs.db

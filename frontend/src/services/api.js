@@ -1,12 +1,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-export const API_URL = "http://127.0.0.1:8000/api"; // Django backend URL
-
-// ✅ Create an axios instance with authentication headers
-export const api = axios.create({
-  baseURL: API_URL,
-});
+export const API_URL = "https://quickaidmap.pythonanywhere.com/api"; // Django backend URL
 
 // ✅ Function to store tokens in localStorage
 const storeTokens = (access, refresh) => {
