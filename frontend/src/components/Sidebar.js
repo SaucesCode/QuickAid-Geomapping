@@ -11,7 +11,6 @@ import {
   Shield,
   Settings,
   LogOut,
-  Bell,
   ChevronRight,
   Menu,
   X,
@@ -23,12 +22,14 @@ import {
   Layers,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import CustomToast from "./CustomToast";
 import { logoutUser } from "../services/api";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [showContent, setShowContent] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [openSections, setOpenSections] = useState({
     applicants: false,
     analytics: false,
@@ -54,6 +55,8 @@ const Sidebar = () => {
   }, [collapsed]);
 
   const toggleSection = section => {
+    // If collapsed, auto expand
+    if (collapsed) setCollapsed(false);
     setOpenSections(prev => ({
       ...prev,
       [section]: !prev[section],
@@ -96,7 +99,7 @@ const Sidebar = () => {
       "/approved": "Approved Applications",
       "/archived-applicants": "Archived Applications",
       "/export-applicants": "Export Data",
-      "/analytics": "Analytics Overview",
+      "/analytics/overview": "Analytics Overview",
       "/analytics/reports": "Detailed Reports",
       "/analytics/trends": "Trend Analysis",
       "/admin-management": "Admin Management",
@@ -108,45 +111,16 @@ const Sidebar = () => {
   const handleLogout = async () => {
     try {
       await logoutUser();
-      toast.success("Successfully logged out", {
-        duration: 3000,
-        style: {
-          background: "#1e293b",
-          color: "#f1f5f9",
-          border: "1px solid #334155",
-        },
-        iconTheme: {
-          primary: "#22c55e",
-          secondary: "#f1f5f9",
-        },
-      });
+      toast.custom(t => <CustomToast t={t} type="logout" />);
       navigate("/login");
     } catch (err) {
-      toast.error("Failed to logout. Please try again.", {
-        duration: 4000,
-        style: {
-          background: "#1e293b",
-          color: "#f1f5f9",
-          border: "1px solid #334155",
-        },
-        iconTheme: {
-          primary: "#ef4444",
-          secondary: "#f1f5f9",
-        },
-      });
+      toast.custom(t => <CustomToast t={t} type="error" />);
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <Toaster
-        position="top-center"
-        reverseOrder={false}
-        containerStyle={{
-          top: 80,
-          right: 20,
-        }}
-      />
+    <div className="flex h-screen bg-slate-50">
+      <Toaster position="top-center" reverseOrder={false} />
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
@@ -159,7 +133,7 @@ const Sidebar = () => {
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-screen flex flex-col bg-slate-900 border-r border-slate-700 transition-all duration-300 ease-in-out z-50
-          ${collapsed ? "w-16" : "w-64"}
+          ${collapsed ? "w-16" : "w-60"}
           ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
@@ -173,7 +147,7 @@ const Sidebar = () => {
             <Plus className="w-4 h-4" />
             {!collapsed && (
               <span
-                className={`transition-opacity duration-300 ${
+                className={`transition-opacity text-white duration-300 ${
                   showContent ? "opacity-100" : "opacity-0"
                 }`}
               >
@@ -181,30 +155,6 @@ const Sidebar = () => {
               </span>
             )}
           </button>
-
-          {/* User Profile */}
-          {!collapsed && (
-            <div
-              onClick={() => {
-                navigate("/settings");
-              }}
-              className={`flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 cursor-pointer mb-2 transition-opacity duration-300 ${
-                showContent ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
-                {user?.first_name ? user.first_name.charAt(0).toUpperCase() : "U"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-100 truncate">
-                  {user ? `${user.first_name} ${user.last_name}` : "User"}
-                </p>
-                <p className="text-xs text-slate-400">
-                  {user?.is_superuser ? "Administrator" : "Staff Member"}
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Scrollable Content */}
@@ -228,7 +178,7 @@ const Sidebar = () => {
               <div>
                 {!collapsed && (
                   <h3
-                    className={`text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
+                    className={`text-xs font-semibold text-slate-300 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
                       showContent ? "opacity-100" : "opacity-0"
                     }`}
                   >
@@ -239,10 +189,10 @@ const Sidebar = () => {
                   <NavLink
                     to="/dashboard"
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                      `flex items-center gap-3 text-white px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                         isActive
-                          ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                          ? "bg-blue-500 text-white font-medium shadow-sm"
+                          : "text-slate-100 hover:bg-slate-800 hover:text-white"
                       } ${collapsed ? "justify-center" : ""}`
                     }
                   >
@@ -265,7 +215,7 @@ const Sidebar = () => {
                 <div>
                   {!collapsed && (
                     <h3
-                      className={`text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
+                      className={`text-xs font-semibold text-slate-300 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
                         showContent ? "opacity-100" : "opacity-0"
                       }`}
                     >
@@ -275,7 +225,7 @@ const Sidebar = () => {
                   <div className="space-y-1">
                     <button
                       onClick={() => toggleSection("maps")}
-                      className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white ${
+                      className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-slate-200 hover:bg-slate-800 hover:text-white ${
                         collapsed ? "justify-center" : ""
                       }`}
                     >
@@ -307,10 +257,10 @@ const Sidebar = () => {
                         <NavLink
                           to="/geomapping"
                           className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                            `flex items-center  gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                ? "bg-blue-500 text-white font-medium shadow-sm"
+                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
                             }`
                           }
                         >
@@ -322,8 +272,8 @@ const Sidebar = () => {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                ? "bg-blue-500 text-white font-medium shadow-sm"
+                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
                             }`
                           }
                         >
@@ -341,7 +291,7 @@ const Sidebar = () => {
                 <div>
                   {!collapsed && (
                     <h3
-                      className={`text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
+                      className={`text-xs font-semibold text-slate-300 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
                         showContent ? "opacity-100" : "opacity-0"
                       }`}
                     >
@@ -351,7 +301,7 @@ const Sidebar = () => {
                   <div className="space-y-1">
                     <button
                       onClick={() => toggleSection("analytics")}
-                      className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white ${
+                      className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-slate-200 hover:bg-slate-800 hover:text-white ${
                         collapsed ? "justify-center" : ""
                       }`}
                     >
@@ -381,43 +331,59 @@ const Sidebar = () => {
                         }`}
                       >
                         <NavLink
-                          to="/analytics"
+                          to="/analytics/geographic"
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                ? "bg-blue-500 text-white font-medium shadow-sm"
+                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
                             }`
                           }
                         >
-                          <Activity className="w-4 h-4" />
-                          <span>Overview</span>
+                          <MapPin className="w-4 h-4" />
+                          <span>Geographic</span>
                         </NavLink>
+
                         <NavLink
-                          to="/analytics/reports"
+                          to="/analytics/demographics-economics"
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                ? "bg-blue-500 text-white font-medium shadow-sm"
+                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
                             }`
                           }
                         >
-                          <PieChart className="w-4 h-4" />
-                          <span>Detailed Reports</span>
+                          <Users className="w-4 h-4" />
+                          <span>Demographics & Economics</span>
                         </NavLink>
+
                         <NavLink
                           to="/analytics/trends"
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                ? "bg-blue-500 text-white font-medium shadow-sm"
+                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
                             }`
                           }
                         >
                           <TrendingUp className="w-4 h-4" />
-                          <span>Trend Analysis</span>
+                          <span>Trends & Forecasting</span>
+                        </NavLink>
+
+                        <NavLink
+                          to="/analytics/performance"
+                          className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                              isActive
+                                ? "bg-blue-500 text-white font-medium shadow-sm"
+                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                            }`
+                          }
+                        >
+                          <Activity className="w-4 h-4" />
+                          <span>Performance</span>
                         </NavLink>
                       </div>
                     )}
@@ -429,7 +395,7 @@ const Sidebar = () => {
               <div>
                 {!collapsed && (
                   <h3
-                    className={`text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
+                    className={`text-xs font-semibold text-slate-300 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
                       showContent ? "opacity-100" : "opacity-0"
                     }`}
                   >
@@ -439,7 +405,7 @@ const Sidebar = () => {
                 <div className="space-y-1">
                   <button
                     onClick={() => toggleSection("applicants")}
-                    className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white ${
+                    className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-slate-200 hover:bg-slate-800 hover:text-white ${
                       collapsed ? "justify-center" : ""
                     }`}
                   >
@@ -473,21 +439,22 @@ const Sidebar = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                              : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                              ? "bg-blue-500 text-white font-medium shadow-sm"
+                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
                           }`
                         }
                       >
                         <UserPlus className="w-4 h-4" />
                         <span>New Applicant</span>
                       </NavLink>
+
                       <NavLink
                         to="/applicants"
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                              : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                              ? "bg-blue-500 text-white font-medium shadow-sm"
+                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
                           }`
                         }
                       >
@@ -499,8 +466,8 @@ const Sidebar = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                              : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                              ? "bg-blue-500 text-white font-medium shadow-sm"
+                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
                           }`
                         }
                       >
@@ -512,8 +479,8 @@ const Sidebar = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                              : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                              ? "bg-blue-500 text-white font-medium shadow-sm"
+                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
                           }`
                         }
                       >
@@ -525,8 +492,8 @@ const Sidebar = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                              : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                              ? "bg-blue-500 text-white font-medium shadow-sm"
+                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
                           }`
                         }
                       >
@@ -543,8 +510,8 @@ const Sidebar = () => {
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                           isActive
-                            ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                            : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                            ? "bg-blue-500 text-white font-medium shadow-sm"
+                            : "text-slate-200 hover:bg-slate-800 hover:text-white"
                         } ${collapsed ? "justify-center" : ""}`
                       }
                     >
@@ -565,47 +532,56 @@ const Sidebar = () => {
             </div>
           </div>
 
-          {/* Bottom Section */}
-          <div className="flex-shrink-0 border-t border-slate-700 p-2">
-            <div className="space-y-1">
-              <NavLink
-                to="/settings"
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? "bg-slate-700 text-blue-400 font-medium shadow-sm"
-                      : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                  } ${collapsed ? "justify-center" : ""}`
-                }
-              >
-                <Settings className="w-4 h-4" />
-                {!collapsed && (
-                  <span
-                    className={`transition-opacity duration-300 ${
-                      showContent ? "opacity-100" : "opacity-0"
-                    }`}
-                  >
-                    Settings
-                  </span>
-                )}
-              </NavLink>
+          <div className="border-t border-slate-700">
+            <div className="relative">
+              {/* Profile Button */}
               <button
-                onClick={handleLogout}
-                className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-slate-300 hover:bg-slate-800 hover:text-white ${
-                  collapsed ? "justify-center" : ""
-                }`}
+                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                className="flex items-center w-full gap-3 p-3 hover:bg-slate-800 transition-colors"
               >
-                <LogOut className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
+                  {user?.first_name ? user.first_name.charAt(0).toUpperCase() : "U"}
+                </div>
                 {!collapsed && (
-                  <span
-                    className={`transition-opacity duration-300 ${
-                      showContent ? "opacity-100" : "opacity-0"
-                    }`}
-                  >
-                    Logout
-                  </span>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-medium text-slate-100 truncate">
+                      {user ? `${user.first_name} ${user.last_name}` : "User"}
+                    </p>
+                    <p className="text-xs text-slate-300">
+                      {user?.is_superuser ? "Administrator" : "Staff Member"}
+                    </p>
+                  </div>
                 )}
               </button>
+
+              {/* Dropdown */}
+              {!collapsed && profileMenuOpen && (
+                <div className="absolute bottom-16 left-3 right-3 bg-slate-900 rounded-xl shadow-lg border border-slate-700 py-2 z-50 animate-fade-in">
+                  <div className="px-3 py-2 border-b border-slate-700">
+                    <p className="text-sm font-medium text-slate-100">
+                      {user ? `${user.first_name} ${user.last_name}` : "User"}
+                    </p>
+                    <p className="text-xs text-slate-300">
+                      {user?.is_superuser ? "Administrator" : "Staff Member"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigate("/settings");
+                      setProfileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 transition-colors"
+                  >
+                    <Settings className="w-4 h-4" /> Settings
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-slate-800 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" /> Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -614,12 +590,12 @@ const Sidebar = () => {
       {/* Main Content */}
       <main
         className={`flex-1 transition-all duration-300 ${
-          collapsed ? "md:ml-16" : "md:ml-64"
+          collapsed ? "md:ml-16" : "md:ml-60"
         } z-50`}
       >
         {/* Header */}
         <header className="sticky top-0 z-50 flex items-center justify-between bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-4 z-50">
+          <div className="sticky flex items-center gap-4 z-50">
             {/* Mobile Menu Button */}
             <button className="text-slate-600 md:hidden" onClick={toggleMobileMenu}>
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -636,16 +612,11 @@ const Sidebar = () => {
             <h1 className="text-lg font-semibold text-slate-900">{getPageTitle()}</h1>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button className="relative p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
-            </button>
-          </div>
+          <div className="flex items-center gap-3"></div>
         </header>
 
         {/* Page Content */}
-        <div className="p-6">
+        <div className="p-6 -z-1">
           <Outlet />
         </div>
       </main>

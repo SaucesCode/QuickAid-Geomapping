@@ -151,7 +151,6 @@ quickaid: {
 - **[DaisyUI](https://daisyui.com/):** Pre-built Tailwind components
 - **[Headless UI](https://headlessui.dev/):** Accessible modals, dropdowns, popovers
 - **[Recharts](https://recharts.org/):** Charts for Analytics Dashboard
-- **[Framer Motion](https://www.framer.com/motion/):** Smooth animations
 - **[React Hook Form](https://react-hook-form.com/):** Form handling
 
 ---

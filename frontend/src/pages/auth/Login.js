@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, User, Lock, Eye, EyeOff } from "lucide-react";
 import { loginStaff } from "../../services/api";
+import CustomToast from "../../components/CustomToast";
 import toast, { Toaster } from "react-hot-toast";
 
 const Login = () => {
@@ -29,22 +30,11 @@ const Login = () => {
 
     try {
       await loginStaff(username, password);
-      toast.success("Successfully logged in", {
-        duration: 3000,
-        style: {
-          background: "#1e293b",
-          color: "#f1f5f9",
-          border: "1px solid #334155",
-        },
-        iconTheme: {
-          primary: "#22c55e",
-          secondary: "#f1f5f9",
-        },
-      });
+      toast.custom(t => <CustomToast t={t} type="login" />);
       navigate("/dashboard");
     } catch (err) {
       setError("Invalid credentials. Please try again.");
-      toast.error("Invalid credentials ❌");
+      toast.custom(t => <CustomToast t={t} type="error" />);
     } finally {
       setIsLoading(false);
     }
@@ -59,14 +49,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex bg-quickaid-bg">
-      <Toaster
-        position="top-center"
-        reverseOrder={false}
-        containerStyle={{
-          top: 80,
-          right: 20,
-        }}
-      />
+      <Toaster position="top-center" reverseOrder={false} />
 
       {/* Left Image Section */}
       <div className="hidden lg:flex lg:w-1/2 relative">

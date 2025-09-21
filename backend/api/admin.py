@@ -15,7 +15,7 @@ class ApplicantAdmin(admin.ModelAdmin):
     list_display = (
         "id", "staff", "get_first_name", "get_last_name",
         "get_barangay", "get_city", "get_province",
-        "type_of_assistance", "date_filled"
+        "type_of_assistance", "date_filled", "created_at"
     )
     search_fields = (
         "background_info__first_name",

@@ -9,6 +9,8 @@ import Pagination from "../../components/Pagination";
 import PreviewModal from "./components/PreviewModal";
 import EditModal from "./components/EditModal";
 import ArchiveModal from "./components/ArchiveModal";
+import toast, { Toaster } from "react-hot-toast";
+import CustomToast from "../../components/CustomToast";
 
 const csvHeaders = [
   { label: "ID", key: "id" },
@@ -118,6 +120,7 @@ const Applicants = () => {
 
     try {
       await api.delete(`/applicants/${archiveModal.applicantId}/`);
+      toast.custom(t => <CustomToast t={t} type="archive" />);
       fetchApplicants();
       closeArchiveModal();
     } catch (err) {
@@ -279,6 +282,7 @@ const Applicants = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      <Toaster position="top-center" reverseOrder={false} />
       <ApplicantsHeader />
       <ApplicantActions
         searchTerm={searchTerm}
