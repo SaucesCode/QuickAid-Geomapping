@@ -125,6 +125,7 @@ export const submitApplicant = async data => {
       applicant_type: data.applicant_type || "Self",
       type_of_assistance: data.type_of_assistance,
       date_filled: data.date_filled,
+      created_at: data.created_at,
     };
 
     // Add representative data if needed

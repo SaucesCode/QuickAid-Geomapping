@@ -135,7 +135,7 @@ class ApplicantSerializer(serializers.ModelSerializer):
             "representative", "longitude", "latitude",
             "city", "date_filled", "created_at", "is_archived", "approvals", "approval_count"
         ]
-        read_only_fields = ["id", "staff", "staff_ref_code", "longitude", "latitude", "date_filled", "created_at"]
+        read_only_fields = ["id", "staff", "staff_ref_code", "longitude", "latitude", "date_filled"]
 
     def create(self, validated_data):
         request = self.context.get("request")
@@ -143,6 +143,7 @@ class ApplicantSerializer(serializers.ModelSerializer):
 
         bg_data = validated_data.pop("background_info")
         rep_data = validated_data.pop("representative", None)
+        created_at = validated_data.pop("created_at", None)
 
         # Identify the person by first_name + last_name + birthday
         unique_identifiers = {
@@ -176,7 +177,7 @@ class ApplicantSerializer(serializers.ModelSerializer):
         # ✅ Get or create the applicant (per person)
         applicant, created = Applicant.objects.get_or_create(
             background_info=background_info,
-            defaults={**validated_data, "staff": staff_user},
+            defaults={**validated_data, "staff": staff_user, "created_at": created_at},
         )
 
         if not created:
@@ -184,6 +185,7 @@ class ApplicantSerializer(serializers.ModelSerializer):
             for key, value in validated_data.items():
                 setattr(applicant, key, value)
             applicant.staff = staff_user
+            applicant.created_at = created_at
             applicant.save()
 
         # ✅ Handle representative

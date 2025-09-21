@@ -1,5 +1,5 @@
 // File: frontend/src/forms/Step1.js
-import React, { useState } from "react";
+import { useState } from "react";
 
 const Step1 = ({ formData, handleChange, nextStep }) => {
   const [errors, setErrors] = useState({});
@@ -13,8 +13,8 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
     if (!formData.last_name?.trim()) {
       newErrors.last_name = "Last name is required";
     }
-    if (formData.middle_initial?.trim() && !/^[A-Za-z]$/.test(formData.middle_initial)) {
-      newErrors.middle_initial = "Middle initial must be a single letter";
+    if (!formData.middle_initial?.trim()) {
+      newErrors.middle_initial = "Middle name is required";
     }
     if (!formData.contact_number?.trim()) {
       newErrors.contact_number = "Contact number is required";
@@ -90,7 +90,6 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
               type="text"
               id="middle_initial"
               name="middle_initial"
-              maxLength={1}
               value={formData.middle_initial}
               onChange={handleInputChange}
               className={`input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent rounded-lg ${

@@ -1,0 +1,2 @@
+- [x] Change parent div class from `flex min-h-screen bg-slate-50` to `flex h-screen bg-slate-50`
+- [x] Change aside class to use `sticky top-0` instead of `fixed top-0 left-0`

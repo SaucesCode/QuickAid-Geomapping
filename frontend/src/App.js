@@ -3,9 +3,12 @@ import Login from "./pages/auth/Login";
 import SettingsPage from "./pages/auth/SettingsPage";
 
 import Dashboard from "./pages/dashboard/Dashboard";
-import Analytics from "./pages/analytics/Analytics";
 import MapComponent from "./pages/maps/MapComponent";
 import AdminManagement from "./pages/dashboard/AdminManagement";
+import Trends from "./pages/analytics/Trends";
+import Geographic from "./pages/analytics/Geographic";
+import DemographicsEconomics from "./pages/analytics/DemographicsEconomics";
+import Performance from "./pages/analytics/Performance";
 
 import ApplicantForm from "./pages/applicants/ApplicantForm";
 import Applicants from "./pages/applicants/Applicants";
@@ -30,7 +33,6 @@ import MedicalAssistanceProgram from "./pages/LandingPage/MedicalAss";
 import FuneralAssistanceProgram from "./pages/LandingPage/FunAss";
 
 import ScrollToTop from "./components/ScrollToTop";
-import { Toaster } from "react-hot-toast";
 import HeatMap from "./pages/maps/HeatMap";
 import "./index.css";
 
@@ -38,7 +40,6 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <ScrollToTop />
-      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
@@ -72,7 +73,13 @@ function App() {
           <Route path="geomapping" element={<MapComponent />} />
           <Route path="heatmap" element={<HeatMap />} />
           <Route path="admin-management" element={<AdminManagement />} />
-          <Route path="analytics" element={<Analytics />} />
+          <Route path="analytics">
+            <Route path="geographic" element={<Geographic />} />
+            <Route path="demographics-economics" element={<DemographicsEconomics />} />
+            <Route path="trends" element={<Trends />} />
+            <Route path="performance" element={<Performance />} />
+          </Route>
+
           <Route path="applicants" element={<Applicants />} />
           <Route path="export-applicants" element={<ExportApplicants />} />
           <Route path="approved" element={<Approved />} />

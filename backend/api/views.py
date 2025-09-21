@@ -3,6 +3,7 @@ import csv
 import datetime
 import requests
 import pandas as pd
+from dateutil.relativedelta import relativedelta
 
 # Django
 from django.contrib.auth import get_user_model
@@ -10,7 +11,7 @@ from django.db.models import (
     Avg, Count, ExpressionWrapper, F, DurationField,
     IntegerField, Max, Q
 )
-from django.db.models.functions import TruncDate, ExtractYear
+from django.db.models.functions import TruncDate, ExtractYear, TruncMonth, ExtractHour
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now, timedelta
@@ -32,7 +33,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 # Local
 from .models import (
     Applicant, CustomUser, StaffActivityLog,
-    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch
+    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch,
 )
 from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer
 
@@ -598,7 +599,7 @@ def approval_batch_history(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def export_applicants_csv(request):
-    from datetime import datetime
+    from datetime import datetime, timedelta
 
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
@@ -606,40 +607,69 @@ def export_applicants_csv(request):
 
     qs = Applicant.objects.filter(is_archived=False)
 
+    # 📅 Date filtering
     if start_date and end_date:
         try:
             start = timezone.make_aware(datetime.strptime(start_date, "%Y-%m-%d"))
-            end = timezone.make_aware(datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1))
+            end = timezone.make_aware(
+                datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
+            )
             qs = qs.filter(date_filled__range=[start, end])
         except ValueError:
-            print("Invalid date format received")
+            print("Invalid date format received for start_date or end_date")
 
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="applicants.csv"'
+    # 🎯 Assistance type filtering (case-insensitive)
+    if assistance_type:
+        qs = qs.filter(type_of_assistance__iexact=assistance_type)
+
+    # 📂 Build CSV response
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="applicants.csv"'
     writer = csv.writer(response)
 
+    # Header row (added representative fields)
     writer.writerow([
-        "ID", "First Name", "Middle Initial", "Last Name", "Suffix",
+        "Applicant ID", "First Name", "Middle Initial", "Last Name", "Suffix",
         "Contact Number", "Barangay", "City", "Province",
         "Birthday", "Sex", "Civil Status", "Occupation",
         "Monthly Income", "Valid ID", "Assistance Type",
-        "Applicant Type", "Date Filled"
+        "Applicant Type", "Date Filled",
+        "Representative First Name", "Representative Last Name",
+        "Representative Contact Number"
     ])
 
+    # Data rows
     for app in qs:
         bg = app.background_info
+        rep_bg = getattr(app.representative, "background_info", None) if app.representative else None
+
         writer.writerow([
             app.id,
-            bg.first_name, bg.middle_initial or "", bg.last_name, bg.suffix or "",
+            bg.first_name,
+            bg.middle_initial or "",
+            bg.last_name,
+            bg.suffix or "",
             app.contact_number,
-            bg.barangay.name, bg.barangay.city.name, bg.barangay.city.province.name,
-            bg.birthday, bg.sex, bg.civil_status, bg.occupation or "",
-            bg.monthly_income or "", app.valid_id_presented, app.type_of_assistance,
-            app.applicant_type, app.date_filled.strftime("%Y-%m-%d %H:%M:%S"),
+            bg.barangay.name,
+            bg.barangay.city.name,
+            bg.barangay.city.province.name,
+            bg.birthday,
+            bg.sex,
+            bg.civil_status,
+            bg.occupation or "",
+            bg.monthly_income or "",
+            app.valid_id_presented,
+            app.type_of_assistance,
+            app.applicant_type,
+            app.date_filled.strftime("%Y-%m-%d %H:%M:%S"),
+            rep_bg.first_name if rep_bg else "",
+            rep_bg.last_name if rep_bg else "",
+            app.representative.contact_number if app.representative else "",
         ])
 
     print(f"Exported {qs.count()} applicants to CSV")
     return response
+
 
 
 # RECENT APPLICANTS
@@ -811,39 +841,238 @@ def update_coordinates(request):
 # ANALYTICS & REPORTING
 # =============================================
 
-# ---------------------------------------------
-# Applicant Demographics
-# ---------------------------------------------
+# ======================================================
+# 1. 📊 DASHBOARD (Executive Summary & KPIs)
+# ======================================================
 
-# APPLICANTS BY GENDER
-# Function to get applicant counts by gender
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def summary_metrics(request):
+    """
+    📊 Dashboard: High-level summary metrics
+    - Total applicants
+    - Average processing time (minutes)
+    - Most common assistance type
+    - Barangay with highest applications
+    """
+    total_applicants = Applicant.objects.count()
+    avg_processing_time = Applicant.objects.exclude(
+        created_at__isnull=True, date_filled__isnull=True
+    ).aggregate(
+        avg_time=Avg(ExpressionWrapper(
+            F('date_filled') - F('created_at'),
+            output_field=DurationField()
+        ))
+    )['avg_time']
+    avg_minutes = round(avg_processing_time.total_seconds() / 60, 1) if avg_processing_time else 0
+
+    most_common_type = Applicant.objects.values('type_of_assistance').annotate(
+        count=Count('id')
+    ).order_by('-count').first()
+
+    highest_barangay = Applicant.objects.values('background_info__barangay__name').annotate(
+        count=Count('id')
+    ).order_by('-count').first()
+
+    return Response({
+        'totalApplicants': total_applicants,
+        'averageProcessingTime': avg_minutes,
+        'mostCommonType': most_common_type['type_of_assistance'] if most_common_type else 'N/A',
+        'highestBarangay': highest_barangay['background_info__barangay__name'] if highest_barangay else 'N/A'
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def total_applicants(request):
+    """
+    📊 Dashboard: Applicant counts
+    - Daily, weekly, monthly totals
+    """
+    today = timezone.now().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    start_of_month = today.replace(day=1)
+
+    return Response({
+        'daily': Applicant.objects.filter(date_filled__date=today).count(),
+        'weekly': Applicant.objects.filter(date_filled__date__gte=start_of_week).count(),
+        'monthly': Applicant.objects.filter(date_filled__date__gte=start_of_month).count()
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def applicant_growth_rate(request):
+    """
+    📊 Dashboard: Applicant growth rate
+    - Compare this month vs previous month (% growth)
+    """
+    today = timezone.now().date()
+    last_month = today - timedelta(days=30)
+    prev_month = today - timedelta(days=60)
+
+    this_month = Applicant.objects.filter(date_filled__gte=last_month).count()
+    previous_month = Applicant.objects.filter(date_filled__range=[prev_month, last_month]).count()
+
+    growth = ((this_month - previous_month) / previous_month * 100) if previous_month > 0 else 0
+
+    return Response({
+        "this_month": this_month,
+        "previous_month": previous_month,
+        "growth_rate": round(growth, 2)
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def repeat_applicants(request):
+    """
+    📊 Dashboard: Repeat applicants
+    - Count of applicants who submitted multiple applications
+    """
+    repeat_count = BackgroundInfo.objects.annotate(app_count=Count('applicant')).filter(app_count__gt=1).count()
+    return Response({"repeat_applicants": repeat_count})
+
+
+# ======================================================
+# 2. 🌍 GEOGRAPHIC INSIGHTS
+# ======================================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_applicant_locations(request):
+    """
+    🌍 Geographic: Applicant locations
+    - Returns lat/lon + address for mapping
+    - Filters: type, city, barangay
+    """
+    applicants = Applicant.objects.select_related('background_info__barangay__city').exclude(
+        latitude__isnull=True, longitude__isnull=True
+    )
+
+    if request.GET.get("type"):
+        applicants = applicants.filter(type_of_assistance=request.GET["type"])
+    if request.GET.get("city"):
+        applicants = applicants.filter(background_info__barangay__city__name=request.GET["city"])
+    if request.GET.get("barangay"):
+        applicants = applicants.filter(background_info__barangay__name=request.GET["barangay"])
+
+    data = [{
+        "id": app.id,
+        "full_name": f"{app.background_info.first_name} {app.background_info.last_name}",
+        "latitude": app.latitude,
+        "longitude": app.longitude,
+        "address": f"{app.background_info.street_address}, {app.background_info.barangay.name}, {app.background_info.barangay.city.name}",
+        "type_of_assistance": app.type_of_assistance,
+        "barangay": app.background_info.barangay.name,
+        "city": app.background_info.barangay.city.name,
+    } for app in applicants]
+
+    return Response(data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def top_barangays(request):
+    """
+    🌍 Geographic: Top barangays
+    - Returns top 10 barangays by applicant count
+    - Optional filters: assistance type, date range
+    """
+    qs = Applicant.objects.all()
+    if request.GET.get("type"):
+        qs = qs.filter(type_of_assistance=request.GET["type"])
+    if request.GET.get("start") and request.GET.get("end"):
+        qs = qs.filter(date_filled__date__range=[request.GET["start"], request.GET["end"]])
+
+    data = qs.values('background_info__barangay__name').annotate(count=Count('id')).order_by('-count')[:10]
+    return Response(list(data))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def barangay_by_type(request):
+    """
+    🌍 Geographic: Applications by barangay & assistance type
+    """
+    data = Applicant.objects.values(
+        'background_info__barangay__name', 'type_of_assistance'
+    ).annotate(count=Count('id')).order_by('-count')
+    return Response(list(data))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def approval_rate_by_location(request):
+    """
+    🌍 Geographic: Approval rates by location
+    - Grouped by province/city/barangay (configurable via ?group=)
+    """
+    group = request.GET.get("group", "background_info__barangay__city__name")
+    qs = Applicant.objects.values(group).annotate(
+        total=Count("id"),
+        approved=Count("id", filter=Q(approvals__isnull=False))
+    )
+
+    results = [{
+        "location": item[group],
+        "total": item["total"],
+        "approved": item["approved"],
+        "approval_rate": round((item["approved"] / item["total"] * 100), 2) if item["total"] > 0 else 0
+    } for item in qs]
+
+    return Response(results)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def inactive_applicants(request):
+    """
+    🌍 Geographic: Inactive applicants
+    - Applicants with no new applications in X months (default=6)
+    """
+    months = int(request.GET.get("months", 6))
+    cutoff = now() - timedelta(days=30*months)
+
+    inactive = BackgroundInfo.objects.annotate(
+        last_app=Max("applicant__date_filled")
+    ).filter(Q(last_app__lt=cutoff) | Q(last_app__isnull=True))
+
+    data = [{
+        "id": b.id,
+        "name": f"{b.first_name} {b.last_name}",
+        "last_application": b.application_history().first().date_filled if b.application_history().exists() else None
+    } for b in inactive]
+
+    return Response(data)
+
+
+# ======================================================
+# 3. 👥 DEMOGRAPHICS & ECONOMICS
+# ======================================================
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def applicants_by_gender(request):
-    data = Applicant.objects.values("background_info__sex").annotate(count=Count("id"))
-    return Response(list(data))
+    """👥 Demographics: Applicants by gender"""
+    return Response(list(Applicant.objects.values("background_info__sex").annotate(count=Count("id"))))
 
-# APPLICANTS BY CIVIL STATUS
-# Function to get applicant counts by civil status
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def applicants_by_civil_status(request):
-    data = Applicant.objects.values("background_info__civil_status").annotate(count=Count("id"))
-    return Response(list(data))
+    """👥 Demographics: Applicants by civil status"""
+    return Response(list(Applicant.objects.values("background_info__civil_status").annotate(count=Count("id"))))
 
-# APPLICANTS BY AGE GROUP
-# Function to get applicant counts by age groups
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def applicants_by_age_group(request):
+    """👥 Demographics: Applicants by age groups (0–17, 18–25, … 60+)"""
     today = datetime.date.today()
     qs = Applicant.objects.annotate(
-        age=ExpressionWrapper(
-            today.year - ExtractYear("background_info__birthday"),
-            output_field=IntegerField()
-        )
+        age=ExpressionWrapper(today.year - ExtractYear("background_info__birthday"), output_field=IntegerField())
     )
-
     age_groups = {
         "0-17": qs.filter(age__lte=17).count(),
         "18-25": qs.filter(age__gte=18, age__lte=25).count(),
@@ -852,16 +1081,53 @@ def applicants_by_age_group(request):
         "46-60": qs.filter(age__gte=46, age__lte=60).count(),
         "60+": qs.filter(age__gt=60).count(),
     }
+    return Response([{"age_group": g, "count": c} for g, c in age_groups.items()])
 
-    formatted = [{"age_group": group, "count": count} for group, count in age_groups.items()]
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def applicants_by_occupation(request):
+    data = (
+        Applicant.objects.values("background_info__occupation")
+        .annotate(count=Count("id"))
+        .order_by("-count")
+    )
+
+    formatted = [
+        {
+            "occupation": (
+                "No Occupation" if item["background_info__occupation"].lower() == "none" else item["background_info__occupation"]
+            ),
+            "count": item["count"],
+        }
+        for item in data
+    ]
+
     return Response(formatted)
 
-# INCOME DISTRIBUTION
-# Function to get applicant counts by income ranges
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def applicants_by_age_gender(request):
+    """👥 Demographics: Applicants by age × gender cross-tab"""
+    today = datetime.date.today()
+    qs = Applicant.objects.annotate(
+        age=ExpressionWrapper(today.year - ExtractYear("background_info__birthday"), output_field=IntegerField())
+    )
+    data = qs.values("background_info__sex").annotate(
+        under18=Count("id", filter=Q(age__lt=18)),
+        between18_35=Count("id", filter=Q(age__gte=18, age__lte=35)),
+        between36_60=Count("id", filter=Q(age__gte=36, age__lte=60)),
+        above60=Count("id", filter=Q(age__gt=60)),
+    )
+    return Response(list(data))
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def income_distribution(request):
-    # Define income ranges with a reasonable maximum
+    """💰 Economics: Income distribution by applicant"""
     income_ranges = [
         (0, 10000, 'Below 10,000'),
         (10001, 20000, '10,001 - 20,000'),
@@ -869,323 +1135,250 @@ def income_distribution(request):
         (30001, 40000, '30,001 - 40,000'),
         (40001, 50000, '40,001 - 50,000'),
         (50001, 100000, '50,001 - 100,000'),
-        (100001, None, 'Above 100,000')  # Use None instead of float('inf')
+        (100001, None, 'Above 100,000')
     ]
-    
-    # Get counts for each range
     distribution = []
     for min_income, max_income, label in income_ranges:
         if max_income is None:
-            # For the last range (Above 100,000)
-            count = Applicant.objects.filter(
-                background_info__monthly_income__gte=min_income
-            ).count()
+            count = Applicant.objects.filter(background_info__monthly_income__gte=min_income).count()
         else:
             count = Applicant.objects.filter(
                 background_info__monthly_income__gte=min_income,
                 background_info__monthly_income__lt=max_income
             ).count()
-        
-        distribution.append({
-            'range': label,
-            'count': count
-        })
-    
+        distribution.append({"range": label, "count": count})
     return Response(distribution)
 
-# ---------------------------------------------
-# Applicant Statistics
-# ---------------------------------------------
+# ======================================================
+# 4. 📈 APPLICATION & APPROVAL TRENDS
+# ======================================================
 
-# TOTAL APPLICANTS
-# Function to get applicant counts for different time periods
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def total_applicants(request):
-    today = now().date()
-    one_week_ago = today - timedelta(days=7)
-    one_month_ago = today - timedelta(days=30)
-
-    daily_count = Applicant.objects.filter(date_filled__date=today).count()
-    weekly_count = Applicant.objects.filter(date_filled__gte=one_week_ago).count()
-    monthly_count = Applicant.objects.filter(date_filled__gte=one_month_ago).count()
-
-    print(daily_count, weekly_count, monthly_count)
-
-    return Response({
-        "daily": daily_count,
-        "weekly": weekly_count,
-        "monthly": monthly_count
-    })
-
-# APPLICANTS BY ASSISTANCE TYPE
-# Function to get applicant counts by assistance type
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def applicants_by_assistance_type(request):
-    assistance_type = request.GET.get("type")
-    start_date = request.GET.get("start")
-    end_date = request.GET.get("end")
-
-    qs = Applicant.objects.all()
-
-    if assistance_type:
-        qs = qs.filter(type_of_assistance=assistance_type)
-
-    if start_date and end_date:
-        qs = qs.filter(date_filled__date__range=[start_date, end_date])
-
-    data = qs.values('type_of_assistance').annotate(count=Count('id'))
-    return Response(list(data))
-
-# APPLICANTS BY LOCATION
-# Function to get applicant counts by location
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def applicants_by_location(request):
-    data = Applicant.objects.values('city_municipality','barangay', 'latitude', 'longitude').annotate(count=Count('id'))
-    return Response(list(data))
-
-# TOP BARANGAYS
-# Function to get top barangays by applicant count
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def top_barangays(request):
-    assistance_type = request.GET.get("type")
-    start_date = request.GET.get("start")
-    end_date = request.GET.get("end")
-
-    qs = Applicant.objects.all()
-    if assistance_type:
-        qs = qs.filter(type_of_assistance=assistance_type)
-    if start_date and end_date:
-        qs = qs.filter(date_filled__date__range=[start_date, end_date])
-    
-    data = qs.values('background_info__barangay__name').annotate(count=Count('id')).order_by('-count')[:10]
-    return Response(list(data))
-
-# BARANGAY BY TYPE
-# Function to get applicant counts by barangay and assistance type
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def barangay_by_type(request):
-    data = Applicant.objects.values('background_info__barangay', 'type_of_assistance').annotate(count=Count('id')).order_by('-count')
-    return Response(list(data))
-
-# ---------------------------------------------
-# Trend Analysis
-# ---------------------------------------------
-
-# TRENDS OVER TIME
-# Function to get applicant trends over a time period
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def trends_over_time(request):
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-    qs = Applicant.objects.all()
-    if start_date and end_date:
-        qs = qs.filter(date_filled__range=[start_date, end_date])
-    data = qs.annotate(date=TruncDate('date_filled')).values('date').annotate(count=Count('id')).order_by('date')
-    return Response(list(data))
-
-# ASSISTANCE TYPE TREND
-# Function to get trends for specific assistance types
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def assistance_type_trend(request):
-    assistance_type = request.GET.get('type')
-    start_date = request.GET.get("start")
-    end_date = request.GET.get("end")
-
-    qs = Applicant.objects.all()
-    if assistance_type:
-        qs = qs.filter(type_of_assistance=assistance_type)
-    if start_date and end_date:
-        qs = qs.filter(date_filled__date__range=[start_date, end_date])
-        
-    data = qs.annotate(date=TruncDate('date_filled')).values('date').annotate(count=Count('id')).order_by('date')
-    return Response(list(data))
-
-# MONTHLY TRENDS
-# Function to get monthly applicant trends
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def monthly_trends(request):
-    # Get the last 12 months of data
-    end_date = timezone.now()
-    start_date = end_date - timedelta(days=365)
-    
-    # Get monthly counts
-    monthly_data = Applicant.objects.filter(
-        date_filled__range=[start_date, end_date]
-    ).annotate(
-        month=TruncDate('date_filled')
-    ).values('month').annotate(
-        count=Count('id')
-    ).order_by('month')
-    
-    # Format the data for the frontend
-    formatted_data = [
-        {
-            'month': item['month'].strftime('%Y-%m'),
-            'count': item['count']
-        }
-        for item in monthly_data
-    ]
-    
-    return Response(formatted_data)
+    """
+    📈 Trends: Applicants by month (last 12 months)
+    """
+    today = timezone.now().date()
+    start_date = today.replace(day=1) - relativedelta(months=11)
+    qs = Applicant.objects.filter(date_filled__gte=start_date)
 
-# ---------------------------------------------
-# Performance Metrics
-# ---------------------------------------------
-
-# AVERAGE PROCESSING TIME
-# Function to calculate average application processing time
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def average_processing_time(request):
-    data = Applicant.objects.exclude(created_at__isnull=True).exclude(date_filled__isnull=True).annotate(
-        processing_time=ExpressionWrapper(F('date_filled') - F('created_at'), output_field=DurationField())
-    ).aggregate(avg_time=Avg('processing_time'))
-
-    # Convert seconds to minutes and round to 1 decimal place
-    avg_minutes = round(data['avg_time'].total_seconds() / 60, 1) if data['avg_time'] else 0
-
-    return Response({
-        "average_processing_time": avg_minutes
-    })
-
-# PROCESSING TIME BY TYPE
-# Function to get average processing time by assistance type
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def processing_time_by_type(request):
-    # Calculate average processing time for each assistance type
-    processing_times = Applicant.objects.exclude(
-        created_at__isnull=True
-    ).exclude(
-        date_filled__isnull=True
-    ).values(
-        'type_of_assistance'
-    ).annotate(
-        processing_time=Avg(
-            ExpressionWrapper(
-                F('date_filled') - F('created_at'),
-                output_field=DurationField()
-            )
-        )
-    ).order_by('type_of_assistance')
-    
-    # Format the data
-    formatted_data = [
-        {
-            'type': item['type_of_assistance'],
-            'minutes': round(item['processing_time'].total_seconds() / 60, 1) if item['processing_time'] and item['processing_time'].total_seconds() > 0 else 0
-        }
-        for item in processing_times
-    ]
-    
-    return Response(formatted_data)
-
-# STAFF ACTIVITY LOGS
-# Function to get staff activity statistics
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def staff_activity_logs(request):
-    data = Applicant.objects.values('staff__username').annotate(count=Count('id')).order_by('-count')
+    data = qs.annotate(month=TruncMonth("date_filled")).values("month").annotate(count=Count("id")).order_by("month")
     return Response(list(data))
 
-# ---------------------------------------------
-# Summary
-# ---------------------------------------------
 
-# SUMMARY METRICS
-# Function to get overall application statistics
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def summary_metrics(request):
-    # Get total applicants
-    total_applicants = Applicant.objects.count()
-    
-    # Get average processing time in minutes
-    avg_processing_time = Applicant.objects.exclude(
-        created_at__isnull=True
-    ).exclude(
-        date_filled__isnull=True
-    ).aggregate(
-        avg_time=Avg(
-            ExpressionWrapper(
-                F('date_filled') - F('created_at'),
-                output_field=DurationField()
-            )
-        )
-    )['avg_time']
+def yearly_trends(request):
+    """
+    📈 Trends: Applicants by year
+    """
+    qs = Applicant.objects.annotate(year=ExtractYear("date_filled")).values("year").annotate(count=Count("id")).order_by("year")
+    return Response(list(qs))
 
-    
-    # Convert to minutes and round to 1 decimal place
-    avg_minutes = round(avg_processing_time.total_seconds() / 60, 1) if avg_processing_time and avg_processing_time.total_seconds() > 0 else 0
-    
-    # Get most common assistance type
-    most_common_type = Applicant.objects.values(
-        'type_of_assistance'
-    ).annotate(
-        count=Count('id')
-    ).order_by('-count').first()
-    
-    # Get barangay with highest applications
-    highest_barangay = Applicant.objects.values(
-        'background_info__barangay__name'
-    ).annotate(
-        count=Count('id')
-    ).order_by('-count').first()
-    
-    return Response({
-        'totalApplicants': total_applicants,
-        'averageProcessingTime': avg_minutes,
-        'mostCommonType': most_common_type['type_of_assistance'] if most_common_type else 'N/A',
-        'highestBarangay': highest_barangay['background_info__barangay__name'] if highest_barangay else 'N/A'
-    })
 
-#APPROVAL RATE 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def approval_rate(request):
-    total = Applicant.objects.count()
-    approved = Approval.objects.count()
-    rate = (approved / total * 100) if total > 0 else 0
+def trends_over_time(request):
+    """
+    📈 Trends: Applicants over time (daily granularity, configurable start/end)
+    """
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
 
-    return Response({
-        "total_applicants": total,
-        "approved_applications": approved,
-        "approval_rate": round(rate, 2)
-    })
+    qs = Applicant.objects.all()
+    if start_date and end_date:
+        qs = qs.filter(date_filled__date__range=[start_date, end_date])
 
-#APPROVAL RATE BY GROUP
+    data = qs.annotate(day=TruncDate("date_filled")).values("day").annotate(count=Count("id")).order_by("day")
+    return Response(list(data))
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def approval_rate_by_group(request):
-    group_by = request.GET.get("group", "type_of_assistance")  
+def cumulative_applicants(request):
+    """
+    📈 Trends: Cumulative applicants over time
+    """
+    qs = Applicant.objects.annotate(day=TruncDate("date_filled")).values("day").annotate(count=Count("id")).order_by("day")
 
-    groups = Applicant.objects.values(group_by).annotate(
-        total=Count("id"),
-        approved=Count("id", filter=Q(approval__isnull=False))
-    )
+    cumulative = []
+    total = 0
+    for row in qs:
+        total += row["count"]
+        cumulative.append({"day": row["day"], "cumulative": total})
+    return Response(cumulative)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def assistance_type_trend(request):
+    """
+    📈 Trends: Distribution of assistance types
+    """
+    qs = Applicant.objects.values("type_of_assistance").annotate(count=Count("id")).order_by("-count")
+    return Response(list(qs))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def assistance_type_over_time(request):
+    """
+    📈 Trends: Assistance types over time (monthly stacked)
+    """
+    qs = Applicant.objects.annotate(month=TruncMonth("date_filled")).values("month", "type_of_assistance").annotate(count=Count("id")).order_by("month")
+    return Response(list(qs))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def approval_trends(request):
+    """
+    📈 Trends: Approval counts over time (monthly)
+    """
+    qs = Applicant.objects.filter(approvals__isnull=False).annotate(month=TruncMonth("date_filled")).values("month").annotate(count=Count("id")).order_by("month")
+    return Response(list(qs))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def time_to_approval(request):
+    """
+    📈 Trends: Average time to approval (days)
+    """
+    qs = Applicant.objects.exclude(date_filled__isnull=True).exclude(approvals__date_approved__isnull=True)
+    qs = qs.annotate(duration=ExpressionWrapper(
+        F("approvals__date_approved") - F("date_filled"), output_field=DurationField()
+    ))
+
+    avg_time = qs.aggregate(avg=Avg("duration"))["avg"]
+    avg_days = round(avg_time.total_seconds() / 86400, 1) if avg_time else 0
+    return Response({"average_days_to_approval": avg_days})
+
+# Applicants Activity Heatmap (by hour of day)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def applicant_activity_heatmap(request):
+    from django.db.models.functions import ExtractHour
+
+    qs = Applicant.objects.annotate(
+        hour=ExtractHour("date_filled")
+    ).values("hour").annotate(count=Count("id")).order_by("hour")
 
     results = []
-    for g in groups:
-        total = g["total"]
-        approved = g["approved"]
-        rate = (approved / total * 100) if total > 0 else 0
+    for i in range(24):
+        hour_data = next((item for item in qs if item["hour"] == i), None)
         results.append({
-            "group": g[group_by],
-            "total": total,
-            "approved": approved,
-            "approval_rate": round(rate, 2)
+            "hour": i,
+            "count": hour_data["count"] if hour_data else 0
         })
 
     return Response(results)
 
+
+
+# ======================================================
+# 5. ⚡ PERFORMANCE & PRODUCTIVITY
+# ======================================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def average_processing_time(request):
+    """
+    ⚡ Performance: Average processing time (minutes)
+    """
+    qs = Applicant.objects.exclude(created_at__isnull=True, date_filled__isnull=True).annotate(
+        duration=ExpressionWrapper(F("date_filled") - F("created_at"), output_field=DurationField())
+    )
+    avg_time = qs.aggregate(avg=Avg("duration"))["avg"]
+    avg_minutes = round(avg_time.total_seconds() / 60, 1) if avg_time else 0
+    return Response({"average_processing_time_minutes": avg_minutes})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def processing_time_by_type(request):
+    """
+    ⚡ Performance: Average processing time grouped by assistance type
+    """
+    qs = Applicant.objects.exclude(created_at__isnull=True, date_filled__isnull=True).annotate(
+        duration=ExpressionWrapper(F("date_filled") - F("created_at"), output_field=DurationField())
+    )
+
+    data = qs.values("type_of_assistance").annotate(
+        avg_time=Avg("duration")
+    ).order_by("type_of_assistance")
+
+    results = [{
+        "type": row["type_of_assistance"],
+        "avg_minutes": round(row["avg_time"].total_seconds() / 60, 1) if row["avg_time"] else 0
+    } for row in data]
+
+    return Response(results)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def processing_time_distribution(request):
+    """
+    ⚡ Performance: Distribution of processing times (bucketed in minutes)
+    """
+    qs = Applicant.objects.exclude(created_at__isnull=True, date_filled__isnull=True).annotate(
+        duration=ExpressionWrapper(F("date_filled") - F("created_at"), output_field=DurationField())
+    )
+
+    buckets = {
+        "<30 mins": qs.filter(duration__lte=timedelta(minutes=30)).count(),
+        "30-60 mins": qs.filter(duration__gt=timedelta(minutes=30), duration__lte=timedelta(hours=1)).count(),
+        "1-2 hrs": qs.filter(duration__gt=timedelta(hours=1), duration__lte=timedelta(hours=2)).count(),
+        "2+ hrs": qs.filter(duration__gt=timedelta(hours=2)).count()
+    }
+    return Response([{"bucket": k, "count": v} for k, v in buckets.items()])
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def staff_productivity(request):
+    """
+    ⚡ Performance: Applicants processed per staff member
+    """
+    qs = Applicant.objects.values("staff__username").annotate(count=Count("id")).order_by("-count")
+    return Response(list(qs))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def staff_leaderboard(request):
+    """
+    ⚡ Performance: Staff ranked by number of processed applications
+    """
+    qs = Applicant.objects.values("staff__username").annotate(count=Count("id")).order_by("-count")[:10]
+    return Response(list(qs))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def staff_activity_logs(request):
+    """
+    ⚡ Performance: Staff activity logs (timeline of actions)
+    """
+    logs = StaffActivityLog.objects.all().order_by("-timestamp")[:100]
+    return Response([{
+        "id": log.id,
+        "staff": log.staff.username,
+        "action": log.action,
+        "timestamp": log.timestamp
+    } for log in logs])
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def staff_activity_heatmap(request):
+    """
+    ⚡ Performance: Staff activity heatmap (hourly distribution)
+    """
+    qs = StaffActivityLog.objects.annotate(hour=ExtractHour("timestamp")).values("hour").annotate(count=Count("id")).order_by("hour")
+    return Response(list(qs))
 
 
 # =============================================
