@@ -4,9 +4,6 @@ import { Clock, MapPin, Phone, ChevronDown, ArrowRight } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
 import aics from "../../assets/AICS-OFFICIAL.png";
-import FinpayFeatures from "./AICSfile";
-
-
 
 // Mock assets - replace with actual imports
 const qaWithout = "https://via.placeholder.com/100x100/2563eb/ffffff?text=QA";
@@ -228,19 +225,99 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-            
 
-      <section>
-  <FinpayFeatures />
+      {/* Why AICS Section */}
+<section id="why-aics" className="bg-white py-16 px-4">
+  <div className="max-w-6xl mx-auto">
+    {/* Main Title */}
+    <h2 className="text-4xl md:text-5xl font-bold text-gray-900 text-center mb-16">
+      Why Choose AICS
+    </h2>
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      {/* Left Column - Features */}
+      <div className="space-y-12">
+        {/* Feature 1 */}
+        <div className="bg-gray-50 rounded-2xl p-8">
+          <div className="text-6xl font-bold text-blue-600 mb-4">10k+</div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            Families assisted nationwide
+          </h3>
+        </div>
+
+        {/* Feature 2 */}
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">
+            Quick & Transparent Assistance
+          </h3>
+          <p className="text-gray-600 text-lg leading-relaxed">
+            Beneficiaries can receive help <br />
+            without delays or long processing times.
+          </p>
+        </div>
+
+        {/* Feature 3 */}
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-4">
+            No unnecessary requirements
+          </h3>
+          <p className="text-gray-600 text-lg leading-relaxed">
+            Focused purely on providing <br />
+            aid to those who need it most.
+          </p>
+        </div>
+      </div>
+
+      {/* Right Column - Chart */}
+      <div className="bg-gray-50 rounded-2xl p-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <p className="text-gray-600 text-sm mb-2">Summary</p>
+            <p className="text-3xl font-bold text-gray-900">₱1,876,580</p>
+          </div>
+          <div className="flex items-center space-x-2 text-gray-600">
+            <span className="text-sm">6 Months</span>
+          </div>
+        </div>
+
+        {/* Chart */}
+        <div className="relative h-40">
+          <svg viewBox="0 0 400 150" className="w-full h-full" preserveAspectRatio="none">
+            <path
+              d="M0 120 L80 100 L160 90 L240 70 L320 50 L400 40 L400 150 L0 150 Z"
+              fill="rgba(37, 99, 235, 0.1)"
+            />
+            <path
+              d="M0 120 L80 100 L160 90 L240 70 L320 50 L400 40"
+              stroke="rgb(37, 99, 235)"
+              strokeWidth="3"
+              fill="none"
+            />
+          </svg>
+        </div>
+
+        {/* Month labels */}
+        <div className="flex justify-between mt-4 text-sm text-gray-500">
+          <span>Jan</span>
+          <span>Feb</span>
+          <span>Mar</span>
+          <span>Apr</span>
+          <span>May</span>
+          <span>Jun</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
 
+
             {/* Mission Stats Section */}
-      <section className="bg-gray-10 py-16 px-4">
+      <section className="bg-gray-50 py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           {/* Header Section */}
           <div className="mb-16">
-            <p className="text-blue-500 text-xl font-bold tracking-wider uppercase mb-4">
+            <p className="text-blue-500 text-sm font-medium tracking-wider uppercase mb-4">
               OUR MISSION
             </p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">

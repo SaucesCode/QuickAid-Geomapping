@@ -4,9 +4,6 @@ import { Clock, MapPin, Phone, ChevronDown, ArrowRight } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
 import aics from "../../assets/AICS-OFFICIAL.png";
-import FinpayFeatures from "./AICSfile";
-
-
 
 // Mock assets - replace with actual imports
 const qaWithout = "https://via.placeholder.com/100x100/2563eb/ffffff?text=QA";
@@ -228,19 +225,47 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-            
 
-      <section>
-  <FinpayFeatures />
+      {/* Why AICS Section */}
+<section className="py-20 bg-white">
+  <div className="max-w-7xl mx-auto px-4">
+    <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 text-center mb-12">
+      Why <span className="text-blue-600">AICS</span>
+    </h2>
+
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* Card 1 */}
+      <div className="bg-gray-50 p-8 rounded-2xl shadow-md hover:shadow-lg transition">
+        <h3 className="text-3xl font-bold text-blue-600 mb-4">1M+</h3>
+        <p className="text-gray-700">Individuals already assisted by AICS nationwide.</p>
+      </div>
+
+      {/* Card 2 */}
+      <div className="bg-gray-50 p-8 rounded-2xl shadow-md hover:shadow-lg transition">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">Fast Processing</h3>
+        <p className="text-gray-700">
+          Immediate response and quick support for those in urgent crisis situations.
+        </p>
+      </div>
+
+      {/* Card 3 */}
+      <div className="bg-gray-50 p-8 rounded-2xl shadow-md hover:shadow-lg transition">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">No Barriers</h3>
+        <p className="text-gray-700">
+          Accessible assistance for students, patients, and families without complex requirements.
+        </p>
+      </div>
+    </div>
+  </div>
 </section>
 
 
             {/* Mission Stats Section */}
-      <section className="bg-gray-10 py-16 px-4">
+      <section className="bg-gray-50 py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           {/* Header Section */}
           <div className="mb-16">
-            <p className="text-blue-500 text-xl font-bold tracking-wider uppercase mb-4">
+            <p className="text-blue-500 text-sm font-medium tracking-wider uppercase mb-4">
               OUR MISSION
             </p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">

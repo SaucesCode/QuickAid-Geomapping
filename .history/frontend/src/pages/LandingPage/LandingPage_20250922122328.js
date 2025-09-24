@@ -4,9 +4,6 @@ import { Clock, MapPin, Phone, ChevronDown, ArrowRight } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
 import aics from "../../assets/AICS-OFFICIAL.png";
-import FinpayFeatures from "./AICSfile";
-
-
 
 // Mock assets - replace with actual imports
 const qaWithout = "https://via.placeholder.com/100x100/2563eb/ffffff?text=QA";
@@ -228,19 +225,13 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-            
 
-      <section>
-  <FinpayFeatures />
-</section>
-
-
-            {/* Mission Stats Section */}
-      <section className="bg-gray-10 py-16 px-4">
+      {/* Mission Stats Section */}
+      <section className="bg-gray-50 py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           {/* Header Section */}
           <div className="mb-16">
-            <p className="text-blue-500 text-xl font-bold tracking-wider uppercase mb-4">
+            <p className="text-blue-500 text-sm font-medium tracking-wider uppercase mb-4">
               OUR MISSION
             </p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
@@ -248,8 +239,8 @@ const LandingPage = () => {
               those who seek help
             </h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
-              Thousands of individuals and families in crisis<br />
-              have received assistance, relief, and hope through AICS.
+              Hundreds of individuals and families in need<br />
+              have found hope and support through our programs.
             </p>
           </div>
 
@@ -257,25 +248,24 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
             {/* Stat 1 */}
             <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">50K+</div>
-              <p className="text-gray-600 text-lg font-medium">Beneficiaries served</p>
+              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">24%</div>
+              <p className="text-gray-600 text-lg font-medium">Revenue business</p>
             </div>
 
             {/* Stat 2 */}
             <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">₱120M+</div>
-              <p className="text-gray-600 text-lg font-medium">Financial aid released</p>
+              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">180K</div>
+              <p className="text-gray-600 text-lg font-medium">In annual revenue</p>
             </div>
 
             {/* Stat 3 */}
             <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">15+</div>
-              <p className="text-gray-600 text-lg font-medium">Years of service</p>
+              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">10+</div>
+              <p className="text-gray-600 text-lg font-medium">Months of runway</p>
             </div>
           </div>
         </div>
       </section>
-
 
       {/* FAQ Section */}
       <section className="py-20 bg-gray-50">

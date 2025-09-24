@@ -4,8 +4,7 @@ import { Clock, MapPin, Phone, ChevronDown, ArrowRight } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
 import aics from "../../assets/AICS-OFFICIAL.png";
-import FinpayFeatures from "./AICSfile";
-
+import FinpayFeatures from "../components/AICSfile";
 
 
 // Mock assets - replace with actual imports
@@ -234,13 +233,12 @@ const LandingPage = () => {
   <FinpayFeatures />
 </section>
 
-
             {/* Mission Stats Section */}
-      <section className="bg-gray-10 py-16 px-4">
+      <section className="bg-gray-50 py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           {/* Header Section */}
           <div className="mb-16">
-            <p className="text-blue-500 text-xl font-bold tracking-wider uppercase mb-4">
+            <p className="text-blue-500 text-sm font-medium tracking-wider uppercase mb-4">
               OUR MISSION
             </p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">

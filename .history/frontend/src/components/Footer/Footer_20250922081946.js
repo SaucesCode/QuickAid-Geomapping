@@ -10,7 +10,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-4">Know More</h3>
             <ul className="space-y-2">
-              <li><Link to="/services" className="text-gray-400 hover:text-white transition-colors duration-200">What are the services we provide?</Link></li>
+              <li><Link to="/" className="text-gray-400 hover:text-white transition-colors duration-200">What are the services we provide?</Link></li>
               {/* <li><Link to="/about-us" className="text-gray-400 hover:text-white transition-colors duration-200">About Us</Link></li> */}
               <li><Link to="/about-quickaid" className="text-gray-400 hover:text-white transition-colors duration-200">What is QUICKAID?</Link></li>
 

@@ -4,9 +4,6 @@ import { Clock, MapPin, Phone, ChevronDown, ArrowRight } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
 import aics from "../../assets/AICS-OFFICIAL.png";
-import FinpayFeatures from "./AICSfile";
-
-
 
 // Mock assets - replace with actual imports
 const qaWithout = "https://via.placeholder.com/100x100/2563eb/ffffff?text=QA";
@@ -228,53 +225,83 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-            
 
-      <section>
-  <FinpayFeatures />
-</section>
+      {/* WHY AICS Section */}
+<div className="bg-gray-50 py-16 px-4">
+  <div className="max-w-4xl mx-auto text-center">
+    {/* Header */}
+    <div className="mb-16">
+      <p className="text-blue-500 text-sm font-medium tracking-wider uppercase mb-4">
+        WHY AICS
+      </p>
+      <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+        We provide <span className="text-blue-600">support</span> when it matters most
+      </h2>
+      <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+        The Assistance to Individuals in Crisis Situation (AICS) program ensures timely
+        help for students, patients, and families during emergencies.
+      </p>
+    </div>
 
-
-            {/* Mission Stats Section */}
-      <section className="bg-gray-10 py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Header Section */}
-          <div className="mb-16">
-            <p className="text-blue-500 text-xl font-bold tracking-wider uppercase mb-4">
-              OUR MISSION
-            </p>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-              We help<br />
-              those who seek help
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
-              Thousands of individuals and families in crisis<br />
-              have received assistance, relief, and hope through AICS.
-            </p>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
-            {/* Stat 1 */}
-            <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">50K+</div>
-              <p className="text-gray-600 text-lg font-medium">Beneficiaries served</p>
-            </div>
-
-            {/* Stat 2 */}
-            <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">₱120M+</div>
-              <p className="text-gray-600 text-lg font-medium">Financial aid released</p>
-            </div>
-
-            {/* Stat 3 */}
-            <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">15+</div>
-              <p className="text-gray-600 text-lg font-medium">Years of service</p>
-            </div>
-          </div>
+    {/* Stats Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+      {/* Stat 1 */}
+      <div className="text-center">
+        <div className="flex justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" 
+               className="w-12 h-12 text-blue-600" fill="none" 
+               viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                  d="M12 8c1.656 0 3-1.567 3-3.5S13.656 1 12 1 9 2.567 9 4.5 10.344 8 12 8zM19.5 21h-15a1.5 1.5 0 01-1.5-1.5c0-3.5 3-6.5 7.5-6.5s7.5 3 7.5 6.5A1.5 1.5 0 0119.5 21z" />
+          </svg>
         </div>
-      </section>
+        <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+          1M+
+        </div>
+        <p className="text-gray-600 text-lg font-medium">
+          Individuals assisted nationwide
+        </p>
+      </div>
+
+      {/* Stat 2 */}
+      <div className="text-center">
+        <div className="flex justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" 
+               className="w-12 h-12 text-green-600" fill="none" 
+               viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                  d="M12 14l9-5-9-5-9 5 9 5zm0 7l9-5-9-5-9 5 9 5z" />
+          </svg>
+        </div>
+        <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+          50K+
+        </div>
+        <p className="text-gray-600 text-lg font-medium">
+          Students supported yearly
+        </p>
+      </div>
+
+      {/* Stat 3 */}
+      <div className="text-center">
+        <div className="flex justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" 
+               className="w-12 h-12 text-purple-600" fill="none" 
+               viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                  d="M12 6v6l4 2m6 4H6a2 2 0 01-2-2V6a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+          24/7
+        </div>
+        <p className="text-gray-600 text-lg font-medium">
+          Crisis support available
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
       {/* FAQ Section */}
