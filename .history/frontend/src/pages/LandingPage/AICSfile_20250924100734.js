@@ -1,24 +1,27 @@
 import React from "react";
 import { Star, Building2 } from "lucide-react";
 import {
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  ReferenceLine,
+  defs,
+  linearGradient,
+  stop,
 } from "recharts";
 
 export default function FinpayFeatures() {
-  // Example single data for cumulative values
   const chartData = [
-    { month: "Jan", value: 400 },
-    { month: "Feb", value: 600 },
-    { month: "Mar", value: 900 },
-    { month: "Apr", value: 1200 },
-    { month: "May", value: 1600 },
-    { month: "Jun", value: 1876 },
+    { month: "Jan", value: 1200000 },
+    { month: "Feb", value: 1350000 },
+    { month: "Mar", value: 1450000 },
+    { month: "Apr", value: 1600000 },
+    { month: "May", value: 1750000 },
+    { month: "Jun", value: 1876580 },
   ];
 
   return (
@@ -42,7 +45,7 @@ export default function FinpayFeatures() {
             </h3>
           </div>
 
-          {/* Box 2 */}
+          {/* Box 2 (Quick & Transparent Assistance) */}
           <div className="bg-gray-50 rounded-2xl p-8 shadow-md hover:shadow-lg transition">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">
               Quick & Transparent Assistance
@@ -70,7 +73,7 @@ export default function FinpayFeatures() {
           </div>
         </div>
 
-        {/* Bottom Wide Box (Summary + Area Chart + Requirements) */}
+        {/* Bottom Wide Box (Summary + Chart + Requirements) */}
         <div className="bg-gray-50 rounded-2xl p-8 shadow-md">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -83,16 +86,20 @@ export default function FinpayFeatures() {
             </div>
           </div>
 
-          {/* Single Area Chart */}
+          {/* Chart with aesthetic styling */}
           <div className="w-full h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fill: "#4b5563", fontSize: 12 }}
-                />
-                <YAxis hide /> {/* Hide Y-axis to match the clean look */}
+              <LineChart data={chartData}>
+                <defs>
+                  <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2563eb" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="#2563eb" stopOpacity={0.2} />
+                  </linearGradient>
+                </defs>
+
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="month" tick={{ fill: "#4b5563", fontSize: 12 }} />
+                <YAxis tick={{ fill: "#4b5563", fontSize: 12 }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "#fff",
@@ -100,20 +107,45 @@ export default function FinpayFeatures() {
                     border: "1px solid #e5e7eb",
                     boxShadow: "0px 4px 6px rgba(0,0,0,0.1)",
                   }}
+                  labelStyle={{ fontWeight: "bold", color: "#111827" }}
                 />
-                <Area
+
+                <Line
                   type="monotone"
                   dataKey="value"
-                  stroke="#14b8a6"
-                  fill="#14b8a6"
-                  fillOpacity={0.2}
-                  strokeWidth={3}
+                  stroke="url(#lineGradient)"
+                  strokeWidth={4}
+                  dot={{
+                    r: 6,
+                    fill: "#2563eb",
+                    stroke: "#fff",
+                    strokeWidth: 2,
+                  }}
+                  activeDot={{
+                    r: 8,
+                    fill: "#1d4ed8",
+                    stroke: "#fff",
+                    strokeWidth: 2,
+                  }}
                 />
-              </AreaChart>
+
+                {/* Trend Line */}
+                <ReferenceLine
+                  y={1500000}
+                  label={{
+                    value: "Trend",
+                    position: "top",
+                    fill: "#dc2626",
+                    fontWeight: "bold",
+                  }}
+                  stroke="#dc2626"
+                  strokeDasharray="6 6"
+                />
+              </LineChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Requirements */}
+          {/* No unnecessary requirements */}
           <div className="mt-8">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
               No unnecessary requirements

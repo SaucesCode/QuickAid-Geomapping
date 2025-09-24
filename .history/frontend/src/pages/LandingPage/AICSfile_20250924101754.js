@@ -8,17 +8,18 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 
 export default function FinpayFeatures() {
-  // Example single data for cumulative values
+  // Example stacked data
   const chartData = [
-    { month: "Jan", value: 400 },
-    { month: "Feb", value: 600 },
-    { month: "Mar", value: 900 },
-    { month: "Apr", value: 1200 },
-    { month: "May", value: 1600 },
-    { month: "Jun", value: 1876 },
+    { month: "Jan", aid: 400, medical: 300, food: 200 },
+    { month: "Feb", aid: 500, medical: 350, food: 250 },
+    { month: "Mar", aid: 600, medical: 400, food: 300 },
+    { month: "Apr", aid: 700, medical: 450, food: 350 },
+    { month: "May", aid: 800, medical: 500, food: 400 },
+    { month: "Jun", aid: 900, medical: 550, food: 450 },
   ];
 
   return (
@@ -70,7 +71,7 @@ export default function FinpayFeatures() {
           </div>
         </div>
 
-        {/* Bottom Wide Box (Summary + Area Chart + Requirements) */}
+        {/* Bottom Wide Box (Summary + Stacked Area Chart + Requirements) */}
         <div className="bg-gray-50 rounded-2xl p-8 shadow-md">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -83,16 +84,16 @@ export default function FinpayFeatures() {
             </div>
           </div>
 
-          {/* Single Area Chart */}
+          {/* Stacked Area Chart */}
           <div className="w-full h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis
                   dataKey="month"
                   tick={{ fill: "#4b5563", fontSize: 12 }}
                 />
-                <YAxis hide /> {/* Hide Y-axis to match the clean look */}
+                <YAxis tick={{ fill: "#4b5563", fontSize: 12 }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "#fff",
@@ -101,13 +102,35 @@ export default function FinpayFeatures() {
                     boxShadow: "0px 4px 6px rgba(0,0,0,0.1)",
                   }}
                 />
+                <Legend verticalAlign="top" height={36} />
+
+                {/* Areas for stacking */}
                 <Area
                   type="monotone"
-                  dataKey="value"
-                  stroke="#14b8a6"
-                  fill="#14b8a6"
-                  fillOpacity={0.2}
-                  strokeWidth={3}
+                  dataKey="aid"
+                  name="Aid"
+                  stackId="1"
+                  stroke="#2563eb"
+                  fill="#2563eb"
+                  fillOpacity={0.7}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="medical"
+                  name="Medical"
+                  stackId="1"
+                  stroke="#f59e0b"
+                  fill="#f59e0b"
+                  fillOpacity={0.7}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="food"
+                  name="Food"
+                  stackId="1"
+                  stroke="#dc2626"
+                  fill="#dc2626"
+                  fillOpacity={0.7}
                 />
               </AreaChart>
             </ResponsiveContainer>
