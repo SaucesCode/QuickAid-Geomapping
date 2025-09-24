@@ -240,7 +240,7 @@ const LandingPage = () => {
         <div className="max-w-4xl mx-auto text-center">
           {/* Header Section */}
           <div className="mb-16">
-            <p className="text-blue-500 text-xl font-bold tracking-wider uppercase mb-4">
+            <p className="text-blue-500 text-sm font-large tracking-wider uppercase mb-4">
               OUR MISSION
             </p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">

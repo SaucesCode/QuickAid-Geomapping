@@ -236,45 +236,32 @@ const LandingPage = () => {
 
 
             {/* Mission Stats Section */}
-      <section className="bg-gray-50 py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Header Section */}
-          <div className="mb-16">
-            <p className="text-blue-500 text-xl font-bold tracking-wider uppercase mb-4">
-              OUR MISSION
-            </p>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-              We help<br />
-              those who seek help
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
-              Thousands of individuals and families in crisis<br />
-              have received assistance, relief, and hope through AICS.
-            </p>
-          </div>
+     {/* Stats Grid */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+  {/* Stat 1 */}
+  <div className="text-center">
+    <div className="bg-gray-200 inline-block px-6 py-4 rounded-lg shadow-md mb-4">
+      <div className="text-5xl md:text-6xl font-bold text-gray-900">50K+</div>
+    </div>
+    <p className="text-gray-600 text-lg font-medium">Beneficiaries served</p>
+  </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
-            {/* Stat 1 */}
-            <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">50K+</div>
-              <p className="text-gray-600 text-lg font-medium">Beneficiaries served</p>
-            </div>
+  {/* Stat 2 */}
+  <div className="text-center">
+    <div className="bg-gray-200 inline-block px-6 py-4 rounded-lg shadow-md mb-4">
+      <div className="text-5xl md:text-6xl font-bold text-gray-900">₱120M+</div>
+    </div>
+    <p className="text-gray-600 text-lg font-medium">Financial aid released</p>
+  </div>
 
-            {/* Stat 2 */}
-            <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">₱120M+</div>
-              <p className="text-gray-600 text-lg font-medium">Financial aid released</p>
-            </div>
-
-            {/* Stat 3 */}
-            <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">15+</div>
-              <p className="text-gray-600 text-lg font-medium">Years of service</p>
-            </div>
-          </div>
-        </div>
-      </section>
+  {/* Stat 3 */}
+  <div className="text-center">
+    <div className="bg-gray-200 inline-block px-6 py-4 rounded-lg shadow-md mb-4">
+      <div className="text-5xl md:text-6xl font-bold text-gray-900">15+</div>
+    </div>
+    <p className="text-gray-600 text-lg font-medium">Years of service</p>
+  </div>
+</div>
 
 
       {/* FAQ Section */}

@@ -4,9 +4,6 @@ import { Clock, MapPin, Phone, ChevronDown, ArrowRight } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
 import aics from "../../assets/AICS-OFFICIAL.png";
-import FinpayFeatures from "./AICSfile";
-
-
 
 // Mock assets - replace with actual imports
 const qaWithout = "https://via.placeholder.com/100x100/2563eb/ffffff?text=QA";
@@ -228,11 +225,123 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-            
 
-      <section>
-  <FinpayFeatures />
-</section>
+      {/* WHY AICS Section */}
+<div className="bg-gray-50 py-16 px-4">
+  <div className="max-w-6xl mx-auto">
+    {/* Header */}
+    <h2 className="text-4xl md:text-5xl font-bold text-gray-900 text-center mb-16">
+      Why they trust <span className="text-blue-600">AICS</span>
+    </h2>
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      {/* Left Column - Features */}
+      <div className="space-y-12">
+        {/* Feature 1 - Individuals Assisted */}
+        <div className="bg-white rounded-2xl p-8 shadow">
+          <div className="text-6xl font-bold text-blue-600 mb-4">1M+</div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            Individuals already assisted<br />through AICS
+          </h3>
+        </div>
+
+        {/* Feature 2 - Students Supported */}
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">
+            Thousands of students<br />supported yearly
+          </h3>
+          <div className="flex items-center justify-center space-x-6">
+            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" 
+                   className="w-8 h-8 text-white" fill="none" 
+                   viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M12 14l9-5-9-5-9 5 9 5zm0 7l9-5-9-5-9 5 9 5z" />
+              </svg>
+            </div>
+            <div className="flex-1 h-0.5 bg-gray-300 relative">
+              <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
+                <div className="w-0 h-0 border-l-4 border-l-gray-300 border-t-2 border-b-2 border-t-transparent border-b-transparent"></div>
+              </div>
+            </div>
+            <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" 
+                   className="w-8 h-8 text-white" fill="none" 
+                   viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M12 6v6l4 2m6 4H6a2 2 0 01-2-2V6a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature 3 - Crisis Support */}
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-4">
+            24/7 Crisis Support
+          </h3>
+          <p className="text-gray-600 text-lg leading-relaxed">
+            Assistance provided in real time<br />
+            for those who need help most.
+          </p>
+        </div>
+      </div>
+
+      {/* Right Column - Chart */}
+      <div className="bg-white rounded-2xl p-8 shadow">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <p className="text-gray-600 text-sm mb-2">Summary</p>
+            <p className="text-3xl font-bold text-gray-900">1,876,580 assisted</p>
+          </div>
+          <div className="flex items-center space-x-2 text-gray-600">
+            <span className="text-sm">6 Months</span>
+            <svg xmlns="http://www.w3.org/2000/svg" 
+                 className="w-4 h-4" fill="none" 
+                 viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                    d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Chart Container */}
+        <div className="relative h-40">
+          <svg 
+            viewBox="0 0 400 150" 
+            className="w-full h-full"
+            preserveAspectRatio="none"
+          >
+            {/* Area fill */}
+            <path
+              d="M0 100 L80 90 L160 70 L240 50 L320 40 L400 30 L400 150 L0 150 Z"
+              fill="rgba(37, 99, 235, 0.1)"
+              className="drop-shadow-sm"
+            />
+            {/* Line */}
+            <path
+              d="M0 100 L80 90 L160 70 L240 50 L320 40 L400 30"
+              fill="none"
+              stroke="rgb(37, 99, 235)"
+              strokeWidth="3"
+              className="drop-shadow-sm"
+            />
+          </svg>
+        </div>
+
+        {/* Month labels */}
+        <div className="flex justify-between mt-4 text-sm text-gray-500">
+          <span>Jan</span>
+          <span>Feb</span>
+          <span>Mar</span>
+          <span>Apr</span>
+          <span>May</span>
+          <span>Jun</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 
             {/* Mission Stats Section */}
@@ -240,7 +349,7 @@ const LandingPage = () => {
         <div className="max-w-4xl mx-auto text-center">
           {/* Header Section */}
           <div className="mb-16">
-            <p className="text-blue-500 text-xl font-bold tracking-wider uppercase mb-4">
+            <p className="text-blue-500 text-sm font-medium tracking-wider uppercase mb-4">
               OUR MISSION
             </p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">

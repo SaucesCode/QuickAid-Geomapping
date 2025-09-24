@@ -254,7 +254,7 @@ const LandingPage = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+          <div className="text-center grid md:grid-cols-3 gap-8 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
             {/* Stat 1 */}
             <div className="text-center">
               <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">50K+</div>
@@ -262,13 +262,13 @@ const LandingPage = () => {
             </div>
 
             {/* Stat 2 */}
-            <div className="text-center">
+            <div className="text-center bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
               <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">₱120M+</div>
               <p className="text-gray-600 text-lg font-medium">Financial aid released</p>
             </div>
 
             {/* Stat 3 */}
-            <div className="text-center">
+            <div className="text-center bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
               <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">15+</div>
               <p className="text-gray-600 text-lg font-medium">Years of service</p>
             </div>

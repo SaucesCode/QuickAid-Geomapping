@@ -4,9 +4,6 @@ import { Clock, MapPin, Phone, ChevronDown, ArrowRight } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
 import aics from "../../assets/AICS-OFFICIAL.png";
-import FinpayFeatures from "./AICSfile";
-
-
 
 // Mock assets - replace with actual imports
 const qaWithout = "https://via.placeholder.com/100x100/2563eb/ffffff?text=QA";
@@ -228,28 +225,64 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-            
 
-      <section>
-  <FinpayFeatures />
-</section>
+      <section className="py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">Who We Serve</h2>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+              Our application management system is designed to assist a diverse range of
+              beneficiaries in need of support.
+            </p>
+          </motion.div>
 
+          <div className="grid md:grid-cols-3 gap-8">
+            {beneficiaries.map((beneficiary, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                whileHover={{ y: -10, scale: 1.05 }}
+                className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20 text-center hover:bg-white/15 transition-all duration-300"
+              >
+                <div className="w-16 h-16 mx-auto mb-6">
+                  <img
+                    src={beneficiary.icon}
+                    alt={beneficiary.title}
+                    className="w-full h-full rounded-xl"
+                  />
+                </div>
+                <h3 className="text-2xl font-bold mb-4">{beneficiary.title}</h3>
+                <p className="text-blue-100 leading-relaxed">{beneficiary.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            {/* Mission Stats Section */}
+      {/* Mission Stats Section */}
       <section className="bg-gray-50 py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           {/* Header Section */}
           <div className="mb-16">
-            <p className="text-blue-500 text-xl font-bold tracking-wider uppercase mb-4">
+            <p className="text-blue-500 text-sm font-medium tracking-wider uppercase mb-4">
               OUR MISSION
             </p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-              We help<br />
-              those who seek help
+              We've helped<br />
+              innovative companies
             </h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
-              Thousands of individuals and families in crisis<br />
-              have received assistance, relief, and hope through AICS.
+              Hundreds of all sizes and across all industries<br />
+              have made a big improvements with us.
             </p>
           </div>
 
@@ -257,25 +290,24 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
             {/* Stat 1 */}
             <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">50K+</div>
-              <p className="text-gray-600 text-lg font-medium">Beneficiaries served</p>
+              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">24%</div>
+              <p className="text-gray-600 text-lg font-medium">Revenue business</p>
             </div>
 
             {/* Stat 2 */}
             <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">₱120M+</div>
-              <p className="text-gray-600 text-lg font-medium">Financial aid released</p>
+              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">180K</div>
+              <p className="text-gray-600 text-lg font-medium">In annual revenue</p>
             </div>
 
             {/* Stat 3 */}
             <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">15+</div>
-              <p className="text-gray-600 text-lg font-medium">Years of service</p>
+              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">10+</div>
+              <p className="text-gray-600 text-lg font-medium">Months of runway</p>
             </div>
           </div>
         </div>
       </section>
-
 
       {/* FAQ Section */}
       <section className="py-20 bg-gray-50">

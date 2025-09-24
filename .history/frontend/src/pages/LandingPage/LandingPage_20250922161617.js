@@ -268,7 +268,7 @@ const LandingPage = () => {
             </div>
 
             {/* Stat 3 */}
-            <div className="text-center">
+            <div className="text-center bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
               <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">15+</div>
               <p className="text-gray-600 text-lg font-medium">Years of service</p>
             </div>
