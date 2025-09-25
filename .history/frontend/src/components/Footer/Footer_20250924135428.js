@@ -1,27 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Clock, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
-import Logo from '../../assets/qa-withoutText.png'; // adjust path based on your folder
 
 const Footer = () => {
   return (
     <footer className="bg-gray-900 text-white py-16">
       <div className="max-w-7xl mx-auto px-4">
         {/* Main Footer Grid */}
-        <div className="grid md:grid-cols-4 gap-8 mb-12 items-start">
-          
-          {/* Logo Section */}
-          <div className="flex flex-col items-center justify-center text-center">
-            <img 
-              src={Logo} 
-              alt="QuickAid Logo" 
-              className="w-40 h-40 mb-4" // Bigger logo
-            />
-            <p className="text-gray-400 text-sm max-w-xs">
-              Helping individuals in crisis with care and compassion.
-            </p>
-          </div>
-
+        <div className="grid md:grid-cols-4 gap-8 mb-12">
           {/* Know More */}
           <div>
             <h3 className="text-lg font-bold mb-4">Know More</h3>
@@ -67,26 +53,26 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact - aligned top like others */}
-          <div>
-          <h3 className="text-lg font-bold mb-4">Contact</h3>
-          <div className="space-y-3 text-gray-400">
-            <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5" />
-              <span>123 Main Street, City, Country</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Phone className="w-5 h-5" />
-              <span>+123 456 7890</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5" />
-              <span>Mon - Fri 9am to 5pm</span>
+          {/* Contact */}
+          <div className="md:col-span-2">
+            <h3 className="text-lg font-bold mb-4">Contact</h3>
+            <div className="space-y-3 text-gray-400">
+              <div className="flex items-center gap-3">
+                <MapPin className="w-5 h-5" />
+                <span>123 Main Street, City, Country</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-5 h-5" />
+                <span>+123 456 7890</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Clock className="w-5 h-5" />
+                <span>Mon - Fri 9am to 5pm</span>
+              </div>
             </div>
           </div>
         </div>
 
-      </div>
         {/* Social Media */}
         <div className="border-t border-gray-800 pt-8 flex justify-center">
           <div className="flex space-x-6 text-gray-400">

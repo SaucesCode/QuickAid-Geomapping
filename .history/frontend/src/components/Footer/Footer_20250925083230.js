@@ -68,25 +68,25 @@ const Footer = () => {
           </div>
 
           {/* Contact - aligned top like others */}
-          <div>
-          <h3 className="text-lg font-bold mb-4">Contact</h3>
-          <div className="space-y-3 text-gray-400">
-            <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5" />
-              <span>123 Main Street, City, Country</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Phone className="w-5 h-5" />
-              <span>+123 456 7890</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5" />
-              <span>Mon - Fri 9am to 5pm</span>
+          <div className="flex flex-col items-start text-left md:items-end md:text-right">
+            <h3 className="text-lg font-bold mb-4">Contact</h3>
+            <div className="space-y-3 text-gray-400">
+              <div className="flex items-center gap-3">
+                <MapPin className="w-5 h-5" />
+                <span>123 Main Street, City, Country</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-5 h-5" />
+                <span>+123 456 7890</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Clock className="w-5 h-5" />
+                <span>Mon - Fri 9am to 5pm</span>
+              </div>
             </div>
           </div>
         </div>
 
-      </div>
         {/* Social Media */}
         <div className="border-t border-gray-800 pt-8 flex justify-center">
           <div className="flex space-x-6 text-gray-400">

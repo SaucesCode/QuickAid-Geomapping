@@ -7,12 +7,6 @@ import aics from "../../assets/AICS-OFFICIAL.png";
 import FinpayFeatures from "./AICSfile";
 
 
-// import { GraduationCap, HeartPulse, Cross } from "lucide-react";
-
-import { FaUserGraduate, FaUserInjured, FaCross } from "react-icons/fa";
-import { FaBookOpen, FaUserMd } from "react-icons/fa";
-
-
 
 // Mock assets - replace with actual imports
 const qaWithout = "https://via.placeholder.com/100x100/2563eb/ffffff?text=QA";
@@ -153,151 +147,87 @@ const LandingPage = () => {
 
       {/* Services Section */}
       <section id="services" className="py-20 bg-white">
-  <div className="max-w-7xl mx-auto px-4">
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8 }}
-      className="text-center mb-16"
-    >
-      <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-        Our <span className="text-blue-600 text-4xl lg:text-5xl">Services</span>
-      </h2>
-      <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-        We provide comprehensive assistance programs designed to help individuals and
-        families overcome crisis situations.
-      </p>
-    </motion.div>
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+              Our <span className="text-blue-600 text-4xl lg:text-5xl">Services</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              We provide comprehensive assistance programs designed to help individuals and
+              families overcome crisis situations.
+            </p>
+          </motion.div>
 
-    <div className="grid md:grid-cols-3 gap-8">
-      {/* Educational Assistance */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 text-center hover:shadow-2xl transition-all duration-300"
-      >
-        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white">
-          <FaBookOpen className="text-3xl" />
+          <div className="grid md:grid-cols-3 gap-8">
+            {services.map((service, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                whileHover={{ y: -10, scale: 1.02 }}
+                className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 text-center group hover:shadow-2xl transition-all duration-300"
+              >
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <img src={service.icon} alt={service.title} className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{service.title}</h3>
+                <p className="text-gray-600">{service.desc}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-3">Educational Assistance</h3>
-        <p className="text-gray-600">Support for tuition and school supplies</p>
-      </motion.div>
+      </section>
 
-      {/* Medical Assistance */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 text-center hover:shadow-2xl transition-all duration-300"
-      >
-        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center text-white">
-          <FaUserMd className="text-3xl" />
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-3">Medical Assistance</h3>
-        <p className="text-gray-600">Healthcare and medical expenses coverage</p>
-      </motion.div>
-
-      {/* Burial Assistance */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.6 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 text-center hover:shadow-2xl transition-all duration-300"
-      >
-        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center text-white">
-          <FaCross className="text-3xl" />
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-3">Burial Assistance</h3>
-        <p className="text-gray-600">Funeral and burial service support</p>
-      </motion.div>
-    </div>
-  </div>
-</section>
       {/* Who We Serve Section */}
-      <section className="py-40 bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white">
-  <div className="max-w-7xl mx-auto px-4">
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8 }}
-      className="text-center mb-20"
-    >
-      <h2 className="text-4xl lg:text-5xl font-bold mb-6">Who We Serve</h2>
-      <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-        Our application management system is designed to assist a diverse range of
-        beneficiaries in need of support.
-      </p>
-    </motion.div>
+      <section className="py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">Who We Serve</h2>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+              Our application management system is designed to assist a diverse range of
+              beneficiaries in need of support.
+            </p>
+          </motion.div>
 
-    <div className="grid md:grid-cols-3 gap-10">
-      {/* Students */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white/10 backdrop-blur-lg p-10 rounded-2xl border border-white/20 text-center hover:bg-white/15 transition-all duration-300"
-      >
-        <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-white/20 rounded-full">
-          <FaUserGraduate className="text-4xl text-white" />
+          <div className="grid md:grid-cols-3 gap-8">
+            {beneficiaries.map((beneficiary, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                whileHover={{ y: -10, scale: 1.05 }}
+                className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20 text-center hover:bg-white/15 transition-all duration-300"
+              >
+                <div className="w-16 h-16 mx-auto mb-6">
+                  <img
+                    src={beneficiary.icon}
+                    alt={beneficiary.title}
+                    className="w-full h-full rounded-xl"
+                  />
+                </div>
+                <h3 className="text-2xl font-bold mb-4">{beneficiary.title}</h3>
+                <p className="text-blue-100 leading-relaxed">{beneficiary.description}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
-        <h3 className="text-2xl font-bold mb-4">Students</h3>
-        <p className="text-blue-100 leading-relaxed">
-          Individuals who are currently enrolled in educational institutions and
-          require financial assistance for their studies.
-        </p>
-      </motion.div>
-
-      {/* Patients */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white/10 backdrop-blur-lg p-10 rounded-2xl border border-white/20 text-center hover:bg-white/15 transition-all duration-300"
-      >
-        <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-white/20 rounded-full">
-          <FaUserInjured className="text-4xl text-white" />
-        </div>
-        <h3 className="text-2xl font-bold mb-4">Patients</h3>
-        <p className="text-blue-100 leading-relaxed">
-          Individuals who are currently undergoing medical treatment and need
-          financial support.
-        </p>
-      </motion.div>
-
-      {/* Burial Services */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.6 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white/10 backdrop-blur-lg p-10 rounded-2xl border border-white/20 text-center hover:bg-white/15 transition-all duration-300"
-      >
-        <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-white/20 rounded-full">
-          <FaCross className="text-4xl text-white" />
-        </div>
-        <h3 className="text-2xl font-bold mb-4">Burial Services</h3>
-        <p className="text-blue-100 leading-relaxed">
-          Individuals who require assistance with burial or funeral services for
-          their loved ones.
-        </p>
-      </motion.div>
-    </div>
-  </div>
-</section>
+      </section>
             
 
       <section>

@@ -2,8 +2,7 @@ import React from 'react';
 import SectionTitle from '../LandingPage/SectionTitle';
 import Card from '../LandingPage/Card';
 import Button from '../LandingPage/Button';
-import { FaUserGraduate, FaUserInjured, FaCross } from "react-icons/fa";
-import { FaBookOpen, FaUserMd } from "react-icons/fa";
+import { GraduationCap, HeartPulse, Users } from 'lucide-react';
 
 interface ServiceCardProps {
   icon: React.ReactNode;
@@ -32,19 +31,19 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, col
 const ServicesSection: React.FC = () => {
   const services = [
     {
-      icon: <FaBookOpen className="h-10 w-10" />,
+      icon: <GraduationCap className="h-10 w-10" />,
       title: "Educational Assistance",
       description: "Supporting students with scholarships, tuition assistance, and educational subsidies to promote access to quality education.",
       color: "bg-blue-600"
     },
     {
-      icon: <FaUserMd className="h-10 w-10" />,
+      icon: <HeartPulse className="h-10 w-10" />,
       title: "Medical Assistance",
       description: "Providing financial aid for treatments, hospital costs, medications, and medical procedures to support health and wellbeing.",
       color: "bg-blue-700"
     },
     {
-      icon: <FaCross className="h-10 w-10" />,
+      icon: <Users className="h-10 w-10" />,
       title: "Burial Assistance",
       description: "Offering support for funeral expenses to families during difficult times, helping manage costs and administrative processes.",
       color: "bg-blue-800"
@@ -57,7 +56,7 @@ const ServicesSection: React.FC = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Services</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            We provide comprehensive support through our streamlined application system.
+            We fuck  comprehensive support through our streamlined application system.
           </p>
         </div>
         

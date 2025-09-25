@@ -2,8 +2,7 @@ import React from 'react';
 import SectionTitle from '../LandingPage/SectionTitle';
 import Card from '../LandingPage/Card';
 import Button from '../LandingPage/Button';
-import { FaUserGraduate, FaUserInjured, FaCross } from "react-icons/fa";
-import { FaBookOpen, FaUserMd } from "react-icons/fa";
+import { GraduationCap, HeartPulse, Users } from 'lucide-react';
 
 interface ServiceCardProps {
   icon: React.ReactNode;

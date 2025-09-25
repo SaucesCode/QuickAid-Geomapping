@@ -1,5 +1,5 @@
 import React from "react";
-import { FaBookOpen, FaUserMd, FaCross } from "react-icons/fa";
+import { GraduationCap, Stethoscope, Cross } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
 import { Link } from "react-router-dom";
@@ -22,8 +22,8 @@ const AicsWebsite = () => {
             <div className="grid md:grid-cols-3 gap-8">
               {/* Educational Assistance */}
               <div className="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition">
-                <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-6 shadow-md text-white">
-                  <FaBookOpen className="text-3xl" />
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mb-6 shadow-md">
+                  <GraduationCap className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-3">Educational Assistance</h3>
                 <p className="text-gray-600 text-sm mb-6">
@@ -40,8 +40,8 @@ const AicsWebsite = () => {
 
               {/* Medical Assistance */}
               <div className="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition">
-                <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center mb-6 shadow-md text-white">
-                  <FaUserMd className="text-3xl" />
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center mb-6 shadow-md">
+                  <Stethoscope className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-3">Medical Assistance</h3>
                 <p className="text-gray-600 text-sm mb-6">
@@ -58,8 +58,8 @@ const AicsWebsite = () => {
 
               {/* Burial Assistance */}
               <div className="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition">
-                <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-6 shadow-md text-white">
-                  <FaCross className="text-3xl" />
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center mb-6 shadow-md">
+                  <Cross className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-3">Burial Assistance</h3>
                 <p className="text-gray-600 text-sm mb-6">

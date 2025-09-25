@@ -10,7 +10,7 @@ import FinpayFeatures from "./AICSfile";
 // import { GraduationCap, HeartPulse, Cross } from "lucide-react";
 
 import { FaUserGraduate, FaUserInjured, FaCross } from "react-icons/fa";
-import { FaBookOpen, FaUserMd } from "react-icons/fa";
+import { FaBookOpen, FaUserMd, FaCross } from "react-icons/fa";
 
 
 
