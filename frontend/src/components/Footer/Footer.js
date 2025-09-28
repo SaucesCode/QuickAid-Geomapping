@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Clock, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Mail, Phone, Clock, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import Logo from '../../assets/qa-withoutText.png'; // adjust path based on your folder
 
 const Footer = () => {
@@ -67,26 +67,31 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact - aligned top like others */}
+          {/* Contact Section */}
           <div>
-          <h3 className="text-lg font-bold mb-4">Contact</h3>
-          <div className="space-y-3 text-gray-400">
-            <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5" />
-              <span>123 Main Street, City, Country</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Phone className="w-5 h-5" />
-              <span>+123 456 7890</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5" />
-              <span>Mon - Fri 9am to 5pm</span>
+            <h3 className="text-lg font-bold mb-4">Contact Us</h3>
+            <div className="space-y-3 text-gray-400">
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5" />
+                <span>inquiry@dswd.gov.ph</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5" />
+                <span>ciu@dswd.gov.ph</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-5 h-5" />
+                <span>8962-2813 / 8951-7433</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Clock className="w-5 h-5" />
+                <span>Monday – Friday (except holidays)<br/>8:00 am – 5:00 pm</span>
+              </div>
             </div>
           </div>
+
         </div>
 
-      </div>
         {/* Social Media */}
         <div className="border-t border-gray-800 pt-8 flex justify-center">
           <div className="flex space-x-6 text-gray-400">

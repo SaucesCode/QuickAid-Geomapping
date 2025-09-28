@@ -152,6 +152,28 @@ const LandingPage = () => {
         </div>
       </section>
 
+                  {/* Program Objective Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+              PROGRAM'S <span className="text-blue-600 text-4xl lg:text-5xl font-bold">OBJECTIVE</span>
+            </h2>
+
+            <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
+              The objective of the AICS Program is to provide support to individuals and families 
+              experiencing crises, ensuring that their immediate and essential needs are adequately addressed.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+
       {/* Services Section */}
       <section id="services" className="py-20 bg-white">
   <div className="max-w-7xl mx-auto px-4">
@@ -409,77 +431,7 @@ const LandingPage = () => {
         </div>
       </section>
             
-                  {/* Contact & Location Section */}
-<section className="py-20 bg-white">
-  <div className="max-w-6xl mx-auto px-6">
-    {/* Section Title */}
-    <div className="text-center mb-12">
-      <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
-        Contact & Location
-      </h2>
-      <p className="text-gray-600 mt-3">
-        Get in touch with us or visit our office
-      </p>
-    </div>
-
-    <div className="grid md:grid-cols-2 gap-10 items-center">
-      {/* Contact Info */}
-      <div className="bg-gray-50 rounded-2xl shadow-lg p-8 space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shadow">
-            <FaMapMarkerAlt className="text-xl" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">Address</h3>
-            <p className="text-gray-600">
-              DSWD Central Office, Batasan Hills, <br />
-              Quezon City, Philippines
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shadow">
-            <FaPhoneAlt className="text-xl" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">Phone</h3>
-            <p className="text-gray-600">+63 2 8931 8101</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shadow">
-            <FaEnvelope className="text-xl" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">Email</h3>
-            <p className="text-gray-600">aics@dswd.gov.ph</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Google Map */}
-      <div className="rounded-2xl overflow-hidden shadow-lg relative">
-        <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3859.721540986481!2d121.07363437492914!3d14.685401875010888!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b7e42b20d8a3%3A0x2b21c2f17720e6a0!2sDSWD%20Central%20Office!5e0!3m2!1sen!2sph!4v1695555555555!5m2!1sen!2sph"
-          width="100%"
-          height="350"
-          style={{ border: 0 }}
-          allowFullScreen=""
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          title="DSWD AICS Map"
-        ></iframe>
-        {/* Pin Icon Overlay (optional aesthetic touch) */}
-        <div className="absolute top-4 right-4 bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg">
-          <FaMapMarkerAlt />
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
+                  
 
 
       <Footer />
