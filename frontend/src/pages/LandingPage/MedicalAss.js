@@ -102,7 +102,7 @@ export default function MedicalAssistanceProgram() {
                 <BenefitCard
                   icon={Users}
                   title="Medical Consultation"
-                  description="Free list for health consultation and professional health advice."
+                  description="Free health consultation and professional medical advice."
                 />
               </div>
             </div>
@@ -133,7 +133,7 @@ export default function MedicalAssistanceProgram() {
                 <ProcessStep
                   number={2}
                   title="Assessment Interview"
-                  description="A social worker will interview applicant to assess your needs and eligibility."
+                  description="A social worker will interview you to assess your needs and eligibility."
                 />
                 <ProcessStep
                   number={3}
@@ -164,7 +164,7 @@ export default function MedicalAssistanceProgram() {
                 <RequirementCard
                   icon={User}
                   title="Valid ID"
-                  description="Valid ID for living with eligible documents."
+                  description="Any government-issued valid ID of the applicant."
                 />
                 <RequirementCard
                   icon={FileText}
@@ -174,12 +174,12 @@ export default function MedicalAssistanceProgram() {
                 <RequirementCard
                   icon={Shield}
                   title="Medical Certificate"
-                  description="Medical certificate from physician with seal & license."
+                  description="Medical certificate from a licensed physician with seal & signature."
                 />
                 <RequirementCard
                   icon={ClipboardList}
                   title="Hospital Bills/Prescription"
-                  description="Hospital bills or Prescription or medical estimate."
+                  description="Hospital bills, prescription, or medical cost estimate."
                 />
               </div>
 
@@ -206,7 +206,7 @@ export default function MedicalAssistanceProgram() {
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-900 to-blue-600 text-white py-14 shadow-sm">
           <div className="max-w-4xl mx-auto px-6 text-center">
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-wide uppercase">
+            <h1 className="text-3xl md:text-4xl text-white font-extrabold tracking-wide uppercase">
               Medical Assistance Program
             </h1>
             <p className="mt-3 text-blue-100 text-base md:text-lg max-w-2xl mx-auto">
