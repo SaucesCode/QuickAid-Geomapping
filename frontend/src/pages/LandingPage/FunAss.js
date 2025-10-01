@@ -100,10 +100,10 @@ export default function FuneralAssistanceProgram() {
             <div className="bg-blue-600 rounded-lg p-6 text-white">
               <h3 className="text-lg font-semibold mb-4">Who Can Apply?</h3>
               <div className="space-y-3">
-                <EligibilityItem text="Indigent Families of deceased persons" />
-                <EligibilityItem text="Senior and indigents with other assistance pending" />
-                <EligibilityItem text="Relatives or next of kin/proxy not able to meet funeral expenses" />
-                <EligibilityItem text="Working residents experiencing first time destitution" />
+                <EligibilityItem text="Indigent families of deceased persons" />
+                <EligibilityItem text="Seniors and indigents with other assistance pending" />
+                <EligibilityItem text="Relatives or next of kin unable to meet funeral expenses" />
+                <EligibilityItem text="Working residents experiencing first-time destitution" />
               </div>
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function FuneralAssistanceProgram() {
                 <ProcessStep
                   number={2}
                   title="Assessment Interview"
-                  description="A social worker will interview applicant to assess your needs and eligibility."
+                  description="A social worker will interview you to assess your needs and eligibility."
                 />
                 <ProcessStep
                   number={3}
@@ -157,12 +157,12 @@ export default function FuneralAssistanceProgram() {
                 <RequirementCard
                   icon={Cross}
                   title="Death Certificate"
-                  description="Death Certificate or Certification from the City or Municipal Civil Registrar Office, Barangay Captain/Mayor, Tribal Chieftain or Police in places with no licensed Funeral Home."
+                  description="Death Certificate or Certification from the Civil Registrar Office, Barangay Captain/Mayor, Tribal Chieftain, or Police in places without a licensed Funeral Home."
                 />
                 <RequirementCard
                   icon={FileText}
                   title="Financial Documents"
-                  description="Any financial status or Certificate of Indigence or Statement of Account."
+                  description="Any financial status proof, Certificate of Indigence, or Statement of Account."
                 />
                 <RequirementCard
                   icon={ClipboardList}
@@ -172,17 +172,17 @@ export default function FuneralAssistanceProgram() {
               </div>
             </div>
 
-            {/* Requirements for Transfer or Cadaver */}
+            {/* Requirements for Transfer of Cadaver */}
             <div className="mt-12">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                Requirements for Transfer or Cadaver
+                Requirements for Transfer of Cadaver
               </h2>
 
               <div className="space-y-4">
                 <RequirementCard
                   icon={Cross}
                   title="Death Certificate"
-                  description="Death Certificate or Certification from the City or Municipal Civil Registrar Office, Barangay Captain/Mayor, Tribal Chieftain or Police in places with no licensed Funeral Home."
+                  description="Death Certificate or Certification from the Civil Registrar Office, Barangay Captain/Mayor, Tribal Chieftain, or Police in places without a licensed Funeral Home."
                 />
                 <RequirementCard
                   icon={User}
@@ -214,7 +214,7 @@ export default function FuneralAssistanceProgram() {
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-900 to-blue-600 text-white py-14 shadow-sm">
           <div className="max-w-4xl mx-auto px-6 text-center">
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-wide uppercase">
+            <h1 className="text-3xl md:text-4xl text-white font-extrabold tracking-wide uppercase">
               Funeral Assistance Program
             </h1>
             <p className="mt-3 text-blue-100 text-base md:text-lg max-w-2xl mx-auto">
@@ -253,7 +253,7 @@ export default function FuneralAssistanceProgram() {
         {/* Content */}
         <div className="max-w-4xl mx-auto px-6 py-12">{renderContent()}</div>
 
-        {/* Back to Services at bottom */}
+        {/* Back to Services */}
         <div className="max-w-4xl mx-auto px-6 pb-12">
           <Link
             to="/services"

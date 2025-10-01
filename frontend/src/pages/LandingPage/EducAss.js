@@ -83,7 +83,9 @@ export default function EducationalAssistanceProgram() {
         return (
           <div className="space-y-8">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Program Benefits</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                Program Benefits
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <BenefitCard
                   icon={BookOpen}
@@ -124,7 +126,9 @@ export default function EducationalAssistanceProgram() {
         return (
           <div className="space-y-8">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Application Process</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                Application Process
+              </h2>
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <ProcessStep
                   number={1}
@@ -156,7 +160,9 @@ export default function EducationalAssistanceProgram() {
         return (
           <div className="space-y-8">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Basic Requirements</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                Basic Requirements
+              </h2>
               <p className="text-gray-600 mb-6">
                 Basic requirements for all types of educational assistance:
               </p>
@@ -185,11 +191,13 @@ export default function EducationalAssistanceProgram() {
               </div>
 
               <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h3 className="font-semibold text-yellow-800 mb-2">Important Note:</h3>
+                <h3 className="font-semibold text-yellow-800 mb-2">
+                  Important Note:
+                </h3>
                 <p className="text-yellow-700 text-sm">
-                  Additional requirements may be needed depending on the type of educational
-                  assistance requested. Academic records and proof of financial need may also
-                  be required.
+                  Additional requirements may be needed depending on the type of
+                  educational assistance requested. Academic records and proof
+                  of financial need may also be required.
                 </p>
               </div>
             </div>
@@ -208,12 +216,13 @@ export default function EducationalAssistanceProgram() {
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-900 to-blue-600 text-white py-14 shadow-sm">
           <div className="max-w-4xl mx-auto px-6 text-center">
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-wide uppercase">
+            <h1 className="text-3xl md:text-4xl text-white font-extrabold tracking-wide uppercase drop-shadow-md">
               Educational Assistance Program
             </h1>
             <p className="mt-3 text-blue-100 text-base md:text-lg max-w-2xl mx-auto">
-              The Department of Social Welfare and Development (DSWD) provides educational
-              assistance to help Filipinos with their educational needs.
+              The Department of Social Welfare and Development (DSWD) provides
+              educational assistance to help Filipinos with their educational
+              needs.
             </p>
           </div>
         </div>
