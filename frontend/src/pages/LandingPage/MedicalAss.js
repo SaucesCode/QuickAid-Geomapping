@@ -1,258 +1,290 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import Navbar from "../../components/Navigation/Navbar";
-import Footer from "../../components/Footer/Footer";
+import React, { useState } from "react";
 import {
-  CheckCircle,
-  Users,
   Heart,
   Stethoscope,
-  FileText,
-  User,
-  Shield,
   ClipboardList,
-  ArrowLeft,
+  Users,
+  Hospital,
+  Pill,
+  Bandage,
+  FileText,
+  ListChecks,
+  Gift,
+  IdCard,
+  Home,
+  Wallet,
+  FileCheck,
+  FileSearch,
+  FileSignature,
+  CheckCircle,
+  Banknote,
 } from "lucide-react";
+import Navbar from "../../components/Navigation/Navbar";
+import Footer from "../../components/Footer/Footer";
+import { Link } from "react-router-dom";
 
-export default function MedicalAssistanceProgram() {
-  const [currentTab, setCurrentTab] = useState("requirements");
-
-  const TabButton = ({ id, label, isActive, onClick }) => (
-    <button
-      onClick={() => onClick(id)}
-      className={`px-6 py-3 font-medium text-sm transition-all duration-200 border-b-2 ${
-        isActive
-          ? "text-blue-600 border-blue-600 bg-blue-50"
-          : "text-gray-600 border-transparent hover:text-blue-600 hover:border-blue-300"
-      }`}
-    >
-      {label}
-    </button>
-  );
-
-  const BenefitCard = ({ icon: Icon, title, description, color = "blue" }) => (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
-      <div
-        className={`w-12 h-12 bg-${color}-100 rounded-lg flex items-center justify-center mb-4`}
-      >
-        <Icon className={`w-6 h-6 text-${color}-600`} />
-      </div>
-      <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
-    </div>
-  );
-
-  const ProcessStep = ({ number, title, description, isLast }) => (
-    <div className="flex items-start">
-      <div className="flex flex-col items-center mr-4">
-        <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
-          {number}
-        </div>
-        {!isLast && <div className="w-0.5 h-16 bg-blue-200 mt-2"></div>}
-      </div>
-      <div className="flex-1 pb-8">
-        <h3 className="font-semibold text-gray-900 mb-1">{title}</h3>
-        <p className="text-gray-600 text-sm">{description}</p>
-      </div>
-    </div>
-  );
-
-  const RequirementCard = ({ icon: Icon, title, description }) => (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-center mb-3">
-        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-          <Icon className="w-5 h-5 text-blue-600" />
-        </div>
-        <h3 className="font-semibold text-gray-900">{title}</h3>
-      </div>
-      <p className="text-gray-600 text-sm">{description}</p>
-    </div>
-  );
-
-  const EligibilityItem = ({ text }) => (
-    <div className="flex items-center py-3 px-4 bg-white rounded-lg border border-gray-200 hover:bg-blue-50 transition-colors duration-200">
-      <CheckCircle className="w-5 h-5 text-green-600 mr-3 flex-shrink-0" />
-      <span className="text-gray-700 text-sm">{text}</span>
-    </div>
-  );
-
-  const renderContent = () => {
-    switch (currentTab) {
-      case "benefits":
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Program Benefits</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <BenefitCard
-                  icon={Heart}
-                  title="Medicine Assistance"
-                  description="Free medicines for qualifying patients prescribed by registered physicians."
-                />
-                <BenefitCard
-                  icon={Stethoscope}
-                  title="Hospital Bill Assistance"
-                  description="Help with hospital or medical bills for emergency services."
-                />
-                <BenefitCard
-                  icon={ClipboardList}
-                  title="Laboratory & Diagnostic Support"
-                  description="Assistance to undergo tests, X-rays and other diagnostic procedures."
-                />
-                <BenefitCard
-                  icon={Users}
-                  title="Medical Consultation"
-                  description="Free health consultation and professional medical advice."
-                />
-              </div>
-            </div>
-
-            <div className="bg-blue-600 rounded-lg p-6 text-white">
-              <h3 className="text-lg font-semibold mb-4">Who Can Apply?</h3>
-              <div className="space-y-3">
-                <EligibilityItem text="Indigent individuals and families" />
-                <EligibilityItem text="Those having medical emergencies without sufficient resources" />
-                <EligibilityItem text="Patients with chronic disease requiring continuous medication" />
-                <EligibilityItem text="Persons with disabilities needing medical support" />
-              </div>
-            </div>
-          </div>
-        );
-
-      case "application":
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Application Process</h2>
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <ProcessStep
-                  number={1}
-                  title="Submit Requirements"
-                  description="Submit all required documents and valid IDs to our DSWD Office."
-                />
-                <ProcessStep
-                  number={2}
-                  title="Assessment Interview"
-                  description="A social worker will interview you to assess your needs and eligibility."
-                />
-                <ProcessStep
-                  number={3}
-                  title="Approval Process"
-                  description="Your application will be reviewed by our approving committee for approval."
-                />
-                <ProcessStep
-                  number={4}
-                  title="Receive Assistance"
-                  description="Once approved, you will receive the medical assistance according to your needs."
-                  isLast={true}
-                />
-              </div>
-            </div>
-          </div>
-        );
-
-      case "requirements":
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Basic Requirements</h2>
-              <p className="text-gray-600 mb-6">
-                Basic requirements for all types of medical assistance:
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <RequirementCard
-                  icon={User}
-                  title="Valid ID"
-                  description="Any government-issued valid ID of the applicant."
-                />
-                <RequirementCard
-                  icon={FileText}
-                  title="Authorization Letter"
-                  description="Authorization Letter (if applicable)."
-                />
-                <RequirementCard
-                  icon={Shield}
-                  title="Medical Certificate"
-                  description="Medical certificate from a licensed physician with seal & signature."
-                />
-                <RequirementCard
-                  icon={ClipboardList}
-                  title="Hospital Bills/Prescription"
-                  description="Hospital bills, prescription, or medical cost estimate."
-                />
-              </div>
-
-              <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h3 className="font-semibold text-yellow-800 mb-2">Important Note:</h3>
-                <p className="text-yellow-700 text-sm">
-                  Additional requirements may be needed depending on the type of assistance
-                  requested. Please contact our office for specific requirements for your case.
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
+const MedicalAssistance = () => {
+  const [activeTab, setActiveTab] = useState("requirements");
 
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50 pt-32">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-900 to-blue-600 text-white py-14 shadow-sm">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-            <h1 className="text-3xl md:text-4xl text-white font-extrabold tracking-wide uppercase">
-              Medical Assistance Program
-            </h1>
-            <p className="mt-3 text-blue-100 text-base md:text-lg max-w-2xl mx-auto">
-              The Department of Social Welfare and Development (DSWD) provides medical
-              assistance to help Filipinos with their healthcare needs.
-            </p>
-          </div>
-        </div>
+        {/* Hero Section */}
+        <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16 relative overflow-hidden">
+          <Heart className="absolute right-12 top-12 w-40 h-40 text-white opacity-10" />
 
-        {/* Navigation Tabs */}
-        <div className="bg-white shadow-sm">
-          <div className="max-w-4xl mx-auto px-6">
-            <div className="flex space-x-1">
-              <TabButton
-                id="requirements"
-                label="Requirements"
-                isActive={currentTab === "requirements"}
-                onClick={setCurrentTab}
-              />
-              <TabButton
-                id="application"
-                label="Application Process"
-                isActive={currentTab === "application"}
-                onClick={setCurrentTab}
-              />
-              <TabButton
-                id="benefits"
-                label="Benefits"
-                isActive={currentTab === "benefits"}
-                onClick={setCurrentTab}
-              />
+          <div className="max-w-6xl mx-auto px-6 relative z-10">
+            <div className="flex flex-col md:flex-row items-center gap-10">
+              <div className="flex-1">
+                <h1 className="text-4xl md:text-5xl text-blue-100 font-extrabold mb-4">
+                  Medical Assistance Program
+                </h1>
+                <p className="text-lg text-blue-100 max-w-xl">
+                  Providing immediate and compassionate healthcare support for
+                  indigent individuals and families through medicines, hospital
+                  assistance, and essential medical services.
+                </p>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid md:grid-cols-3 gap-6 mt-12">
+              <div className="bg-white text-blue-800 rounded-xl shadow-lg p-6 text-center">
+                <Users className="w-10 h-10 mx-auto mb-3 text-blue-600" />
+                <h3 className="text-2xl font-bold">100,000+</h3>
+                <p className="text-gray-600">Patients Assisted</p>
+              </div>
+              <div className="bg-white text-blue-800 rounded-xl shadow-lg p-6 text-center">
+                <Hospital className="w-10 h-10 mx-auto mb-3 text-blue-600" />
+                <h3 className="text-2xl font-bold">₱500M+</h3>
+                <p className="text-gray-600">Medical Aid Granted</p>
+              </div>
+              <div className="bg-white text-blue-800 rounded-xl shadow-lg p-6 text-center">
+                <Gift className="w-10 h-10 mx-auto mb-3 text-blue-600" />
+                <h3 className="text-2xl font-bold">Nationwide</h3>
+                <p className="text-gray-600">Coverage</p>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Content */}
-        <div className="max-w-4xl mx-auto px-6 py-12">{renderContent()}</div>
+        {/* Tabs Section */}
+        <section className="py-16">
+          <div className="max-w-6xl mx-auto px-6">
+            {/* Tabs */}
+            <div className="flex justify-center space-x-4 mb-10">
+              <button
+                onClick={() => setActiveTab("requirements")}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors ${
+                  activeTab === "requirements"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                <FileText className="w-5 h-5" /> Requirements
+              </button>
+              <button
+                onClick={() => setActiveTab("application")}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors ${
+                  activeTab === "application"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                <ListChecks className="w-5 h-5" /> Application Process
+              </button>
+              <button
+                onClick={() => setActiveTab("benefits")}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors ${
+                  activeTab === "benefits"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                <Gift className="w-5 h-5" /> Benefits
+              </button>
+            </div>
 
-        {/* Back to Services at bottom */}
-        <div className="max-w-4xl mx-auto px-6 pb-12">
+            {/* Tab Content */}
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              {activeTab === "requirements" && (
+                <div>
+                  <h2 className="text-2xl font-bold text-blue-700 mb-6">
+                    Requirements
+                  </h2>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {[
+                      {
+                        text: "Valid government-issued ID of the applicant/guardian",
+                        icon: IdCard,
+                      },
+                      {
+                        text: "Medical certificate or hospital records",
+                        icon: ClipboardList,
+                      },
+                      {
+                        text: "Barangay Certificate of Residency",
+                        icon: Home,
+                      },
+                      { text: "Proof of income (if applicable)", icon: Wallet },
+                      { text: "Accomplished application form", icon: FileCheck },
+                    ].map((req, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-lg shadow-sm"
+                      >
+                        <req.icon className="w-6 h-6 text-blue-600" />
+                        <p className="text-gray-700">{req.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "application" && (
+                <div>
+                  <h2 className="text-2xl font-bold text-blue-700 mb-8">
+      Application Process
+    </h2>
+                  <div className="relative">
+                    {/* Vertical Line */}
+                    <div className="absolute left-6 top-0 h-full w-1 bg-gray-200"></div>
+
+                    <div className="space-y-10 relative">
+                      {[
+                        {
+                          step: "Submit Documents",
+                          desc: "Applicants must submit all required documents at the nearest DSWD office or satellite center.",
+                          icon: FileSignature,
+                        },
+                        {
+                          step: "Evaluation",
+                          desc: "DSWD staff will review and verify the submitted documents to ensure completeness and authenticity.",
+                          icon: FileSearch,
+                        },
+                        {
+                          step: "Approval",
+                          desc: "Once verified, the application will be approved based on eligibility criteria and available funds.",
+                          icon: CheckCircle,
+                        },
+                        {
+                          step: "Release of Assistance",
+                          desc: "Medical or financial aid will be released through DSWD offices, hospitals, or partner agencies.",
+                          icon: Banknote,
+                        },
+                      ].map((item, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-6 relative"
+                        >
+                          {/* Step Circle */}
+                          <div className="z-10 flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white shadow-md">
+                            <item.icon className="w-6 h-6" />
+                          </div>
+                          {/* Step Content */}
+                          <div>
+                            <p className="text-gray-900 font-semibold text-lg">
+                              {item.step}
+                            </p>
+                            <p className="text-gray-600 text-sm mt-2">
+                              {item.desc}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "benefits" && (
+                <div>
+                  <h2 className="text-2xl font-bold text-blue-700 mb-6">
+                    Benefits
+                  </h2>
+                  <div className="grid md:grid-cols-2 gap-6 mb-12">
+                    {[
+                      {
+                        text: "Free medicines for qualified patients",
+                        icon: Pill,
+                      },
+                      {
+                        text: "Hospital bill assistance",
+                        icon: Hospital,
+                      },
+                      {
+                        text: "Laboratory and diagnostic support",
+                        icon: ClipboardList,
+                      },
+                      {
+                        text: "Free medical consultation",
+                        icon: Stethoscope,
+                      },
+                    ].map((benefit, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-lg shadow-sm"
+                      >
+                        <benefit.icon className="w-6 h-6 text-blue-600" />
+                        <p className="text-gray-700">{benefit.text}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Who Can Apply Section */}
+                  <div className="bg-blue-600 text-white rounded-xl p-8">
+                    <h3 className="text-xl font-bold mb-6">Who Can Apply?</h3>
+                    <div className="space-y-4">
+                      {[
+                        "Indigent individuals and families with limited capacity to pay for healthcare",
+                        "Patients facing medical emergencies without sufficient financial resources",
+                        "Individuals with chronic illnesses requiring continuous medication or treatment",
+                        "Persons with disabilities (PWDs) in need of medical or rehabilitative support",
+                        "Victims of calamities or crises requiring urgent medical care",
+                      ].map((item, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-4 bg-white text-gray-800 p-4 rounded-lg shadow-sm"
+                        >
+                          <CheckCircle className="w-6 h-6 text-green-500" />
+                          <span className="font-medium">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Call-to-Action */}
+        <section className="bg-blue-600 text-white py-12">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-4">
+              Need Help Applying for Medical Assistance?
+            </h2>
+            <p className="mb-6 text-blue-100">
+              Visit your nearest DSWD Office today or check the online portal for
+              more details.
+            </p>
+            <Link
+              to="/contact"
+              className="inline-block bg-white text-blue-700 font-semibold px-8 py-3 rounded-lg shadow-md hover:bg-gray-100 transition"
+            >
+              Contact Us
+            </Link>
+          </div>
+        </section>
+
+        {/* Back Button */}
+        <div className="max-w-6xl mx-auto px-6 py-12 text-center">
           <Link
             to="/services"
-            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-2"
+            className="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md font-semibold transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Services
+            ← Back to Services
           </Link>
         </div>
 
@@ -260,4 +292,6 @@ export default function MedicalAssistanceProgram() {
       </div>
     </>
   );
-}
+};
+
+export default MedicalAssistance;
