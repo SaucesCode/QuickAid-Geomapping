@@ -40,6 +40,8 @@ import TermsAndConditions from "./components/Sections/TermsAndConditions";
 import PrivacyPolicy from "./components/Sections/PrivacyPolicy";
 
 import StaffQR from "./components/StaffQR";
+import eligibility from "./pages/print/CertificateOfEligibility";
+import CertificateOfEligibility from "./pages/print/CertificateOfEligibility";
 
 function App() {
   return (
@@ -60,6 +62,7 @@ function App() {
         <Route path="/terms" element={<TermsAndConditions />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/staff-qr" element={<StaffQR />} />
+        <Route path="/eligibility" element={<CertificateOfEligibility />} />
 
         <Route
           path="/"
