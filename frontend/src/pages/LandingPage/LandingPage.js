@@ -7,6 +7,7 @@ import aics from "../../assets/AICS-OFFICIAL.png";
 import FinpayFeatures from "./AICSfile";
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 import HowToApply from "./How2apply";
+import { Link } from "react-router-dom";
 
 
 
@@ -114,6 +115,13 @@ const LandingPage = () => {
                 AICS is a DSWD program providing medical, burial, transport, education, food,
                 and financial aid to individuals or families in crisis situations.
               </p>
+
+              <Link
+          to="/login"
+          className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg transition-all duration-300"
+        >
+          Staff Login
+        </Link>
 
               
 

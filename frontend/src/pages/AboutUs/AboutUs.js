@@ -66,40 +66,47 @@ const AboutUs = () => {
       </section>
 
       {/* About AICS Program */}
-      <section className="py-16 px-4 lg:px-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="flex justify-center items-center gap-4 mb-4">
-              <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-blue-200"></div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
-                About AICS Program
-              </h2>
-              <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-blue-200"></div>
-            </div>
-          </div>
-          <div className="grid lg:grid-cols-3 gap-8 items-center">
-            <div className="lg:col-span-2 text-gray-700 space-y-4">
-              <p>
-                Assistance to individuals in crisis refers to the support
-                provided to people experiencing a sudden, unexpected, or
-                overwhelming situation that requires immediate attention and
-                help to overcome their physical, emotional, and social needs.
-              </p>
-              <p>
-                This kind of assistance is typically provided by government
-                agencies, non-profits, or community organizations and includes
-                immediate intervention, which has high priority in identifying
-                the individual and addressing urgent needs.
-              </p>
-            </div>
-            <div className="flex justify-center lg:justify-end">
-              <div className="w-48 h-48 bg-gradient-to-r from-blue-500 to-blue-700 rounded-xl flex items-center justify-center text-white text-6xl shadow-lg">
-                <FaHandsHelping />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+<section className="py-16 px-4 lg:px-16">
+  <div className="max-w-6xl mx-auto">
+    <div className="text-center mb-12">
+      <div className="flex justify-center items-center gap-4 mb-4">
+        <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-blue-200"></div>
+        <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+          About AICS Program
+        </h2>
+        <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-blue-200"></div>
+      </div>
+    </div>
+    <div className="grid lg:grid-cols-3 gap-8 items-center">
+      {/* Text Side */}
+      <div className="lg:col-span-2 text-gray-700 space-y-4">
+        <p>
+          Assistance to individuals in crisis refers to the support
+          provided to people experiencing a sudden, unexpected, or
+          overwhelming situation that requires immediate attention and
+          help to overcome their physical, emotional, and social needs.
+        </p>
+        <p>
+          This kind of assistance is typically provided by government
+          agencies, non-profits, or community organizations and includes
+          immediate intervention, which has high priority in identifying
+          the individual and addressing urgent needs.
+        </p>
+      </div>
+
+      {/* Logo Side */}
+      <div className="flex justify-center lg:justify-end">
+        <img
+          src={aics}
+          alt="AICS Official Logo"
+          className="w-64 h-64 object-contain"
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+
 
       {/* Key Aspects */}
       <section className="py-16 px-4 lg:px-16 bg-gray-50">

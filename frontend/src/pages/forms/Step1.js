@@ -26,18 +26,26 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
       nextStep();
     }
   };
 
-  const handleInputChange = e => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    handleChange(e);
+
+    // Enforce only digits & limit to 11 numbers for contact_number
+    if (name === "contact_number") {
+      const cleanedValue = value.replace(/\D/g, "").slice(0, 11);
+      handleChange({ target: { name, value: cleanedValue } });
+    } else {
+      handleChange(e);
+    }
+
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
+      setErrors((prev) => ({ ...prev, [name]: null }));
     }
   };
 
@@ -55,6 +63,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* First Name */}
           <div className="form-group">
             <label
               htmlFor="first_name"
@@ -79,6 +88,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
             )}
           </div>
 
+          {/* Middle Initial */}
           <div className="form-group">
             <label
               htmlFor="middle_initial"
@@ -103,6 +113,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
             )}
           </div>
 
+          {/* Last Name */}
           <div className="form-group">
             <label
               htmlFor="last_name"
@@ -122,11 +133,17 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
               placeholder="Enter your last name"
               autoComplete="family-name"
             />
-            {errors.last_name && <p className="text-sm text-error mt-1">{errors.last_name}</p>}
+            {errors.last_name && (
+              <p className="text-sm text-error mt-1">{errors.last_name}</p>
+            )}
           </div>
 
+          {/* Suffix */}
           <div className="form-group">
-            <label htmlFor="suffix" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="suffix"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Suffix
             </label>
             <select
@@ -146,6 +163,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
             </select>
           </div>
 
+          {/* Contact Number */}
           <div className="form-group md:col-span-2">
             <label
               htmlFor="contact_number"
@@ -159,6 +177,8 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
               name="contact_number"
               value={formData.contact_number}
               onChange={handleInputChange}
+              inputMode="numeric"
+              maxLength="11"
               className={`input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent rounded-lg ${
                 errors.contact_number ? "border-error" : ""
               }`}
@@ -166,7 +186,9 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
               autoComplete="tel"
             />
             {errors.contact_number && (
-              <p className="text-sm text-error mt-1">{errors.contact_number}</p>
+              <p className="text-sm text-error mt-1">
+                {errors.contact_number}
+              </p>
             )}
             <small className="text-sm text-quickaid-text-secondary">
               Enter your 11-digit mobile number
@@ -174,6 +196,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
           </div>
         </div>
 
+        {/* Submit Button */}
         <div className="flex justify-end mt-6">
           <button
             type="submit"
