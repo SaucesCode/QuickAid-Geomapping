@@ -1,10 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function CertificateOfEligibility() {
   const [formData, setFormData] = useState({
     qn: "",
     pon: "",
-    date: "",
+    // date parts (auto-filled on mount)
+    dateMM: "",
+    dateDD: "",
+    year: "",
+
+    // auto times (auto-managed)
+    timeStart: "",
+    timeEnd: "",
+
     clientType: "",
     walkinType: "",
     name: "",
@@ -17,7 +25,7 @@ export default function CertificateOfEligibility() {
     amountWords: "",
     amountNumber: "",
     chargeableAgainst: "",
-    year: "2025",
+    // records
     records: {
       generalIntake: false,
       validId: false,
@@ -43,16 +51,59 @@ export default function CertificateOfEligibility() {
     sinaksihan: "",
   });
 
+  // Autofill date (MM, DD, YYYY) on mount
+  useEffect(() => {
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const yyyy = String(now.getFullYear());
+    setFormData((prev) => ({ ...prev, dateMM: mm, dateDD: dd, year: yyyy }));
+  }, []);
+
+  // Helper: which fields are required for "completion"
+  const requiredKeys = [
+    "name",
+    "age",
+    "address",
+    "assistanceType",
+    "amountWords",
+    "amountNumber",
+  ];
+
+  // Checks whether all required fields are non-empty
+  const areRequiredFieldsFilled = (data) =>
+    requiredKeys.every((k) => {
+      const v = data[k];
+      return typeof v === "string" ? v.trim() !== "" : Boolean(v);
+    });
+
+  // Generic input change handler
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    // If timeStart is not set yet, set it when the user first interacts with an input
+    if (!formData.timeStart) {
+      const now = new Date();
+      const formattedStart = now.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      // set immediately in state along with processing this change below
+      setFormData((prev) => ({ ...prev, timeStart: formattedStart }));
+    }
+
+    // Handle checkboxes for records and assistance subtypes
     if (type === "checkbox") {
       if (name.startsWith("record-")) {
-        const recordKey = name.replace("record-", "");
+        const key = name.replace("record-", "");
         setFormData((prev) => ({
           ...prev,
-          records: { ...prev.records, [recordKey]: checked },
+          records: { ...prev.records, [key]: checked },
         }));
-      } else if (name.startsWith("subtype-")) {
+        return;
+      }
+      if (name.startsWith("subtype-")) {
         const subtype = name.replace("subtype-", "");
         setFormData((prev) => ({
           ...prev,
@@ -60,14 +111,40 @@ export default function CertificateOfEligibility() {
             ? [...prev.assistanceSubtype, subtype]
             : prev.assistanceSubtype.filter((s) => s !== subtype),
         }));
-      } else {
-        setFormData((prev) => ({ ...prev, [name]: checked }));
+        return;
       }
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      // other checkboxes mapped to boolean top-level fields
+      setFormData((prev) => ({ ...prev, [name]: checked }));
+      return;
     }
+
+    // For normal inputs
+    // Support date inputs names dateMM, dateDD, year, etc.
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // When all required fields are filled, set timeEnd (only once)
+  useEffect(() => {
+    if (!formData.timeEnd && areRequiredFieldsFilled(formData)) {
+      const now = new Date();
+      const formattedEnd = now.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      setFormData((prev) => ({ ...prev, timeEnd: formattedEnd }));
+    }
+  }, [
+    formData.name,
+    formData.age,
+    formData.address,
+    formData.assistanceType,
+    formData.amountWords,
+    formData.amountNumber,
+    formData.timeEnd,
+  ]);
+
+  // JSX below is your original layout (kept structure), with added bindings for date/time fields
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-8">
       <div className="max-w-5xl mx-auto bg-white shadow-2xl rounded-lg overflow-hidden border border-gray-200">
@@ -75,28 +152,44 @@ export default function CertificateOfEligibility() {
         <div className="bg-gradient-to-r from-blue-700 to-blue-900 h-3"></div>
 
         <div className="p-8">
-          {/* Header Section */}
-          <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-200">
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-700 to-blue-900 rounded-lg flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">DSWD</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">DSWD</h1>
-                <p className="text-xs text-gray-600">Department of Social Welfare and Development</p>
-              </div>
+          {/* HEADER SECTION */}
+          <div className="flex justify-between items-start mb-2">
+            {/* Left: DSWD Logo */}
+            <div className="flex items-center">
+              <img
+                src={require("../../assets/dswd-logo.png")}
+                alt="DSWD Logo"
+                className="w-40 h-auto object-contain"
+              />
             </div>
-            <div className="text-right">
-              <p className="text-xs font-semibold text-gray-600 uppercase">Crisis Intervention Section</p>
-              <p className="text-xs text-gray-500">Field Office IV-Calabarzon</p>
-              <p className="text-xs text-gray-500">DSWD-PAR-CIF-013 | REV 01 / 30 SEPT 2022</p>
+
+            {/* Right: Office Info */}
+            <div className="text-right leading-tight">
+              <p className="text-xs font-bold text-gray-800 uppercase">
+                CRISIS INTERVENTION SECTION
+              </p>
+              <p className="text-xs font-semibold text-gray-700 uppercase">
+                FIELD OFFICE IV–CALABARZON
+              </p>
+              <p className="text-[10px] text-gray-600">
+                DSWD–PMB–GF–013 | REV 01 / 30 SEPT 2022
+              </p>
             </div>
           </div>
 
-          {/* Title */}
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">CERTIFICATE OF ELIGIBILITY</h2>
-            <p className="text-sm text-gray-600">(Financial Assistance)</p>
+          {/* Title Section */}
+          <div className="text-center mt-1 mb-6">
+            <h2 className="text-lg font-extrabold text-gray-900 tracking-wider uppercase">
+              CERTIFICATE OF ELIGIBILITY
+            </h2>
+            <p className="text-sm text-gray-700 italic">
+              (
+              {formData.assistanceType === "financial" && "Financial Assistance"}
+              {formData.assistanceType === "medical" && "Medical Assistance"}
+              {formData.assistanceType === "funeral" && "Funeral Assistance"}
+              {!formData.assistanceType && "Assistance Type"}
+              )
+            </p>
           </div>
 
           {/* Reference Numbers Row */}
@@ -126,23 +219,59 @@ export default function CertificateOfEligibility() {
                 </div>
               </div>
             </div>
+
             <div className="flex items-center gap-2">
               <label className="font-semibold">Date:</label>
+              {/* date MM */}
               <input
                 type="text"
+                name="dateMM"
+                value={formData.dateMM}
+                onChange={handleChange}
                 className="w-16 border border-gray-400 px-2 py-1 text-center"
                 placeholder="mm"
               />
+              {/* date DD */}
               <input
                 type="text"
+                name="dateDD"
+                value={formData.dateDD}
+                onChange={handleChange}
                 className="w-16 border border-gray-400 px-2 py-1 text-center"
                 placeholder="dd"
               />
+              {/* year */}
               <input
                 type="text"
-                value="2023"
+                name="year"
+                value={formData.year}
+                onChange={handleChange}
                 className="w-16 border border-gray-400 px-2 py-1 text-center bg-gray-100"
                 readOnly
+              />
+            </div>
+          </div>
+
+          {/* Display timeStart and timeEnd near the top (auto-managed) */}
+          <div className="flex items-center gap-6 mb-4 text-xs">
+            <div className="flex items-center gap-2">
+              <label className="font-semibold">Time Start:</label>
+              <input
+                type="text"
+                name="timeStart"
+                value={formData.timeStart}
+                readOnly
+                className="w-28 border border-gray-400 px-2 py-1 text-center bg-gray-100"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="font-semibold">Time End:</label>
+              <input
+                type="text"
+                name="timeEnd"
+                value={formData.timeEnd}
+                readOnly
+                className="w-28 border border-gray-400 px-2 py-1 text-center bg-gray-100"
               />
             </div>
           </div>
@@ -150,19 +279,43 @@ export default function CertificateOfEligibility() {
           {/* Client Type Row */}
           <div className="flex items-center gap-4 mb-6 text-xs border-t border-b border-gray-300 py-2">
             <label className="flex items-center gap-2">
-              <input type="checkbox" name="clientType" value="new" onChange={handleChange} className="w-4 h-4" />
+              <input
+                type="checkbox"
+                name="clientType"
+                value="new"
+                onChange={handleChange}
+                className="w-4 h-4"
+              />
               <span>New</span>
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" name="clientType" value="returning" onChange={handleChange} className="w-4 h-4" />
+              <input
+                type="checkbox"
+                name="clientType"
+                value="returning"
+                onChange={handleChange}
+                className="w-4 h-4"
+              />
               <span>Returning</span>
             </label>
             <label className="flex items-center gap-2">
-              <input type="radio" name="walkinType" value="onsite" onChange={handleChange} className="w-4 h-4" />
+              <input
+                type="radio"
+                name="walkinType"
+                value="onsite"
+                onChange={handleChange}
+                className="w-4 h-4"
+              />
               <span>On-Site</span>
             </label>
             <label className="flex items-center gap-2">
-              <input type="radio" name="walkinType" value="walkin" onChange={handleChange} className="w-4 h-4" />
+              <input
+                type="radio"
+                name="walkinType"
+                value="walkin"
+                onChange={handleChange}
+                className="w-4 h-4"
+              />
               <span>Walk-In</span>
             </label>
             <label className="flex items-center gap-2">
@@ -170,7 +323,13 @@ export default function CertificateOfEligibility() {
               <span>Referral</span>
             </label>
             <label className="flex items-center gap-2">
-              <input type="radio" name="walkinType" value="offsite" onChange={handleChange} className="w-4 h-4" />
+              <input
+                type="radio"
+                name="walkinType"
+                value="offsite"
+                onChange={handleChange}
+                className="w-4 h-4"
+              />
               <span>Off-Site</span>
             </label>
           </div>
@@ -225,7 +384,7 @@ export default function CertificateOfEligibility() {
                 placeholder="QUEZON"
                 className="w-full border-b-2 border-blue-400 bg-white focus:border-blue-600 outline-none px-2 py-2 rounded"
               />
-              <p className="text-xs text-gray-500 text-right mt-1">Kumatalong Tirahan (Complete Address)</p>
+              <p className="text-xs text-gray-500 text-right mt-1">Kumpletong Tirahan (Complete Address)</p>
             </div>
 
             <p className="text-xs text-gray-700 bg-white p-3 rounded border-l-4 border-blue-600">
@@ -330,36 +489,36 @@ export default function CertificateOfEligibility() {
           {/* Assistance Section */}
           <div className="bg-green-50 border-2 border-green-300 p-5 rounded-lg mb-6">
             <p className="text-xs text-gray-700 mb-3">The Client is hereby recommended to receive</p>
-            
+
             <div className="mb-4">
               <label className="flex items-center gap-2 font-semibold text-xs mb-3">
-                <input 
-                  type="radio" 
-                  name="assistanceType" 
+                <input
+                  type="radio"
+                  name="assistanceType"
                   value="financial"
-                  checked={formData.assistanceType === "financial"} 
-                  onChange={handleChange} 
+                  checked={formData.assistanceType === "financial"}
+                  onChange={handleChange}
                 />
                 <span>Financial Assistance</span>
               </label>
-              <div className="flex gap-6 text-xs ml-6">
+              <div className="flex items-center gap-2">
                 <label className="flex items-center gap-2">
-                  <input 
-                    type="radio" 
-                    name="assistanceType" 
+                  <input
+                    type="radio"
+                    name="assistanceType"
                     value="medical"
                     checked={formData.assistanceType === "medical"}
-                    onChange={handleChange} 
+                    onChange={handleChange}
                   />
                   <span>Medical Assistance</span>
                 </label>
                 <label className="flex items-center gap-2">
-                  <input 
-                    type="radio" 
-                    name="assistanceType" 
+                  <input
+                    type="radio"
+                    name="assistanceType"
                     value="funeral"
                     checked={formData.assistanceType === "funeral"}
-                    onChange={handleChange} 
+                    onChange={handleChange}
                   />
                   <span>Funeral Assistance</span>
                 </label>
@@ -475,12 +634,15 @@ export default function CertificateOfEligibility() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex-1 border-b-2 border-gray-400 text-center py-1">
-                  <span className="text-sm font-bold">THOUSAND PESOS ONLY</span>
+                  <span className="text-sm font-bold">{formData.amountWords || "THOUSAND PESOS ONLY"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold">Php</span>
                   <input
                     type="text"
+                    name="amountNumber"
+                    value={formData.amountNumber}
+                    onChange={handleChange}
                     placeholder=".000"
                     className="w-32 border-b-2 border-gray-400 bg-transparent focus:border-blue-600 outline-none px-2 py-1 text-sm font-bold"
                   />
@@ -558,10 +720,10 @@ export default function CertificateOfEligibility() {
             <p>Field Office IV-A (CALABARZON) Alagang Zapote Ext., Alabang, Muntinlupa, Philippines</p>
             <p>Website: http://www.dswd.gov.ph Tel No: 8842-1430</p>
           </div>
-        </div>
 
-        {/* Footer Bar */}
-        <div className="bg-gradient-to-r from-blue-700 to-blue-900 h-3"></div>
+          {/* Footer Bar */}
+          <div className="bg-gradient-to-r from-blue-700 to-blue-900 h-3 mt-4"></div>
+        </div>
       </div>
     </div>
   );

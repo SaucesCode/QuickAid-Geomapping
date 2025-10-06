@@ -42,6 +42,7 @@ import PrivacyPolicy from "./components/Sections/PrivacyPolicy";
 import StaffQR from "./components/StaffQR";
 import eligibility from "./pages/print/CertificateOfEligibility";
 import CertificateOfEligibility from "./pages/print/CertificateOfEligibility";
+import GeneralIntakeSheet from "./pages/print/Intakesheet";
 
 function App() {
   return (
@@ -63,6 +64,7 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/staff-qr" element={<StaffQR />} />
         <Route path="/eligibility" element={<CertificateOfEligibility />} />
+        <Route path="/intakesheet" element={<GeneralIntakeSheet />} />
 
         <Route
           path="/"
