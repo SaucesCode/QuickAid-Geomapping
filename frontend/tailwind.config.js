@@ -23,7 +23,7 @@ module.exports = {
           surface: "#ffffff", // Cards, header, modals
           text: {
             primary: "#2d3748",
-            secondary: "#a0aec0",
+            secondary: "#303236ff",
           },
         },
       },

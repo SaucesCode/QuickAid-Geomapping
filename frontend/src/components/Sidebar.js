@@ -54,14 +54,23 @@ const Sidebar = () => {
     }
   }, [collapsed]);
 
-  const toggleSection = section => {
-    // If collapsed, auto expand
-    if (collapsed) setCollapsed(false);
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
+  const toggleSection = (section) => {
+  if (collapsed) setCollapsed(false);
+
+  setOpenSections((prev) => {
+    // Close all sections first
+    const newState = {
+      applicants: false,
+      analytics: false,
+      maps: false,
+    };
+
+    // Toggle only the clicked section
+    newState[section] = !prev[section];
+    return newState;
+  });
+};
+
 
   // Auto-open sections based on current route
   useEffect(() => {
@@ -138,24 +147,27 @@ const Sidebar = () => {
         `}
       >
         {/* Top Section */}
-        <div className="flex-shrink-0 p-4 border-b border-slate-800">
-          {/* New Application Button */}
-          <button
-            onClick={() => navigate("/register-applicant")}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors mb-4"
-          >
-            <Plus className="w-4 h-4" />
-            {!collapsed && (
-              <span
-                className={`transition-opacity text-white duration-300 ${
-                  showContent ? "opacity-100" : "opacity-0"
-                }`}
-              >
-                New Application
-              </span>
-            )}
-          </button>
-        </div>
+       <div className="flex-shrink-0 p-4 border-b border-slate-800 flex flex-col items-center">
+  
+
+  {/* New Application Button below */}
+  <button
+    onClick={() => navigate("/register-applicant")}
+    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+  >
+    <Plus className="w-4 h-4" />
+    {!collapsed && (
+      <span
+        className={`transition-opacity text-white duration-300 ${
+          showContent ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        New Application
+      </span>
+    )}
+  </button>
+</div>
+
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-hidden flex flex-col">
@@ -191,7 +203,7 @@ const Sidebar = () => {
                     className={({ isActive }) =>
                       `flex items-center gap-3 text-white px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                         isActive
-                          ? "bg-blue-500 text-white font-medium shadow-sm"
+                          ? "bg-blue-700 text-white font-medium shadow-sm"
                           : "text-slate-100 hover:bg-slate-800 hover:text-white"
                       } ${collapsed ? "justify-center" : ""}`
                     }
@@ -199,7 +211,7 @@ const Sidebar = () => {
                     <LayoutDashboard className="w-4 h-4" />
                     {!collapsed && (
                       <span
-                        className={`transition-opacity duration-300 ${
+                        className={`transition-opacity duration-300 text-gray-400 ${
                           showContent ? "opacity-100" : "opacity-0"
                         }`}
                       >
@@ -233,7 +245,7 @@ const Sidebar = () => {
                       {!collapsed && (
                         <>
                           <span
-                            className={`flex-1 text-left transition-opacity duration-300 ${
+                            className={`flex-1 text-left transition-opacity text-gray-400 duration-300 ${
                               showContent ? "opacity-100" : "opacity-0"
                             }`}
                           >
@@ -259,26 +271,26 @@ const Sidebar = () => {
                           className={({ isActive }) =>
                             `flex items-center  gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-500 text-white font-medium shadow-sm"
+                                ? "bg-blue-700 text-white font-medium shadow-sm"
                                 : "text-slate-300 hover:bg-slate-800 hover:text-white"
                             }`
                           }
                         >
-                          <MapPin className="w-4 h-4" />
-                          <span>Geographic Map</span>
+                          <MapPin className="w-4 h-4 " />
+                          <span className="text-white">Geographic Map</span>
                         </NavLink>
                         <NavLink
                           to="/heatmap"
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-500 text-white font-medium shadow-sm"
-                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                                ? "bg-blue-700 text-white font-medium shadow-sm"
+                                : "text-slate-300 hover:bg-slate-800 hover:text-white-800"
                             }`
                           }
                         >
                           <Layers className="w-4 h-4" />
-                          <span>Heat Map</span>
+                          <span className="text-white">Heat Map</span>
                         </NavLink>
                       </div>
                     )}
@@ -291,7 +303,7 @@ const Sidebar = () => {
                 <div>
                   {!collapsed && (
                     <h3
-                      className={`text-xs font-semibold text-slate-300 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
+                      className={`text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
                         showContent ? "opacity-100" : "opacity-0"
                       }`}
                     >
@@ -309,7 +321,7 @@ const Sidebar = () => {
                       {!collapsed && (
                         <>
                           <span
-                            className={`flex-1 text-left transition-opacity duration-300 ${
+                            className={`flex-1 text-left text-gray-400 transition-opacity duration-300 ${
                               showContent ? "opacity-100" : "opacity-0"
                             }`}
                           >
@@ -335,13 +347,13 @@ const Sidebar = () => {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-500 text-white font-medium shadow-sm"
+                                ? "bg-blue-700 text-white font-medium shadow-sm"
                                 : "text-slate-300 hover:bg-slate-800 hover:text-white"
                             }`
                           }
                         >
                           <MapPin className="w-4 h-4" />
-                          <span>Geographic</span>
+                          <span className="text-white">Geographic</span>
                         </NavLink>
 
                         <NavLink
@@ -349,13 +361,13 @@ const Sidebar = () => {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-500 text-white font-medium shadow-sm"
+                                ? "bg-blue-700 text-white font-medium shadow-sm"
                                 : "text-slate-300 hover:bg-slate-800 hover:text-white"
                             }`
                           }
                         >
                           <Users className="w-4 h-4" />
-                          <span>Demographics & Economics</span>
+                          <span className="text-white">Demographics & Economics</span>
                         </NavLink>
 
                         <NavLink
@@ -363,13 +375,13 @@ const Sidebar = () => {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-500 text-white font-medium shadow-sm"
+                                ? "bg-blue-700 text-white font-medium shadow-sm"
                                 : "text-slate-300 hover:bg-slate-800 hover:text-white"
                             }`
                           }
                         >
                           <TrendingUp className="w-4 h-4" />
-                          <span>Trends & Forecasting</span>
+                          <span className="text-white">Trends & Forecasting</span>
                         </NavLink>
 
                         <NavLink
@@ -377,13 +389,13 @@ const Sidebar = () => {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-500 text-white font-medium shadow-sm"
+                                ? "bg-blue-700 text-white font-medium shadow-sm"
                                 : "text-slate-300 hover:bg-slate-800 hover:text-white"
                             }`
                           }
                         >
                           <Activity className="w-4 h-4" />
-                          <span>Performance</span>
+                          <span className="text-white">Performance</span>
                         </NavLink>
                       </div>
                     )}
@@ -413,7 +425,7 @@ const Sidebar = () => {
                     {!collapsed && (
                       <>
                         <span
-                          className={`flex-1 text-left transition-opacity duration-300 ${
+                          className={`flex-1 text-left text-gray-400 transition-opacity duration-300 ${
                             showContent ? "opacity-100" : "opacity-0"
                           }`}
                         >
@@ -439,13 +451,13 @@ const Sidebar = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-blue-500 text-white font-medium shadow-sm"
+                              ? "bg-blue-700 text-white font-medium shadow-sm"
                               : "text-slate-300 hover:bg-slate-800 hover:text-white"
                           }`
                         }
                       >
                         <UserPlus className="w-4 h-4" />
-                        <span>New Applicant</span>
+                        <span className="text-white">New Applicant</span>
                       </NavLink>
 
                       <NavLink
@@ -453,52 +465,52 @@ const Sidebar = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-blue-500 text-white font-medium shadow-sm"
+                              ? "bg-blue-700 text-white font-medium shadow-sm"
                               : "text-slate-300 hover:bg-slate-800 hover:text-white"
                           }`
                         }
                       >
                         <Users className="w-4 h-4" />
-                        <span>All Applicants</span>
+                        <span className="text-white">All Applicants</span>
                       </NavLink>
                       <NavLink
                         to="/approved"
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-blue-500 text-white font-medium shadow-sm"
+                              ? "bg-blue-700 text-white font-medium shadow-sm"
                               : "text-slate-300 hover:bg-slate-800 hover:text-white"
                           }`
                         }
                       >
                         <CheckCircle className="w-4 h-4" />
-                        <span>Approved</span>
+                        <span className="text-white">Approved</span>
                       </NavLink>
                       <NavLink
                         to="/export-applicants"
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-blue-500 text-white font-medium shadow-sm"
+                              ? "bg-blue-700 text-white font-medium shadow-sm"
                               : "text-slate-300 hover:bg-slate-800 hover:text-white"
                           }`
                         }
                       >
                         <BarChart3 className="w-4 h-4" />
-                        <span>Export Data</span>
+                        <span className="text-white">Export Data</span>
                       </NavLink>
                       <NavLink
                         to="/archived-applicants"
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-blue-500 text-white font-medium shadow-sm"
+                              ? "bg-blue-700 text-white font-medium shadow-sm"
                               : "text-slate-300 hover:bg-slate-800 hover:text-white"
                           }`
                         }
                       >
                         <Archive className="w-4 h-4" />
-                        <span>Archived</span>
+                        <span className="text-white">Archived</span>
                       </NavLink>
                     </div>
                   )}
@@ -510,7 +522,7 @@ const Sidebar = () => {
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                           isActive
-                            ? "bg-blue-500 text-white font-medium shadow-sm"
+                            ? "bg-blue-700 text-white font-medium shadow-sm"
                             : "text-slate-200 hover:bg-slate-800 hover:text-white"
                         } ${collapsed ? "justify-center" : ""}`
                       }
@@ -518,7 +530,7 @@ const Sidebar = () => {
                       <Shield className="w-4 h-4" />
                       {!collapsed && (
                         <span
-                          className={`transition-opacity duration-300 ${
+                          className={`transition-opacity text-gray-400 duration-300 ${
                             showContent ? "opacity-100" : "opacity-0"
                           }`}
                         >
@@ -540,7 +552,7 @@ const Sidebar = () => {
                 className="flex items-center w-full gap-3 p-3 hover:bg-slate-800 transition-colors"
               >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
-                  {user?.first_name ? user.first_name.charAt(0).toUpperCase() : "U"}
+                  {user?.first_name ? user.first_name.charAt(0).toUpperCase() : "A"}
                 </div>
                 {!collapsed && (
                   <div className="flex-1 text-left">
