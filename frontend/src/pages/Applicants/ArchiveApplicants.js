@@ -4,6 +4,7 @@ import { Search, Archive, RotateCcw, Eye, X, Check, AlertCircle } from "lucide-r
 import PreviewModal from "./components/PreviewModal";
 import Pagination from "../../components/Pagination";
 
+
 const ArchiveApplicants = () => {
   const [archivedApplicants, setArchivedApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -133,12 +134,23 @@ const ArchiveApplicants = () => {
 
       {/* Main Content */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-600">Loading applicants...</p>
-          </div>
-        ) : (
+  {loading ? (
+    <div className="flex flex-col items-center justify-center h-64">
+      {/* Spinner with icon inside */}
+      <div className="relative w-12 h-12 mb-4">
+        {/* Spinner ring */}
+        <div className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        {/* Icon centered */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Archive className="w-6 h-6 text-blue-600" />
+        </div>
+      </div>
+
+      {/* Loading text */}
+      <p className="text-blue-600 font-medium">Loading archived...</p>
+    </div>
+  ) : (
+
           <>
             {/* Table */}
             <div className="overflow-x-auto">

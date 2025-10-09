@@ -201,32 +201,48 @@ const Geographic = () => {
 
   if (loading) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Loading geographic analytics...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center text-center">
+        <div className=" flex flex-col items-center">
+          {/* Loading circle with icon at center */}
+          <div className="relative flex items-center justify-center">
+            <div className="h-20 w-20 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
+            <MapPin className="absolute h-8 w-8 text-blue-600" />
+          </div>
+  
+          <h2 className="mt-6 text-xl font-semibold text-gray-800 flex items-center justify-center gap-2">
+            Loading Geographic Data
+          </h2>
+          <p className="text-gray-500 mt-2 text-sm">
+            Please wait while we fetch the latest analytics and insights...
+          </p>
         </div>
       </div>
     );
   }
-
+  
   if (error) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 text-lg mb-4">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center text-center">
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-red-100 max-w-md w-full mx-4">
+          <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 animate-pulse">
+            <AlertCircle className="h-8 w-8 text-red-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            Error Loading Data
+          </h3>
+          <p className="text-gray-600 mb-4">
+            {error.message || "Failed to fetch trends data. Please try again later."}
+          </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition duration-200"
           >
-            Try Again
+            Retry
           </button>
         </div>
       </div>
     );
   }
-
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}

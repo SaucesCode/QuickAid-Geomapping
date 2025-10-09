@@ -11,6 +11,7 @@ import {
   BarChart3,
   Loader2,
   Map as MapIcon,
+  Layers
 } from "lucide-react";
 
 // District 2 municipalities
@@ -186,13 +187,27 @@ const Geographic = () => {
       {/* Map Preview */}
       <div className="relative h-[550px] bg-white shadow-sm rounded-lg overflow-hidden">
         {loading ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
-            <Loader2 className="w-10 h-10 text-quickaid-accent animate-spin mb-3" />
-            <p className="text-sm text-quickaid-text-secondary">
-              Loading heatmap preview...
-            </p>
-          </div>
-        ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-quickaid-bg z-10">
+                  <div className="bg-quickaid-surface rounded-xl p-8 shadow-lg border">
+                    <div className="flex flex-col items-center gap-4">
+                      {/* Spinner with centered MapPin */}
+                      <div className="relative flex items-center justify-center">
+                        <div className="h-20 w-20 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
+                        <Layers className="absolute h-8 w-8 text-blue-600" />
+                      </div>
+        
+                      <div className="text-center">
+                        <h3 className="text-lg font-semibold text-quickaid-text-primary">
+                          Loading Map
+                        </h3>
+                        <p className="text-sm text-quickaid-text-secondary">
+                          Fetching applicant locations...
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
           <div className="relative z-0">
             <MapContainer
               center={[13.9, 121.475]}

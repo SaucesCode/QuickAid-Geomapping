@@ -60,14 +60,14 @@ const Navbar = () => {
                   <Clock className="w-5 h-5 text-blue-700" />
                   <div className="flex flex-col leading-tight">
                     <span className="text-xs text-gray-500">Working hours</span>
-                    <span className="font-semibold">Mon - Fri 9am to 5pm</span>
+                    <span className="font-semibold">Mon - Fri 8am to 5pm</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-blue-700" />
                   <div className="flex flex-col leading-tight">
                     <span className="text-xs text-gray-500">Our address</span>
-                    <span className="font-semibold">Barangay</span>
+                    <span className="font-semibold">104 P. Gomez St. Lucena City</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -117,7 +117,7 @@ const Navbar = () => {
                       }`
                     }
                   >
-                    About Us
+                    About AICS
                   </NavLink>
                 </li>
                 <li>
@@ -134,20 +134,7 @@ const Navbar = () => {
                     Services
                   </NavLink>
                 </li>
-                <li>
-                  <NavLink
-                    to="/contact"
-                    className={({ isActive }) =>
-                      `font-medium transition-colors duration-200 ${
-                        isActive
-                          ? "underline underline-offset-4 text-blue-200"
-                          : "text-white hover:text-blue-200 hover:underline underline-offset-4"
-                      }`
-                    }
-                  >
-                    Contact
-                  </NavLink>
-                </li>
+                
               </ul>
 
               {/* Buttons (Apply + Staff Login) */}

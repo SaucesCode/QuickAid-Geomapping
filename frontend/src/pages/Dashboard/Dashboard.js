@@ -88,15 +88,28 @@ const Dashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="p-4 bg-quickaid-bg">
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)]">
-          <span className="loading loading-spinner loading-lg text-quickaid-accent mb-4"></span>
-          <p className="text-quickaid-text-secondary font-medium">Loading dashboard data...</p>
+  return (
+    <div className="p-4 bg-quickaid-bg">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)]">
+        {/* Spinner with centered icon */}
+        <div className="relative w-20 h-20 mb-4"> {/* Bigger size */}
+          {/* Spinning ring */}
+          <div className="absolute inset-0 border-[6px] border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+
+          {/* Centered icon */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <LayoutDashboard className="w-8 h-8 text-blue-500" />
+          </div>
         </div>
+
+        {/* Loading text */}
+        <p className="text-blue-600 font-medium text-lg">
+          Loading dashboard data...
+        </p>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div className="p-4 space-y-4 bg-quickaid-bg min-h-screen">

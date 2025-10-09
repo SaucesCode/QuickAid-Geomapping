@@ -72,6 +72,8 @@ const Sidebar = () => {
 };
 
 
+
+
   // Auto-open sections based on current route
   useEffect(() => {
     if (
@@ -118,14 +120,25 @@ const Sidebar = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      await logoutUser();
-      toast.custom(t => <CustomToast t={t} type="logout" />);
+  try {
+    await logoutUser();
+
+    // Clear localStorage or session data
+    localStorage.removeItem("userData");
+
+    // Show logout success toast
+    toast.custom((t) => <CustomToast t={t} type="logout" />);
+
+    // Wait briefly so the toast appears before redirect
+    setTimeout(() => {
       navigate("/login");
-    } catch (err) {
-      toast.custom(t => <CustomToast t={t} type="error" />);
-    }
-  };
+    }, 800);
+  } catch (err) {
+    // If something goes wrong, show a generic error toast
+    toast.error("Logout failed. Please try again.");
+  }
+};
+
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -552,8 +565,13 @@ const Sidebar = () => {
                 className="flex items-center w-full gap-3 p-3 hover:bg-slate-800 transition-colors"
               >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
-                  {user?.first_name ? user.first_name.charAt(0).toUpperCase() : "A"}
-                </div>
+  {user
+    ? (user.first_name
+        ? user.first_name.charAt(0).toUpperCase()
+        : user.username?.charAt(0).toUpperCase() || "?")
+    : "?"}
+</div>
+
                 {!collapsed && (
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium text-slate-100 truncate">

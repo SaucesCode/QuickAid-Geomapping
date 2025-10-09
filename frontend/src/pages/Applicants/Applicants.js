@@ -11,6 +11,7 @@ import EditModal from "./components/EditModal";
 import ArchiveModal from "./components/ArchiveModal";
 import toast, { Toaster } from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
+import { Users } from "lucide-react";
 
 const csvHeaders = [
   { label: "ID", key: "id" },
@@ -291,11 +292,24 @@ const Applicants = () => {
         csvHeaders={csvHeaders}
       />
       {loading ? (
-        <div className="bg-white rounded-xl shadow-md p-12 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mb-4"></div>
-          <p className="text-gray-600">Loading applicants...</p>
-        </div>
-      ) : (
+  <div className="flex items-center justify-center min-h-[60vh]">
+    <div className="bg-white rounded-xl shadow-md p-10 text-center border border-gray-100">
+      <div className="relative flex items-center justify-center mx-auto mb-4">
+        {/* Spinner */}
+        <div className="h-14 w-14 rounded-full border-4 border-gray-200 border-t-blue-500 animate-spin"></div>
+        {/* Icon inside spinner */}
+        <Users className="absolute h-6 w-6 text-blue-600" />
+      </div>
+      <h3 className="text-lg font-semibold text-gray-800">
+        Loading Applicants
+      </h3>
+      <p className="text-gray-500 text-sm mt-1">
+        Please wait while we fetch the latest applicant data...
+      </p>
+    </div>
+  </div>
+) : (
+
         <>
           <ApplicantTable
             currentItems={currentItems}
