@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../services/api";
-import { Search, Archive, RotateCcw, Eye, X, Check, AlertCircle } from "lucide-react";
+import {
+  Search,
+  Archive,
+  RotateCcw,
+  Eye,
+  X,
+  Check,
+  AlertCircle,
+  FileText,
+} from "lucide-react";
 import PreviewModal from "./components/PreviewModal";
 import Pagination from "../../components/Pagination";
-
 
 const ArchiveApplicants = () => {
   const [archivedApplicants, setArchivedApplicants] = useState([]);
@@ -27,7 +35,7 @@ const ArchiveApplicants = () => {
     }
   };
 
-  const openPreviewView = applicant => {
+  const openPreviewView = (applicant) => {
     setPreviewApplicant({ ...applicant });
     setPreviewView(true);
     document.body.classList.add("dialog-open");
@@ -39,7 +47,7 @@ const ArchiveApplicants = () => {
     document.body.classList.remove("dialog-open");
   };
 
-  const openRestoreModal = applicant_id => {
+  const openRestoreModal = (applicant_id) => {
     setRestoreModal({ show: true, applicantId: applicant_id });
     document.body.classList.add("dialog-open");
   };
@@ -61,7 +69,7 @@ const ArchiveApplicants = () => {
     }
   };
 
-  const filteredApplicants = archivedApplicants.filter(a => {
+  const filteredApplicants = archivedApplicants.filter((a) => {
     const keyword = searchTerm.toLowerCase();
     return (
       (a.background_info?.first_name || "").toLowerCase().includes(keyword) ||
@@ -71,29 +79,25 @@ const ArchiveApplicants = () => {
     );
   });
 
-  // Add pagination logic
+  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredApplicants.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredApplicants.length / itemsPerPage);
 
-  const handlePageChange = pageNumber => {
+  const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
-  const handleItemsPerPageChange = e => {
+  const handleItemsPerPageChange = (e) => {
     setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);
   };
 
-  const formatPreviewDate = dateStr => {
+  const formatPreviewDate = (dateStr) => {
     if (!dateStr) return "N/A";
     const date = new Date(dateStr);
-    const options = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
+    const options = { year: "numeric", month: "long", day: "numeric" };
     return date.toLocaleDateString("en-PH", options);
   };
 
@@ -110,13 +114,13 @@ const ArchiveApplicants = () => {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <Archive className="w-8 h-8 text-teal-500" />
+          <Archive className="w-8 h-8 text-blue-600" />
           <h1 className="text-3xl font-bold text-gray-800">Archived Applicants</h1>
         </div>
         <p className="text-gray-400">Manage and restore archived applicant records</p>
       </div>
 
-      {/* Search and Actions */}
+      {/* Search Bar */}
       <div className="bg-white rounded-xl shadow-md p-6 mb-6">
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-md">
@@ -125,8 +129,8 @@ const ArchiveApplicants = () => {
               type="text"
               placeholder="Search applicants..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
@@ -134,23 +138,17 @@ const ArchiveApplicants = () => {
 
       {/* Main Content */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
-  {loading ? (
-    <div className="flex flex-col items-center justify-center h-64">
-      {/* Spinner with icon inside */}
-      <div className="relative w-12 h-12 mb-4">
-        {/* Spinner ring */}
-        <div className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        {/* Icon centered */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Archive className="w-6 h-6 text-blue-600" />
-        </div>
-      </div>
-
-      {/* Loading text */}
-      <p className="text-blue-600 font-medium">Loading archived...</p>
-    </div>
-  ) : (
-
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-64">
+            <div className="relative w-14 h-14 mb-4">
+              <div className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Archive className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+            <p className="text-blue-600 font-medium">Loading archived...</p>
+          </div>
+        ) : (
           <>
             {/* Table */}
             <div className="overflow-x-auto">
@@ -158,21 +156,13 @@ const ArchiveApplicants = () => {
                 <thead className="bg-gray-100 border-b">
                   <tr>
                     <th className="text-left px-6 py-4 font-semibold text-gray-700">Name</th>
-                    <th className="text-left px-6 py-4 font-semibold text-gray-700">
-                      Barangay
-                    </th>
+                    <th className="text-left px-6 py-4 font-semibold text-gray-700">Barangay</th>
                     <th className="text-left px-6 py-4 font-semibold text-gray-700">
                       City or Municipality
                     </th>
-                    <th className="text-left px-6 py-4 font-semibold text-gray-700">
-                      Assistance
-                    </th>
-                    <th className="text-left px-6 py-4 font-semibold text-gray-700">
-                      Date Filled
-                    </th>
-                    <th className="text-left px-6 py-4 font-semibold text-gray-700">
-                      Actions
-                    </th>
+                    <th className="text-left px-6 py-4 font-semibold text-gray-700">Assistance</th>
+                    <th className="text-left px-6 py-4 font-semibold text-gray-700">Date Filled</th>
+                    <th className="text-left px-6 py-4 font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -180,7 +170,7 @@ const ArchiveApplicants = () => {
                     currentItems.map((applicant, id) => (
                       <tr key={id} className="hover:bg-gray-50 transition-colors">
                         <td
-                          className="px-6 py-4 text-teal-600 hover:text-teal-700 cursor-pointer font-medium"
+                          className="px-6 py-4 text-blue-600 hover:text-blue-700 cursor-pointer font-medium"
                           onClick={() => openPreviewView(applicant)}
                         >
                           {`${applicant.background_info?.first_name || ""} ${
@@ -194,7 +184,19 @@ const ArchiveApplicants = () => {
                           {applicant.background_info?.barangay_details?.city_name}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white shadow-sm
+                              ${
+                                applicant.type_of_assistance?.toLowerCase() === "medical"
+                                  ? "bg-gradient-to-r from-blue-600 to-blue-700"
+                                  : applicant.type_of_assistance?.toLowerCase() === "financial"
+                                  ? "bg-gradient-to-r from-green-600 to-green-700"
+                                  : applicant.type_of_assistance?.toLowerCase() === "burial"
+                                  ? "bg-gradient-to-r from-pink-500 to-pink-600"
+                                  : "bg-gradient-to-r from-blue-600 to-blue-700"
+                              }`}
+                          >
+                            <FileText className="w-3 h-3" />
                             {applicant.type_of_assistance}
                           </span>
                         </td>
@@ -205,14 +207,14 @@ const ArchiveApplicants = () => {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => openPreviewView(applicant)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
                             >
                               <Eye className="w-4 h-4" />
                               View
                             </button>
                             <button
                               onClick={() => openRestoreModal(applicant.id)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                             >
                               <RotateCcw className="w-4 h-4" />
                               Restore
@@ -272,8 +274,8 @@ const ArchiveApplicants = () => {
           <div className="bg-white rounded-xl shadow-lg w-full max-w-md">
             {/* Modal Header */}
             <div className="flex items-center gap-3 p-6 border-b">
-              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-5 h-5 text-amber-600" />
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-blue-600" />
               </div>
               <h2 className="text-xl font-semibold text-gray-800">Confirm Restore</h2>
             </div>
@@ -281,8 +283,8 @@ const ArchiveApplicants = () => {
             {/* Modal Content */}
             <div className="p-6">
               <p className="text-gray-600">
-                Are you sure you want to restore this applicant? This will move them back to
-                the active applicants list.
+                Are you sure you want to restore this applicant? This will move them back
+                to the active applicants list.
               </p>
             </div>
 
@@ -296,7 +298,7 @@ const ArchiveApplicants = () => {
               </button>
               <button
                 onClick={handleRestore}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
                 <Check className="w-4 h-4" />
                 Restore
