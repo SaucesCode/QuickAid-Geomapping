@@ -45,14 +45,14 @@ const Applicants = () => {
   const [previewApplicant, setPreviewApplicant] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "ascending" });
   const [archiveModal, setArchiveModal] = useState({ show: false, applicantId: null });
-  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "Quickaid | Applicants";
+    document.title = "QuickAid | Applicants";
     return () => {
-      document.title = "Quickaid | Home";
+      document.title = "QuickAid | Home";
     };
   }, []);
 
@@ -73,22 +73,17 @@ const Applicants = () => {
   }, []);
 
   const openEditView = (applicant) => {
-    const applicantCopy = {
+    setEditingApplicant({
       ...applicant,
       valid_id_presented: applicant.valid_id_presented || "",
       other_valid_id: applicant.other_valid_id || "",
-    };
-    setEditingApplicant(applicantCopy);
+    });
     setEditView(true);
   };
 
   const closeEditView = () => {
     setEditingApplicant(null);
     setEditView(false);
-  };
-
-  const goPrintPage = (applicant) => {
-    navigate(`/print/${applicant.id}`);
   };
 
   const openPreviewView = (applicant) => {
@@ -101,8 +96,8 @@ const Applicants = () => {
     setPreviewView(false);
   };
 
-  const openArchiveModal = (applicant_id) => {
-    setArchiveModal({ show: true, applicantId: applicant_id });
+  const openArchiveModal = (id) => {
+    setArchiveModal({ show: true, applicantId: id });
   };
 
   const closeArchiveModal = () => {
@@ -111,7 +106,6 @@ const Applicants = () => {
 
   const handleArchive = async () => {
     if (!archiveModal.applicantId) return;
-
     try {
       await api.delete(`/applicants/${archiveModal.applicantId}/`);
       toast.custom((t) => <CustomToast t={t} type="archive" />);
@@ -125,18 +119,10 @@ const Applicants = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    if (name === "valid_id_presented" || name === "other_valid_id") {
-      setEditingApplicant((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    } else {
-      setEditingApplicant((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setEditingApplicant((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSave = async (e) => {
@@ -215,13 +201,15 @@ const Applicants = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 p-6">
       <Toaster position="top-center" reverseOrder={false} />
 
-      <div className="bg-white shadow-lg rounded-xl border border-blue-100 p-4 mb-6">
+      {/* Header */}
+      <div className="bg-white shadow-md rounded-2xl border border-blue-100 p-6 mb-6">
         <ApplicantsHeader />
       </div>
 
+      {/* Search and Export */}
       <ApplicantActions
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -229,18 +217,19 @@ const Applicants = () => {
         csvHeaders={csvHeaders}
       />
 
+      {/* Loading Spinner */}
       {loading ? (
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="bg-white rounded-xl shadow-md p-10 text-center border border-blue-100">
+          <div className="bg-white rounded-2xl shadow-lg p-10 text-center border border-blue-200">
             <div className="relative flex items-center justify-center mx-auto mb-4">
-              <div className="h-14 w-14 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
-              <Users className="absolute h-6 w-6 text-blue-600" />
+              <div className="h-16 w-16 rounded-full border-[5px] border-blue-200 border-t-blue-600 animate-spin"></div>
+              <Users className="absolute h-7 w-7 text-blue-600" />
             </div>
             <h3 className="text-lg font-semibold text-blue-800">
-              Loading Applicants
+              Loading Applicants...
             </h3>
             <p className="text-blue-500 text-sm mt-1">
-              Please wait while we fetch the latest applicant data...
+              Please wait while we fetch the latest applicant data.
             </p>
           </div>
         </div>
@@ -253,7 +242,7 @@ const Applicants = () => {
             openPreviewView={openPreviewView}
             openEditView={openEditView}
             openArchiveModal={openArchiveModal}
-            goPrintPage={goPrintPage}
+            goPrintPage={navigate}
             formatDate={formatDate}
           />
 
@@ -272,6 +261,7 @@ const Applicants = () => {
         </>
       )}
 
+      {/* Modals */}
       {previewView && previewApplicant && (
         <PreviewModal
           previewApplicant={previewApplicant}

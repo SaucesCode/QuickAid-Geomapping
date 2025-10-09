@@ -78,8 +78,8 @@ const ApplicantForm = () => {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-400/30">
-                  <Users className="w-6 h-6 text-white" />
+                <div className="p-2 rounded-xl">
+                  <Users className="w-8 h-8 text-blue-500" />
                 </div>
                 <h1 className="text-3xl lg:text-4xl font-bold text-blue-900 tracking-tight">
                   New Applicants
