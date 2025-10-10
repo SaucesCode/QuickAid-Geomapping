@@ -1,6 +1,17 @@
 // src/components/CustomToast.js
 import React from "react";
-import { LogIn, LogOut, Archive, Send, Pencil, X } from "lucide-react";
+import {
+  LogIn,
+  LogOut,
+  ArchiveBox,
+  SendHorizonal,
+  Wand2,
+  X,
+  CheckCircle2,
+  ShieldCheck,
+  FolderArchive,
+  Rocket,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 const toastVariants = {
@@ -10,7 +21,7 @@ const toastVariants = {
     color: "bg-green-50",
     text: "text-green-900",
     accent: "bg-green-100 text-green-600",
-    icon: <LogIn className="w-5 h-5" />,
+    icon: <ShieldCheck className="w-6 h-6" strokeWidth={2.5} />,
   },
   logout: {
     title: "Goodbye!",
@@ -18,7 +29,7 @@ const toastVariants = {
     color: "bg-slate-50",
     text: "text-slate-900",
     accent: "bg-slate-100 text-slate-600",
-    icon: <LogOut className="w-5 h-5" />,
+    icon: <LogOut className="w-6 h-6" strokeWidth={2.5} />,
   },
   archive: {
     title: "Applicant Archived",
@@ -26,15 +37,15 @@ const toastVariants = {
     color: "bg-amber-50",
     text: "text-amber-900",
     accent: "bg-amber-100 text-amber-600",
-    icon: <Archive className="w-5 h-5" />,
+    icon: <FolderArchive className="w-6 h-6" strokeWidth={2.5} />,
   },
   submit: {
     title: "Form Submitted",
-    message: "Your application has been submitted.",
+    message: "Your application has been sent successfully.",
     color: "bg-blue-50",
     text: "text-blue-900",
     accent: "bg-blue-100 text-blue-600",
-    icon: <Send className="w-5 h-5" />,
+    icon: <Rocket className="w-6 h-6" strokeWidth={2.5} />,
   },
   edit: {
     title: "Profile Updated",
@@ -42,7 +53,15 @@ const toastVariants = {
     color: "bg-purple-50",
     text: "text-purple-900",
     accent: "bg-purple-100 text-purple-600",
-    icon: <Pencil className="w-5 h-5" />,
+    icon: <Wand2 className="w-6 h-6" strokeWidth={2.5} />,
+  },
+  success: {
+    title: "Action Completed",
+    message: "Everything went smoothly!",
+    color: "bg-emerald-50",
+    text: "text-emerald-900",
+    accent: "bg-emerald-100 text-emerald-600",
+    icon: <CheckCircle2 className="w-6 h-6" strokeWidth={2.5} />,
   },
 };
 
@@ -56,7 +75,9 @@ const CustomToast = ({ t, type }) => {
     >
       {/* Icon Section */}
       <div className="flex-shrink-0 ml-4">
-        <div className={`w-10 h-10 flex items-center justify-center rounded-full ${accent}`}>
+        <div
+          className={`w-11 h-11 flex items-center justify-center rounded-full ${accent} shadow-sm`}
+        >
           {icon}
         </div>
       </div>

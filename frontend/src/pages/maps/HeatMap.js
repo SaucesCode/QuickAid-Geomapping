@@ -4,7 +4,15 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
 import L from "leaflet";
 import { api } from "../../services/api";
-import { Users, MapPin, Activity, BarChart3, Loader2, Map as MapIcon } from "lucide-react";
+import {
+  Users,
+  MapPin,
+  Activity,
+  BarChart3,
+  Loader2,
+  Map as MapIcon,
+  Layers
+} from "lucide-react";
 
 // District 2 municipalities
 const districtCities = [
@@ -34,7 +42,7 @@ const HeatLayer = ({ points }) => {
   const map = useMap();
   useEffect(() => {
     if (!points.length) return;
-    const heatData = points.map(p => [p.latitude, p.longitude, 0.8]);
+    const heatData = points.map((p) => [p.latitude, p.longitude, 0.8]);
     const heatLayer = window.L.heatLayer(heatData, {
       radius: 30,
       blur: 20,
@@ -47,7 +55,21 @@ const HeatLayer = ({ points }) => {
         1.0: "#ef4444",
       },
     }).addTo(map);
-    return () => map.removeLayer(heatLayer);
+
+    // Fade in animation
+    const pane = map.getPanes().overlayPane;
+    pane.style.opacity = 0;
+    let opacity = 0;
+    const fadeIn = setInterval(() => {
+      opacity += 0.05;
+      pane.style.opacity = opacity;
+      if (opacity >= 1) clearInterval(fadeIn);
+    }, 30);
+
+    return () => {
+      clearInterval(fadeIn);
+      map.removeLayer(heatLayer);
+    };
   }, [points, map]);
   return null;
 };
@@ -63,7 +85,8 @@ const Geographic = () => {
       try {
         const res = await api.get("/applicant-locations/");
         const valid = res.data.filter(
-          loc => loc.latitude && loc.longitude && districtCities.includes(loc.city)
+          (loc) =>
+            loc.latitude && loc.longitude && districtCities.includes(loc.city)
         );
         setLocations(valid);
       } catch (err) {
@@ -78,13 +101,30 @@ const Geographic = () => {
   // Load district boundary
   useEffect(() => {
     fetch("/all_cities.geojson")
-      .then(res => res.json())
+      .then((res) => res.json())
       .then(setDistrictGeo)
-      .catch(err => console.error("Error loading district geojson:", err));
+      .catch((err) => console.error("Error loading district geojson:", err));
   }, []);
 
   return (
     <div className="min-h-screen bg-quickaid-bg p-6">
+      {/* Fix for Leaflet z-index overlap */}
+      <style>{`
+        .leaflet-container {
+          z-index: 0 !important;
+          position: relative !important;
+        }
+        .leaflet-pane,
+        .leaflet-control,
+        .leaflet-top,
+        .leaflet-bottom {
+          z-index: 0 !important;
+        }
+        .leaflet-overlay-pane {
+          z-index: 1 !important;
+        }
+      `}</style>
+
       {/* Header */}
       <header className="mb-6">
         <div className="flex items-center gap-2 mb-2">
@@ -96,7 +136,8 @@ const Geographic = () => {
           </h1>
         </div>
         <p className="text-sm text-quickaid-text-secondary">
-          A geographic heatmap preview showing where applicants are concentrated in District 2.
+          A geographic heatmap preview showing where applicants are concentrated
+          in District 2.
         </p>
       </header>
 
@@ -106,7 +147,9 @@ const Geographic = () => {
           <Users className="w-6 h-6 text-blue-600" />
           <div>
             <p className="text-sm text-slate-500">Total Applicants</p>
-            <h2 className="text-xl font-semibold text-slate-900">{locations.length}</h2>
+            <h2 className="text-xl font-semibold text-slate-900">
+              {locations.length}
+            </h2>
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-3">
@@ -114,7 +157,10 @@ const Geographic = () => {
           <div>
             <p className="text-sm text-slate-500">Cities Covered</p>
             <h2 className="text-xl font-semibold text-slate-900">
-              {new Set(locations.map(l => l.city).filter(c => c)).size}
+              {
+                new Set(locations.map((l) => l.city).filter((c) => c))
+                  .size
+              }
             </h2>
           </div>
         </div>
@@ -128,7 +174,9 @@ const Geographic = () => {
                   acc[loc.city] = (acc[loc.city] || 0) + 1;
                   return acc;
                 }, {});
-                const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+                const top = Object.entries(counts).sort(
+                  (a, b) => b[1] - a[1]
+                )[0];
                 return top ? top[0] : "N/A";
               })()}
             </h2>
@@ -139,34 +187,57 @@ const Geographic = () => {
       {/* Map Preview */}
       <div className="relative h-[550px] bg-white shadow-sm rounded-lg overflow-hidden">
         {loading ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
-            <Loader2 className="w-10 h-10 text-quickaid-accent animate-spin mb-3" />
-            <p className="text-sm text-quickaid-text-secondary">Loading heatmap preview...</p>
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-quickaid-bg z-10">
+                  <div className="bg-quickaid-surface rounded-xl p-8 shadow-lg border">
+                    <div className="flex flex-col items-center gap-4">
+                      {/* Spinner with centered MapPin */}
+                      <div className="relative flex items-center justify-center">
+                        <div className="h-20 w-20 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
+                        <Layers className="absolute h-8 w-8 text-blue-600" />
+                      </div>
+        
+                      <div className="text-center">
+                        <h3 className="text-lg font-semibold text-quickaid-text-primary">
+                          Loading Map
+                        </h3>
+                        <p className="text-sm text-quickaid-text-secondary">
+                          Fetching applicant locations...
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+          <div className="relative z-0">
+            <MapContainer
+              center={[13.9, 121.475]}
+              zoom={11.4}
+              className="w-full h-[550px] rounded-lg z-0"
+              minZoom={10}
+              scrollWheelZoom
+              zoomControl
+              style={{ position: "relative" }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap contributors"
+              />
+              {districtGeo && (
+                <>
+                  <GeoJSON
+                    data={districtGeo}
+                    style={{
+                      color: "#f87171",
+                      weight: 2,
+                      fillOpacity: 0,
+                    }}
+                  />
+                  <DistrictBounds geoData={districtGeo} />
+                </>
+              )}
+              <HeatLayer points={locations} />
+            </MapContainer>
           </div>
-        ) : (
-          <MapContainer
-            center={[13.9, 121.475]}
-            zoom={11.4}
-            className="w-full h-full"
-            minZoom={10}
-            scrollWheelZoom
-            zoomControl
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap contributors"
-            />
-            {districtGeo && (
-              <>
-                <GeoJSON
-                  data={districtGeo}
-                  style={{ color: "#f87171", weight: 2, fillOpacity: 0 }}
-                />
-                <DistrictBounds geoData={districtGeo} />
-              </>
-            )}
-            <HeatLayer points={locations} />
-          </MapContainer>
         )}
       </div>
 

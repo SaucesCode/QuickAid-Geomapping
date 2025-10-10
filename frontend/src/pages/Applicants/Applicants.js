@@ -11,6 +11,7 @@ import EditModal from "./components/EditModal";
 import ArchiveModal from "./components/ArchiveModal";
 import toast, { Toaster } from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
+import { Users } from "lucide-react";
 
 const csvHeaders = [
   { label: "ID", key: "id" },
@@ -44,16 +45,17 @@ const Applicants = () => {
   const [previewApplicant, setPreviewApplicant] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "ascending" });
   const [archiveModal, setArchiveModal] = useState({ show: false, applicantId: null });
-  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "Quickaid | Applicants";
+    document.title = "QuickAid | Applicants";
     return () => {
-      document.title = "Quickaid | Home";
+      document.title = "QuickAid | Home";
     };
   }, []);
+
   const fetchApplicants = async () => {
     setLoading(true);
     try {
@@ -70,21 +72,12 @@ const Applicants = () => {
     fetchApplicants();
   }, []);
 
-  const openEditView = applicant => {
-    console.log("Opening edit view for applicant:", applicant);
-    console.log("Valid ID data:", {
-      valid_id_presented: applicant.valid_id_presented,
-      other_valid_id: applicant.other_valid_id,
-    });
-
-    const applicantCopy = {
+  const openEditView = (applicant) => {
+    setEditingApplicant({
       ...applicant,
       valid_id_presented: applicant.valid_id_presented || "",
       other_valid_id: applicant.other_valid_id || "",
-    };
-
-    console.log("Applicant copy for editing:", applicantCopy);
-    setEditingApplicant(applicantCopy);
+    });
     setEditView(true);
   };
 
@@ -93,11 +86,7 @@ const Applicants = () => {
     setEditView(false);
   };
 
-  const goPrintPage = applicant => {
-    navigate(`/print/${applicant.id}`);
-  };
-
-  const openPreviewView = applicant => {
+  const openPreviewView = (applicant) => {
     setPreviewApplicant({ ...applicant });
     setPreviewView(true);
   };
@@ -107,8 +96,8 @@ const Applicants = () => {
     setPreviewView(false);
   };
 
-  const openArchiveModal = applicant_id => {
-    setArchiveModal({ show: true, applicantId: applicant_id });
+  const openArchiveModal = (id) => {
+    setArchiveModal({ show: true, applicantId: id });
   };
 
   const closeArchiveModal = () => {
@@ -117,10 +106,9 @@ const Applicants = () => {
 
   const handleArchive = async () => {
     if (!archiveModal.applicantId) return;
-
     try {
       await api.delete(`/applicants/${archiveModal.applicantId}/`);
-      toast.custom(t => <CustomToast t={t} type="archive" />);
+      toast.custom((t) => <CustomToast t={t} type="archive" />);
       fetchApplicants();
       closeArchiveModal();
     } catch (err) {
@@ -129,67 +117,15 @@ const Applicants = () => {
     }
   };
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log("Handling change:", { name, value, currentState: editingApplicant });
-
-    if (name === "valid_id_presented" || name === "other_valid_id") {
-      setEditingApplicant(prev => {
-        const newState = {
-          ...prev,
-          [name]: value,
-        };
-        console.log("New state after valid ID change:", newState);
-        return newState;
-      });
-    } else if (
-      [
-        "first_name",
-        "middle_initial",
-        "last_name",
-        "suffix",
-        "sex",
-        "civil_status",
-        "street_address",
-      ].includes(name)
-    ) {
-      setEditingApplicant(prev => ({
-        ...prev,
-        background_info: {
-          ...prev.background_info,
-          [name]: value,
-        },
-      }));
-    } else if (name.startsWith("rep_")) {
-      const repField = name.replace("rep_", "");
-      setEditingApplicant(prev => ({
-        ...prev,
-        representative: {
-          ...prev.representative,
-          [repField]: value,
-        },
-      }));
-    } else if (name.startsWith("rep_bg_")) {
-      const repBgField = name.replace("rep_bg_", "");
-      setEditingApplicant(prev => ({
-        ...prev,
-        representative: {
-          ...prev.representative,
-          background_info: {
-            ...prev.representative?.background_info,
-            [repBgField]: value,
-          },
-        },
-      }));
-    } else {
-      setEditingApplicant(prev => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setEditingApplicant((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSave = async e => {
+  const handleSave = async (e) => {
     e.preventDefault();
     if (!editingApplicant || !editingApplicant.id) return;
 
@@ -210,19 +146,15 @@ const Applicants = () => {
         longitude: data.longitude,
       };
 
-      const cleanApplicant = JSON.parse(JSON.stringify(updatedApplicant));
-      await api.put(`/applicants/${editingApplicant.id}/`, cleanApplicant);
+      await api.put(`/applicants/${editingApplicant.id}/`, updatedApplicant);
       fetchApplicants();
       closeEditView();
     } catch (err) {
       console.error("Error saving applicant:", err);
-      if (err.response) {
-        console.error("Error response:", err.response);
-      }
     }
   };
 
-  const handleSort = key => {
+  const handleSort = (key) => {
     let direction = "ascending";
     if (sortConfig.key === key && sortConfig.direction === "ascending") {
       direction = "descending";
@@ -230,30 +162,18 @@ const Applicants = () => {
     setSortConfig({ key, direction });
   };
 
-  const getSortedData = data => {
+  const getSortedData = (data) => {
     if (!sortConfig.key) return data;
-
     return [...data].sort((a, b) => {
       let aValue = a[sortConfig.key];
       let bValue = b[sortConfig.key];
-
-      if (sortConfig.key.includes(".")) {
-        const keys = sortConfig.key.split(".");
-        aValue = keys.reduce((obj, key) => obj?.[key], a);
-        bValue = keys.reduce((obj, key) => obj?.[key], b);
-      }
-
-      if (aValue < bValue) {
-        return sortConfig.direction === "ascending" ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === "ascending" ? 1 : -1;
-      }
+      if (aValue < bValue) return sortConfig.direction === "ascending" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "ascending" ? 1 : -1;
       return 0;
     });
   };
 
-  const filteredApplicants = applicants.filter(a => {
+  const filteredApplicants = applicants.filter((a) => {
     const keyword = searchTerm.toLowerCase();
     return (
       (a.background_info?.first_name || "").toLowerCase().includes(keyword) ||
@@ -271,29 +191,47 @@ const Applicants = () => {
   const currentItems = sortedApplicants.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(sortedApplicants.length / itemsPerPage);
 
-  const handlePageChange = pageNumber => {
+  const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
-  const handleItemsPerPageChange = e => {
+  const handleItemsPerPageChange = (e) => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 p-6">
       <Toaster position="top-center" reverseOrder={false} />
-      <ApplicantsHeader />
+
+      {/* Header */}
+      <div className="bg-white shadow-md rounded-2xl border border-blue-100 p-6 mb-6">
+        <ApplicantsHeader />
+      </div>
+
+      {/* Search and Export */}
       <ApplicantActions
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         applicants={applicants}
         csvHeaders={csvHeaders}
       />
+
+      {/* Loading Spinner */}
       {loading ? (
-        <div className="bg-white rounded-xl shadow-md p-12 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mb-4"></div>
-          <p className="text-gray-600">Loading applicants...</p>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="bg-white rounded-2xl shadow-lg p-10 text-center border border-blue-200">
+            <div className="relative flex items-center justify-center mx-auto mb-4">
+              <div className="h-16 w-16 rounded-full border-[5px] border-blue-200 border-t-blue-600 animate-spin"></div>
+              <Users className="absolute h-7 w-7 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-blue-800">
+              Loading Applicants...
+            </h3>
+            <p className="text-blue-500 text-sm mt-1">
+              Please wait while we fetch the latest applicant data.
+            </p>
+          </div>
         </div>
       ) : (
         <>
@@ -304,9 +242,10 @@ const Applicants = () => {
             openPreviewView={openPreviewView}
             openEditView={openEditView}
             openArchiveModal={openArchiveModal}
-            goPrintPage={goPrintPage}
+            goPrintPage={navigate}
             formatDate={formatDate}
           />
+
           {sortedApplicants.length > 0 && (
             <Pagination
               currentPage={currentPage}
@@ -322,6 +261,7 @@ const Applicants = () => {
         </>
       )}
 
+      {/* Modals */}
       {previewView && previewApplicant && (
         <PreviewModal
           previewApplicant={previewApplicant}

@@ -19,6 +19,7 @@ import {
   TrendingUp,
   Award,
   Clock,
+  Loader2,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { api } from "../../services/api";

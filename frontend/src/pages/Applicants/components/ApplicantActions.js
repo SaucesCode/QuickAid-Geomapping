@@ -19,7 +19,7 @@ const ApplicantActions = ({ searchTerm, setSearchTerm }) => {
         </div>
         <button
           onClick={() => navigate("/export-applicants")}
-          className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg transition-colors"
+          className="bg-blue-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg transition-colors"
         >
           Go to Export Page
         </button>

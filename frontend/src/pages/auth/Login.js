@@ -15,6 +15,8 @@ import {
   Users,
 } from "lucide-react";
 import { loginStaff } from "../../services/api";
+import toast from "react-hot-toast"; // ✅ import toast
+import CustomToast from "../../components/CustomToast"; // ✅ import your custom toast
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -38,9 +40,14 @@ const Login = () => {
 
     try {
       await loginStaff(username, password);
+
+      // ✅ Show custom toast after successful login
+      toast.custom((t) => <CustomToast t={t} type="login" />);
+
       navigate("/dashboard");
     } catch (err) {
       setShowModal(true);
+
       // Clear fields after failed login
       setUsername("");
       setPassword("");

@@ -28,6 +28,7 @@ import {
   ArrowUp,
   ArrowDown,
   Target,
+  Loader2,
 } from "lucide-react";
 
 const Trends = () => {
@@ -241,34 +242,49 @@ const Trends = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 text-lg">Loading trends data...</p>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center text-center">
+      <div className=" flex flex-col items-center">
+        {/* Loading circle with icon at center */}
+        <div className="relative flex items-center justify-center">
+          <div className="h-20 w-20 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
+          <TrendingUp className="absolute h-8 w-8 text-blue-600" />
         </div>
-      </div>
-    );
-  }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
-          <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
-            <AlertCircle className="h-6 w-6 text-red-600" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-800 text-center mb-2">
-            Error Loading Data
-          </h3>
-          <p className="text-gray-600 text-center">
-            {error.message || "Failed to fetch trends data"}
-          </p>
+        <h2 className="mt-6 text-xl font-semibold text-gray-800 flex items-center justify-center gap-2">
+          Loading Trends Data
+        </h2>
+        <p className="text-gray-500 mt-2 text-sm">
+          Please wait while we fetch the latest analytics and insights...
+        </p>
+      </div>
+    </div>
+  );
+}
+
+if (error) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center text-center">
+      <div className="bg-white p-8 rounded-2xl shadow-lg border border-red-100 max-w-md w-full mx-4">
+        <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 animate-pulse">
+          <AlertCircle className="h-8 w-8 text-red-600" />
         </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">
+          Error Loading Data
+        </h3>
+        <p className="text-gray-600 mb-4">
+          {error.message || "Failed to fetch trends data. Please try again later."}
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition duration-200"
+        >
+          Retry
+        </button>
       </div>
-    );
-  }
-
+    </div>
+  );
+}
   const transformedMonthlyData = transformMonthlyData(monthlyData);
   const transformedYearlyData = transformYearlyData(yearlyData);
   const transformedOvertimeData = transformOvertimeData(overtimeData);

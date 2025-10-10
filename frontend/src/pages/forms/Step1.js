@@ -35,14 +35,19 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    
 
     // Enforce only digits & limit to 11 numbers for contact_number
     if (name === "contact_number") {
       const cleanedValue = value.replace(/\D/g, "").slice(0, 11);
       handleChange({ target: { name, value: cleanedValue } });
-    } else {
-      handleChange(e);
-    }
+    } 
+    else if (["first_name", "middle_initial", "last_name"].includes(name)) {
+    const capitalizedValue =
+      value.charAt(0).toUpperCase() + value.slice(1);
+    handleChange({ target: { name, value: capitalizedValue } });
+  } 
 
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }));
@@ -50,162 +55,272 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
   };
 
   return (
-    <div className="card bg-quickaid-surface rounded-xl shadow-md p-6 max-w-3xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-quickaid-text-primary mb-1">
-          Personal Information
-        </h2>
-        <p className="text-sm text-quickaid-text-secondary">
-          Please provide your basic personal details. Fields marked with{" "}
-          <span className="text-error">*</span> are required.
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        
+
+        {/* Main Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Header Section */}
+          <div className="bg-gradient-to-r from-blue-500 to-blue-500 px-8 py-10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <h2 className="text-3xl font-bold text-white">
+                Personal Information
+              </h2>
+            </div>
+            <p className="text-blue-50 text-base leading-relaxed">
+              Please provide your basic personal details. Fields marked with{" "}
+              <span className="text-white font-semibold bg-white/20 px-1.5 py-0.5 rounded">*</span>{" "}
+              are required.
+            </p>
+          </div>
+
+          {/* Form Section */}
+          <form onSubmit={handleSubmit} noValidate className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* First Name */}
+              <div className="form-group">
+                <label
+                  htmlFor="first_name"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  First Name <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="first_name"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                      errors.first_name
+                        ? "border-red-400 bg-red-50 focus:border-red-500"
+                        : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                    }`}
+                    placeholder="Enter your first name"
+                    autoComplete="given-name"
+                  />
+                  {formData.first_name && !errors.first_name && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {errors.first_name && (
+                  <div className="flex items-center gap-1 mt-2">
+                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-red-600 font-medium">{errors.first_name}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Middle Initial */}
+              <div className="form-group">
+                <label
+                  htmlFor="middle_initial"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  Middle Initial
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="middle_initial"
+                    name="middle_initial"
+                    value={formData.middle_initial}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                      errors.middle_initial
+                        ? "border-red-400 bg-red-50 focus:border-red-500"
+                        : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                    }`}
+                    placeholder="Enter middle initial"
+                    autoComplete="additional-name"
+                  />
+                  {formData.middle_initial && !errors.middle_initial && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {errors.middle_initial && (
+                  <div className="flex items-center gap-1 mt-2">
+                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-red-600 font-medium">{errors.middle_initial}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Last Name */}
+              <div className="form-group">
+                <label
+                  htmlFor="last_name"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  Last Name <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="last_name"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                      errors.last_name
+                        ? "border-red-400 bg-red-50 focus:border-red-500"
+                        : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                    }`}
+                    placeholder="Enter your last name"
+                    autoComplete="family-name"
+                  />
+                  {formData.last_name && !errors.last_name && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {errors.last_name && (
+                  <div className="flex items-center gap-1 mt-2">
+                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-red-600 font-medium">{errors.last_name}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Suffix */}
+              <div className="form-group">
+                <label
+                  htmlFor="suffix"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  Suffix
+                </label>
+                <div className="relative">
+                  <select
+                    id="suffix"
+                    name="suffix"
+                    value={formData.suffix}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300 cursor-pointer"
+                  >
+                    <option value="">None</option>
+                    <option value="Jr.">Jr.</option>
+                    <option value="Sr.">Sr.</option>
+                    <option value="I">I</option>
+                    <option value="II">II</option>
+                    <option value="III">III</option>
+                    <option value="IV">IV</option>
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Number */}
+              <div className="form-group md:col-span-2">
+                <label
+                  htmlFor="contact_number"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  Contact Number <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="tel"
+                    id="contact_number"
+                    name="contact_number"
+                    value={formData.contact_number}
+                    onChange={handleInputChange}
+                    inputMode="numeric"
+                    maxLength="11"
+                    className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                      errors.contact_number
+                        ? "border-red-400 bg-red-50 focus:border-red-500"
+                        : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                    }`}
+                    placeholder="e.g. 09123456789"
+                    autoComplete="tel"
+                  />
+                  {formData.contact_number && !errors.contact_number && formData.contact_number.length === 11 && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {errors.contact_number && (
+                  <div className="flex items-center gap-1 mt-2">
+                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-red-600 font-medium">
+                      {errors.contact_number}
+                    </p>
+                  </div>
+                )}
+                {!errors.contact_number && (
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <small className="text-sm text-gray-500">
+                      Enter your 11-digit mobile number
+                    </small>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end mt-8 pt-6 border-t border-gray-100">
+              <button
+                type="submit"
+                className="group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white font-semibold rounded-xl px-8 py-3.5 inline-flex items-center gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-105 active:scale-95"
+              >
+                <span>Continue to Address</span>
+                <svg className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Help Text */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-500">
+            Need help? Contact our support team for assistance.
+          </p>
+        </div>
       </div>
-
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* First Name */}
-          <div className="form-group">
-            <label
-              htmlFor="first_name"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              First Name <span className="text-error">*</span>
-            </label>
-            <input
-              type="text"
-              id="first_name"
-              name="first_name"
-              value={formData.first_name}
-              onChange={handleInputChange}
-              className={`input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent rounded-lg ${
-                errors.first_name ? "border-error" : ""
-              }`}
-              placeholder="Enter your first name"
-              autoComplete="given-name"
-            />
-            {errors.first_name && (
-              <p className="text-sm text-error mt-1">{errors.first_name}</p>
-            )}
-          </div>
-
-          {/* Middle Initial */}
-          <div className="form-group">
-            <label
-              htmlFor="middle_initial"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Middle Initial
-            </label>
-            <input
-              type="text"
-              id="middle_initial"
-              name="middle_initial"
-              value={formData.middle_initial}
-              onChange={handleInputChange}
-              className={`input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent rounded-lg ${
-                errors.middle_initial ? "border-error" : ""
-              }`}
-              placeholder="Enter middle initial"
-              autoComplete="additional-name"
-            />
-            {errors.middle_initial && (
-              <p className="text-sm text-error mt-1">{errors.middle_initial}</p>
-            )}
-          </div>
-
-          {/* Last Name */}
-          <div className="form-group">
-            <label
-              htmlFor="last_name"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Last Name <span className="text-error">*</span>
-            </label>
-            <input
-              type="text"
-              id="last_name"
-              name="last_name"
-              value={formData.last_name}
-              onChange={handleInputChange}
-              className={`input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent rounded-lg ${
-                errors.last_name ? "border-error" : ""
-              }`}
-              placeholder="Enter your last name"
-              autoComplete="family-name"
-            />
-            {errors.last_name && (
-              <p className="text-sm text-error mt-1">{errors.last_name}</p>
-            )}
-          </div>
-
-          {/* Suffix */}
-          <div className="form-group">
-            <label
-              htmlFor="suffix"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Suffix
-            </label>
-            <select
-              id="suffix"
-              name="suffix"
-              value={formData.suffix}
-              onChange={handleInputChange}
-              className="select select-bordered w-full rounded-lg"
-            >
-              <option value="">None</option>
-              <option value="Jr.">Jr.</option>
-              <option value="Sr.">Sr.</option>
-              <option value="I">I</option>
-              <option value="II">II</option>
-              <option value="III">III</option>
-              <option value="IV">IV</option>
-            </select>
-          </div>
-
-          {/* Contact Number */}
-          <div className="form-group md:col-span-2">
-            <label
-              htmlFor="contact_number"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Contact Number <span className="text-error">*</span>
-            </label>
-            <input
-              type="tel"
-              id="contact_number"
-              name="contact_number"
-              value={formData.contact_number}
-              onChange={handleInputChange}
-              inputMode="numeric"
-              maxLength="11"
-              className={`input input-bordered w-full focus:ring-2 focus:ring-quickaid-accent rounded-lg ${
-                errors.contact_number ? "border-error" : ""
-              }`}
-              placeholder="e.g. 09123456789"
-              autoComplete="tel"
-            />
-            {errors.contact_number && (
-              <p className="text-sm text-error mt-1">
-                {errors.contact_number}
-              </p>
-            )}
-            <small className="text-sm text-quickaid-text-secondary">
-              Enter your 11-digit mobile number
-            </small>
-          </div>
-        </div>
-
-        {/* Submit Button */}
-        <div className="flex justify-end mt-6">
-          <button
-            type="submit"
-            className="bg-quickaid-accent hover:bg-teal-600 text-white rounded-lg px-4 py-2 inline-flex items-center gap-2"
-          >
-            Continue to Address <span aria-hidden="true">→</span>
-          </button>
-        </div>
-      </form>
     </div>
   );
 };

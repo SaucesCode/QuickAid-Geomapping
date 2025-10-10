@@ -3,6 +3,7 @@ import React, { useState } from "react";
 
 const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
   const [errors, setErrors] = useState({});
+  
 
   const validateForm = () => {
     const newErrors = {};
@@ -43,466 +44,707 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
   };
 
   return (
-    <div className="card bg-quickaid-surface rounded-xl shadow-md p-6 max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-quickaid-text-primary mb-1">
-          ID & Assistance Details
-        </h2>
-        <p className="text-sm text-quickaid-text-secondary">
-          Please provide your identification and assistance information. Fields marked with{" "}
-          <span className="text-error">*</span> are required.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-12 px-4">
+      <div className="max-w-5xl mx-auto">
 
-      <form onSubmit={handleNext} noValidate>
-        {/* Valid ID Information */}
-        <section className="mb-8">
-          <h3 className="text-xl font-semibold text-quickaid-text-primary mb-4">
-            Valid ID Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              "National ID",
-              "Driver's License",
-              "Voter's ID",
-              "Passport",
-              "SSS ID",
-              "GSIS ID",
-              "UMID",
-              "PhilHealth ID",
-              "TIN ID",
-              "Postal ID",
-              "Senior Citizen ID",
-            ].map(id => (
-              <label key={id} className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="valid_id_presented"
-                  value={id}
-                  checked={formData.valid_id_presented === id}
-                  onChange={handleChange}
-                  className="radio radio-primary"
-                  required
-                />
-                <span className="text-quickaid-text-primary">{id}</span>
-              </label>
-            ))}
-
-            <div className="flex flex-col">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="valid_id_presented"
-                  value="Others"
-                  checked={formData.valid_id_presented === "Others"}
-                  onChange={handleChange}
-                  className="radio radio-primary"
-                  required
-                />
-                <span className="text-quickaid-text-primary">Others</span>
-              </label>
-              {formData.valid_id_presented === "Others" && (
-                <input
-                  type="text"
-                  name="other_valid_id"
-                  placeholder="Specify ID"
-                  value={formData.other_valid_id || ""}
-                  onChange={handleChange}
-                  className={`input input-bordered mt-2 rounded-lg focus:ring-2 focus:ring-quickaid-accent ${
-                    errors.other_valid_id ? "border-error" : ""
-                  }`}
-                  required
-                />
-              )}
-              {errors.other_valid_id && (
-                <p className="text-sm text-error mt-1">{errors.other_valid_id}</p>
-              )}
+        {/* Main Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Header Section */}
+          <div className="bg-gradient-to-r from-blue-500 to-blue-500 px-8 py-10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                </svg>
+              </div>
+              <h2 className="text-3xl font-bold text-white">
+                ID & Assistance Details
+              </h2>
             </div>
-          </div>
-          {errors.valid_id_presented && (
-            <p className="text-sm text-error mt-2">{errors.valid_id_presented}</p>
-          )}
-        </section>
-
-        {/* Assistance Type */}
-        <section className="mb-8">
-          <label
-            htmlFor="type_of_assistance"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Type of Assistance <span className="text-error">*</span>
-          </label>
-          <select
-            id="type_of_assistance"
-            name="type_of_assistance"
-            value={formData.type_of_assistance}
-            onChange={handleChange}
-            className={`select select-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent ${
-              errors.type_of_assistance ? "border-error" : ""
-            }`}
-            required
-          >
-            <option value="">Select assistance type</option>
-            <option value="Medical">Medical</option>
-            <option value="Burial">Burial</option>
-            <option value="Educational">Educational</option>
-          </select>
-          {errors.type_of_assistance && (
-            <p className="text-sm text-error mt-1">{errors.type_of_assistance}</p>
-          )}
-        </section>
-
-        {/* Applicant Information */}
-        <section>
-          <p className="text-quickaid-text-primary font-medium mb-3">
-            Are you applying for yourself or someone else?
-          </p>
-          <div className="flex space-x-6 mb-6">
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="radio"
-                name="applicant_type"
-                value="Self"
-                checked={formData.applicant_type === "Self"}
-                onChange={handleChange}
-                className="radio radio-primary"
-                required
-              />
-              <span>Self</span>
-            </label>
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="radio"
-                name="applicant_type"
-                value="Representative"
-                checked={formData.applicant_type === "Representative"}
-                onChange={handleChange}
-                className="radio radio-primary"
-                required
-              />
-              <span>Representative</span>
-            </label>
+            <p className="text-blue50 text-base leading-relaxed">
+              Please provide your identification and assistance information. Fields marked with{" "}
+              <span className="text-white font-semibold bg-white/20 px-1.5 py-0.5 rounded">*</span>{" "}
+              are required.
+            </p>
           </div>
 
-          {formData.applicant_type === "Representative" && (
-            <div className="border border-gray-200 rounded-xl p-6 shadow-md">
-              <h4 className="text-lg font-semibold text-quickaid-text-primary mb-4">
-                Representative Information
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Representative First Name */}
-                <div className="form-group">
-                  <label
-                    htmlFor="rep_first_name"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    First Name <span className="text-error">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="rep_first_name"
-                    name="rep_first_name"
-                    value={formData.rep_first_name || ""}
-                    onChange={handleChange}
-                    className={`input input-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent ${
-                      errors.rep_first_name ? "border-error" : ""
-                    }`}
-                    placeholder="Enter first name"
-                    required
-                  />
-                  {errors.rep_first_name && (
-                    <p className="text-sm text-error mt-1">{errors.rep_first_name}</p>
-                  )}
+          {/* Form Section */}
+          <form onSubmit={handleNext} noValidate className="p-8">
+            {/* Valid ID Information Section */}
+            <section className="mb-10">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
                 </div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Valid ID Information
+                </h3>
+              </div>
 
-                {/* Representative Last Name */}
-                <div className="form-group">
-                  <label
-                    htmlFor="rep_last_name"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Last Name <span className="text-error">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="rep_last_name"
-                    name="rep_last_name"
-                    value={formData.rep_last_name || ""}
-                    onChange={handleChange}
-                    className={`input input-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent ${
-                      errors.rep_last_name ? "border-error" : ""
-                    }`}
-                    placeholder="Enter last name"
-                    required
-                  />
-                  {errors.rep_last_name && (
-                    <p className="text-sm text-error mt-1">{errors.rep_last_name}</p>
-                  )}
+              <div className="bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-xl p-6">
+                <p className="text-sm text-gray-600 mb-4 font-medium">
+                  Select one valid ID <span className="text-red-500">*</span>
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {[
+                    "National ID",
+                    "Driver's License",
+                    "Voter's ID",
+                    "Passport",
+                    "SSS ID",
+                    "GSIS ID",
+                    "UMID",
+                    "PhilHealth ID",
+                    "TIN ID",
+                    "Postal ID",
+                    "Senior Citizen ID",
+                  ].map(id => (
+                    <label
+                      key={id}
+                      className={`flex items-center space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                        formData.valid_id_presented === id
+                          ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
+                          : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="valid_id_presented"
+                        value={id}
+                        checked={formData.valid_id_presented === id}
+                        onChange={handleChange}
+                        className="w-4 h-4 text-blue500 focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                      <span className="text-sm font-medium text-gray-700">{id}</span>
+                    </label>
+                  ))}
+
+                  <div className="flex flex-col">
+                    <label
+                      className={`flex items-center space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                        formData.valid_id_presented === "Others"
+                          ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
+                          : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="valid_id_presented"
+                        value="Others"
+                        checked={formData.valid_id_presented === "Others"}
+                        onChange={handleChange}
+                        className="w-4 h-4 text-blue500 focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                      <span className="text-sm font-medium text-gray-700">Others</span>
+                    </label>
+                    {formData.valid_id_presented === "Others" && (
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          name="other_valid_id"
+                          placeholder="Specify ID"
+                          value={formData.other_valid_id || ""}
+                          onChange={handleChange}
+                          className={`w-full px-3 py-2 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                            errors.other_valid_id
+                              ? "border-red-400 bg-red-50 focus:border-red-500"
+                              : "border-gray-200 focus:border-blue-500"
+                          }`}
+                          required
+                        />
+                        {errors.other_valid_id && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            <p className="text-sm text-red-600 font-medium">{errors.other_valid_id}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
+                {errors.valid_id_presented && (
+                  <div className="flex items-center gap-1 mt-3">
+                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-red-600 font-medium">{errors.valid_id_presented}</p>
+                  </div>
+                )}
+              </div>
+            </section>
 
-                {/* Representative Middle Initial */}
-                <div className="form-group">
-                  <label
-                    htmlFor="rep_middle_initial"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Middle Initial
-                  </label>
-                  <input
-                    type="text"
-                    id="rep_middle_initial"
-                    name="rep_middle_initial"
-                    maxLength={1}
-                    value={formData.rep_middle_initial || ""}
-                    onChange={handleChange}
-                    className="input input-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent"
-                    placeholder="Enter middle initial"
-                  />
+            {/* Assistance Type Section */}
+            <section className="mb-10">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
                 </div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Type of Assistance
+                </h3>
+              </div>
 
-                {/* Representative Suffix */}
-                <div className="form-group">
-                  <label
-                    htmlFor="rep_suffix"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Suffix
-                  </label>
+              <div className="form-group">
+                <label
+                  htmlFor="type_of_assistance"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  Select Assistance Type <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
                   <select
-                    id="rep_suffix"
-                    name="rep_suffix"
-                    value={formData.rep_suffix || ""}
+                    id="type_of_assistance"
+                    name="type_of_assistance"
+                    value={formData.type_of_assistance}
                     onChange={handleChange}
-                    className="select select-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent"
+                    className={`w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
+                      errors.type_of_assistance
+                        ? "border-red-400 bg-red-50 focus:border-red-500"
+                        : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                    }`}
+                    required
                   >
-                    <option value="">None</option>
-                    <option value="Jr.">Jr.</option>
-                    <option value="Sr.">Sr.</option>
-                    <option value="I">I</option>
-                    <option value="II">II</option>
-                    <option value="III">III</option>
-                    <option value="IV">IV</option>
+                    <option value="">Select assistance type</option>
+                    <option value="Medical">Medical</option>
+                    <option value="Burial">Burial</option>
+                    <option value="Educational">Educational</option>
                   </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
+                {errors.type_of_assistance && (
+                  <div className="flex items-center gap-1 mt-2">
+                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-red-600 font-medium">{errors.type_of_assistance}</p>
+                  </div>
+                )}
+              </div>
+            </section>
 
-                {/* Representative Address */}
-                <div className="form-group md:col-span-2">
+            {/* Applicant Information Section */}
+            <section>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Applicant Type
+                </h3>
+              </div>
+
+              <div className="bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-xl p-6 mb-6">
+                <p className="text-gray-700 font-semibold mb-4">
+                  Are you applying for yourself or someone else?
+                </p>
+                <div className="flex gap-4">
                   <label
-                    htmlFor="rep_address"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className={`flex-1 flex items-center justify-center space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                      formData.applicant_type === "Self"
+                        ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
+                        : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50"
+                    }`}
                   >
-                    Address <span className="text-error">*</span>
-                  </label>
-                  <label className="flex items-center mb-2 space-x-2 cursor-pointer">
                     <input
-                      type="checkbox"
-                      name="use_same_address"
-                      checked={formData.use_same_address}
-                      onChange={e => {
-                        const newValue = e.target.checked;
-                        setFormData(prev => ({
-                          ...prev,
-                          use_same_address: newValue,
-                          rep_address: newValue
-                            ? `${prev.street_address}, ${prev.barangay_name}, ${prev.city_municipality}, ${prev.province}`
-                            : "",
-                        }));
-                      }}
-                      className="checkbox checkbox-primary"
+                      type="radio"
+                      name="applicant_type"
+                      value="Self"
+                      checked={formData.applicant_type === "Self"}
+                      onChange={handleChange}
+                      className="w-5 h-5 text-blue-500 focus:ring-2 focus:ring-blue-500"
+                      required
                     />
-                    <span className="text-quickaid-text-primary">
-                      Same as applicant's address
-                    </span>
+                    <span className="font-semibold text-gray-700">Self</span>
                   </label>
-                  <input
-                    type="text"
-                    id="rep_address"
-                    name="rep_address"
-                    value={formData.rep_address || ""}
-                    onChange={handleChange}
-                    className={`input input-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent ${
-                      errors.rep_address ? "border-error" : ""
+                  <label
+                    className={`flex-1 flex items-center justify-center space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                      formData.applicant_type === "Representative"
+                        ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
+                        : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50"
                     }`}
-                    placeholder="Enter complete address"
-                    required
-                    disabled={formData.use_same_address}
-                  />
-                  {errors.rep_address && (
-                    <p className="text-sm text-error mt-1">{errors.rep_address}</p>
-                  )}
-                </div>
-
-                {/* Representative Birthday */}
-                <div className="form-group">
-                  <label
-                    htmlFor="rep_birthday"
-                    className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Birthday <span className="text-error">*</span>
+                    <input
+                      type="radio"
+                      name="applicant_type"
+                      value="Representative"
+                      checked={formData.applicant_type === "Representative"}
+                      onChange={handleChange}
+                      className="w-5 h-5 text-blue-500 focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                    <span className="font-semibold text-gray-700">Representative</span>
                   </label>
-                  <input
-                    type="date"
-                    id="rep_birthday"
-                    name="rep_birthday"
-                    value={formData.rep_birthday || ""}
-                    onChange={handleChange}
-                    className={`input input-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent ${
-                      errors.rep_birthday ? "border-error" : ""
-                    }`}
-                    required
-                  />
-                  {errors.rep_birthday && (
-                    <p className="text-sm text-error mt-1">{errors.rep_birthday}</p>
-                  )}
-                </div>
-
-                {/* Representative Gender */}
-                <div className="form-group">
-                  <label
-                    htmlFor="rep_gender"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Sex <span className="text-error">*</span>
-                  </label>
-                  <select
-                    id="rep_gender"
-                    name="rep_gender"
-                    value={formData.rep_gender || ""}
-                    onChange={handleChange}
-                    className={`select select-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent ${
-                      errors.rep_gender ? "border-error" : ""
-                    }`}
-                    required
-                  >
-                    <option value="">Select Sex</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                  </select>
-                  {errors.rep_gender && (
-                    <p className="text-sm text-error mt-1">{errors.rep_gender}</p>
-                  )}
-                </div>
-
-                {/* Representative Civil Status */}
-                <div className="form-group">
-                  <label
-                    htmlFor="rep_civil_status"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Civil Status <span className="text-error">*</span>
-                  </label>
-                  <select
-                    id="rep_civil_status"
-                    name="rep_civil_status"
-                    value={formData.rep_civil_status || ""}
-                    onChange={handleChange}
-                    className={`select select-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent ${
-                      errors.rep_civil_status ? "border-error" : ""
-                    }`}
-                    required
-                  >
-                    <option value="">Select Civil Status</option>
-                    <option value="Single">Single</option>
-                    <option value="Married">Married</option>
-                    <option value="Widowed">Widowed</option>
-                    <option value="Separated">Separated</option>
-                    <option value="Divorced">Divorced</option>
-                  </select>
-                  {errors.rep_civil_status && (
-                    <p className="text-sm text-error mt-1">{errors.rep_civil_status}</p>
-                  )}
-                </div>
-
-                {/* Representative Occupation */}
-                <div className="form-group">
-                  <label
-                    htmlFor="rep_occupation"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Occupation
-                  </label>
-                  <input
-                    type="text"
-                    id="rep_occupation"
-                    name="rep_occupation"
-                    value={formData.rep_occupation || ""}
-                    onChange={handleChange}
-                    className="input input-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent"
-                    placeholder="Enter occupation"
-                  />
-                </div>
-
-                {/* Representative Monthly Income */}
-                <div className="form-group">
-                  <label
-                    htmlFor="rep_monthly_income"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Monthly Income
-                  </label>
-                  <input
-                    type="number"
-                    id="rep_monthly_income"
-                    name="rep_monthly_income"
-                    value={formData.rep_monthly_income || ""}
-                    onChange={handleChange}
-                    className="input input-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent"
-                    placeholder="Enter monthly income"
-                  />
-                </div>
-
-                {/* Representative Relationship */}
-                <div className="form-group">
-                  <label
-                    htmlFor="rep_relationship"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Relationship to Beneficiary <span className="text-error">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="rep_relationship"
-                    name="rep_relationship"
-                    value={formData.rep_relationship || ""}
-                    onChange={handleChange}
-                    className={`input input-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent ${
-                      errors.rep_relationship ? "border-error" : ""
-                    }`}
-                    placeholder="Enter relationship"
-                    required
-                  />
-                  {errors.rep_relationship && (
-                    <p className="text-sm text-error mt-1">{errors.rep_relationship}</p>
-                  )}
                 </div>
               </div>
-            </div>
-          )}
-        </section>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-8">
-          <button
-            type="button"
-            onClick={prevStep}
-            className="btn btn-outline bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg px-4 py-2"
-          >
-            <span aria-hidden="true" className="mr-2">
-              ←
-            </span>{" "}
-            Back
-          </button>
-          <button
-            type="submit"
-            className="bg-quickaid-accent hover:bg-teal-600 text-white rounded-lg px-4 py-2"
-          >
-            Continue to Preview{" "}
-            <span aria-hidden="true" className="ml-2">
-              →
-            </span>
-          </button>
+              {formData.applicant_type === "Representative" && (
+                <div className="border-2 border-blue-200 bg-gradient-to-br from-blue-50/50 to-white rounded-2xl p-8 shadow-lg">
+                  <div className="flex items-center gap-2 mb-6">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <h4 className="text-lg font-bold text-gray-800">
+                      Representative Information
+                    </h4>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Representative First Name */}
+                    <div className="form-group">
+                      <label
+                        htmlFor="rep_first_name"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        First Name <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          id="rep_first_name"
+                          name="rep_first_name"
+                          value={formData.rep_first_name || ""}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                            errors.rep_first_name
+                              ? "border-red-400 bg-red-50 focus:border-red-500"
+                              : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                          }`}
+                          placeholder="Enter first name"
+                          required
+                        />
+                        {formData.rep_first_name && !errors.rep_first_name && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {errors.rep_first_name && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">{errors.rep_first_name}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Representative Last Name */}
+                    <div className="form-group">
+                      <label
+                        htmlFor="rep_last_name"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Last Name <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          id="rep_last_name"
+                          name="rep_last_name"
+                          value={formData.rep_last_name || ""}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                            errors.rep_last_name
+                              ? "border-red-400 bg-red-50 focus:border-red-500"
+                              : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                          }`}
+                          placeholder="Enter last name"
+                          required
+                        />
+                        {formData.rep_last_name && !errors.rep_last_name && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {errors.rep_last_name && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">{errors.rep_last_name}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Representative Middle Initial */}
+                    <div className="form-group">
+                      <label
+                        htmlFor="rep_middle_initial"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Middle Initial
+                      </label>
+                      <input
+                        type="text"
+                        id="rep_middle_initial"
+                        name="rep_middle_initial"
+                        maxLength={1}
+                        value={formData.rep_middle_initial || ""}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
+                        placeholder="Enter middle initial"
+                      />
+                    </div>
+
+                    {/* Representative Suffix */}
+                    <div className="form-group">
+                      <label
+                        htmlFor="rep_suffix"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Suffix
+                      </label>
+                      <div className="relative">
+                        <select
+                          id="rep_suffix"
+                          name="rep_suffix"
+                          value={formData.rep_suffix || ""}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300 cursor-pointer"
+                        >
+                          <option value="">None</option>
+                          <option value="Jr.">Jr.</option>
+                          <option value="Sr.">Sr.</option>
+                          <option value="I">I</option>
+                          <option value="II">II</option>
+                          <option value="III">III</option>
+                          <option value="IV">IV</option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Representative Address */}
+                    <div className="form-group md:col-span-2">
+                      <label
+                        htmlFor="rep_address"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Address <span className="text-red-500">*</span>
+                      </label>
+                      <label className="flex items-center mb-3 space-x-2 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          name="use_same_address"
+                          checked={formData.use_same_address}
+                          onChange={e => {
+                            const newValue = e.target.checked;
+                            setFormData(prev => ({
+                              ...prev,
+                              use_same_address: newValue,
+                              rep_address: newValue
+                                ? `${prev.street_address}, ${prev.barangay_name}, ${prev.city_municipality}, ${prev.province}`
+                                : "",
+                            }));
+                          }}
+                          className="w-4 h-4 text-blue-500 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors">
+                          Same as applicant's address
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          id="rep_address"
+                          name="rep_address"
+                          value={formData.rep_address || ""}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                            errors.rep_address
+                              ? "border-red-400 bg-red-50 focus:border-red-500"
+                              : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                          } ${formData.use_same_address ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                          placeholder="Enter complete address"
+                          required
+                          disabled={formData.use_same_address}
+                        />
+                        {formData.rep_address && !errors.rep_address && !formData.use_same_address && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {errors.rep_address && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">{errors.rep_address}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Representative Birthday */}
+                    <div className="form-group">
+                      <label
+                        htmlFor="rep_birthday"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Birthday <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          id="rep_birthday"
+                          name="rep_birthday"
+                          value={formData.rep_birthday || ""}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                            errors.rep_birthday
+                              ? "border-red-400 bg-red-50 focus:border-red-500"
+                              : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                          }`}
+                          required
+                        />
+                        {formData.rep_birthday && !errors.rep_birthday && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {errors.rep_birthday && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">{errors.rep_birthday}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Representative Gender */}
+                    <div className="form-group">
+                      <label
+                        htmlFor="rep_gender"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Sex <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <select
+                          id="rep_gender"
+                          name="rep_gender"
+                          value={formData.rep_gender || ""}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
+                            errors.rep_gender
+                              ? "border-red-400 bg-red-50 focus:border-red-500"
+                              : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                          }`}
+                          required
+                        >
+                          <option value="">Select Sex</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                      {errors.rep_gender && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">{errors.rep_gender}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Representative Civil Status */}
+                    <div className="form-group">
+                      <label
+                        htmlFor="rep_civil_status"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Civil Status <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <select
+                          id="rep_civil_status"
+                          name="rep_civil_status"
+                          value={formData.rep_civil_status || ""}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
+                            errors.rep_civil_status
+                              ? "border-red-400 bg-red-50 focus:border-red-500"
+                              : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                          }`}
+                          required
+                        >
+                          <option value="">Select Civil Status</option>
+                          <option value="Single">Single</option>
+                          <option value="Married">Married</option>
+                          <option value="Widowed">Widowed</option>
+                          <option value="Separated">Separated</option>
+                          <option value="Divorced">Divorced</option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                      {errors.rep_civil_status && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">{errors.rep_civil_status}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Representative Occupation */}
+                    <div className="form-group">
+                      <label
+                        htmlFor="rep_occupation"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Occupation
+                      </label>
+                      <input
+                        type="text"
+                        id="rep_occupation"
+                        name="rep_occupation"
+                        value={formData.rep_occupation || ""}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
+                        placeholder="Enter occupation"
+                      />
+                    </div>
+
+                    {/* Representative Monthly Income */}
+                    <div className="form-group">
+                      <label
+                        htmlFor="rep_monthly_income"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Monthly Income
+                      </label>
+                      <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
+                          <span className="text-gray-400 font-semibold">₱</span>
+                        </div>
+                        <input
+                          type="number"
+                          id="rep_monthly_income"
+                          name="rep_monthly_income"
+                          value={formData.rep_monthly_income || ""}
+                          onChange={handleChange}
+                          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
+                          placeholder="Enter monthly income"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Representative Relationship */}
+                    <div className="form-group">
+                      <label
+                        htmlFor="rep_relationship"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Relationship to Beneficiary <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          id="rep_relationship"
+                          name="rep_relationship"
+                          value={formData.rep_relationship || ""}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                            errors.rep_relationship
+                              ? "border-red-400 bg-red-50 focus:border-red-500"
+                              : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                          }`}
+                          placeholder="Enter relationship"
+                          required
+                        />
+                        {formData.rep_relationship && !errors.rep_relationship && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {errors.rep_relationship && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm text-red-600 font-medium">{errors.rep_relationship}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={prevStep}
+                className="group inline-flex items-center gap-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl px-6 py-3 transition-all duration-200 hover:scale-105 active:scale-95"
+              >
+                <svg className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                </svg>
+                <span>Back</span>
+              </button>
+              <button
+                type="submit"
+                className="group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white font-semibold rounded-xl px-8 py-3.5 inline-flex items-center gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-105 active:scale-95"
+              >
+                <span>Continue to Preview</span>
+                <svg className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+
+        {/* Help Text */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-500">
+            Need help? Contact our support team for assistance.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
