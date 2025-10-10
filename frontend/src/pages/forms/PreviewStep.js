@@ -59,197 +59,277 @@ const PreviewStep = ({ formData, prevStep }) => {
   };
 
   return (
-    <div className="card bg-quickaid-surface rounded-xl shadow-md p-6 max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-quickaid-text-primary mb-1">
-          Review Applicant Details
-        </h2>
-        <p className="text-sm text-quickaid-text-secondary">
-          Please verify all information before submitting
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12 px-4">
+      <div className="max-w-5xl mx-auto">
 
-      <div className="space-y-8">
-        {/* Personal Information */}
-        <section>
-          <h3 className="text-xl font-semibold text-quickaid-text-primary mb-4">
-            Personal Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <div className="font-semibold text-gray-700">Full Name</div>
-              <div className="text-quickaid-text-primary">{getFullName()}</div>
+        {/* Main Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Header Section */}
+          <div className="bg-gradient-to-r from-blue-500 to-blue-500 px-8 py-10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h2 className="text-3xl font-bold text-white">
+                Review Applicant Details
+              </h2>
             </div>
-            <div>
-              <div className="font-semibold text-gray-700">Birthday</div>
-              <div className="text-quickaid-text-primary">{formData.birthday}</div>
-            </div>
-            <div>
-              <div className="font-semibold text-gray-700">Sex</div>
-              <div className="text-quickaid-text-primary">{formData.sex}</div>
-            </div>
-            <div>
-              <div className="font-semibold text-gray-700">Civil Status</div>
-              <div className="text-quickaid-text-primary">{formData.civil_status}</div>
-            </div>
+            <p className="text-blue-50 text-base leading-relaxed">
+              Please verify all information before submitting. Make sure everything is correct.
+            </p>
           </div>
-        </section>
 
-        <hr className="border-gray-200" />
-
-        {/* Contact Information */}
-        <section>
-          <h3 className="text-xl font-semibold text-quickaid-text-primary mb-4">
-            Contact Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <div className="font-semibold text-gray-700">Contact Number</div>
-              <div className="text-quickaid-text-primary">{formData.contact_number}</div>
-            </div>
-            <div>
-              <div className="font-semibold text-gray-700">Address</div>
-              <div className="text-quickaid-text-primary">{getFullAddress()}</div>
-            </div>
-          </div>
-        </section>
-
-        <hr className="border-gray-200" />
-
-        {/* Financial Information */}
-        <section>
-          <h3 className="text-xl font-semibold text-quickaid-text-primary mb-4">
-            Financial Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <div className="font-semibold text-gray-700">Occupation</div>
-              <div className="text-quickaid-text-primary">{formData.occupation}</div>
-            </div>
-            <div>
-              <div className="font-semibold text-gray-700">Monthly Income</div>
-              <div className="text-quickaid-text-primary">₱{formData.monthly_income}</div>
-            </div>
-          </div>
-        </section>
-
-        <hr className="border-gray-200" />
-
-        {/* Application Details */}
-        <section>
-          <h3 className="text-xl font-semibold text-quickaid-text-primary mb-4">
-            Application Details
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <div className="font-semibold text-gray-700">Valid ID Presented</div>
-              <div className="text-quickaid-text-primary">{formData.valid_id_presented}</div>
-            </div>
-            <div>
-              <div className="font-semibold text-gray-700">Applicant Type</div>
-              <div className="text-quickaid-text-primary">{formData.applicant_type}</div>
-            </div>
-            <div>
-              <div className="font-semibold text-gray-700">Assistance Type</div>
-              <div className="text-quickaid-text-primary">{formData.type_of_assistance}</div>
-            </div>
-          </div>
-        </section>
-
-        {formData.applicant_type === "Representative" && (
-          <>
-            <hr className="border-gray-200" />
+          {/* Content Section */}
+          <div className="p-8 space-y-8">
+            {/* Personal Information */}
             <section>
-              <h3 className="text-xl font-semibold text-quickaid-text-primary mb-4">
-                Representative Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <div className="font-semibold text-gray-700">Representative Name</div>
-                  <div className="text-quickaid-text-primary">
-                    {formData.rep_first_name}{" "}
-                    {formData.rep_middle_initial && `${formData.rep_middle_initial}.`}{" "}
-                    {formData.rep_last_name} {formData.rep_suffix}
-                  </div>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </div>
-                <div>
-                  <div className="font-semibold text-gray-700">Representative Address</div>
-                  <div className="text-quickaid-text-primary">{formData.rep_address}</div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Personal Information
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-6">
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Full Name</div>
+                  <div className="text-lg font-medium text-gray-800">{getFullName()}</div>
                 </div>
-                <div>
-                  <div className="font-semibold text-gray-700">Representative Birthday</div>
-                  <div className="text-quickaid-text-primary">{formData.rep_birthday}</div>
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Birthday</div>
+                  <div className="text-lg font-medium text-gray-800">{formData.birthday}</div>
                 </div>
-                <div>
-                  <div className="font-semibold text-gray-700">Representative Sex</div>
-                  <div className="text-quickaid-text-primary">{formData.rep_gender}</div>
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Sex</div>
+                  <div className="text-lg font-medium text-gray-800">{formData.sex}</div>
                 </div>
-                <div>
-                  <div className="font-semibold text-gray-700">
-                    Representative Civil Status
-                  </div>
-                  <div className="text-quickaid-text-primary">{formData.rep_civil_status}</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-700">Representative Occupation</div>
-                  <div className="text-quickaid-text-primary">{formData.rep_occupation}</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-700">
-                    Representative Monthly Income
-                  </div>
-                  <div className="text-quickaid-text-primary">
-                    ₱{formData.rep_monthly_income}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-700">Relationship to Applicant</div>
-                  <div className="text-quickaid-text-primary">{formData.rep_relationship}</div>
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Civil Status</div>
+                  <div className="text-lg font-medium text-gray-800">{formData.civil_status}</div>
                 </div>
               </div>
             </section>
-          </>
-        )}
-      </div>
 
-      {/* Actions */}
-      <div className="flex justify-between mt-8">
-        <button
-          type="button"
-          onClick={handleBack}
-          className="btn btn-outline bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg px-4 py-2"
-          disabled={isSubmitting}
-        >
-          <span aria-hidden="true" className="mr-2">
-            ←
-          </span>{" "}
-          Back
-        </button>
-        <button
-          type="submit"
-          onClick={handleSubmit}
-          className={`bg-quickaid-accent hover:bg-teal-600 text-white rounded-lg px-4 py-2 inline-flex items-center ${
-            isSubmitting ? "opacity-70 cursor-not-allowed" : ""
-          }`}
-          disabled={isSubmitting}
-        >
-          {isSubmitting
-            ? "Submitting..."
-            : submitSuccess
-            ? "Submitted ✓"
-            : "Submit Application"}
-        </button>
+            <div className="border-t border-gray-200"></div>
+
+            {/* Contact Information */}
+            <section>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-cyan-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Contact Information
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-6">
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Contact Number</div>
+                  <div className="text-lg font-medium text-gray-800">{formData.contact_number}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Address</div>
+                  <div className="text-lg font-medium text-gray-800">{getFullAddress()}</div>
+                </div>
+              </div>
+            </section>
+
+            <div className="border-t border-gray-200"></div>
+
+            {/* Financial Information */}
+            <section>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Financial Information
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-6">
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Occupation</div>
+                  <div className="text-lg font-medium text-gray-800">{formData.occupation}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Monthly Income</div>
+                  <div className="text-lg font-medium text-gray-800">₱{formData.monthly_income}</div>
+                </div>
+              </div>
+            </section>
+
+            <div className="border-t border-gray-200"></div>
+
+            {/* Application Details */}
+            <section>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Application Details
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-6">
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Valid ID Presented</div>
+                  <div className="text-lg font-medium text-gray-800">{formData.valid_id_presented}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Applicant Type</div>
+                  <div className="text-lg font-medium text-gray-800">{formData.applicant_type}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Assistance Type</div>
+                  <div className="text-lg font-medium text-gray-800">{formData.type_of_assistance}</div>
+                </div>
+              </div>
+            </section>
+
+            {formData.applicant_type === "Representative" && (
+              <>
+                <div className="border-t border-gray-200"></div>
+                <section>
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800">
+                      Representative Information
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gradient-to-br from-amber-50 to-white border border-amber-200 rounded-xl p-6">
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Representative Name</div>
+                      <div className="text-lg font-medium text-gray-800">
+                        {formData.rep_first_name}{" "}
+                        {formData.rep_middle_initial && `${formData.rep_middle_initial}.`}{" "}
+                        {formData.rep_last_name} {formData.rep_suffix}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Representative Address</div>
+                      <div className="text-lg font-medium text-gray-800">{formData.rep_address}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Representative Birthday</div>
+                      <div className="text-lg font-medium text-gray-800">{formData.rep_birthday}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Representative Sex</div>
+                      <div className="text-lg font-medium text-gray-800">{formData.rep_gender}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Representative Civil Status</div>
+                      <div className="text-lg font-medium text-gray-800">{formData.rep_civil_status}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Representative Occupation</div>
+                      <div className="text-lg font-medium text-gray-800">{formData.rep_occupation}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Representative Monthly Income</div>
+                      <div className="text-lg font-medium text-gray-800">
+                        ₱{formData.rep_monthly_income}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Relationship to Applicant</div>
+                      <div className="text-lg font-medium text-gray-800">{formData.rep_relationship}</div>
+                    </div>
+                  </div>
+                </section>
+              </>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="bg-gray-50 px-8 py-6 border-t border-gray-200">
+            <div className="flex justify-between items-center">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="group inline-flex items-center gap-3 bg-white hover:bg-gray-100 text-gray-700 font-semibold rounded-xl px-6 py-3 border-2 border-gray-200 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmitting}
+              >
+                <svg className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                </svg>
+                <span>Back</span>
+              </button>
+              <button
+                type="submit"
+                onClick={handleSubmit}
+                className={`group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl px-8 py-3.5 inline-flex items-center gap-3 shadow-lg shadow-teal-500/30 hover:shadow-xl hover:shadow-teal-500/40 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed ${
+                  !isSubmitting ? 'hover:scale-105 active:scale-95' : ''
+                }`}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Submitting...</span>
+                  </>
+                ) : submitSuccess ? (
+                  <>
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Submitted ✓</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Submit Application</span>
+                    <svg className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Help Text */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-500">
+            By submitting this application, you confirm that all information provided is accurate and complete.
+          </p>
+        </div>
       </div>
 
       {/* Error Modal */}
       {errorModal.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="modal-box bg-quickaid-surface rounded-xl shadow-lg p-6 max-w-md">
-            <h3 className="text-xl font-semibold text-quickaid-text-primary mb-4">Error</h3>
-            <p className="text-quickaid-text-secondary mb-6">{errorModal.message}</p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full transform animate-scale-in">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800">Error</h3>
+            </div>
+            <p className="text-gray-600 mb-6 leading-relaxed">{errorModal.message}</p>
             <div className="flex justify-end">
               <button
-                className="btn bg-quickaid-accent hover:bg-teal-600 text-white rounded-lg px-4 py-2"
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl px-6 py-3 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-red-500/30"
                 onClick={() => setErrorModal({ show: false, message: "" })}
               >
                 OK
@@ -261,31 +341,65 @@ const PreviewStep = ({ formData, prevStep }) => {
 
       {/* Cancel Confirmation Modal */}
       {cancelModal.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="modal-box bg-quickaid-surface rounded-xl shadow-lg p-6 max-w-md">
-            <h3 className="text-xl font-semibold text-quickaid-text-primary mb-4">
-              Confirm Cancellation
-            </h3>
-            <p className="text-quickaid-text-secondary mb-6">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full transform animate-scale-in">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800">
+                Confirm Cancellation
+              </h3>
+            </div>
+            <p className="text-gray-600 mb-6 leading-relaxed">
               Are you sure you want to go back? Any unsaved changes will be lost.
             </p>
             <div className="flex justify-end gap-3">
               <button
-                className="btn bg-quickaid-accent hover:bg-teal-600 text-white rounded-lg px-4 py-2"
-                onClick={confirmCancel}
-              >
-                Yes, Go Back
-              </button>
-              <button
-                className="btn btn-outline rounded-lg px-4 py-2"
+                className="bg-white hover:bg-gray-100 text-gray-700 font-semibold border-2 border-gray-200 rounded-xl px-6 py-3 transition-all duration-200 hover:scale-105 active:scale-95"
                 onClick={() => setCancelModal({ show: false })}
               >
                 No, Stay Here
+              </button>
+              <button
+                className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-semibold rounded-xl px-6 py-3 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-teal-500/30"
+                onClick={confirmCancel}
+              >
+                Yes, Go Back
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };
