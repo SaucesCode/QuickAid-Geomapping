@@ -18,15 +18,18 @@ const AddressDropdown = ({ onSelect, initialValues = {} }) => {
   const [selectedBrgyCode, setSelectedBrgyCode] = useState("");
 
   useEffect(() => {
-    if (initialValues.city_municipality) {
-      const city = CITY_OPTIONS.find(c => c.name === initialValues.city_municipality);
-      if (city) {
-        setSelectedCityCode(city.code);
-        onSelect("city_municipalityCode", city.code);
-        onSelect("city_municipality", city.name);
-      }
+    if (!initialValues.city_municipality) return;
+
+    // prevent re-trigger if already set
+    if (selectedCityCode) return;
+
+    const city = CITY_OPTIONS.find(c => c.name === initialValues.city_municipality);
+    if (city) {
+      setSelectedCityCode(city.code);
+      onSelect("city_municipalityCode", city.code);
+      onSelect("city_municipality", city.name);
     }
-  }, [initialValues.city_municipality, onSelect]);
+  }, [initialValues.city_municipality]);
 
   useEffect(() => {
     if (selectedCityCode) {

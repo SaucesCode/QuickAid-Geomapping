@@ -33,7 +33,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 # Local
 from .models import (
     Applicant, CustomUser, StaffActivityLog,
-    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch,
+    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch, Representative
 )
 from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer
 
@@ -641,7 +641,10 @@ def export_applicants_csv(request):
     # Data rows
     for app in qs:
         bg = app.background_info
-        rep_bg = getattr(app.representative, "background_info", None) if app.representative else None
+
+        # ✅ safely check representative
+        rep = getattr(app, "representative", None)
+        rep_bg = getattr(rep, "background_info", None) if rep else None
 
         writer.writerow([
             app.id,
@@ -664,11 +667,12 @@ def export_applicants_csv(request):
             app.date_filled.strftime("%Y-%m-%d %H:%M:%S"),
             rep_bg.first_name if rep_bg else "",
             rep_bg.last_name if rep_bg else "",
-            app.representative.contact_number if app.representative else "",
+            rep.contact_number if rep else "",
         ])
 
     print(f"Exported {qs.count()} applicants to CSV")
     return response
+
 
 
 
