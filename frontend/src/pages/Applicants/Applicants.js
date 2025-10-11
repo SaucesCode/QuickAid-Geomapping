@@ -11,7 +11,7 @@ import EditModal from "./components/EditModal";
 import ArchiveModal from "./components/ArchiveModal";
 import toast, { Toaster } from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
-import { Users } from "lucide-react";
+import { Users, FileText, CheckCircle2, TrendingUp, Activity, GraduationCap, Stethoscope, Plus } from "lucide-react";
 
 const csvHeaders = [
   { label: "ID", key: "id" },
@@ -200,40 +200,121 @@ const Applicants = () => {
     setCurrentPage(1);
   };
 
+  // Calculate statistics
+  const medicalCount = applicants.filter(a => a.type_of_assistance === "Medical").length;
+  const financialCount = applicants.filter(a => a.type_of_assistance === "Financial").length;
+  const educationalCount = applicants.filter(a => a.type_of_assistance === "Educational").length;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 p-6">
+    <div className="bg-gradient-to-b from-slate-50 to-slate-100 p-6 md:p-10">
       <Toaster position="top-center" reverseOrder={false} />
 
-      {/* Header */}
-      <div className="bg-white shadow-md rounded-2xl border border-blue-100 p-6 mb-6">
+      {/* Header Section */}
+      <div className="mb-10">
+        <div className="flex items-center gap-4 mb-8">
+          <div className=" rounded-2xl border border-slate-200 p-6 mb-6">
         <ApplicantsHeader />
       </div>
+        </div>
+        
+      
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Total Applicants */}
+          <div className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-200 p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-slate-600 text-sm font-semibold uppercase tracking-wide mb-2">
+                  Total Applicants
+                </p>
+                <p className="text-4xl font-bold text-blue-600">{applicants.length}</p>
+                <p className="text-slate-500 text-xs mt-3">All registered applicants</p>
+              </div>
+              <div className="p-3 bg-blue-50 rounded-xl group-hover:bg-blue-100 transition-colors">
+                <FileText className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Medical */}
+          <div className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-200 p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-slate-600 text-sm font-semibold uppercase tracking-wide mb-2">
+                  Medical Assistance
+                </p>
+                <p className="text-4xl font-bold text-amber-600">{medicalCount}</p>
+                <p className="text-slate-500 text-xs mt-3">Active medical cases</p>
+              </div>
+              <div className="p-3 bg-amber-50 rounded-xl group-hover:bg-amber-100 transition-colors">
+                <Stethoscope className="w-6 h-6 text-amber-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Financial */}
+          <div className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-200 p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-slate-600 text-sm font-semibold uppercase tracking-wide mb-2">
+                  Educational Assistance
+                </p>
+                <p className="text-4xl font-bold text-emerald-600">{financialCount}</p>
+                <p className="text-slate-500 text-xs mt-3">Active educational cases</p>
+              </div>
+              <div className="p-3 bg-emerald-50 rounded-xl group-hover:bg-emerald-100 transition-colors">
+                <GraduationCap className="w-6 h-6 text-emerald-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Educational */}
+          <div className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-200 p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-slate-600 text-sm font-semibold uppercase tracking-wide mb-2">
+                  Burial Assistance
+                </p>
+                <p className="text-4xl font-bold text-violet-600">{educationalCount}</p>
+                <p className="text-slate-500 text-xs mt-3">Active burial cases</p>
+              </div>
+              <div className="p-3 bg-violet-50 rounded-xl group-hover:bg-violet-100 transition-colors">
+                <Plus className="w-6 h-6 text-violet-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
 
       {/* Search and Export */}
-      <ApplicantActions
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        applicants={applicants}
-        csvHeaders={csvHeaders}
-      />
+      <div className="mb-6">
+        <ApplicantActions
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          applicants={applicants}
+          csvHeaders={csvHeaders}
+        />
+      </div>
 
       {/* Loading Spinner */}
       {loading ? (
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="bg-white rounded-2xl shadow-lg p-10 text-center border border-blue-200">
-            <div className="relative flex items-center justify-center mx-auto mb-4">
-              <div className="h-16 w-16 rounded-full border-[5px] border-blue-200 border-t-blue-600 animate-spin"></div>
-              <Users className="absolute h-7 w-7 text-blue-600" />
+          <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-12 text-center">
+            <div className="relative flex items-center justify-center mx-auto mb-6">
+              <div className="h-20 w-20 rounded-full border-[5px] border-slate-200 border-t-blue-600 animate-spin"></div>
+              <Users className="absolute h-8 w-8 text-blue-600" />
             </div>
-            <h3 className="text-lg font-semibold text-blue-800">
+            <h3 className="text-2xl font-semibold text-slate-900 mb-2">
               Loading Applicants...
             </h3>
-            <p className="text-blue-500 text-sm mt-1">
+            <p className="text-slate-600 text-base">
               Please wait while we fetch the latest applicant data.
             </p>
           </div>
         </div>
-      ) : (
+      ) : applicants.length > 0 ? (
         <>
           <ApplicantTable
             currentItems={currentItems}
@@ -259,6 +340,22 @@ const Applicants = () => {
             />
           )}
         </>
+      ) : (
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
+            <div className="mb-8 p-8 bg-blue-50 rounded-3xl border border-blue-200">
+              <Users className="w-24 h-24 text-blue-400 mx-auto" />
+            </div>
+            <h3 className="text-3xl font-bold mb-4 text-slate-900">
+              No applicants found
+            </h3>
+            <p className="text-slate-600 mb-8 max-w-md text-lg">
+              {searchTerm
+                ? "Try adjusting your search criteria to find what you're looking for"
+                : "Start adding applicants to get started with the management system"}
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Modals */}

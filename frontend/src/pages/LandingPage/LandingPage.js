@@ -150,7 +150,7 @@ const LandingPage = () => {
               <img
                 src={aics}
                 alt="AICS Services"
-                className="relative z-10 w-auto mx-auto rounded-2xl shadow-2xl object-contain"
+                className="relative z-10 w-auto mx-auto"
                 style={{ width: 320 }}
               />
             </motion.div>
@@ -158,133 +158,278 @@ const LandingPage = () => {
         </div>
       </section>
 
-                  {/* Program Objective Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-5xl mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              PROGRAM'S <span className="text-blue-600 text-4xl lg:text-5xl font-bold">OBJECTIVE</span>
-            </h2>
+                 {/* Program Objective Section */}
+<section className="py-24 bg-gradient-to-r from-blue-50 via-white to-blue-50">
+  <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+    
+    {/* Left Visual (Image or Illustration) */}
+    <motion.div
+      initial={{ opacity: 0, x: -40 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8 }}
+      className="flex justify-center md:justify-start"
+    >
+      <img
+        src={aics}
+        alt="Program Objective Illustration"
+        className="w-72 lg:w-96 object-contain drop-shadow-lg"
+      />
+    </motion.div>
 
-            <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              The objective of the AICS Program is to provide support to individuals and families 
-              experiencing crises, ensuring that their immediate and essential needs are adequately addressed.
-            </p>
-          </motion.div>
+    {/* Right Content */}
+    <motion.div
+      initial={{ opacity: 0, x: 40 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, delay: 0.1 }}
+      className="text-left"
+    >
+      <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-snug mb-6">
+        PROGRAM'S{" "}
+        <span className="font-bold text-4xl bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+          OBJECTIVE
+        </span>
+      </h2>
+
+      <p className="text-lg text-gray-700 leading-relaxed mb-8">
+        The <strong>AICS Program</strong> aims to provide timely and compassionate
+        support to individuals and families experiencing crises. It ensures that
+        their immediate and essential needs — including medical, educational, and
+        burial assistance — are effectively addressed to restore stability and
+        dignity in times of hardship.
+      </p>
+
+      <div className="flex items-center gap-3 mt-6">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
         </div>
-      </section>
+        <span className="text-gray-800 font-semibold text-lg">
+          Empowering individuals through compassionate action.
+        </span>
+      </div>
+    </motion.div>
+  </div>
+</section>
+
 
 
       {/* Services Section */}
-      <section id="services" className="py-20 bg-white">
+<section id="services" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+  
   <div className="max-w-7xl mx-auto px-4">
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8 }}
-      className="text-center mb-16"
+      className="mb-20"
     >
-      <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-        Our <span className="text-blue-600 text-4xl lg:text-5xl">Services</span>
+      <div className="inline-block px-4 py-2 bg-blue-100 rounded-full mb-4">
+        <span className="text-blue-600 font-semibold text-sm uppercase tracking-wider">
+          What We Offer
+        </span>
+      </div>
+      <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+        Our{" "}
+        <span className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
+          Services
+        </span>
       </h2>
-      <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+      <p className="text-xl text-gray-600 max-w-2xl leading-relaxed">
         We provide comprehensive assistance programs designed to help individuals and
         families overcome crisis situations.
       </p>
     </motion.div>
 
-    <div className="grid md:grid-cols-3 gap-8">
+    <div className="grid md:grid-cols-3 gap-6">
+
       {/* Educational Assistance */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 text-center hover:shadow-2xl transition-all duration-300"
-      >
-        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white">
-          <FaBookOpen className="text-3xl" />
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-3">Educational Assistance</h3>
-        <p className="text-gray-600">Support for tuition and school supplies</p>
-      </motion.div>
+      <Link to="/services/education">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          whileHover={{ y: -8 }}
+          className="cursor-pointer group relative bg-white p-8 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-600/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+
+          <div className="relative flex items-start justify-between">
+            <div className="flex-1 pr-4">
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
+                Educational Assistance
+              </h3>
+              <p className="text-gray-600 leading-relaxed mb-4">
+                Support for tuition and school supplies
+              </p>
+              <div className="w-12 h-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transform origin-left transition-transform duration-500 group-hover:scale-x-150"></div>
+            </div>
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 flex-shrink-0">
+              <FaBookOpen className="text-2xl" />
+            </div>
+          </div>
+        </motion.div>
+      </Link>
 
       {/* Medical Assistance */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 text-center hover:shadow-2xl transition-all duration-300"
-      >
-        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center text-white">
-          <FaUserMd className="text-3xl" />
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-3">Medical Assistance</h3>
-        <p className="text-gray-600">Healthcare and medical expenses coverage</p>
-      </motion.div>
+      <Link to="/services/medical">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          whileHover={{ y: -8 }}
+          className="cursor-pointer group relative bg-white p-8 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/10 to-blue-600/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+
+          <div className="relative flex items-start justify-between">
+            <div className="flex-1 pr-4">
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-green-600 transition-colors duration-300">
+                Medical Assistance
+              </h3>
+              <p className="text-gray-600 leading-relaxed mb-4">
+                Healthcare and medical expenses coverage
+              </p>
+              <div className="w-12 h-1 bg-gradient-to-r from-green-500 to-blue-600 rounded-full transform origin-left transition-transform duration-500 group-hover:scale-x-150"></div>
+            </div>
+            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 flex-shrink-0">
+              <FaUserMd className="text-2xl" />
+            </div>
+          </div>
+        </motion.div>
+      </Link>
 
       {/* Burial Assistance */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.6 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 text-center hover:shadow-2xl transition-all duration-300"
-      >
-        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center text-white">
-          <FaCross className="text-3xl" />
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-3">Burial Assistance</h3>
-        <p className="text-gray-600">Funeral and burial service support</p>
-      </motion.div>
+      <Link to="/services/funeral">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          whileHover={{ y: -8 }}
+          className="cursor-pointer group relative bg-white p-8 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-pink-600/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+
+          <div className="relative flex items-start justify-between">
+            <div className="flex-1 pr-4">
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors duration-300">
+                Burial Assistance
+              </h3>
+              <p className="text-gray-600 leading-relaxed mb-4">
+                Funeral and burial service support
+              </p>
+              <div className="w-12 h-1 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full transform origin-left transition-transform duration-500 group-hover:scale-x-150"></div>
+            </div>
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center text-white shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 flex-shrink-0">
+              <FaCross className="text-2xl" />
+            </div>
+          </div>
+        </motion.div>
+      </Link>
+
     </div>
   </div>
 </section>
-      {/* Who We Serve Section */}
-      <section className="py-40 bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white">
-  <div className="max-w-7xl mx-auto px-4">
+
+
+     {/* Who We Serve Section */}
+<section className="py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white relative overflow-hidden">
+  {/* Decorative background elements */}
+  <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"></div>
+  <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-900/30 rounded-full blur-3xl"></div>
+  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full">
+    <div className="absolute top-20 right-20 w-2 h-2 bg-white/40 rounded-full animate-pulse"></div>
+    <div className="absolute top-40 right-40 w-1 h-1 bg-white/30 rounded-full animate-pulse delay-75"></div>
+    <div className="absolute bottom-20 left-20 w-2 h-2 bg-white/40 rounded-full animate-pulse delay-150"></div>
+    <div className="absolute bottom-40 left-40 w-1 h-1 bg-white/30 rounded-full animate-pulse"></div>
+  </div>
+
+  <div className="max-w-7xl mx-auto px-4 relative z-10">
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8 }}
-      className="text-center mb-20"
+      className="mb-20 flex flex-col items-center text-center"
     >
-      <h2 className="text-4xl lg:text-5xl font-bold mb-6">Who We Serve</h2>
-      <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+      <motion.div 
+        initial={{ scale: 0.8, opacity: 0 }}
+        whileInView={{ scale: 1, opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="inline-block px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-4"
+      >
+        <span className="text-white font-semibold text-sm uppercase tracking-wider">Our Community</span>
+      </motion.div>
+      <motion.h2 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="text-5xl lg:text-6xl font-bold mb-6 leading-tight"
+      >
+        Who We <span className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-200 via-white to-blue-200 bg-clip-text text-transparent animate-pulse">Serve</span>
+      </motion.h2>
+      <motion.p 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+        className="text-xl text-blue-100 max-w-2xl leading-relaxed"
+      >
         Our application management system is designed to assist a diverse range of
         beneficiaries in need of support.
-      </p>
+      </motion.p>
     </motion.div>
 
-    <div className="grid md:grid-cols-3 gap-10">
+    <div className="grid md:grid-cols-3 gap-6">
       {/* Students */}
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white/10 backdrop-blur-lg p-10 rounded-2xl border border-white/20 text-center hover:bg-white/15 transition-all duration-300"
+        whileHover={{ y: -8 }}
+        className="group relative bg-white/10 backdrop-blur-lg p-8 rounded-3xl border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-500 overflow-hidden"
       >
-        <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-white/20 rounded-full">
-          <FaUserGraduate className="text-4xl text-white" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+        
+        <div className="relative flex flex-col items-center text-center">
+          <motion.div 
+            whileHover={{ rotate: 360 }}
+            transition={{ duration: 0.6 }}
+            className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-blue-300/30 to-white/30 backdrop-blur-sm rounded-2xl shadow-lg transform transition-all duration-500 group-hover:scale-110 mb-6"
+          >
+            <FaUserGraduate className="text-3xl text-white" />
+          </motion.div>
+          <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-200 transition-colors duration-300">
+            <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent group-hover:from-blue-200 group-hover:to-white transition-all duration-300">
+              Students
+            </span>
+          </h3>
+          <p className="text-blue-100 leading-relaxed mb-4 group-hover:text-white transition-colors duration-300">
+            Individuals who are currently enrolled in educational institutions and
+            require financial assistance for their studies.
+          </p>
+          <div className="w-12 h-1 bg-gradient-to-r from-blue-300 via-white to-blue-300 rounded-full transform transition-transform duration-500 group-hover:scale-x-150 shadow-lg shadow-white/50"></div>
         </div>
-        <h3 className="text-2xl font-bold mb-4">Students</h3>
-        <p className="text-blue-100 leading-relaxed">
-          Individuals who are currently enrolled in educational institutions and
-          require financial assistance for their studies.
-        </p>
       </motion.div>
 
       {/* Patients */}
@@ -293,17 +438,30 @@ const LandingPage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.4 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white/10 backdrop-blur-lg p-10 rounded-2xl border border-white/20 text-center hover:bg-white/15 transition-all duration-300"
+        whileHover={{ y: -8 }}
+        className="group relative bg-white/10 backdrop-blur-lg p-8 rounded-3xl border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-500 overflow-hidden"
       >
-        <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-white/20 rounded-full">
-          <FaUserInjured className="text-4xl text-white" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+        
+        <div className="relative flex flex-col items-center text-center">
+          <motion.div 
+            whileHover={{ rotate: 360 }}
+            transition={{ duration: 0.6 }}
+            className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-blue-300/30 to-white/30 backdrop-blur-sm rounded-2xl shadow-lg transform transition-all duration-500 group-hover:scale-110 mb-6"
+          >
+            <FaUserInjured className="text-3xl text-white" />
+          </motion.div>
+          <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-200 transition-colors duration-300">
+            <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent group-hover:from-blue-200 group-hover:to-white transition-all duration-300">
+              Patients
+            </span>
+          </h3>
+          <p className="text-blue-100 leading-relaxed mb-4 group-hover:text-white transition-colors duration-300">
+            Individuals who are currently undergoing medical treatment and need
+            financial support.
+          </p>
+          <div className="w-12 h-1 bg-gradient-to-r from-blue-300 via-white to-blue-300 rounded-full transform transition-transform duration-500 group-hover:scale-x-150 shadow-lg shadow-white/50"></div>
         </div>
-        <h3 className="text-2xl font-bold mb-4">Patients</h3>
-        <p className="text-blue-100 leading-relaxed">
-          Individuals who are currently undergoing medical treatment and need
-          financial support.
-        </p>
       </motion.div>
 
       {/* Burial Services */}
@@ -312,17 +470,30 @@ const LandingPage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.6 }}
-        whileHover={{ y: -10, scale: 1.05 }}
-        className="bg-white/10 backdrop-blur-lg p-10 rounded-2xl border border-white/20 text-center hover:bg-white/15 transition-all duration-300"
+        whileHover={{ y: -8 }}
+        className="group relative bg-white/10 backdrop-blur-lg p-8 rounded-3xl border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-500 overflow-hidden"
       >
-        <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-white/20 rounded-full">
-          <FaCross className="text-4xl text-white" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+        
+        <div className="relative flex flex-col items-center text-center">
+          <motion.div 
+            whileHover={{ rotate: 360 }}
+            transition={{ duration: 0.6 }}
+            className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-blue-300/30 to-white/30 backdrop-blur-sm rounded-2xl shadow-lg transform transition-all duration-500 group-hover:scale-110 mb-6"
+          >
+            <FaCross className="text-3xl text-white" />
+          </motion.div>
+          <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-200 transition-colors duration-300">
+            <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent group-hover:from-blue-200 group-hover:to-white transition-all duration-300">
+              Burial Services
+            </span>
+          </h3>
+          <p className="text-blue-100 leading-relaxed mb-4 group-hover:text-white transition-colors duration-300">
+            Individuals who require assistance with burial or funeral services for
+            their loved ones.
+          </p>
+          <div className="w-12 h-1 bg-gradient-to-r from-blue-300 via-white to-blue-300 rounded-full transform transition-transform duration-500 group-hover:scale-x-150 shadow-lg shadow-white/50"></div>
         </div>
-        <h3 className="text-2xl font-bold mb-4">Burial Services</h3>
-        <p className="text-blue-100 leading-relaxed">
-          Individuals who require assistance with burial or funeral services for
-          their loved ones.
-        </p>
       </motion.div>
     </div>
   </div>

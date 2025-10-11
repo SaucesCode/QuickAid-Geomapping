@@ -1,5 +1,9 @@
-import React from "react";
+
 import { motion } from "framer-motion";
+import LandingPage from "../../assets/AICS 2.png"; 
+import React, { useState } from "react";
+
+
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
 import {
@@ -22,275 +26,512 @@ import {
   FaEnvelope,
 } from "react-icons/fa";
 import aics from "../../assets/AICS-OFFICIAL.png";
+import { Stethoscope, Cross, Info, Heart, Target, GraduationCap, Zap, Hospital, CheckCircle, Users, Clock, Sparkles, ArrowRight } from "lucide-react";
+
+
+
+
 
 const AboutUs = () => {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
+  
   return (
     <div className="min-h-screen font-sans bg-gray-50">
       <Navbar />
 
-      {/* Hero */}
-      <section className="pt-40 pb-24 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 flex flex-col lg:flex-row items-center justify-between px-4 lg:px-16">
-        <div className="text-center lg:text-left max-w-2xl">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-5xl lg:text-7xl font-bold text-white leading-tight"
-          >
-            Assistance to Individuals in{" "}
-            <span className="inline-block text-5xl lg:text-7xl bg-gradient-to-r from-blue-400 to-blue-200 bg-clip-text text-transparent">
-              Crisis Situation
-            </span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-            className="mt-6 text-lg lg:text-xl text-blue-100"
-          >
-            Supporting communities through immediate and compassionate aid
-          </motion.p>
-        </div>
+      <section className="relative overflow-hidden pt-20 pb-20 px-6 lg:px-10 h-[105vh] bg-cover bg-center bg-no-repeat" 
+      style={{ backgroundImage: `url('${LandingPage}')` }}>
+      {/* Dark overlay for text readability */}
+      <div className="absolute inset-0 -z-10 bg-black/50"></div>
+
+      <div className="relative z-10 flex flex-col-reverse lg:flex-row items-center justify-between gap-12 lg:gap-20">
+        {/* Left Text Section */}
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="mt-12 lg:mt-0"
+          initial={{ opacity: 0, x: -40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="max-w-2xl text-center lg:text-left space-y-8"
         >
-          <img
-            src={aics}
-            alt="AICS Logo"
-            className="w-64 lg:w-80 mx-auto lg:mx-0"
-          />
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="inline-block mb-4 px-4 py-1.5 bg-white/20 rounded-full border border-white/40 backdrop-blur"
+            >
+              
+            </motion.div>
+
+            <h1 className="text-5xl lg:text-7xl font-bold leading-tight tracking-tight"> Delivering{" "} 
+              <span className="relative"> 
+                <span className="text-transparent text-5xl lg:text-6xl font-bold bg-clip-text bg-gradient-to-r from-red-600 via-red-400 to-red-600"> 
+                  Compassionate Assistance </span> 
+                  <motion.div 
+                  initial={{ scaleX: 0 }} 
+                  whileInView={{ scaleX: 1 }} t
+                  ransition={{ delay: 0.3, duration: 0.6 }} 
+                  className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 to-blue-600 origin-left" ></motion.div> 
+                  </span> <br /> 
+                  </h1>
+                  <span className="block text-5xl lg:text-7xl font-extrabold text-blue-400 leading-tight tracking-tight mt-2 "> in Times of Crisis </span>
+
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-6 text-lg text-gray-100 max-w-2xl"
+          >
+            The Assistance to Individuals in Crisis Situation (AICS) Program provides
+            immediate and meaningful support to individuals and families facing life's
+            toughest challenges.
+          </motion.p>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            
+          >
+            
+          </motion.div>
         </motion.div>
-      </section>
+
+        {/* Right Info Cards Section */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative flex-1 min-h-[500px] lg:min-h-[600px] flex items-center justify-center"
+        >
+          <div className="relative w-full max-w-[450px] h-[500px]">
+            {/* Floating Info Cards with enhanced design */}
+            <motion.div
+              initial={{ opacity: 0, y: -20, rotate: -5 }}
+              whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+              whileHover={{ y: -5, rotate: 2 }}
+              transition={{ delay: 0.3 }}
+              className="absolute top-12 right-0 bg-white/95 backdrop-blur-md shadow-xl rounded-2xl px-5 py-3 text-sm text-gray-800 font-bold flex items-center gap-3 border border-white/50 hover:shadow-2xl transition-all duration-300"
+            >
+              <div className="p-2 bg-blue-100/80 rounded-lg flex-shrink-0">
+                <Stethoscope className="text-blue-600 w-5 h-5" />
+              </div>
+              <span>Medical Assistance</span>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20, rotate: 5 }}
+              whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+              whileHover={{ y: 5, rotate: -2 }}
+              transition={{ delay: 0.4 }}
+              className="absolute bottom-24 left-0 bg-white/95 backdrop-blur-md shadow-xl rounded-2xl px-5 py-3 text-sm text-gray-800 font-bold flex items-center gap-3 border border-white/50 hover:shadow-2xl transition-all duration-300"
+            >
+              <div className="p-2 bg-purple-100/80 rounded-lg flex-shrink-0">
+                <GraduationCap className="text-purple-600 w-5 h-5" />
+              </div>
+              <span>Educational Aid</span>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: -10, rotate: -3 }}
+              whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+              whileHover={{ y: -2, rotate: 3 }}
+              transition={{ delay: 0.5 }}
+              className="absolute top-1/2 right-12 bg-white/95 backdrop-blur-md shadow-xl rounded-2xl px-5 py-3 text-sm text-gray-800 font-bold flex items-center gap-3 border border-white/50 hover:shadow-2xl transition-all duration-300"
+            >
+              <div className="p-2 bg-pink-100/80 rounded-lg flex-shrink-0">
+                <Cross className="text-pink-600 w-5 h-5" />
+              </div>
+              <span>Burial Support</span>
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+
+
 
       {/* About AICS Program */}
-<section className="py-16 px-4 lg:px-16">
-  <div className="max-w-6xl mx-auto">
-    <div className="text-center mb-12">
-      <div className="flex justify-center items-center gap-4 mb-4">
-        <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-blue-200"></div>
-        <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
-          About AICS Program
-        </h2>
-        <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-blue-200"></div>
+<section className="py-20 bg-gradient-to-b from-white via-blue-50 to-white overflow-hidden">
+  <div className="max-w-7xl mx-auto px-6 lg:px-12">
+    {/* Heading */}
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8 }}
+      className="text-center mb-16"
+    >
+      <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+        About <span className="text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-500">AICS Program</span>
+      </h2>
+      <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+        Empowering individuals and families in times of crisis through immediate and compassionate assistance.
+      </p>
+      <div className="mt-6 flex justify-center">
+        <div className="w-20 h-1 rounded-full bg-gradient-to-r from-blue-600 to-teal-500"></div>
       </div>
-    </div>
-    <div className="grid lg:grid-cols-3 gap-8 items-center">
-      {/* Text Side */}
-      <div className="lg:col-span-2 text-gray-700 space-y-4">
-        <p>
-          Assistance to individuals in crisis refers to the support
-          provided to people experiencing a sudden, unexpected, or
-          overwhelming situation that requires immediate attention and
-          help to overcome their physical, emotional, and social needs.
-        </p>
-        <p>
-          This kind of assistance is typically provided by government
-          agencies, non-profits, or community organizations and includes
-          immediate intervention, which has high priority in identifying
-          the individual and addressing urgent needs.
-        </p>
-      </div>
+    </motion.div>
 
-      {/* Logo Side */}
-      <div className="flex justify-center lg:justify-end">
-        <img
-          src={aics}
-          alt="AICS Official Logo"
-          className="w-64 h-64 object-contain"
-        />
-      </div>
+    {/* Content Grid */}
+    <div className="grid lg:grid-cols-2 gap-12 items-center">
+      {/* Text Content */}
+      <motion.div
+        initial={{ opacity: 0, x: -40 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="text-gray-700 space-y-6 leading-relaxed"
+      >
+        <p className="text-lg">
+          The <span className="font-semibold text-blue-600">Assistance to Individuals in Crisis Situation (AICS)</span> is a vital program dedicated to
+          supporting those facing sudden hardships. It aims to provide timely intervention that helps individuals
+          recover from physical, emotional, and social challenges.
+        </p>
+        <p className="text-lg">
+          Managed by government and partner organizations, AICS offers immediate assistance covering
+          essential needs such as <span className="font-semibold text-blue-600">medical aid, educational support, food,</span> and
+          <span className="font-semibold text-blue-600"> burial assistance</span> — ensuring that no one faces crisis situations alone.
+        </p>
+      </motion.div>
+
+      {/* Video Embed */}
+      <motion.div
+        initial={{ opacity: 0, x: 40 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="flex justify-center"
+      >
+        <div className="relative w-full max-w-md aspect-video rounded-3xl overflow-hidden shadow-2xl border border-gray-200">
+          <iframe
+            src="https://www.youtube.com/embed/roQntS-coN8"
+            title="AICS Program Video"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-full"
+          ></iframe>
+
+          {/* Decorative Glow */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-teal-400/10 pointer-events-none"></div>
+        </div>
+      </motion.div>
     </div>
   </div>
 </section>
 
 
+      {/* Key Aspects of Our Assistance */}
 
-      {/* Key Aspects */}
-      <section className="py-16 px-4 lg:px-16 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="flex justify-center items-center gap-4 mb-4">
-              <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-blue-200"></div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
-                Key Aspects of Our Assistance
-              </h2>
-              <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-blue-200"></div>
+
+     <section className="relative py-40 px-4 lg:px-16 bg-gradient-to-br from-gray-50 via-slate-50 to-blue-50/30 overflow-hidden">
+        {/* Animated mesh gradient background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-[40%] -right-[20%] w-[1000px] h-[1000px] bg-gradient-to-br from-blue-400/20 via-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-[40%] -left-[20%] w-[1000px] h-[1000px] bg-gradient-to-tr from-cyan-400/20 via-blue-400/20 to-indigo-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '3s' }}></div>
+        </div>
+
+        {/* Grid overlay with fade */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(99,102,241,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_100%_100%_at_50%_50%,#000,transparent)]"></div>
+
+        <div className="relative max-w-7xl mx-auto">
+          {/* Premium Top Bar */}
+          <div className="mb-24">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-xl rounded-full border border-blue-500/20 mb-6 shadow-lg">
+              
+              
             </div>
+            
+            <div className="flex flex-col items-center justify-center text-center gap-12">
+  <div className="space-y-6">
+    <h2 className="text-5xl lg:text-7xl font-black text-gray-900 tracking-tight leading-[0.95]">
+      Key Aspects of<br />
+      <span className="relative inline-block">
+        <span
+          className="text-5xl lg:text-7xl text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-blue-600 to-blue-600 animate-gradient"
+          style={{ backgroundSize: "200% 200%" }}
+        >
+          Our Assistance
+        </span>
+        <div className="absolute -bottom-3 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-full blur-sm"></div>
+      </span>
+    </h2>
+    <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed font-light">
+      Comprehensive support tailored to your unique situation, delivered with compassion and expertise
+    </p>
+  </div>
+</div>
           </div>
-          <div className="grid lg:grid-cols-3 gap-8">
+
+          {/* F-Pattern Content Blocks */}
+          <div className="space-y-16">
             {/* Definition of Crisis */}
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-white rounded-2xl shadow-lg p-8 border"
+            <div 
+              className="grid lg:grid-cols-12 gap-10 items-start group"
+              onMouseEnter={() => setHoveredIndex(0)}
+              onMouseLeave={() => setHoveredIndex(null)}
             >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 text-white flex items-center justify-center mb-4">
-                <FaInfoCircle />
+              <div className="lg:col-span-2 relative">
+                <div className="sticky top-24">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-3xl blur-2xl opacity-30 group-hover:opacity-60 transition-all duration-500"></div>
+                    <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-500 flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                      <Info className="w-10 h-10 text-white" />
+                    </div>
+                  </div>
+                  <div className="mt-4 h-24 w-1 bg-gradient-to-b from-blue-500/50 to-transparent rounded-full"></div>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-2">Definition of Crisis</h3>
-              <p className="text-gray-700 text-sm lg:text-base">
-                A situation that involves diverse factors like mental distress,
-                domestic violence, homelessness, unemployment, medical
-                emergencies, or mental health issues
-              </p>
-            </motion.div>
+              
+              <div className="lg:col-span-10 relative">
+                <div className="absolute -left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-transparent rounded-full group-hover:w-2 transition-all duration-500"></div>
+                <div className="relative bg-white/60 backdrop-blur-2xl rounded-3xl p-10 border border-white/60 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden group-hover:-translate-y-1">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  <div className="relative">
+                    <div className="flex items-start justify-between mb-6">
+                      <h3 className="text-4xl font-black text-gray-900 group-hover:text-blue-600 transition-colors">
+                        Definition of Crisis
+                      </h3>
+                      <div className="flex items-center gap-2 px-4 py-1.5 bg-blue-50 rounded-full border border-blue-100">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                        <span className="text-xs font-bold text-blue-600">Essential</span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-lg text-gray-600 leading-relaxed mb-8">
+                      A situation that involves diverse factors like mental distress,
+                      domestic violence, homelessness, unemployment, medical
+                      emergencies, or mental health issues
+                    </p>
+                    
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Types of Assistance */}
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-white rounded-2xl shadow-lg p-8 border"
+            <div 
+              className="grid lg:grid-cols-12 gap-10 items-start group"
+              onMouseEnter={() => setHoveredIndex(1)}
+              onMouseLeave={() => setHoveredIndex(null)}
             >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 text-white flex items-center justify-center mb-4">
-                <FaHandHoldingHeart />
-              </div>
-              <h3 className="text-xl font-bold mb-4">Types of Assistance</h3>
-              <div className="space-y-3 text-gray-700">
-                <div className="flex items-center gap-2">
-                  <FaGraduationCap className="text-blue-500" /> Educational
-                  Assistance
-                </div>
-                <div className="flex items-center gap-2">
-                  <FaHospital className="text-blue-500" /> Medical Assistance
-                </div>
-                <div className="flex items-center gap-2">
-                  <FaCross className="text-blue-500" /> Burial Assistance
+              <div className="lg:col-span-2 relative">
+                <div className="sticky top-24">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl blur-2xl opacity-30 group-hover:opacity-60 transition-all duration-500"></div>
+                    <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                      <Heart className="w-10 h-10 text-white" />
+                    </div>
+                  </div>
+                  <div className="mt-4 h-24 w-1 bg-gradient-to-b from-purple-500/50 to-transparent rounded-full"></div>
                 </div>
               </div>
-            </motion.div>
+              
+              <div className="lg:col-span-10">
+                <h3 className="text-4xl font-black text-gray-900 mb-10 group-hover:text-purple-600 transition-colors">
+                  Types of Assistance
+                </h3>
+                
+                <div className="grid md:grid-cols-3 gap-6">
+                  {[
+                    { icon: GraduationCap, title: 'Educational', subtitle: 'Assistance', desc: 'Support for learning and development opportunities', color: 'from-blue-500 to-cyan-500', accent: 'blue' },
+                    { icon: Hospital, title: 'Medical', subtitle: 'Assistance', desc: 'Emergency healthcare support and medical aid', color: 'from-purple-500 to-pink-500', accent: 'purple' },
+                    { icon: Cross, title: 'Burial', subtitle: 'Assistance', desc: 'Compassionate support for final arrangements', color: 'from-indigo-500 to-purple-500', accent: 'indigo' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="group/card relative">
+                      <div className={`absolute inset-0 bg-gradient-to-br ${item.color} rounded-3xl blur-xl opacity-0 group-hover/card:opacity-30 transition-all duration-500`}></div>
+                      <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-white/60 hover:border-white shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${item.color} opacity-10 rounded-full blur-2xl group-hover/card:scale-150 transition-transform duration-700`}></div>
+                        
+                        <div className="relative">
+                          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-6 group-hover/card:scale-110 group-hover/card:rotate-12 transition-all duration-500 shadow-lg`}>
+                            <item.icon className="w-7 h-7 text-white" />
+                          </div>
+                          
+                          <div className="mb-4">
+                            <h4 className="text-2xl font-black text-gray-900 leading-tight">{item.title}</h4>
+                            <h4 className={`text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r ${item.color} leading-tight`}>{item.subtitle}</h4>
+                          </div>
+                          
+                          <p className="text-sm text-gray-600 leading-relaxed mb-4">
+                            {item.desc}
+                          </p>
+                          
+                          <div className={`h-1 bg-gradient-to-r ${item.color} rounded-full w-0 group-hover/card:w-full transition-all duration-700`}></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
             {/* Our Goals */}
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-white rounded-2xl shadow-lg p-8 border"
+            <div 
+              className="grid lg:grid-cols-12 gap-10 items-start group"
+              onMouseEnter={() => setHoveredIndex(2)}
+              onMouseLeave={() => setHoveredIndex(null)}
             >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 text-white flex items-center justify-center mb-4">
-                <FaBullseye />
+              <div className="lg:col-span-2 relative">
+                <div className="sticky top-24">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-3xl blur-2xl opacity-30 group-hover:opacity-60 transition-all duration-500"></div>
+                    <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-500 flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                      <Target className="w-10 h-10 text-white" />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-4">Our Goals</h3>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-center gap-2">
-                  <FaCheckCircle className="text-blue-500" /> Ensure immediate
-                  safety and stability
-                </li>
-                <li className="flex items-center gap-2">
-                  <FaCheckCircle className="text-blue-500" /> Prevent crisis
-                  escalation
-                </li>
-                <li className="flex items-center gap-2">
-                  <FaCheckCircle className="text-blue-500" /> Connect with
-                  long-term support
-                </li>
-              </ul>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Our Impact */}
-      <section className="py-16 px-4 lg:px-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="flex justify-center items-center gap-4 mb-4">
-              <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-blue-200"></div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
-                Our Impact
-              </h2>
-              <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-blue-200"></div>
+              
+              <div className="lg:col-span-10 relative">
+                <div className="absolute -left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-500 to-transparent rounded-full group-hover:w-2 transition-all duration-500"></div>
+                <div className="relative bg-white/60 backdrop-blur-2xl rounded-3xl p-10 border border-white/60 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden group-hover:-translate-y-1">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  <div className="relative">
+                    <h3 className="text-4xl font-black text-gray-900 mb-10 group-hover:text-emerald-600 transition-colors">
+                      Our Goals
+                    </h3>
+                    
+                    <div className="space-y-6">
+                      {[
+                        { text: 'Ensure immediate safety and stability', detail: 'Providing rapid response to urgent crisis situations', number: '01' },
+                        { text: 'Prevent crisis escalation', detail: 'Early intervention and proactive support measures', number: '02' },
+                        { text: 'Connect with long-term support', detail: 'Building sustainable pathways to recovery and wellbeing', number: '03' }
+                      ].map((goal, idx) => (
+                        <div key={idx} className="group/item flex items-start gap-6 p-6 rounded-2xl bg-gradient-to-r from-emerald-50/50 to-transparent hover:from-emerald-50 transition-all">
+                          <div className="relative flex-shrink-0">
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full blur-lg opacity-0 group-hover/item:opacity-40 transition-opacity"></div>
+                            <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg group-hover/item:scale-125 group-hover/item:rotate-12 transition-all">
+                              <CheckCircle className="w-6 h-6 text-white" />
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="font-black text-2xl text-gray-900 group-hover/item:text-emerald-600 transition-colors">
+                                {goal.text}
+                              </div>
+                              <span className="text-5xl font-black text-emerald-100 group-hover/item:text-emerald-200 transition-colors">
+                                {goal.number}
+                              </span>
+                            </div>
+                            <div className="text-gray-600 leading-relaxed">{goal.detail}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="grid lg:grid-cols-3 gap-8">
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-white rounded-2xl shadow-lg p-8 border text-center"
-            >
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 text-white flex items-center justify-center mx-auto mb-4">
-                <FaUsers />
-              </div>
-              <h3 className="text-xl font-bold mb-2">Communities Served</h3>
-              <p className="text-gray-700 text-sm lg:text-base">
-                Supporting diverse communities across the region
-              </p>
-            </motion.div>
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-white rounded-2xl shadow-lg p-8 border text-center"
-            >
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 text-white flex items-center justify-center mx-auto mb-4">
-                <FaClock />
-              </div>
-              <h3 className="text-xl font-bold mb-2">Quick Response</h3>
-              <p className="text-gray-700 text-sm lg:text-base">
-                Immediate assistance when it matters most
-              </p>
-            </motion.div>
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-white rounded-2xl shadow-lg p-8 border text-center"
-            >
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 text-white flex items-center justify-center mx-auto mb-4">
-                <FaHeart />
-              </div>
-              <h3 className="text-xl font-bold mb-2">Compassionate Care</h3>
-              <p className="text-gray-700 text-sm lg:text-base">
-                Dedicated to providing empathetic support
-              </p>
-            </motion.div>
-          </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-12">
-            How It Works
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-white p-8 rounded-2xl shadow-lg"
-            >
-              <div className="w-16 h-16 mx-auto rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-3xl mb-6">
-                <FaFileAlt />
-              </div>
-              <h3 className="text-xl font-semibold mb-4">Step 1</h3>
-              <p className="text-gray-700">
-                Visit your nearest DSWD office and present valid ID with
-                supporting documents.
-              </p>
-            </motion.div>
+      {/* Our Impact Section - Dark Premium */}
+      <section className="relative py-40 px-4 lg:px-16 bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 overflow-hidden">
+        {/* Premium animated background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-600/30 to-transparent rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-[800px] h-[800px] bg-gradient-to-tr from-purple-600/30 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        </div>
 
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-white p-8 rounded-2xl shadow-lg"
-            >
-              <div className="w-16 h-16 mx-auto rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-3xl mb-6">
-                <FaUserCheck />
-              </div>
-              <h3 className="text-xl font-semibold mb-4">Step 2</h3>
-              <p className="text-gray-700">
-                Our staff will evaluate your request and verify eligibility for
-                the right type of support.
-              </p>
-            </motion.div>
+        {/* Starfield effect */}
+        <div className="absolute inset-0">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-white rounded-full opacity-20 animate-pulse"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`
+              }}
+            ></div>
+          ))}
+        </div>
 
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-white p-8 rounded-2xl shadow-lg"
-            >
-              <div className="w-16 h-16 mx-auto rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-3xl mb-6">
-                <FaGift />
+        <div className="relative max-w-7xl mx-auto">
+          {/* Premium header */}
+          <div className="mb-24">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 mb-6 shadow-lg">
+              <Zap className="w-3 h-3 text-cyan-400" />
+              <span className="text-xs font-bold text-cyan-300 tracking-widest uppercase">Making a Difference</span>
+              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 animate-pulse"></div>
+            </div>
+            
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-12">
+              <div className="flex-1">
+                <h2 className="text-6xl lg:text-7xl font-black text-white tracking-tight leading-[0.95] mb-6">
+                  Our Impact
+                </h2>
+                <p className="text-xl text-blue-100/70 max-w-2xl leading-relaxed font-light">
+                  Creating meaningful change in communities through dedicated service and unwavering commitment
+                </p>
               </div>
-              <h3 className="text-xl font-semibold mb-4">Step 3</h3>
-              <p className="text-gray-700">
-                Receive immediate assistance such as food, medical, or transport
-                support tailored to your needs.
-              </p>
-            </motion.div>
+            </div>
+          </div>
+
+          {/* Impact cards with stats */}
+          <div className="space-y-8">
+            {[
+              { icon: Users, title: 'Communities Served', desc: 'Supporting diverse communities across the region with culturally sensitive and accessible assistance programs', stat: '15,000+', label: 'Families Helped', color: 'from-blue-500 to-cyan-500' },
+              { icon: Clock, title: 'Quick Response', desc: 'Immediate assistance when it matters most, with 24/7 availability and rapid deployment capabilities', stat: '< 24hrs', label: 'Average Response', color: 'from-purple-500 to-pink-500' },
+              { icon: Heart, title: 'Compassionate Care', desc: 'Dedicated to providing empathetic support with trained professionals who understand your needs', stat: '100%', label: 'Satisfaction Rate', color: 'from-emerald-500 to-teal-500' }
+            ].map((item, idx) => (
+              <div key={idx} className="grid lg:grid-cols-12 gap-8 items-center group">
+                <div className="lg:col-span-2">
+                  <div className="relative">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${item.color} rounded-3xl blur-2xl opacity-40 group-hover:opacity-70 transition-all duration-500`}></div>
+                    <div className={`relative w-24 h-24 rounded-3xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
+                      <item.icon className="w-12 h-12 text-white" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="lg:col-span-7 relative">
+                  <div className="absolute -left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-white/30 to-transparent rounded-full"></div>
+                  <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 group-hover:bg-white/15 group-hover:border-white/30 transition-all duration-500 overflow-hidden">
+                    <div className={`absolute top-0 right-0 w-48 h-48 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-10 rounded-full blur-3xl transition-opacity duration-500`}></div>
+                    <div className="relative">
+                      <h3 className="text-3xl font-black mb-4 text-white group-hover:text-cyan-300 transition-colors">
+                        {item.title}
+                      </h3>
+                      <p className="text-blue-100/70 leading-relaxed text-lg">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="lg:col-span-3 text-center lg:text-right">
+                  <div className={`text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r ${item.color} mb-2 leading-none`}>
+                    {item.stat}
+                  </div>
+                  <div className="text-blue-200/60 font-bold uppercase text-sm tracking-wider">
+                    {item.label}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+
+        <style>{`
+          @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+          }
+          .animate-gradient {
+            animation: gradient 3s ease infinite;
+          }
+        `}</style>
       </section>
 
       {/* Testimonials */}
