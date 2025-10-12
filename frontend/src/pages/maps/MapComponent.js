@@ -17,6 +17,7 @@ import {
   MapPin,
   Target,
   Loader2,
+  X,
 } from "lucide-react";
 
 // ============= SETUP & CONFIGURATION =============
@@ -39,9 +40,9 @@ const defaultCenter = [13.938, 121.508];
 
 // Colors
 const assistanceColors = {
-  Medical: "#38b2ac",
-  Burial: "#1a202c",
-  Educational: "#2d3748",
+  Medical: "#3b82f6",
+  Burial: "#fef08a",
+  Educational: "#10b981",
 };
 
 const assistanceTypes = ["Medical", "Burial", "Educational"];
@@ -170,28 +171,41 @@ const MapComponent = () => {
 
   // ============= RENDER =============
   return (
-    <div className="relative h-[calc(100vh-4rem)] bg-quickaid-bg overflow-hidden mt-16">
+    <div className="relative h-[calc(100vh-4rem)] bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden mt-16">
       <div className="flex flex-col xl:flex-row h-full">
         {/* Map Container */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative h-full">
           {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-quickaid-bg z-50">
-              <div className="bg-quickaid-surface rounded-xl p-8 shadow-lg border flex flex-col items-center gap-4">
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 z-50">
+              <div className="bg-white rounded-2xl p-10 shadow-2xl border border-gray-100 flex flex-col items-center gap-6">
                 <div className="relative flex items-center justify-center">
-                  <div className="h-20 w-20 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
-                  <MapPin className="absolute h-8 w-8 text-blue-600" />
+                  {/* Outer spinning ring */}
+                  <div className="h-24 w-24 rounded-full border-[6px] border-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 border-t-transparent animate-spin"></div>
+                  
+                  {/* Inner pulsing ring */}
+                  <div className="absolute inset-2 rounded-full border-4 border-blue-300 border-t-transparent animate-spin" style={{ animationDelay: '150ms' }}></div>
+                  
+                  {/* Centered icon with gradient background */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full p-4 shadow-xl">
+                      <MapPin className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold text-quickaid-text-primary mt-4">
-                  Loading Map
-                </h3>
-                <p className="text-sm text-quickaid-text-secondary">
-                  Fetching applicant locations...
-                </p>
+                
+                <div className="text-center space-y-2">
+                  <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                    Loading Map
+                  </h3>
+                  <p className="text-sm text-gray-600 font-medium">
+                    Fetching applicant locations...
+                  </p>
+                </div>
               </div>
             </div>
           ) : (
-            <div className="h-full bg-white shadow-sm">
-              <MapContainer center={mapCenter} zoom={11} className="w-full h-full">
+            <div className="h-full rounded-2xl overflow-hidden shadow-2xl m-4 border-2 border-white">
+              <MapContainer center={mapCenter} zoom={11} className="w-full h-full" scrollWheelZoom={false}>
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -260,140 +274,203 @@ const MapComponent = () => {
           )}
         </div>
 
-        {/* Sidebar */}
-        <aside className="w-full xl:w-80 bg-quickaid-surface border-t xl:border-l border-slate-200 flex flex-col">
+        {/* Modern Sidebar */}
+        <aside className="w-full xl:w-96 bg-white border-t xl:border-l border-gray-100 flex flex-col shadow-2xl">
           <div className="p-6 flex-1 overflow-y-auto">
-            <div className="mb-6 sticky top-0 bg-quickaid-surface z-10 pb-4 border-b">
-              <h1 className="text-lg font-bold text-quickaid-text-primary flex items-center gap-2">
-                <div className="p-1.5 bg-quickaid-accent/10 rounded-lg">
-                  <MapPin className="w-5 h-5 text-quickaid-accent" />
+            {/* Header */}
+            <div className="mb-8 bg-white pb-6 border-b-2 border-gradient-to-r from-blue-200 to-indigo-200">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                  <MapPin className="w-6 h-6 text-white" />
                 </div>
-                Applicant Location Map
-              </h1>
+                <div>
+                  <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                    Location Map
+                  </h1>
+                  <p className="text-xs text-gray-600 font-medium">Track applicant locations</p>
+                </div>
+              </div>
             </div>
 
-            {/* Filters */}
+            {/* Filters Section */}
             <div className="mb-8">
-              <h2 className="text-sm font-semibold text-quickaid-text-primary mb-3 flex items-center gap-2">
-                <Filter className="w-4 h-4 text-quickaid-accent" />
-                Filters
-              </h2>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full"></div>
+                <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-blue-600" />
+                  Filters
+                </h2>
+              </div>
 
               <div className="space-y-3">
-                <select
-                  className="select select-sm select-bordered w-full bg-white"
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  value={typeFilter}
-                >
-                  <option value="">All Types</option>
-                  {assistanceTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  className="select select-sm select-bordered w-full bg-white"
-                  onChange={(e) => setCityFilter(e.target.value)}
-                  value={cityFilter}
-                >
-                  <option value="">All Cities</option>
-                  {cities.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-
-                {cityFilter && (
+                <div className="relative">
                   <select
-                    className="select select-sm select-bordered w-full bg-white"
-                    onChange={(e) => setBarangayFilter(e.target.value)}
-                    value={barangayFilter}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer hover:border-blue-300"
+                    onChange={(e) => setTypeFilter(e.target.value)}
+                    value={typeFilter}
                   >
-                    <option value="">All Barangays</option>
-                    {availableBarangays.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
+                    <option value="">All Types</option>
+                    {assistanceTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
                       </option>
                     ))}
                   </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <select
+                    className="w-full px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer hover:border-purple-300"
+                    onChange={(e) => setCityFilter(e.target.value)}
+                    value={cityFilter}
+                  >
+                    <option value="">All Cities</option>
+                    {cities.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+
+                {cityFilter && (
+                  <div className="relative animate-fadeIn">
+                    <select
+                      className="w-full px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer hover:border-green-300"
+                      onChange={(e) => setBarangayFilter(e.target.value)}
+                      value={barangayFilter}
+                    >
+                      <option value="">All Barangays</option>
+                      {availableBarangays.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
                 )}
 
                 <button
-                  className="btn btn-xs w-full bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                  className="w-full px-4 py-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-xl font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2 border border-gray-300"
                   onClick={resetFilters}
                 >
-                  <RotateCcw className="w-3 h-3 mr-1" />
-                  Reset
+                  <RotateCcw className="w-4 h-4" />
+                  Reset Filters
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-2 mt-3">
-                {typeFilter && (
-                  <span className="badge badge-sm bg-blue-100 text-blue-700">
-                    Type: {typeFilter}
-                  </span>
-                )}
-                {cityFilter && (
-                  <span className="badge badge-sm bg-green-100 text-green-700">
-                    City: {cityFilter}
-                  </span>
-                )}
-                {barangayFilter && (
-                  <span className="badge badge-sm bg-purple-100 text-purple-700">
-                    Brgy: {barangayFilter}
-                  </span>
-                )}
-              </div>
+              {/* Active Filters */}
+              {(typeFilter || cityFilter || barangayFilter) && (
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {typeFilter && (
+                    <span className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 rounded-full text-xs font-semibold flex items-center gap-1.5 border border-blue-200">
+                      Type: {typeFilter}
+                      <button onClick={() => setTypeFilter("")} className="hover:bg-blue-200 rounded-full p-0.5">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+                  {cityFilter && (
+                    <span className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-full text-xs font-semibold flex items-center gap-1.5 border border-purple-200">
+                      City: {cityFilter}
+                      <button onClick={() => setCityFilter("")} className="hover:bg-purple-200 rounded-full p-0.5">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+                  {barangayFilter && (
+                    <span className="px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-full text-xs font-semibold flex items-center gap-1.5 border border-green-200">
+                      Brgy: {barangayFilter}
+                      <button onClick={() => setBarangayFilter("")} className="hover:bg-green-200 rounded-full p-0.5">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Overview */}
+            {/* Overview Section */}
             <div className="mb-8">
-              <h3 className="text-sm font-semibold text-quickaid-text-primary mb-3 flex items-center gap-2">
-                <Target className="w-4 h-4 text-quickaid-accent" />
-                Overview
-              </h3>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-6 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full"></div>
+                <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
+                  <Target className="w-4 h-4 text-green-600" />
+                  Overview
+                </h3>
+              </div>
 
-              <div className="bg-gradient-to-r from-quickaid-accent to-blue-700 rounded-lg p-3 text-white mb-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Total</p>
-                  <p className="text-xl font-bold">{locations.length}</p>
+              {/* Total Card */}
+              <div className="bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-2xl p-5 text-white mb-4 shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-12 -mb-12"></div>
+                <div className="relative flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold opacity-90 mb-1">Total Locations</p>
+                    <p className="text-4xl font-bold">{locations.length}</p>
+                  </div>
+                  <div className="bg-white bg-opacity-20 rounded-xl p-3 backdrop-blur-sm">
+                    <MapPin className="w-8 h-8" />
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
+              {/* Stats Cards */}
+              <div className="space-y-3">
                 {Object.entries(assistanceColors).map(([type, color]) => (
-                  <div key={type} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
+                  <div 
+                    key={type} 
+                    className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border-2 border-gray-200 hover:border-blue-300 transition-all duration-200 hover:shadow-md"
+                  >
+                    <div className="flex items-center gap-3">
                       <div
-                        className="w-3 h-3 rounded-full"
+                        className="w-4 h-4 rounded-full shadow-md border-2 border-white"
                         style={{ backgroundColor: color }}
                       />
-                      {type}
+                      <span className="font-semibold text-gray-800">{type}</span>
                     </div>
-                    <span className="font-semibold">{stats[type] || 0}</span>
+                    <span className="text-xl font-bold text-gray-900 bg-white px-3 py-1 rounded-lg shadow-sm">
+                      {stats[type] || 0}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="p-4 border-t bg-slate-50">
-            <h4 className="text-xs font-semibold text-slate-600 mb-2">Legend</h4>
-            <div className="space-y-1 text-xs text-slate-600">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-300 border border-red-400 rounded" />
-                Province Boundary
+          {/* Legend Footer */}
+          <div className="p-6 border-t-2 border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1 h-5 bg-gradient-to-b from-gray-400 to-gray-600 rounded-full"></div>
+              <h4 className="text-sm font-bold text-gray-800">Legend</h4>
+            </div>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-red-300 border-2 border-red-400 rounded shadow-sm" />
+                <span className="text-xs font-medium text-gray-700">Province Boundary</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-teal-200 border border-teal-500 rounded" />
-                Selected City
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-teal-200 border-2 border-teal-500 rounded shadow-sm" />
+                <span className="text-xs font-medium text-gray-700">Selected City</span>
               </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-3 h-3 text-slate-600" />
-                Applicant Location
+              <div className="flex items-center gap-3">
+                <MapPin className="w-4 h-4 text-blue-600" />
+                <span className="text-xs font-medium text-gray-700">Applicant Location</span>
               </div>
             </div>
           </div>
