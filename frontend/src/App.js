@@ -2,19 +2,19 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import SettingsPage from "./pages/auth/SettingsPage";
 
-import Dashboard from "./pages/dashboard/Dashboard";
+import Dashboard from "./pages/Dashboard/Dashboard";
 import MapComponent from "./pages/maps/MapComponent";
-import AdminManagement from "./pages/dashboard/AdminManagement";
+import AdminManagement from "./pages/Dashboard/AdminManagement";
 import Trends from "./pages/analytics/Trends";
 import Geographic from "./pages/analytics/Geographic";
 import DemographicsEconomics from "./pages/analytics/DemographicsEconomics";
 import Performance from "./pages/analytics/Performance";
 
-import ApplicantForm from "./pages/applicants/ApplicantForm";
-import Applicants from "./pages/applicants/Applicants";
-import Approved from "./pages/applicants/Approved";
-import ArchiveApplicants from "./pages/applicants/ArchiveApplicants";
-import ExportApplicants from "./pages/applicants/ExportApplicants";
+import ApplicantForm from "./pages/Applicants/ApplicantForm";
+import Applicants from "./pages/Applicants/Applicants";
+import Approved from "./pages/Applicants/Approved";
+import ArchiveApplicants from "./pages/Applicants/ArchiveApplicants";
+import ExportApplicants from "./pages/Applicants/ExportApplicants";
 
 import MultiStepForm from "./pages/forms/MultiStepForm";
 import PrintPage from "./pages/print/PrintPage";

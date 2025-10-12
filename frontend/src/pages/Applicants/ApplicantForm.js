@@ -124,9 +124,7 @@ const ApplicantForm = () => {
 
               {/* Stats Badge */}
               <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-blue-100/50 px-6 py-3.5 rounded-xl border-2 border-blue-200/50">
-                <div className="p-2 bg-blue-600 rounded-lg">
-                  <FileText className="w-5 h-5 text-white" />
-                </div>
+                
                 <div>
                   <div className="text-2xl font-bold text-blue-600">
                     {applicants.length}

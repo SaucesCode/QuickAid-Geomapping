@@ -88,147 +88,217 @@ const Dashboard = () => {
   };
 
   if (loading) {
-  return (
-    <div className="p-4 bg-quickaid-bg">
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)]">
-        {/* Spinner with centered icon */}
-        <div className="relative w-20 h-20 mb-4"> {/* Bigger size */}
-          {/* Spinning ring */}
-          <div className="absolute inset-0 border-[6px] border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    return (
+      <div className="p-6 bg-gradient-to-br from-blue-50 via-blue-50 to-blue-50 min-h-screen">
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)]">
+          {/* Modern Spinner */}
+          <div className="relative w-24 h-24 mb-6">
+            {/* Outer spinning ring */}
+            <div className="absolute inset-0 border-[6px] border-gradient-to-r from-blue-500 via-blue-500 to-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            
+            {/* Inner pulsing ring */}
+            <div className="absolute inset-2 border-4 border-blue-300 border-t-transparent rounded-full animate-spin animation-delay-150"></div>
 
-          {/* Centered icon */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <LayoutDashboard className="w-8 h-8 text-blue-500" />
+            {/* Centered icon with glow effect */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              
+                <LayoutDashboard className="w-8 h-8 text-blue-500" />
+              
+            </div>
+          </div>
+
+          {/* Loading text with gradient */}
+          <div className="text-center space-y-2">
+            <p className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-blue-600 to-blue-600 font-bold text-xl">
+              Loading Dashboard
+            </p>
+            <p className="text-sm text-gray-600 font-medium">
+              Fetching your data...
+            </p>
           </div>
         </div>
-
-        {/* Loading text */}
-        <p className="text-blue-600 font-medium text-lg">
-          Loading dashboard data...
-        </p>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
-    <div className="p-4 space-y-4 bg-quickaid-bg min-h-screen">
-      {/* Header */}
-      <header>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-quickaid-accent/10 rounded-md flex items-center justify-center">
-            <LayoutDashboard className="w-5 h-5 text-quickaid-accent" />
+    <div className="p-6 space-y-6 bg-gradient-to-br from-blue-50 via-blue-50 to-blue-50 min-h-screen">
+      {/* Modern Header */}
+      <header className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+            <LayoutDashboard className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-quickaid-text-primary">Dashboard</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-600">
+              Dashboard
+            </h1>
+            <p className="text-sm text-gray-600 font-medium">
+              Executive summary of QuickAid operations
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-quickaid-text-secondary">
-          Executive summary of QuickAid operations.
-        </p>
       </header>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Modern KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={Users}
           title="Total Applicants"
           value={summary?.totalApplicants ?? 0}
+          gradient="from-blue-500 to-blue-600"
+          bgGradient="from-blue-50 to-blue-50"
         />
         <StatCard
           icon={Clock}
           title="Avg. Processing Time"
           value={`${summary?.averageProcessingTime ?? 0} mins`}
+          gradient="from-blue-500 to-pink-600"
+          bgGradient="from-blue-50 to-pink-50"
         />
         <StatCard
           icon={TrendingUp}
           title="Growth Rate"
           value={`${growth?.growth_rate ?? 0}%`}
+          gradient="from-green-500 to-emerald-600"
+          bgGradient="from-green-50 to-emerald-50"
         />
         <StatCard
           icon={MapPin}
           title="Top Barangay"
           value={summary?.highestBarangay ?? "N/A"}
+          gradient="from-orange-500 to-red-600"
+          bgGradient="from-orange-50 to-red-50"
         />
       </div>
 
-      {/* Monthly Trend */}
-      <Card title="Monthly Applications Trend" icon={TrendingUp}>
-        <ResponsiveContainer width="100%" height={250}>
+      {/* Monthly Trend Chart */}
+      <Card title="Monthly Applications Trend" icon={TrendingUp} gradient="from-blue-500 to-blue-600">
+        <ResponsiveContainer width="100%" height={300}>
           <LineChart data={monthlyTrend}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="count" stroke="#2563eb" strokeWidth={2} />
+            <defs>
+              <linearGradient id="colorGradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="100%" stopColor="#6366f1" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+            <XAxis dataKey="month" stroke="#6b7280" style={{ fontSize: '12px', fontWeight: '500' }} />
+            <YAxis stroke="#6b7280" style={{ fontSize: '12px', fontWeight: '500' }} />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'white', 
+                border: 'none', 
+                borderRadius: '12px', 
+                boxShadow: '0 10px 25px rgba(0,0,0,0.1)' 
+              }} 
+            />
+            <Line 
+              type="monotone" 
+              dataKey="count" 
+              stroke="url(#colorGradient)" 
+              strokeWidth={3}
+              dot={{ fill: '#3b82f6', strokeWidth: 2, r: 5 }}
+              activeDot={{ r: 7, fill: '#6366f1' }}
+            />
           </LineChart>
         </ResponsiveContainer>
       </Card>
 
       {/* Staff Activity + Recent Applicants */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <Card title="Top Staff Activity" icon={Activity}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card title="Top Staff Activity" icon={Activity} gradient="from-blue-500 to-pink-600">
           {staffActivity.length > 0 ? (
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {staffActivity.slice(0, 5).map((s, i) => (
-                <li key={i} className="flex justify-between p-2 bg-slate-50 rounded-md">
-                  <span className="font-medium">{s.staff__username}</span>
-                  <span className="text-sm">{s.count} apps</span>
+                <li 
+                  key={i} 
+                  className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-pink-50 rounded-xl border border-blue-100 hover:shadow-md transition-all duration-200 hover:scale-102"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                      {i + 1}
+                    </div>
+                    <span className="font-semibold text-gray-800">{s.staff__username}</span>
+                  </div>
+                  <span className="px-3 py-1 bg-white rounded-full text-sm font-bold text-blue-600 shadow-sm">
+                    {s.count} apps
+                  </span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-slate-500">No staff activity</p>
+            <div className="text-center py-8">
+              <Activity className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-gray-500 font-medium">No staff activity</p>
+            </div>
           )}
         </Card>
 
-        <Card title="Recent Applicants" icon={FileText}>
-          <table className="w-full text-sm">
-            <thead className="bg-slate-100">
-              <tr>
-                <th className="p-2 text-left">Name</th>
-                <th className="p-2">Barangay</th>
-                <th className="p-2">Assistance</th>
-                <th className="p-2 text-right">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentApplicants.slice(0, 5).map((a, idx) => (
-                <tr key={idx} className="border-b">
-                  <td className="p-2">
-                    {a.background_info?.first_name} {a.background_info?.last_name}
-                  </td>
-                  <td className="p-2 text-center">{a.background_info?.barangay}</td>
-                  <td className="p-2 text-center">{a.type_of_assistance}</td>
-                  <td className="p-2 text-right">{formatDate(a.date_filled)}</td>
+        <Card title="Recent Applicants" icon={FileText} gradient="from-green-500 to-emerald-600">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gradient-to-r from-green-50 to-emerald-50 border-b-2 border-green-200">
+                  <th className="p-3 text-left font-bold text-gray-700">Name</th>
+                  <th className="p-3 text-center font-bold text-gray-700">Barangay</th>
+                  <th className="p-3 text-center font-bold text-gray-700">Assistance</th>
+                  <th className="p-3 text-right font-bold text-gray-700">Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {recentApplicants.slice(0, 5).map((a, idx) => (
+                  <tr 
+                    key={idx} 
+                    className="border-b border-gray-100 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-colors duration-150"
+                  >
+                    <td className="p-3 font-medium text-gray-800">
+                      {a.background_info?.first_name} {a.background_info?.last_name}
+                    </td>
+                    <td className="p-3 text-center text-gray-600">{a.background_info?.barangay}</td>
+                    <td className="p-3 text-center">
+                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                        {a.type_of_assistance}
+                      </span>
+                    </td>
+                    <td className="p-3 text-right text-gray-500 text-xs">{formatDate(a.date_filled)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       </div>
     </div>
   );
 };
 
-// Reusable UI components
-const Card = ({ title, icon: Icon, children }) => (
-  <div className="bg-quickaid-surface rounded-lg shadow p-3 border border-slate-200">
-    <div className="flex items-center gap-2 mb-3">
-      <Icon className="w-5 h-5 text-quickaid-accent" />
-      <h2 className="font-semibold text-quickaid-text-primary">{title}</h2>
+// Modern Card Component
+const Card = ({ title, icon: Icon, children, gradient }) => (
+  <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 hover:shadow-2xl transition-shadow duration-300">
+    <div className="flex items-center gap-3 mb-5">
+      <div className={`w-10 h-10 bg-gradient-to-br ${gradient} rounded-xl flex items-center justify-center shadow-lg`}>
+        <Icon className="w-5 h-5 text-white" />
+      </div>
+      <h2 className="font-bold text-lg text-gray-800">{title}</h2>
     </div>
     {children}
   </div>
 );
 
-const StatCard = ({ icon: Icon, title, value }) => (
-  <div className="bg-quickaid-surface rounded-lg shadow p-3 border border-slate-200 flex justify-between items-center">
-    <div>
-      <p className="text-xs text-quickaid-text-secondary">{title}</p>
-      <p className="text-lg font-bold">{value}</p>
+// Modern Stat Card Component
+const StatCard = ({ icon: Icon, title, value, gradient, bgGradient }) => (
+  <div className={`bg-gradient-to-br ${bgGradient} rounded-2xl shadow-xl p-6 border border-white hover:shadow-2xl transition-all duration-300 hover:scale-105`}>
+    <div className="flex justify-between items-start mb-4">
+      <div className="flex-1">
+        <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">{title}</p>
+        <p className="text-3xl font-bold text-gray-900">{value}</p>
+      </div>
+      <div className={`w-14 h-14 bg-gradient-to-br ${gradient} rounded-xl flex items-center justify-center shadow-lg`}>
+        <Icon className="w-7 h-7 text-white" />
+      </div>
     </div>
-    <div className="w-8 h-8 bg-quickaid-accent/10 rounded-md flex items-center justify-center">
-      <Icon className="w-5 h-5 text-quickaid-accent" />
-    </div>
+    <div className="h-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent rounded-full"></div>
   </div>
 );
 

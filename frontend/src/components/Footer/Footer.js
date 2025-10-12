@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, Clock, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
-import Logo from '../../assets/qa-withoutText.png'; // adjust path based on your folder
+import Logo from '../../assets/QUICKAID white stroke LOGO.png'; // adjust path based on your folder
 
 const Footer = () => {
   return (
