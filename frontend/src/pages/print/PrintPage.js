@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Printer, ArrowLeft, UserPlus } from "lucide-react";
 
 const PrintPage = () => {
   const { state } = useLocation();
@@ -74,42 +75,49 @@ const PrintPage = () => {
         }
       `}</style>
       
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 px-2">
-        <div className="print-container max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 py-8 px-4">
+        <div className="print-container max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
           
           {/* Header Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4">
-            <div className="flex items-center justify-between">
+          <div className="relative bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 text-white px-8 py-8 overflow-hidden">
+            <div className="absolute inset-0 bg-black opacity-5"></div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-24 -mb-24"></div>
+            
+            <div className="relative flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold mb-1">QuickAid</h1>
-                <p className="text-blue-100 text-xs">Social Assistance Application</p>
+                <h1 className="text-4xl font-bold mb-2 tracking-tight">QuickAid</h1>
+                <p className="text-blue-100 text-sm font-medium">Social Assistance Application</p>
               </div>
-              <div className="text-right text-xs">
-                <p className="font-semibold">Document Date</p>
-                <p className="text-blue-100">{new Date().toLocaleDateString()}</p>
+              <div className="text-right bg-white bg-opacity-10 backdrop-blur-sm px-4 py-3 rounded-xl border border-white border-opacity-20">
+                <p className="font-semibold text-sm">Document Date</p>
+                <p className="text-blue-100 text-xs mt-1">{new Date().toLocaleDateString()}</p>
               </div>
             </div>
           </div>
 
           {/* Document Title */}
-          <div className="border-b-2 border-blue-600 px-6 py-3">
-            <h2 className="text-lg font-bold text-gray-800">
+          <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-5 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">
               Applicant Information Record
             </h2>
-            <p className="text-gray-600 mt-0.5 text-xs">
+            <p className="text-gray-600 mt-1 text-sm">
               Complete application details for assistance processing
             </p>
           </div>
 
           {/* Main Content */}
-          <div className="px-6 py-4 text-sm">
+          <div className="px-8 py-6 text-sm">
             
             {/* Personal Information Section */}
-            <div className="mb-4">
-              <h3 className="text-base font-semibold text-gray-800 mb-2 pb-1 border-b border-gray-300">
-                Personal Information
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-6 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Personal Information
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4 bg-gray-50 p-5 rounded-xl border border-gray-200">
                 <InfoField 
                   label="First Name" 
                   value={applicant.background_info.first_name} 
@@ -138,9 +146,9 @@ const PrintPage = () => {
             </div>
 
             {/* Full Name Display */}
-            <div className="bg-blue-50 border-l-4 border-blue-600 p-2 mb-4">
-              <p className="text-xs text-gray-600 mb-0.5">Complete Name</p>
-              <p className="text-base font-semibold text-gray-800">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-600 p-4 mb-6 rounded-r-xl shadow-sm">
+              <p className="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wider">Complete Name</p>
+              <p className="text-lg font-bold text-gray-900">
                 {applicant.background_info.first_name}{" "}
                 {applicant.background_info.middle_initial}{" "}
                 {applicant.background_info.last_name}
@@ -149,11 +157,14 @@ const PrintPage = () => {
             </div>
 
             {/* Address Section */}
-            <div className="mb-4">
-              <h3 className="text-base font-semibold text-gray-800 mb-2 pb-1 border-b border-gray-300">
-                Address Information
-              </h3>
-              <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-6 bg-gradient-to-b from-indigo-600 to-blue-600 rounded-full"></div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Address Information
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-4 bg-gray-50 p-5 rounded-xl border border-gray-200">
                 <InfoField 
                   label="Street Address" 
                   value={applicant.background_info.street_address} 
@@ -173,9 +184,9 @@ const PrintPage = () => {
               </div>
               
               {/* Full Address Display */}
-              <div className="p-2 bg-gray-50 rounded-md">
-                <p className="text-xs text-gray-600 mb-0.5">Complete Address</p>
-                <p className="text-gray-800 font-medium text-sm">
+              <div className="p-4 bg-gradient-to-r from-gray-50 to-indigo-50 rounded-xl border border-gray-200 shadow-sm">
+                <p className="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wider">Complete Address</p>
+                <p className="text-gray-900 font-semibold text-base">
                   {applicant.background_info.street_address}, {applicant.background_info.barangay},{" "}
                   {applicant.background_info.barangay_details.city_name},{" "}
                   {applicant.background_info.barangay_details.province_name}
@@ -184,48 +195,54 @@ const PrintPage = () => {
             </div>
 
             {/* Assistance Information */}
-            <div className="mb-3">
-              <h3 className="text-base font-semibold text-gray-800 mb-2 pb-1 border-b border-gray-300">
-                Assistance Details
-              </h3>
-              <div className="bg-green-50 border-l-4 border-green-600 p-2">
-                <p className="text-xs text-gray-600 mb-0.5">Type of Assistance Requested</p>
-                <p className="text-base font-semibold text-gray-800">
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-6 bg-gradient-to-b from-green-600 to-emerald-600 rounded-full"></div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Assistance Details
+                </h3>
+              </div>
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-600 p-4 rounded-r-xl shadow-sm">
+                <p className="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wider">Type of Assistance Requested</p>
+                <p className="text-lg font-bold text-gray-900">
                   {applicant.type_of_assistance}
                 </p>
               </div>
             </div>
 
             {/* Footer Note */}
-            <div className="border-t border-gray-300 pt-2 mt-3">
-              <p className="text-xs text-gray-500 text-center">
+            <div className="border-t border-gray-200 pt-4 mt-6">
+              <p className="text-xs text-gray-500 text-center font-medium">
                 Generated on {new Date().toLocaleString()} via QuickAid
               </p>
             </div>
           </div>
 
           {/* Action Buttons - Hidden on Print */}
-          <div className="no-print bg-gray-50 px-6 py-4 border-t border-gray-200">
-            <div className="flex flex-wrap gap-3 justify-center">
+          <div className="no-print bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-6 border-t border-gray-200">
+            <div className="flex flex-wrap gap-4 justify-center">
               <button
                 onClick={() => window.print()}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg font-medium"
+                className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl font-semibold transform hover:scale-105 duration-200 flex items-center gap-2"
               >
-                🖨️ Print Document
+                <Printer size={20} />
+                Print Document
               </button>
 
               <button
                 onClick={() => navigate("/dashboard")}
-                className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-md hover:shadow-lg font-medium"
+                className="px-8 py-3.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all shadow-lg hover:shadow-xl font-semibold transform hover:scale-105 duration-200 flex items-center gap-2"
               >
-                ← Back to Dashboard
+                <ArrowLeft size={20} />
+                Back to Dashboard
               </button>
 
               <button
                 onClick={() => navigate("/new-applicant")}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md hover:shadow-lg font-medium"
+                className="px-8 py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl font-semibold transform hover:scale-105 duration-200 flex items-center gap-2"
               >
-                ➕ New Applicant
+                <UserPlus size={20} />
+                New Applicant
               </button>
             </div>
           </div>
@@ -237,9 +254,9 @@ const PrintPage = () => {
 
 // Reusable Info Field Component
 const InfoField = ({ label, value }) => (
-  <div className="space-y-0.5">
-    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</p>
-    <p className="text-gray-800 font-medium text-sm">{value}</p>
+  <div className="space-y-1">
+    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</p>
+    <p className="text-gray-900 font-semibold text-sm">{value}</p>
   </div>
 );
 

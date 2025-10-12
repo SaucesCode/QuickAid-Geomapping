@@ -1,5 +1,5 @@
 // File: frontend/src/forms/MultiStepForm.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Step1 from "./Step1";
 import Step2 from "./Step2";
 import Step3 from "./Step3";
@@ -10,6 +10,9 @@ const MultiStepForm = () => {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
   const [cancelModal, setCancelModal] = useState({ show: false });
+   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
 
   const [formData, setFormData] = useState({
     // Step 1
@@ -101,41 +104,82 @@ const MultiStepForm = () => {
 
   return (
     <div className="relative w-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      {/* Header with Cancel Button */}
-      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-800">Applicant Registration</h1>
-              <p className="text-sm text-gray-500">Complete all steps to submit your application</p>
-            </div>
-          </div>
-          <button
-            onClick={handleCancel}
-            className="group flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-600 font-semibold rounded-xl border-2 border-red-200 hover:bg-red-100 hover:border-red-300 transition-all duration-200 hover:scale-105 active:scale-95"
-          >
+    {/* Step Progress Bar (Top Fixed) */}
+    
+    <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-lg font-semibold text-gray-700">
+            Step {step} of 4
+          </h1>
+          <span className="text-sm text-gray-500">
+            {step === 1
+              ? "Personal Information"
+              : step === 2
+              ? "Address Details"
+              : step === 3
+              ? "Additional Information"
+              : "Preview & Submit"}
+          </span>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 transition-all duration-500"
+            style={{ width: `${(step / 4) * 100}%` }}
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    {/* Header with Cancel Button */}
+    <div className="sticky top-[72px] z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
             <svg
-              className="w-5 h-5 transition-transform duration-200 group-hover:rotate-90"
+              className="w-6 h-6 text-white"
               fill="none"
-              viewBox="0 0 24 24"
               stroke="currentColor"
+              viewBox="0 0 24 24"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
+                strokeWidth="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            Cancel
-          </button>
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-800">Applicant Registration</h1>
+            <p className="text-sm text-gray-500">
+              Complete all steps to submit your application
+            </p>
+          </div>
         </div>
+        <button
+          onClick={handleCancel}
+          className="group flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-600 font-semibold rounded-xl border-2 border-red-200 hover:bg-red-100 hover:border-red-300 transition-all duration-200 hover:scale-105 active:scale-95"
+        >
+          <svg
+            className="w-5 h-5 transition-transform duration-200 group-hover:rotate-90"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+          Cancel
+        </button>
       </div>
+    </div>
 
       {/* Step Indicator */}
       <div className="max-w-7xl mx-auto px-6 pt-6">

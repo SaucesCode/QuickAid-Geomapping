@@ -58,14 +58,14 @@ const AboutUs = () => {
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="inline-block mb-4 px-4 py-1.5 bg-white/20 rounded-full border border-white/40 backdrop-blur"
+              // className="inline-block mb-4 px-4 py-1.5 bg-white/20 rounded-full border border-white/40 backdrop-blur"
             >
               
             </motion.div>
 
-            <h1 className="text-5xl lg:text-7xl font-bold leading-tight tracking-tight"> Delivering{" "} 
+            <h1 className="text-5xl lg:text-7xl font-bold text-white leading-tight tracking-tight"> Delivering{" "} 
               <span className="relative"> 
-                <span className="text-transparent text-5xl lg:text-6xl font-bold bg-clip-text bg-gradient-to-r from-red-600 via-red-400 to-red-600"> 
+                <span className="text-transparent text-5xl lg:text-6xl font-bold bg-clip-text bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600"> 
                   Compassionate Assistance </span> 
                   <motion.div 
                   initial={{ scaleX: 0 }} 
@@ -74,11 +74,11 @@ const AboutUs = () => {
                   className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 to-blue-600 origin-left" ></motion.div> 
                   </span> <br /> 
                   </h1>
-                  <span className="block text-5xl lg:text-7xl font-extrabold text-blue-400 leading-tight tracking-tight mt-2 "> in Times of Crisis </span>
+                  <span className="block text-5xl lg:text-7xl font-bold text-red-600 leading-tight tracking-tight mt-2 "> in Times of Crisis </span>
 
           </div>
 
-          <motion.p
+          {/* <motion.p
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -87,7 +87,7 @@ const AboutUs = () => {
             The Assistance to Individuals in Crisis Situation (AICS) Program provides
             immediate and meaningful support to individuals and families facing life's
             toughest challenges.
-          </motion.p>
+          </motion.p> */}
 
           {/* CTA Buttons */}
           <motion.div
@@ -248,11 +248,11 @@ const AboutUs = () => {
             
             <div className="flex flex-col items-center justify-center text-center gap-12">
   <div className="space-y-6">
-    <h2 className="text-5xl lg:text-7xl font-black text-gray-900 tracking-tight leading-[0.95]">
+    <h2 className="text-5xl lg:text-7xl font-black font-bold text-gray-900 tracking-tight leading-[0.95]">
       Key Aspects of<br />
       <span className="relative inline-block">
         <span
-          className="text-5xl lg:text-7xl text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-blue-600 to-blue-600 animate-gradient"
+          className="text-5xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-blue-600 to-blue-600 animate-gradient"
           style={{ backgroundSize: "200% 200%" }}
         >
           Our Assistance
@@ -294,7 +294,7 @@ const AboutUs = () => {
                   
                   <div className="relative">
                     <div className="flex items-start justify-between mb-6">
-                      <h3 className="text-4xl font-black text-gray-900 group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-4xl font-black font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                         Definition of Crisis
                       </h3>
                       <div className="flex items-center gap-2 px-4 py-1.5 bg-blue-50 rounded-full border border-blue-100">
@@ -333,7 +333,7 @@ const AboutUs = () => {
               </div>
               
               <div className="lg:col-span-10">
-                <h3 className="text-4xl font-black text-gray-900 mb-10 group-hover:text-purple-600 transition-colors">
+                <h3 className="text-4xl font-black font-bold text-gray-900 mb-10 group-hover:text-purple-600 transition-colors">
                   Types of Assistance
                 </h3>
                 
@@ -394,7 +394,7 @@ const AboutUs = () => {
                   <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   
                   <div className="relative">
-                    <h3 className="text-4xl font-black text-gray-900 mb-10 group-hover:text-emerald-600 transition-colors">
+                    <h3 className="text-4xl font-black font-bold text-gray-900 mb-10 group-hover:text-emerald-600 transition-colors">
                       Our Goals
                     </h3>
                     
@@ -575,71 +575,102 @@ const AboutUs = () => {
       </section>
 
       {/* Contact & Location */}
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          {/* Section Title */}
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
-              Contact & Location
-            </h2>
-            <p className="text-gray-600 mt-3">
-              Get in touch with us or visit our office
-            </p>
-          </div>
+<section className="py-32 bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 relative overflow-hidden">
+  {/* Animated background elements */}
+  <div className="absolute inset-0">
+    <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+    <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
+  </div>
+  
+  <div className="max-w-7xl mx-auto px-6 relative z-10">
+    {/* Section Title */}
+    <div className="text-center mb-20">
+      <div className="inline-flex items-center gap-3 bg-blue-500/10 backdrop-blur-md border border-blue-400/30 px-8 py-3 rounded-full mb-8 shadow-lg shadow-blue-500/20">
+        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+        <span className="text-blue-300 font-bold text-sm tracking-widest uppercase">Contact Information</span>
+      </div>
+      <h2 className="text-6xl lg:text-7xl font-black text-white mb-6 tracking-tight">
+        Get In <span className="text-6xl lg:text-7xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500">Touch</span>
+      </h2>
+      <p className="text-blue-200/80 text-xl max-w-3xl mx-auto leading-relaxed">
+        We're here to assist you. Reach out or visit us at our location
+      </p>
+    </div>
 
-          <div className="grid md:grid-cols-2 gap-10 items-center">
-            {/* Contact Info */}
-            <div className="bg-gray-50 rounded-2xl shadow-lg p-8 space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shadow">
-                  <FaMapMarkerAlt className="text-xl" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Address</h3>
-                  <p className="text-gray-600">
-                    DSWD Central Office, Batasan Hills, <br />
-                    Quezon City, Philippines
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shadow">
-                  <FaPhoneAlt className="text-xl" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Phone</h3>
-                  <p className="text-gray-600">+63 2 8931 8101</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shadow">
-                  <FaEnvelope className="text-xl" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Email</h3>
-                  <p className="text-gray-600">aics@dswd.gov.ph</p>
-                </div>
-              </div>
+    <div className="grid lg:grid-cols-2 gap-10 items-start">
+      {/* Contact Info */}
+      <div className="space-y-6">
+        {/* Address Card */}
+        <div className="group relative bg-gradient-to-br from-blue-800/40 to-blue-900/40 backdrop-blur-xl rounded-3xl p-10 border border-blue-400/20 hover:border-blue-400/60 transition-all duration-500 shadow-xl shadow-blue-900/20 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-2">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-cyan-500/0 to-blue-600/0 group-hover:from-blue-500/10 group-hover:via-cyan-500/5 group-hover:to-blue-600/10 rounded-3xl transition-all duration-500"></div>
+          <div className="relative flex items-start gap-6">
+            <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/60 group-hover:shadow-blue-400/80 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+              <FaMapMarkerAlt className="text-3xl text-white" />
             </div>
-
-            {/* Google Map */}
-            <div className="rounded-2xl overflow-hidden shadow-lg relative">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3859.721540986481!2d121.07363437492914!3d14.685401875010888!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b7e42b20d8a3%3A0x2b21c2f17720e6a0!2sDSWD%20Central%20Office!5e0!3m2!1sen!2sph!4v1695555555555!5m2!1sen!2sph"
-                width="100%"
-                height="350"
-                style={{ border: 0 }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="DSWD Location"
-              ></iframe>
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-blue-300 transition-colors">Address</h3>
+              <p className="text-blue-100/90 text-lg leading-relaxed">
+                DSWD Central Office<br />
+                Batasan Hills<br />
+                Quezon City, Philippines
+              </p>
             </div>
           </div>
         </div>
-      </section>
+
+        {/* Phone Card */}
+        <div className="group relative bg-gradient-to-br from-blue-800/40 to-blue-900/40 backdrop-blur-xl rounded-3xl p-10 border border-blue-400/20 hover:border-blue-400/60 transition-all duration-500 shadow-xl shadow-blue-900/20 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-2">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-cyan-500/0 to-blue-600/0 group-hover:from-blue-500/10 group-hover:via-cyan-500/5 group-hover:to-blue-600/10 rounded-3xl transition-all duration-500"></div>
+          <div className="relative flex items-start gap-6">
+            <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-cyan-400 via-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-cyan-500/60 group-hover:shadow-cyan-400/80 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500">
+              <FaPhoneAlt className="text-3xl text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-blue-300 transition-colors">Phone</h3>
+              <p className="text-blue-100/90 text-xl font-semibold">+63 2 8931 8101</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Email Card */}
+        <div className="group relative bg-gradient-to-br from-blue-800/40 to-blue-900/40 backdrop-blur-xl rounded-3xl p-10 border border-blue-400/20 hover:border-blue-400/60 transition-all duration-500 shadow-xl shadow-blue-900/20 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-2">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-cyan-500/0 to-blue-600/0 group-hover:from-blue-500/10 group-hover:via-cyan-500/5 group-hover:to-blue-600/10 rounded-3xl transition-all duration-500"></div>
+          <div className="relative flex items-start gap-6">
+            <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-blue-500 via-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/60 group-hover:shadow-blue-400/80 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+              <FaEnvelope className="text-3xl text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-blue-300 transition-colors">Email</h3>
+              <p className="text-blue-100/90 text-xl font-semibold">aics@dswd.gov.ph</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Google Map with Pin */}
+      <div className="lg:sticky lg:top-8">
+        <div className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600 rounded-3xl blur-2xl opacity-60 group-hover:opacity-100 transition-all duration-700 animate-pulse"></div>
+          <div className="relative rounded-3xl overflow-hidden border-4 border-blue-400/30 shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 via-transparent to-cyan-400/10 pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <iframe
+              src="https://www.google.com/maps?q=13.936812,121.616434&z=15&output=embed"
+              width="100%"
+              height="650"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="DSWD Location - Pinpointed"
+              className="brightness-110 contrast-110"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
       <Footer />
     </div>

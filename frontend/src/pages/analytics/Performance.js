@@ -234,24 +234,37 @@ const Performance = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center text-center">
-        <div className=" flex flex-col items-center">
-          {/* Loading circle with icon at center */}
-          <div className="relative flex items-center justify-center">
-            <div className="h-20 w-20 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
-            <Activity className="absolute h-8 w-8 text-blue-600" />
-          </div>
-  
-          <h2 className="mt-6 text-xl font-semibold text-gray-800 flex items-center justify-center gap-2">
-            Loading Performance Data
-          </h2>
-          <p className="text-gray-500 mt-2 text-sm">
-            Please wait while we fetch the latest analytics and insights...
-          </p>
-        </div>
-      </div>
-    );
-  }
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-20 left-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+                <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+              </div>
+              
+              <div className="relative z-10 flex flex-col items-center bg-white bg-opacity-80 backdrop-blur-xl p-12 rounded-3xl shadow-2xl border border-blue-200">
+                <div className="relative flex items-center justify-center mb-6">
+                  <div className="h-24 w-24 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
+                  <div className="absolute flex items-center justify-center">
+                    <Activity className="h-10 w-10 text-blue-600 animate-pulse" />
+                  </div>
+                </div>
+        
+                <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 flex items-center justify-center gap-2 mb-3">
+                  Loading Performance Data
+                </h2>
+                <p className="text-gray-600 text-base max-w-md">
+                  Please wait while we fetch the latest analytics and insights...
+                </p>
+                
+                <div className="flex gap-2 mt-6">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-100"></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-200"></div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
   
   if (error) {
     return (

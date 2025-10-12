@@ -37,11 +37,15 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
   };
 
   const handleNext = e => {
-    e.preventDefault();
-    if (validateForm()) {
-      nextStep();
-    }
-  };
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (validateForm()) {
+    window.scrollTo({ top: 0, behavior: "smooth" }); // 👈 Scrolls up smoothly
+    nextStep();
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-12 px-4">
@@ -385,25 +389,32 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                       )}
                     </div>
 
-                    {/* Representative Middle Initial */}
-                    <div className="form-group">
-                      <label
-                        htmlFor="rep_middle_initial"
-                        className="block text-sm font-semibold text-gray-700 mb-2"
-                      >
-                        Middle Initial
-                      </label>
-                      <input
-                        type="text"
-                        id="rep_middle_initial"
-                        name="rep_middle_initial"
-                        maxLength={1}
-                        value={formData.rep_middle_initial || ""}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
-                        placeholder="Enter middle initial"
-                      />
-                    </div>
+                    {/* Representative Middle Name */}
+<div className="form-group">
+  <label
+    htmlFor="rep_middle_name"
+    className="block text-sm font-semibold text-gray-700 mb-2"
+  >
+    Middle Name
+  </label>
+  <input
+    type="text"
+    id="rep_middle_name"
+    name="rep_middle_name"
+    value={formData.rep_middle_name || ""}
+    onChange={(e) => {
+      const value = e.target.value;
+      const formatted =
+        value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+      handleChange({
+        target: { name: "rep_middle_name", value: formatted },
+      });
+    }}
+    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
+    placeholder="Enter full middle name"
+  />
+</div>
+
 
                     {/* Representative Suffix */}
                     <div className="form-group">

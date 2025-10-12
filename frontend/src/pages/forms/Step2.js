@@ -51,13 +51,15 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
   };
 
   const handleNext = e => {
-    e.preventDefault();
-    e.stopPropagation();
+  e.preventDefault();
+  e.stopPropagation();
 
-    if (validateForm()) {
-      nextStep();
-    }
-  };
+  if (validateForm()) {
+    window.scrollTo({ top: 0, behavior: "smooth" }); // 👈 Scrolls up smoothly
+    nextStep();
+  }
+};
+
 
   const handleInputChange = (e) => {
   const { name, value, type } = e.target;
