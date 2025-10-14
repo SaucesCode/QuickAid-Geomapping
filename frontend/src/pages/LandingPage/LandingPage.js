@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, MapPin, Phone, ChevronDown,Sparkles, ArrowRight, Users,FileText,CheckCircle, TrendingUp, Heart, Calendar } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
@@ -110,10 +110,19 @@ const steps = [
       iconBg: "bg-gradient-to-br from-emerald-500 to-teal-500"
     }
   ];
+  
 
 
 const LandingPage = () => {
   const [openFaq, setOpenFaq] = useState(null);
+
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className="font-sans min-h-screen">
@@ -547,10 +556,10 @@ const LandingPage = () => {
         <div className="text-center mb-20">
           
           
-          <h2 className="text-5xl md:text-7xl font-bold font-black text-white mb-6 leading-tight">
+          <h2 className="text-5xl lg:text-6xl font-bold font-black text-white mb-6 leading-tight">
             How to Apply for
             <br />
-            <span className="bg-gradient-to-r text-5xl md:text-7xl font-bold from-blue-400 via-blue-400 to-white-400 bg-clip-text text-transparent animate-gradient">
+            <span className="bg-gradient-to-r text-5xl lg:text-6xl font-bold from-blue-400 via-blue-400 to-white-400 bg-clip-text text-transparent animate-gradient">
               AICS Program
             </span>
           </h2>
@@ -706,84 +715,140 @@ const LandingPage = () => {
 </section>
 
 
-            <section className="relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-24 px-4 overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-1000"></div>
+            <section className="relative min-h-screen flex items-center justify-center py-20 px-4 overflow-hidden bg-slate-950">
+      {/* Animated Blue Mesh Gradient Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-slate-950 to-blue-900"></div>
+        <div 
+          className="absolute top-0 left-0 w-full h-full opacity-40"
+          style={{
+            backgroundImage: `radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.4) 0%, transparent 50%),
+                             radial-gradient(circle at 80% 80%, rgba(96, 165, 250, 0.3) 0%, transparent 50%),
+                             radial-gradient(circle at 40% 20%, rgba(147, 197, 253, 0.3) 0%, transparent 50%)`,
+            transform: `translateY(${scrollY * 0.3}px)`
+          }}
+        ></div>
+        
+        {/* Grid Overlay */}
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+                           linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)`,
+          backgroundSize: '100px 100px'
+        }}></div>
       </div>
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto relative z-10 w-full">
         {/* Header Section */}
-        <div className="mb-20 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 bg-opacity-10 rounded-full mb-6 backdrop-blur-sm border border-blue-200">
-            <Heart className="w-4 h-4 text-blue-600" />
-            <p className="text-blue-600 text-sm font-semibold tracking-wide uppercase">
-              OUR MISSION
+        <div className="mb-32 text-center">
+          <div className="inline-flex items-center gap-3 px-6 py-3 bg-blue-500/10 backdrop-blur-2xl rounded-full mb-10 border border-blue-400/30 shadow-2xl shadow-blue-500/20">
+            <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
+            <p className="text-blue-400 text-xs font-bold tracking-[0.2em] uppercase">
+              Our Mission
             </p>
+            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping"></div>
           </div>
           
-          <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-900 mb-6 leading-tight">
-            We help those<br />
-            who seek help
+          <h2 className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-black mb-10 leading-[0.9] tracking-tight">
+            <span className="text-5xl lg:text-6xl block text-white mb-4">We help those</span>
+            <span className="block relative inline-block">
+              <span className="text-5xl lg:text-6xl relative z-10 bg-gradient-to-r from-blue-300 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                who seek help
+              </span>
+              <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-blue-500 via-blue-400 to-cyan-500 opacity-50 animate-pulse"></div>
+            </span>
           </h2>
           
-          <p className="text-gray-600 text-xl max-w-3xl mx-auto leading-relaxed">
+          <p className="text-blue-200/70 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-light">
             Thousands of individuals and families in crisis have received 
             assistance, relief, and hope through AICS.
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
           {/* Stat 1 */}
-          <div className="group relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-blue-200 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl opacity-0 group-hover:opacity-5 transition-opacity duration-500"></div>
-            <div className="relative">
-              <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-6 shadow-lg">
-                <TrendingUp className="w-7 h-7 text-white" />
+          <div className="group relative">
+            {/* Glow Effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-3xl blur-2xl opacity-0 group-hover:opacity-75 transition-all duration-1000"></div>
+            
+            <div className="relative bg-gradient-to-br from-blue-950/90 to-blue-900/90 backdrop-blur-xl rounded-3xl p-12 border border-blue-500/20 hover:border-blue-400/50 transition-all duration-500 overflow-hidden">
+              {/* Corner Accent */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-500/20 to-transparent rounded-bl-full"></div>
+              
+              {/* Icon */}
+              <div className="relative mb-8">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-2xl shadow-blue-500/50 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
+                  <TrendingUp className="w-10 h-10 text-white" strokeWidth={2.5} />
+                </div>
               </div>
-              <div className="text-6xl md:text-7xl font-bold bg-gradient-to-br from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-4">
-                50K+
+              
+              {/* Content */}
+              <div className="relative space-y-4">
+                <div className="text-8xl font-black bg-gradient-to-br from-blue-300 to-blue-400 bg-clip-text text-transparent leading-none">
+                  50K+
+                </div>
+                <p className="text-blue-200 text-xl font-semibold tracking-wide">Beneficiaries served</p>
+                
+                {/* Progress Bar */}
+                <div className="h-1.5 bg-blue-900/50 rounded-full overflow-hidden mt-6">
+                  <div className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full w-0 group-hover:w-full transition-all duration-1000 shadow-lg shadow-blue-500/50"></div>
+                </div>
               </div>
-              <p className="text-gray-700 text-lg font-semibold">Beneficiaries served</p>
-              <div className="mt-4 h-1 w-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mx-auto md:mx-0"></div>
             </div>
           </div>
 
-          {/* Stat 2 */}
-          <div className="group relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-indigo-200 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-3xl opacity-0 group-hover:opacity-5 transition-opacity duration-500"></div>
-            <div className="relative">
-              <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl mb-6 shadow-lg">
-                <Heart className="w-7 h-7 text-white" />
+          {/* Stat 2 - Featured */}
+          <div className="group relative lg:-translate-y-8">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 via-blue-500 to-cyan-500 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition-all duration-1000 animate-pulse"></div>
+            
+            <div className="relative bg-gradient-to-br from-blue-900 to-blue-800 backdrop-blur-xl rounded-3xl p-12 border-2 border-blue-400/50 hover:border-blue-300 transition-all duration-500 overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/30 to-transparent rounded-bl-full"></div>
+              
+              <div className="relative mb-8">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl shadow-2xl shadow-blue-400/60 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
+                  <Heart className="w-10 h-10 text-white" strokeWidth={2.5} fill="white" />
+                </div>
               </div>
-              <div className="text-6xl md:text-7xl font-bold bg-gradient-to-br from-indigo-600 to-blue-700 bg-clip-text text-transparent mb-4">
-                ₱120M+
+              
+              <div className="relative space-y-4">
+                <div className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-200 to-cyan-300 pb-2">
+                  ₱120M+
+                </div>
+                <p className="text-blue-100 text-xl font-semibold tracking-wide">Financial aid released</p>
+                
+                <div className="h-1.5 bg-blue-900/50 rounded-full overflow-hidden mt-6">
+                  <div className="h-full bg-gradient-to-r from-blue-300 to-cyan-400 rounded-full w-0 group-hover:w-full transition-all duration-1000 shadow-lg shadow-blue-400/50"></div>
+                </div>
               </div>
-              <p className="text-gray-700 text-lg font-semibold">Financial aid released</p>
-              <div className="mt-4 h-1 w-16 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full mx-auto md:mx-0"></div>
             </div>
           </div>
 
           {/* Stat 3 */}
-          <div className="group relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-blue-200 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-pink-600 rounded-3xl opacity-0 group-hover:opacity-5 transition-opacity duration-500"></div>
-            <div className="relative">
-              <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mb-6 shadow-lg">
-                <Calendar className="w-7 h-7 text-white" />
+          <div className="group relative">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-3xl blur-2xl opacity-0 group-hover:opacity-75 transition-all duration-1000"></div>
+            
+            <div className="relative bg-gradient-to-br from-blue-950/90 to-blue-900/90 backdrop-blur-xl rounded-3xl p-12 border border-blue-500/20 hover:border-blue-400/50 transition-all duration-500 overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-transparent rounded-bl-full"></div>
+              
+              <div className="relative mb-8">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-2xl shadow-blue-500/50 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
+                  <Calendar className="w-10 h-10 text-white" strokeWidth={2.5} />
+                </div>
               </div>
-              <div className="text-6xl md:text-7xl font-bold bg-gradient-to-br from-blue-600 to-blue-700 bg-clip-text text-transparent mb-4">
-                15+
+              
+              <div className="relative space-y-4">
+                <div className="text-8xl font-black bg-gradient-to-br from-blue-300 to-cyan-400 bg-clip-text text-transparent leading-none">
+                  15+
+                </div>
+                <p className="text-blue-200 text-xl font-semibold tracking-wide">Years of service</p>
+                
+                <div className="h-1.5 bg-blue-900/50 rounded-full overflow-hidden mt-6">
+                  <div className="h-full bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full w-0 group-hover:w-full transition-all duration-1000 shadow-lg shadow-blue-500/50"></div>
+                </div>
               </div>
-              <p className="text-gray-700 text-lg font-semibold">Years of service</p>
-              <div className="mt-4 h-1 w-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mx-auto md:mx-0"></div>
             </div>
           </div>
         </div>
-
-        {/* Optional CTA */}
-        
       </div>
     </section>
       

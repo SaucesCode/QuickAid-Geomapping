@@ -1,7 +1,7 @@
 
 import { motion } from "framer-motion";
 import LandingPage from "../../assets/AICS 2.png"; 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 
 import Navbar from "../../components/Navigation/Navbar";
@@ -26,7 +26,8 @@ import {
   FaEnvelope,
 } from "react-icons/fa";
 import aics from "../../assets/AICS-OFFICIAL.png";
-import { Stethoscope, Cross, Info, Heart, Target, GraduationCap, Zap, Hospital, CheckCircle, Users, Clock, Sparkles, ArrowRight } from "lucide-react";
+import AICSheader from "../../assets/img9 (1).jpg";
+import { Stethoscope, HeartHandshake, Cross, Info, Eye, Heart, Target, GraduationCap, Zap, Hospital, CheckCircle, Users, Clock, Sparkles, ArrowRight } from "lucide-react";
 
 
 
@@ -34,6 +35,14 @@ import { Stethoscope, Cross, Info, Heart, Target, GraduationCap, Zap, Hospital, 
 
 const AboutUs = () => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [scrollY, setScrollY] = useState(0);
+  const [activeCard, setActiveCard] = useState(null);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   
   return (
@@ -224,7 +233,74 @@ const AboutUs = () => {
   </div>
 </section>
 
+<section className="bg-white text-gray-900">
+      {/* Header and Content */}
+      <div className="bg-[#0A2E5C] text-white py-12 px-8 md:px-16 flex flex-col md:flex-row items-center">
+        {/* Left Text */}
+        <div className="md:w-1/3">
+          <h2 className="text-4xl md:text-5xl font-bold leading-tight text-white">
+            Our Mission<br />and Vision Statement
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-gray-200">
+            This section presents the mission and vision statement of AICS,
+            defining its purpose, goals, and commitment to assist individuals in
+            crisis situations through efficient and compassionate service.
+          </p>
+        </div>
 
+        {/* Vision & Mission Cards */}
+        <div className="md:w-2/3 grid md:grid-cols-2 gap-8 mt-10 md:mt-0 md:pl-16">
+          {/* Vision */}
+          <div className="bg-white shadow-md rounded-md text-center p-6 border border-gray-200">
+            <div className="flex justify-center mb-3">
+              <div className="bg-[#0A2E5C] p-3 rounded-full">
+                <Eye className="text-white w-6 h-6" />
+              </div>
+            </div>
+            <h3 className="text-lg font-bold text-[#0A2E5C] mb-2">Vision</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              To be a leading and trusted government program that provides
+              immediate, compassionate, and effective assistance to individuals
+              and families in crisis situations across the nation.
+            </p>
+          </div>
+
+          {/* Mission */}
+          <div className="bg-white shadow-md rounded-md text-center p-6 border border-gray-200">
+            <div className="flex justify-center mb-3">
+              <div className="bg-[#0A2E5C] p-3 rounded-full">
+                <Target className="text-white w-6 h-6" />
+              </div>
+            </div>
+            <h3 className="text-lg font-bold text-[#0A2E5C] mb-2">Mission</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              To deliver timely, equitable, and people-centered crisis
+              interventions through effective management, collaboration, and
+              compassionate service to all Filipinos in need.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Image Section */}
+      <div className="relative w-full overflow-hidden">
+        <img
+          src={AICSheader}
+          alt="AICS Team Collaboration"
+          className="w-full h-[300px] md:h-[400px] object-cover object-center filter grayscale brightness-90"
+        />
+        {/* Blue Tint Overlay */}
+        <div className="absolute inset-0 bg-[#0A2E5C]/40 mix-blend-multiply"></div>
+
+        {/* Left Blue Rectangle */}
+        <div className="absolute left-0 top-0 h-full w-16 bg-[#0A2E5C]"></div>
+        {/* Small Red Accent */}
+        <div className="absolute left-12 top-1/2 -translate-y-1/2 h-10 w-12 bg-[#C33A3A]"></div>
+
+        {/* Right Red Accent */}
+        <div className="absolute right-0 top-0 h-full w-16 bg-[#C33A3A]/70"></div>
+      </div>
+    </section>
       {/* Key Aspects of Our Assistance */}
 
 
@@ -534,45 +610,7 @@ const AboutUs = () => {
         `}</style>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-12">
-            Testimonials / Success Stories
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="p-6 bg-gray-50 rounded-xl shadow"
-            >
-              <p className="text-gray-700 italic">
-                "AICS helped me pay for my child’s medical treatment. I am
-                forever grateful."
-              </p>
-              <h4 className="mt-4 font-bold text-blue-600">– Maria, Mother</h4>
-            </motion.div>
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="p-6 bg-gray-50 rounded-xl shadow"
-            >
-              <p className="text-gray-700 italic">
-                "Through the educational assistance, I was able to finish my
-                studies."
-              </p>
-              <h4 className="mt-4 font-bold text-blue-600">– John, Student</h4>
-            </motion.div>
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="p-6 bg-gray-50 rounded-xl shadow"
-            >
-              <p className="text-gray-700 italic">
-                "During our hardest times, AICS gave us immediate support."
-              </p>
-              <h4 className="mt-4 font-bold text-blue-600">– Ana, Beneficiary</h4>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+     
 
       {/* Contact & Location */}
 <section className="py-32 bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900 relative overflow-hidden">
