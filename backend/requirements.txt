@@ -1,0 +1,14 @@
+django
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+geopy
+psycopg2-binary
+django-filter
+Pillow
+python-decouple
+gunicorn
+whitenoise
+quickaid_update
+opencage
+corsheaders
