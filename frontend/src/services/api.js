@@ -1,7 +1,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-export const API_URL = "https://quickaid-geomapping.onrender.com/"; // Django backend URL
+export const API_URL = "https://quickaid-geomapping.onrender.com/api"; // Django backend URL
 
 export const api = axios.create({
   baseURL: API_URL,
