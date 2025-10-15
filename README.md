@@ -8,15 +8,15 @@ Visualize where applicants are located, track key application metrics, and uncov
 
 ## Key Features
 
-* 🧑‍💼 **Applicant Tracking:** Manage applicant profiles, status updates, and application details.
-* 🗺️ **Geomapping Visualization:** Display applicant locations individually or as heatmaps/clusters on an interactive map.
-* 📈 **Analytics Dashboard:** View key performance indicators (KPIs), demographic breakdowns, application trends, and potentially spatial analytics results.
-* 🔎 **Spatial Filtering/Querying:** Filter or search for applicants based on geographic area or proximity.
+- 🧑‍💼 **Applicant Tracking:** Manage applicant profiles, status updates, and application details.
+- 🗺️ **Geomapping Visualization:** Display applicant locations individually or as heatmaps/clusters on an interactive map.
+- 📈 **Analytics Dashboard:** View key performance indicators (KPIs), demographic breakdowns, application trends, and potentially spatial analytics results.
+- 🔎 **Spatial Filtering/Querying:** Filter or search for applicants based on geographic area or proximity.
 
 ## Technology Stack
 
-* **Frontend:** `React`, `HTML`, `CSS`, `JavaScript`
-* **Mapping Library:** `Leaflet.js`, `OpenLayers`
-* **Charting Library:** `Recharts`
-* **Backend:** `Python` (`Django`)
-* **Database:** `PostgreSQL`
+- **Frontend:** `React`, `HTML`, `Tailwind CSS`, `JavaScript`
+- **Mapping Library:** `Leaflet.js`
+- **Charting Library:** `Recharts`
+- **Backend:** `Python` (`Django`)
+- **Database:** `PostgreSQL`
