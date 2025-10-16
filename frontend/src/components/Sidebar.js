@@ -101,23 +101,27 @@ const Sidebar = () => {
   }, [location.pathname]);
 
   const getPageTitle = () => {
-    const map = {
-      "/dashboard": "Dashboard",
-      "/geomapping": "Geographic Mapping",
-      "/heatmap": "Heat Map Analysis",
-      "/register-applicant": "New Applicant",
-      "/applicants": "All Applicants",
-      "/approved": "Approved Applications",
-      "/archived-applicants": "Archived Applications",
-      "/export-applicants": "Export Data",
-      "/analytics/overview": "Analytics Overview",
-      "/analytics/reports": "Detailed Reports",
-      "/analytics/trends": "Trend Analysis",
-      "/admin-management": "Admin Management",
-      "/settings": "Settings",
-    };
-    return map[location.pathname] || "QuickAid";
+  const map = {
+    "/dashboard": "Dashboard",
+    "/geomapping": "Geographic Mapping",
+    "/heatmap": "Heat Map Analysis",
+    "/register-applicant": "New Applicant",
+    "/applicants": "All Applicants",
+    "/approved": "Approved Applications",
+    "/archived-applicants": "Archived Applications",
+    "/export-applicants": "Export Data",
+    "/analytics/overview": "Analytics Overview",
+    "/analytics/reports": "Detailed Reports",
+    "/analytics/trends": "Trend Analysis",
+    "/analytics/demographics-economics": "Demographics & Economics",
+    "/admin-management": "Admin Management",
+    "/settings": "Settings",
+    "/analytics/performance": "Performance Insights",
+    "/analytics/geographic": "Geographic Analytics",
   };
+  return map[location.pathname] || "QuickAid";
+};
+
 
   const handleLogout = async () => {
   try {
