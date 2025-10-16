@@ -16,7 +16,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ComposedChart,
 } from "recharts";
 import {
   TrendingUp,
@@ -31,6 +30,27 @@ import {
   Loader2,
 } from "lucide-react";
 
+// Fallback skeleton loader component for charts and lists
+const SkeletonLoader = ({ height = 300, type = 'chart' }) => (
+  <div
+    // **FIX HERE: Use h-auto to dynamically size for content and add padding**
+    className={`animate-pulse bg-gray-100 rounded-xl ${type === 'chart' ? 'p-4' : 'p-3'}`}
+    style={{ height: type === 'heatmap' ? '180px' : height }} // **Set a fixed height for the heatmap skeleton to reserve space**
+  >
+    {type === 'chart' && <div className="h-full w-full bg-gray-200 rounded-lg"></div>}
+    {type === 'heatmap' && (
+        // Skeleton grid representing the 24 hours in the heatmap
+        // The fixed height above helps contain this grid
+        <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 lg:grid-cols-12 xl:grid-cols-24 gap-3 h-full">
+            {[...Array(12)].map((_, i) => ( // Use 12 items to represent rows that will wrap
+                <div key={i} className="h-10 w-full bg-gray-200 rounded-lg"></div>
+            ))}
+        </div>
+    )}
+  </div>
+);
+
+
 const Trends = () => {
   const [monthlyData, setMonthlyData] = useState([]);
   const [yearlyData, setYearlyData] = useState([]);
@@ -39,106 +59,93 @@ const Trends = () => {
   const [assistanceTypeData, setAssistanceTypeData] = useState([]);
   const [assistanceTypeDataOverTime, setAssistanceTypeDataOverTime] = useState([]);
   const [applicantHeatmap, setApplicantHeatmap] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  console.log(assistanceTypeDataOverTime);
-  console.log(assistanceTypeData);
-  // Color palettes for charts
-  const ASSISTANCE_COLORS = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6"];
-  const TREND_COLORS = ["#06B6D4", "#84CC16", "#F97316"];
+  // Existing individual loading states
+  const [loadingStates, setLoadingStates] = useState({
+    monthly: true,
+    yearly: true,
+    overtime: true,
+    cumulative: true,
+    assistanceType: true,
+    assistanceTypeOverTime: true,
+    applicantHeatmap: true,
+  });
+
+  const setSectionLoaded = (section) =>
+    setLoadingStates((prev) => ({ ...prev, [section]: false }));
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSection = async (endpoint, setter, sectionKey) => {
       try {
-        const [
-          monthlyRes,
-          yearlyRes,
-          overtimeRes,
-          cumulativeRes,
-          assistanceTypeRes,
-          assistanceTypeOverTimeRes,
-          applicantHeatmapRes,
-        ] = await Promise.all([
-          api.get("/analytics/trends/monthly/"),
-          api.get("/analytics/trends/yearly/"),
-          api.get("/analytics/trends/over-time/"),
-          api.get("/analytics/trends/cumulative/"),
-          api.get("/analytics/trends/assistance-type/"),
-          api.get("/analytics/trends/assistance-type-over-time/"),
-          api.get("/analytics/trends/applicant-heatmap/"),
-        ]);
-
-        setMonthlyData(monthlyRes.data || []);
-        setYearlyData(yearlyRes.data || []);
-        setOvertimeData(overtimeRes.data || []);
-        setCumulativeData(cumulativeRes.data || []);
-        setAssistanceTypeData(assistanceTypeRes.data || []);
-        setAssistanceTypeDataOverTime(assistanceTypeOverTimeRes.data || []);
-        setApplicantHeatmap(applicantHeatmapRes.data || []);
+        const res = await api.get(endpoint);
+        setter(res.data || []);
       } catch (err) {
-        console.error("Error fetching trends data:", err);
-        setError(err);
+        console.error(`Error fetching ${sectionKey}:`, err);
+        setError((prev) => ({ ...prev, [sectionKey]: err.message }));
       } finally {
-        setLoading(false);
+        setSectionLoaded(sectionKey);
       }
     };
-    fetchData();
+
+    fetchSection("/analytics/trends/monthly/", setMonthlyData, "monthly");
+    fetchSection("/analytics/trends/yearly/", setYearlyData, "yearly");
+    fetchSection("/analytics/trends/over-time/", setOvertimeData, "overtime");
+    fetchSection("/analytics/trends/cumulative/", setCumulativeData, "cumulative");
+    fetchSection("/analytics/trends/assistance-type/", setAssistanceTypeData, "assistanceType");
+    fetchSection("/analytics/trends/assistance-type-over-time/", setAssistanceTypeDataOverTime, "assistanceTypeOverTime");
+    fetchSection("/analytics/trends/applicant-heatmap/", setApplicantHeatmap, "applicantHeatmap");
   }, []);
 
-  // Data transformation functions
-  const transformMonthlyData = data => {
-    return data.map(item => ({
+  const ASSISTANCE_COLORS = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6"];
+
+  const transformMonthlyData = (data) =>
+    data.map((item) => ({
       month: new Date(item.month).toLocaleDateString("en-US", {
         month: "short",
         year: "numeric",
       }),
       count: item.count,
-      monthDate: item.month,
     }));
-  };
 
-  const transformYearlyData = data => {
-    return data.map(item => ({
+  const transformYearlyData = (data) =>
+    data.map((item) => ({
       year: item.year.toString(),
       count: item.count,
     }));
-  };
 
-  const transformOvertimeData = data => {
-    return data.map(item => ({
-      date: new Date(item.day).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  const transformOvertimeData = (data) =>
+    data.map((item) => ({
+      date: new Date(item.day).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
       count: item.count,
-      fullDate: item.day,
     }));
-  };
 
-  const transformCumulativeData = data => {
-    return data.map(item => ({
-      date: new Date(item.day).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  const transformCumulativeData = (data) =>
+    data.map((item) => ({
+      date: new Date(item.day).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
       cumulative: item.cumulative,
-      fullDate: item.day,
     }));
-  };
 
-  const transformAssistanceTypeOverTime = data => {
-    // Group by month and assistance type
+  const transformAssistanceTypeOverTime = (data) => {
     const grouped = data.reduce((acc, item) => {
       const monthKey = new Date(item.month).toLocaleDateString("en-US", {
         month: "short",
         year: "numeric",
       });
-      if (!acc[monthKey]) {
-        acc[monthKey] = { month: monthKey, monthDate: item.month };
-      }
+      if (!acc[monthKey]) acc[monthKey] = { month: monthKey };
       acc[monthKey][item.type_of_assistance] = item.count;
       return acc;
     }, {});
-
     return Object.values(grouped);
   };
 
-  const transformApplicantHeatmap = data => {
+  const transformApplicantHeatmap = (data) => {
     const hours = Array.from({ length: 24 }, (_, i) => ({
       hour: i,
       label: `${i.toString().padStart(2, "0")}:00`,
@@ -146,30 +153,27 @@ const Trends = () => {
       intensity: 0,
     }));
 
-    data.forEach(item => {
-      if (item.hour >= 0 && item.hour < 24) {
-        hours[item.hour].count = item.count;
-      }
+    data.forEach((item) => {
+      if (item.hour >= 0 && item.hour < 24) hours[item.hour].count = item.count;
     });
 
-    const maxCount = Math.max(...hours.map(h => h.count));
-    hours.forEach(h => {
+    const maxCount = Math.max(...hours.map((h) => h.count));
+    hours.forEach((h) => {
       h.intensity = maxCount > 0 ? (h.count / maxCount) * 100 : 0;
     });
 
     return hours;
   };
 
-  // Calculate statistics
-  const calculateGrowthRate = data => {
+  const calculateGrowthRate = (data) => {
     if (data.length < 2) return 0;
     const latest = data[data.length - 1]?.count || 0;
     const previous = data[data.length - 2]?.count || 0;
     return previous > 0 ? ((latest - previous) / previous) * 100 : 0;
   };
 
-  const HeatmapCell = ({ hour, count, intensity, maxCount }) => {
-    const getIntensityColor = intensity => {
+  const HeatmapCell = ({ hour, count, intensity }) => {
+    const getIntensityColor = (intensity) => {
       if (intensity === 0) return "#F3F4F6";
       if (intensity < 20) return "#FEF3C7";
       if (intensity < 40) return "#FCD34D";
@@ -177,7 +181,6 @@ const Trends = () => {
       if (intensity < 80) return "#D97706";
       return "#92400E";
     };
-
     return (
       <div
         className="flex flex-col items-center p-2 rounded-lg border transition-all hover:scale-105"
@@ -189,33 +192,35 @@ const Trends = () => {
     );
   };
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, trend, color }) => (
-    <div
-      className="bg-white rounded-xl shadow-lg p-6 border-l-4"
-      style={{ borderLeftColor: color }}
-    >
+  const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading }) => (
+    <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 relative" style={{ borderLeftColor: color }}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-gray-600 text-sm font-medium">{title}</p>
-          <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
-          {subtitle && (
-            <div className="flex items-center mt-1">
-              <p className="text-sm text-gray-500">{subtitle}</p>
-              {trend !== undefined && (
-                <div
-                  className={`ml-2 flex items-center text-xs ${
-                    trend >= 0 ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {trend >= 0 ? (
-                    <ArrowUp className="h-3 w-3" />
-                  ) : (
-                    <ArrowDown className="h-3 w-3" />
+          {isLoading ? (
+            <div className="mt-1 space-y-2">
+              <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+              {subtitle && <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>}
+            </div>
+          ) : (
+            <>
+              <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
+              {subtitle && (
+                <div className="flex items-center mt-1">
+                  <p className="text-sm text-gray-500">{subtitle}</p>
+                  {trend !== undefined && (
+                    <div
+                      className={`ml-2 flex items-center text-xs ${
+                        trend >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {trend >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                      <span className="ml-1">{Math.abs(trend).toFixed(1)}%</span>
+                    </div>
                   )}
-                  <span className="ml-1">{Math.abs(trend).toFixed(1)}%</span>
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
         <div className="p-3 rounded-full" style={{ backgroundColor: color + "20" }}>
@@ -225,111 +230,60 @@ const Trends = () => {
     </div>
   );
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-800">{label}</p>
-          {payload.map((entry, index) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
-              {entry.name}: {entry.value.toLocaleString()}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
-  if (loading) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        </div>
-        
-        <div className="relative z-10 flex flex-col items-center bg-white bg-opacity-80 backdrop-blur-xl p-12 rounded-3xl shadow-2xl border border-blue-200">
-          <div className="relative flex items-center justify-center mb-6">
-            <div className="h-24 w-24 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
-            <div className="absolute flex items-center justify-center">
-              <TrendingUp className="h-10 w-10 text-blue-600 animate-pulse" />
-            </div>
-          </div>
-  
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 flex items-center justify-center gap-2 mb-3">
-            Loading Trends & Forecasting Data
-          </h2>
-          <p className="text-gray-600 text-base max-w-md">
-            Please wait while we fetch the latest analytics and insights...
+  const CustomTooltip = ({ active, payload, label }) =>
+    active && payload && payload.length ? (
+      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <p className="font-medium text-gray-800">{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} style={{ color: entry.color }} className="text-sm">
+            {entry.name}: {entry.value.toLocaleString()}
           </p>
-          
-          <div className="flex gap-2 mt-6">
-            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-100"></div>
-            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-200"></div>
-          </div>
-        </div>
+        ))}
       </div>
-    );
-  }
-  
-if (error) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center text-center">
-      <div className="bg-white p-8 rounded-2xl shadow-lg border border-red-100 max-w-md w-full mx-4">
-        <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 animate-pulse">
-          <AlertCircle className="h-8 w-8 text-red-600" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">
-          Error Loading Data
-        </h3>
-        <p className="text-gray-600 mb-4">
-          {error.message || "Failed to fetch trends data. Please try again later."}
-        </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition duration-200"
-        >
-          Retry
-        </button>
-      </div>
-    </div>
-  );
-}
+    ) : null;
+
+  // Data transformations
   const transformedMonthlyData = transformMonthlyData(monthlyData);
   const transformedYearlyData = transformYearlyData(yearlyData);
   const transformedOvertimeData = transformOvertimeData(overtimeData);
   const transformedCumulativeData = transformCumulativeData(cumulativeData);
-  const transformedAssistanceOverTime = transformAssistanceTypeOverTime(
-    assistanceTypeDataOverTime
-  );
+  const transformedAssistanceOverTime = transformAssistanceTypeOverTime(assistanceTypeDataOverTime);
   const transformedApplicantHeatmap = transformApplicantHeatmap(applicantHeatmap);
 
-  // Calculate statistics
-  const totalApplications =
-    transformedCumulativeData.length > 0
+  // Calculated stats (only run if data is available)
+  const isCumulativeLoaded = !loadingStates.cumulative;
+  const isMonthlyLoaded = !loadingStates.monthly;
+  const isAssistanceTypeLoaded = !loadingStates.assistanceType;
+
+  const totalApplications = isCumulativeLoaded
+    ? transformedCumulativeData.length > 0
       ? transformedCumulativeData[transformedCumulativeData.length - 1].cumulative
-      : assistanceTypeData.reduce((sum, item) => sum + item.count, 0);
+      : 0
+    : '...';
 
-  const monthlyGrowth = calculateGrowthRate(transformedMonthlyData);
-  const mostPopularAssistance = assistanceTypeData.reduce(
-    (prev, current) => (prev.count > current.count ? prev : current),
-    { type_of_assistance: "N/A", count: 0 }
-  );
+  const monthlyGrowth = isMonthlyLoaded
+    ? calculateGrowthRate(transformedMonthlyData)
+    : 0;
 
-  const averageMonthlyApplications =
-    transformedMonthlyData.length > 0
+  const averageMonthlyApplications = isMonthlyLoaded
+    ? transformedMonthlyData.length > 0
       ? Math.round(
-          transformedMonthlyData.reduce((sum, item) => sum + item.count, 0) /
+          transformedMonthlyData.reduce((sum, i) => sum + i.count, 0) /
             transformedMonthlyData.length
         )
-      : 0;
+      : 0
+    : '...';
+
+  const mostPopularAssistance = isAssistanceTypeLoaded
+    ? assistanceTypeData.reduce(
+        (prev, curr) => (prev.count > curr.count ? prev : curr),
+        { type_of_assistance: "N/A", count: 0 }
+      ) || {}
+    : { type_of_assistance: "...", count: '...' };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             Application Trends Analysis
@@ -344,24 +298,27 @@ if (error) {
           <StatCard
             icon={Activity}
             title="Total Applications"
-            value={totalApplications.toLocaleString()}
+            value={typeof totalApplications === 'number' ? totalApplications.toLocaleString() : totalApplications}
             subtitle="All time"
             color="#3B82F6"
+            isLoading={!isCumulativeLoaded}
           />
           <StatCard
             icon={TrendingUp}
             title="Monthly Growth"
-            value={`${monthlyGrowth >= 0 ? "+" : ""}${monthlyGrowth.toFixed(1)}%`}
+            value={isMonthlyLoaded ? `${monthlyGrowth >= 0 ? "+" : ""}${monthlyGrowth.toFixed(1)}%` : '...'}
             subtitle="vs previous month"
             trend={monthlyGrowth}
             color="#10B981"
+            isLoading={!isMonthlyLoaded}
           />
           <StatCard
             icon={BarChart3}
             title="Monthly Average"
-            value={averageMonthlyApplications.toLocaleString()}
+            value={typeof averageMonthlyApplications === 'number' ? averageMonthlyApplications.toLocaleString() : averageMonthlyApplications}
             subtitle="applications per month"
             color="#F59E0B"
+            isLoading={!isMonthlyLoaded}
           />
           <StatCard
             icon={Target}
@@ -369,6 +326,7 @@ if (error) {
             value={mostPopularAssistance.type_of_assistance}
             subtitle={`${mostPopularAssistance.count} applications`}
             color="#8B5CF6"
+            isLoading={!isAssistanceTypeLoaded}
           />
         </div>
 
@@ -382,22 +340,26 @@ if (error) {
                 Monthly Trends (Last 12 Months)
               </h2>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={transformedMonthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" fontSize={12} />
-                <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#3B82F6"
-                  fill="#3B82F6"
-                  fillOpacity={0.6}
-                  strokeWidth={2}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {loadingStates.monthly ? (
+              <SkeletonLoader height={300} />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={transformedMonthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" fontSize={12} />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#3B82F6"
+                    fill="#3B82F6"
+                    fillOpacity={0.6}
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
           {/* Yearly Trends */}
@@ -408,15 +370,19 @@ if (error) {
                 Yearly Application Volume
               </h2>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={transformedYearlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
-                <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="count" fill="#10B981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {loadingStates.yearly ? (
+              <SkeletonLoader height={300} />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={transformedYearlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="count" fill="#10B981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -430,21 +396,25 @@ if (error) {
                 Daily Application Trends
               </h2>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={transformedOvertimeData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" fontSize={11} angle={-45} textAnchor="end" height={60} />
-                <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#F97316"
-                  strokeWidth={2}
-                  dot={{ fill: "#F97316", strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {loadingStates.overtime ? (
+              <SkeletonLoader height={300} />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={transformedOvertimeData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" fontSize={11} angle={-45} textAnchor="end" height={60} />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#F97316"
+                    strokeWidth={2}
+                    dot={{ fill: "#F97316", strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
           {/* Cumulative Growth */}
@@ -455,28 +425,31 @@ if (error) {
                 Cumulative Growth
               </h2>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={transformedCumulativeData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" fontSize={11} angle={-45} textAnchor="end" height={60} />
-                <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="cumulative"
-                  stroke="#8B5CF6"
-                  fill="#8B5CF6"
-                  fillOpacity={0.3}
-                  strokeWidth={3}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {loadingStates.cumulative ? (
+              <SkeletonLoader height={300} />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={transformedCumulativeData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" fontSize={11} angle={-45} textAnchor="end" height={60} />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="cumulative"
+                    stroke="#8B5CF6"
+                    fill="#8B5CF6"
+                    fillOpacity={0.3}
+                    strokeWidth={3}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
-        {/* Assistance Type Analysis */}
+        {/* Assistance Type Distribution */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Assistance Type Distribution */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-800 flex items-center">
@@ -484,124 +457,147 @@ if (error) {
                 Assistance Type Distribution
               </h2>
             </div>
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
-                <Pie
-                  data={assistanceTypeData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={120}
-                  fill="#8884d8"
-                  dataKey="count"
-                  nameKey="type_of_assistance"
-                >
-                  {assistanceTypeData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={ASSISTANCE_COLORS[index % ASSISTANCE_COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip formatter={value => [value, "Applications"]} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            {loadingStates.assistanceType ? (
+              <SkeletonLoader height={350} />
+            ) : (
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart>
+                  <Pie
+                    data={assistanceTypeData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={120}
+                    dataKey="count"
+                    nameKey="type_of_assistance"
+                  >
+                    {assistanceTypeData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={ASSISTANCE_COLORS[index % ASSISTANCE_COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [value, "Applications"]} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
-          {/* Assistance Types Over Time */}
+          {/* Assistance Over Time */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800">
-                Assistance Types Trends Over Time
+              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                <BarChart3 className="mr-2 h-5 w-5 text-pink-600" />
+                Assistance Types Over Time
               </h2>
             </div>
-            <ResponsiveContainer width="100%" height={350}>
-              <AreaChart data={transformedAssistanceOverTime}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" fontSize={11} />
-                <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                {assistanceTypeData.map((type, index) => (
-                  <Area
-                    key={type.type_of_assistance}
-                    type="monotone"
-                    dataKey={type.type_of_assistance}
-                    stackId="1"
-                    stroke={ASSISTANCE_COLORS[index % ASSISTANCE_COLORS.length]}
-                    fill={ASSISTANCE_COLORS[index % ASSISTANCE_COLORS.length]}
-                    fillOpacity={0.6}
-                  />
-                ))}
-              </AreaChart>
-            </ResponsiveContainer>
+            {loadingStates.assistanceTypeOverTime ? (
+              <SkeletonLoader height={350} />
+            ) : (
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={transformedAssistanceOverTime}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  {Object.keys(transformedAssistanceOverTime[0] || {})
+                    .filter((key) => key !== "month")
+                    .map((key, index) => (
+                      <Bar
+                        key={key}
+                        dataKey={key}
+                        fill={ASSISTANCE_COLORS[index % ASSISTANCE_COLORS.length]}
+                        radius={[4, 4, 0, 0]}
+                      />
+                    ))}
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
-        {/* Applicant  Heatmap */}
+        {/* Applicant Activity Heatmap */}
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800 flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-blue-600" />
-              Applicant Application Heatmap (Hourly Distribution)
+              <AlertCircle className="mr-2 h-5 w-5 text-red-600" />
+              Applicant Activity Heatmap (by Hour)
             </h2>
           </div>
-          <div className="grid grid-cols-6 md:grid-cols-12 lg:grid-cols-24 gap-2">
-            {transformedApplicantHeatmap.map(hour => (
-              <HeatmapCell
-                key={hour.hour}
-                hour={hour}
-                count={hour.count}
-                intensity={hour.intensity}
-                maxCount={Math.max(...transformedApplicantHeatmap.map(h => h.count))}
-              />
-            ))}
-          </div>
-          <div className="mt-4 flex items-center justify-center space-x-4 text-sm text-gray-600">
-            <div className="flex items-center space-x-1">
-              <div className="w-4 h-4 bg-gray-200 rounded"></div>
-              <span>Low Activity</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-4 h-4 bg-yellow-400 rounded"></div>
-              <span>Medium Activity</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-4 h-4 bg-orange-600 rounded"></div>
-              <span>High Activity</span>
+          {/* Ensure this block defines a clear vertical space */}
+          <div className="relative"> 
+            {loadingStates.applicantHeatmap ? (
+              <SkeletonLoader height={180} type="heatmap" /> // Adjusted height is crucial here
+            ) : (
+              // Increased grid columns for better layout of 24 hours
+              <div className="grid grid-cols-6 sm:grid-cols-12 xl:grid-cols-24 gap-2"> 
+                {transformedApplicantHeatmap.map((hour, index) => (
+                  <HeatmapCell key={index} {...hour} />
+                ))}
+              </div>
+            )}
+            
+            {/* Color Legend/Key for Heatmap - Ensure it's static below the content */}
+            <div className="mt-4 flex items-center justify-center space-x-4 text-sm text-gray-600 w-full">
+                <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 bg-gray-200 rounded"></div>
+                    <span>Low Activity</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 bg-yellow-400 rounded"></div>
+                    <span>Medium Activity</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 bg-orange-600 rounded"></div>
+                    <span>High Activity</span>
+                </div>
             </div>
           </div>
         </div>
-
-        {/* Trends Summary */}
+        
+        {/* Trends Summary - This card is correctly placed after the Heatmap card */}
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Trend Analysis Summary</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800 mb-2">Growth Pattern</h3>
-              <p className="text-blue-700 text-sm">
-                {monthlyGrowth >= 0 ? "Positive" : "Negative"} growth trend with{" "}
-                {Math.abs(monthlyGrowth).toFixed(1)}% change from previous month
-              </p>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <h3 className="font-semibold text-green-800 mb-2">Peak Activity</h3>
-              <p className="text-green-700 text-sm">
-                Average of {averageMonthlyApplications} applications per month with seasonal
-                variations
-              </p>
-            </div>
-            <div className="bg-purple-50 rounded-lg p-4">
-              <h3 className="font-semibold text-purple-800 mb-2">Service Demand</h3>
-              <p className="text-purple-700 text-sm">
-                {mostPopularAssistance.type_of_assistance} assistance shows highest demand with{" "}
-                {mostPopularAssistance.count} requests
-              </p>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Trend Analysis Summary</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-800 mb-2">Growth Pattern</h3>
+                {loadingStates.monthly ? (
+                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  <p className="text-blue-700 text-sm">
+                    {monthlyGrowth >= 0 ? "Positive" : "Negative"} growth trend with{" "}
+                    {Math.abs(monthlyGrowth).toFixed(1)}% change from previous month
+                  </p>
+                )}
+              </div>
+              <div className="bg-green-50 rounded-lg p-4">
+                <h3 className="font-semibold text-green-800 mb-2">Peak Activity</h3>
+                {loadingStates.monthly ? (
+                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  <p className="text-green-700 text-sm">
+                    Average of {averageMonthlyApplications} applications per month with seasonal
+                    variations
+                  </p>
+                )}
+              </div>
+              <div className="bg-purple-50 rounded-lg p-4">
+                <h3 className="font-semibold text-purple-800 mb-2">Service Demand</h3>
+                {loadingStates.assistanceType ? (
+                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  <p className="text-purple-700 text-sm">
+                    **{mostPopularAssistance.type_of_assistance}** assistance shows highest demand with{" "}
+                    {mostPopularAssistance.count} requests
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );
