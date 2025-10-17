@@ -7,9 +7,11 @@ from dateutil.relativedelta import relativedelta
 
 # Django
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password, ValidationError
+from django.db import transaction
 from django.db.models import (
     Avg, Count, ExpressionWrapper, F, DurationField,
-    IntegerField, Max, Q
+    IntegerField, Max, Q, Prefetch
 )
 from django.db.models.functions import TruncDate, ExtractYear, TruncMonth, ExtractHour
 from django.http import HttpResponse, JsonResponse
@@ -26,9 +28,11 @@ from rest_framework.decorators import (
 from rest_framework.permissions import (
     IsAdminUser, IsAuthenticated, AllowAny
 )
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.pagination import LimitOffsetPagination
 
 # Local
 from .models import (
@@ -48,6 +52,9 @@ User = get_user_model()
 # Function to handle JWT token authentication
 class MyTokenObtainView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+class ApplicantSubmissionRateThrottle(AnonRateThrottle):
+    rate = '10/hour'  # allow 10 submissions per hour per IP
 
 # PROTECTED VIEW
 # Function to test authentication status
@@ -80,42 +87,50 @@ def get_current_user(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
+    user = request.user
+    data = request.data
+    changes = {}
+
     try:
-        user = request.user
-        data = request.data
+        with transaction.atomic(): #For ensuring DB actions succeed or none
+            #Validate and update username
+            username = data.get('username')
+            if username and username != user.username:
+                if User.objects.only('id').filter(username=username).exists():
+                    return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
+                user.username = username
+                changes['username'] = username
+                
+            #Validate and update email
+            email = data.get('email')
+            if email and email != user.email:
+                if User.objects.only('id').filter(email=email).exists():
+                    return Response({"error": "Email already taken"}, status=status.HTTP_400_BAD_REQUEST)
+                user.email = email
+                changes['email'] = email
 
-        changes = []
-        if 'username' in data and data['username'] != user.username:
-            if User.objects.filter(username=data['username']).exists():
-                return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
-            user.username = data['username']
-            changes.append('username')
+            # First Name
+            first_name = data.get('first_name')
+            if first_name and first_name != user.first_name:
+                user.first_name = first_name
+                changes['first_name'] = first_name
 
-        if 'email' in data and data['email'] != user.email:
-            if User.objects.filter(email=data['email']).exists():
-                return Response({"error": "Email already taken"}, status=status.HTTP_400_BAD_REQUEST)
-            user.email = data['email']
-            changes.append('email')
+            # Last Name
+            last_name = data.get('last_name')
+            if last_name and last_name != user.last_name:
+                user.last_name = last_name
+                changes['last_name'] = last_name
+                
+            if changes:
+                user.save(update_fields=list(changes.keys()))
 
-        if 'first_name' in data and data['first_name'] != user.first_name:
-            user.first_name = data['first_name']
-            changes.append('first name')
-
-        if 'last_name' in data and data['last_name'] != user.last_name:
-            user.last_name = data['last_name']
-            changes.append('last name')
-
-        user.save()
-        
-        # Log the profile update
-        if changes:
-            log_staff_activity(
-                user, 
-                'PROFILE', 
-                f"Updated: {', '.join(changes)}", 
-                request
-            )
-
+                log_staff_activity(
+                    user,
+                    'PROFILE',
+                    f"Updated profile fields: {', '.join(changes.keys())}",
+                    request
+                )
+                
         return Response({
             'id': user.id,
             'username': user.username,
@@ -124,45 +139,52 @@ def update_profile(request):
             'last_name': user.last_name,
             'role': user.role,
             'is_superuser': user.is_superuser
-        })
+        }, status=status.HTTP_200_OK)
+    
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
 
 # CHANGE PASSWORD
 # Function to change user password
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def change_password(request):
-    try:
-        user = request.user
-        data = request.data
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# def update_staff(request, pk):
+#     try:
+#         user = request.user
 
-        if not all(k in data for k in ['current_password', 'new_password']):
-            return Response(
-                {"error": "Both current_password and new_password are required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+#         # Only allow admins or superusers to edit staff
+#         if not user.is_superuser:
+#             return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
 
-        if not user.check_password(data['current_password']):
-            return Response(
-                {"error": "Current password is incorrect"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+#         staff = get_object_or_404(User, pk=pk)
+#         data = request.data
 
-        user.set_password(data['new_password'])
-        user.save()
+#         # Update basic info
+#         for field in ['username', 'first_name', 'last_name', 'email']:
+#             if field in data:
+#                 setattr(staff, field, data[field])
 
-        # Log the password change
-        log_staff_activity(
-            user,
-            'PASSWORD',
-            'Password changed',
-            request
-        )
+#         # ✅ Allow admin to reset password directly if provided
+#         new_password = data.get('password')
+#         if new_password:
+#             staff.set_password(new_password)
 
-        return Response({"message": "Password changed successfully"})
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         staff.save()
+
+#         log_staff_activity(
+#             user,
+#             'UPDATE',
+#             f"Updated staff {staff.username}",
+#             request
+#         )
+
+#         return Response({
+#             "message": f"Staff '{staff.username}' updated successfully"
+#         }, status=status.HTTP_200_OK)
+
+#     except Exception as e:
+#         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # =============================================
 # STAFF MANAGEMENT
@@ -173,42 +195,65 @@ def change_password(request):
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def register_staff(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    first_name = request.data.get('first_name')
-    last_name = request.data.get('last_name')
-    email = request.data.get('email')
+    data = request.data
+    username = data.get('username')
+    password = data.get('password')
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    email = data.get('email')
 
     if not all([username, password, first_name, last_name, email]):
         return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    duplicates = User.objects.filter(
+        Q(username=username) | Q(email=email) | 
+        Q(first_name=first_name, last_name=last_name)
+    ).values('username', 'email', 'first_name', 'last_name')
 
-    # Check for duplicate username, full name, or email
-    if User.objects.filter(username=username).exists():
-        return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
-    if User.objects.filter(first_name=first_name, last_name=last_name).exists():
-        return Response({"error": "A user with the same full name already exists"}, status=status.HTTP_400_BAD_REQUEST)
-    if User.objects.filter(email=email).exists():
-        return Response({"error": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Create staff user
-    user = User.objects.create_user(
-        username=username,
-        password=password,
-        first_name=first_name,
-        last_name=last_name,
-        email=email,
-        is_staff=True,
-        role='staff'
-    )
-
-    return Response({"message": "Staff registered successfully"}, status=status.HTTP_201_CREATED)
+    if duplicates.exists():
+        for dup in duplicates:
+            if dup['username'] == username:
+                return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
+            if dup['email'] == email:
+                return Response({"error": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
+            if dup['first_name'] == first_name and dup['last_name'] == last_name:
+                return Response({"error": "A user with the same full name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            
+    try:
+        validate_password(password)
+    except ValidationError as e:
+        return Response({"error": e.messages}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try: 
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=username,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                is_staff=True,
+                role='staff'
+            )
+    
+            log_staff_activity(
+                request.user,
+                'CREATE',
+                f"Registered new staff member: {username}",
+                request
+            )
+        return Response({"message": f"Staff '{user.username}' registered successfully"}, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # LIST ALL STAFF
 # Function to retrieve list of all staff members
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def list_staff(request):
-    staff_users = User.objects.filter(is_staff=True).values('id', 'username', 'first_name', 'last_name', 'email', 'last_active').order_by('last_active')
+    staff_users = User.objects.filter(is_staff=True, is_active=True)\
+        .values('id', 'username', 'first_name', 'last_name', 'email', 'last_active')\
+        .order_by('last_active')
     return Response(list(staff_users))
 
 # UPDATE STAFF INFO
@@ -217,7 +262,7 @@ def list_staff(request):
 @permission_classes([IsAdminUser])
 def update_staff(request, staff_id):
     try:
-        user = CustomUser.objects.get(id=staff_id)
+        user = CustomUser.objects.only('id', 'username', 'email', 'first_name', 'last_name').get(id=staff_id)
     except CustomUser.DoesNotExist:
         return Response({"error": "User not found"}, status=404)
 
@@ -226,24 +271,56 @@ def update_staff(request, staff_id):
     email = data.get("email")
     first_name = data.get("first_name")
     last_name = data.get("last_name")
-    password = data.get("password")  # Optional
+    password = data.get("password")
 
     # Duplicate check
-    if CustomUser.objects.exclude(id=staff_id).filter(username=username).exists():
-        return Response({"error": "Username already exists"}, status=400)
-    if CustomUser.objects.exclude(id=staff_id).filter(email=email).exists():
-        return Response({"error": "Email already exists"}, status=400)
+    duplicates =  CustomUser.objects.exclude(id=staff_id).filter(
+        Q(username=username) | Q(email=email)
+    ).values('username', 'email')
 
-    user.username = username
-    user.email = email
-    user.first_name = first_name
-    user.last_name = last_name
-
+    if duplicates.exists():
+        for dup in duplicates:
+            if dup['username'] == username:
+                return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
+            if dup['email'] == email:
+                return Response({"error": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
+            
+    fields_to_update = []
+    if username and username != user.username:
+        user.username = username
+        fields_to_update.append('username')
+    if email and email != user.email:
+        user.email = email
+        fields_to_update.append('email')
+    if first_name and first_name != user.first_name:
+        user.first_name = first_name
+        fields_to_update.append('first_name')
+    if last_name and last_name != user.last_name:
+        user.last_name = last_name
+        fields_to_update.append('last_name')
     if password:
         user.set_password(password)
+        fields_to_update.append('password')
 
-    user.save()
-    return Response({"message": "Staff updated successfully"})
+    if not fields_to_update:
+        return Response({"message": "No changes detected"}, status=status.HTTP_200_OK)
+        
+    try:
+        with transaction.atomic():
+            user.save(update_fields=fields_to_update)
+
+            log_staff_activity(
+                request.user,
+                'UPDATE',
+                f"Updated staff member: {user.username}",
+                request
+            )
+
+        return Response({"message": f"Staff '{user.username}' updated successfully"}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    
 
 # DELETE STAFF
 # Function to delete a staff member
@@ -252,10 +329,28 @@ def update_staff(request, staff_id):
 def delete_staff(request, staff_id):
     try:
         user = User.objects.get(pk=staff_id, is_staff=True)
-        user.delete()
-        return Response({"message": "Staff deleted successfully"})
+
+        if user.is_superuser:
+            return Response({"error": "Cannot delete superuser account"}, status=status.HTTP_403_FORBIDDEN)
+        if user == request.user:
+            return Response({"error": "You cannot delete yourself"}, status=status.HTTP_403_FORBIDDEN)
+        
+        with transaction.atomic():
+            user.is_active = False
+            user.save(update_fields=['is_active'])
+
+            log_staff_activity(
+                request.user,
+                'DELETE',
+                f"Deactivated staff member: {user.username}",
+                request
+            )
+        return Response({"message": f"Staff '{user.username}' deactivated successfully"}, status=status.HTTP_200_OK)
     except User.DoesNotExist:
         return Response({"error": "Staff not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 # GET STAFF ACTIVITY LOGS
 # Function to retrieve detailed staff activity logs
@@ -263,73 +358,38 @@ def delete_staff(request, staff_id):
 @permission_classes([IsAuthenticated])
 def get_staff_activity_logs(request):
     try:
-        print(f"Fetching logs for user: {request.user.username} (superuser: {request.user.is_superuser})")
-        
-        # Check if there are any logs
-        total_logs = StaffActivityLog.objects.count()
-        print(f"Total logs in database: {total_logs}")
-        
-        if total_logs == 0:
-            # Create a test log if none exist
-            print("No logs found, creating test log...")
-            try:
-                StaffActivityLog.objects.create(
-                    staff=request.user,
-                    action='LOGIN',
-                    details='Initial login',
-                    ip_address=request.META.get('REMOTE_ADDR')
-                )
-                print("Test log created successfully")
-            except Exception as create_error:
-                print(f"Error creating test log: {str(create_error)}")
-                return Response(
-                    {"error": "Failed to create initial log", "details": str(create_error)},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-        
-        try:
-            # Only superusers can view all logs
-            if request.user.is_superuser:
-                logs = StaffActivityLog.objects.all().order_by('-timestamp')
-                print(f"Found {logs.count()} total logs")
-            else:
-                # Regular staff can only view their own logs
-                logs = StaffActivityLog.objects.filter(staff=request.user).order_by('-timestamp')
-                print(f"Found {logs.count()} logs for user {request.user.username}")
+        # Get current user and prepare pagination
+        user = request.user
+        paginator = LimitOffsetPagination()
+
+        if user.is_superuser:
+            logs = StaffActivityLog.objects.select_related('staff').order_by('-timestamp')
+        else:
+            logs = StaffActivityLog.objects.select_related('staff').filter(staff=user).order_by('-timestamp')
             
-            # Format the logs for response
-            formatted_logs = []
-            for log in logs:
-                try:
-                    formatted_log = {
-                        'id': log.id,
-                        'staff_member': f"{log.staff.first_name} {log.staff.last_name}",
-                        'action': log.action,
-                        'details': log.details or '',
-                        'timestamp': log.timestamp.isoformat() if log.timestamp else None
-                    }
-                    formatted_logs.append(formatted_log)
-                except Exception as log_error:
-                    print(f"Error formatting log {log.id}: {str(log_error)}")
-                    continue
-            
-            print(f"Successfully formatted {len(formatted_logs)} logs")
-            return Response(formatted_logs)
-        except Exception as query_error:
-            print(f"Error querying logs: {str(query_error)}")
-            return Response(
-                {"error": "Failed to query logs", "details": str(query_error)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        paginated_logs = paginator.paginate_queryset(logs, request)
+        print(f"Fetched {len(paginated_logs)} logs for user {user.username}")
+
+        formatted_logs = [
+            {
+                'id': log.id,
+                'staff_member': f"{log.staff.first_name} {log.staff.last_name}",
+                'action': log.action,
+                'details': log.details or '',
+                'timestamp': log.timestamp.isoformat() if log.timestamp else None,
+            }
+            for log in paginated_logs
+        ]
+
+        return paginator.get_paginated_response(formatted_logs)
+    
     except Exception as e:
         print(f"Error in get_staff_activity_logs: {str(e)}")
-        print(f"Error type: {type(e)}")
-        import traceback
-        print(f"Traceback: {traceback.format_exc()}")
         return Response(
             {"error": "Failed to fetch activity logs", "details": str(e)}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+        
 
 # =============================================
 # APPLICANT MANAGEMENT
@@ -339,8 +399,12 @@ def get_staff_activity_logs(request):
 # Function to create a new applicant record
 @api_view(["POST"])
 @permission_classes([AllowAny])  # allow QR submissions
-@csrf_exempt
 def submit_applicant(request):
+    """
+    Handles applicant submission.
+    - Staff can submit via dashboard (authenticated)
+    - Public users can submit via QR (using staff_ref_code)
+    """
     staff = None
 
     # Case 1: staff is logged in
@@ -357,15 +421,17 @@ def submit_applicant(request):
 
     serializer = ApplicantSerializer(data=request.data, context={"request": request})
 
-    if serializer.is_valid():
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    with transaction.atomic():
         applicant = serializer.save(staff=staff)
 
-        # ✅ Always add to history
         ApplicantHistory.objects.create(
             background_info=applicant.background_info,
             applicant=applicant,
             type_of_assistance=applicant.type_of_assistance,
-            date_applied=timezone.now(),  # or created_at if your model already has it
+            date_applied=timezone.now(),
         )
 
         if staff:
@@ -376,9 +442,8 @@ def submit_applicant(request):
                 request,
             )
 
-        return Response(ApplicantSerializer(applicant).data, status=201)
+    return Response(ApplicantSerializer(applicant).data, status=201)
 
-    return Response(serializer.errors, status=400)
 
 
 # LIST APPLICANTS
@@ -386,17 +451,59 @@ def submit_applicant(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_applicants(request):
-    applicants = Applicant.objects.filter(is_archived=False).select_related("background_info")
-    serializer = ApplicantSerializer(applicants, many=True)
+    """
+    Optimized applicant listing endpoint:
+    - Supports pagination (limit/offset)
+    - Supports search and ordering
+    - Prefetches only necessary related data
+    """
 
+    search = request.GET.get('search', '')
+    ordering = request.GET.get('ordering', '-date_filled')  # default: newest first
+
+    paginator = LimitOffsetPagination()
+    paginator.default_limit = 50
+
+    # ✅ Optimize: prefetch related objects
+    applicants_qs = (
+        Applicant.objects.filter(is_archived=False)
+        .select_related(
+            'background_info', 
+            'background_info__barangay',
+            'background_info__barangay__city',
+        )\
+        .prefetch_related(
+            Prefetch(
+                'background_info__histories',
+                queryset=ApplicantHistory.objects.only(
+                    'id', 'type_of_assistance', 'applicant', 'date_applied'
+                ).order_by('-date_applied'),
+                to_attr='prefetched_history'
+            )
+        )
+    )
+
+    # ✅ Optional: case-insensitive search filter
+    if search:
+        applicants_qs = applicants_qs.filter(
+            Q(background_info__first_name__icontains=search) |
+            Q(background_info__last_name__icontains=search) |
+            Q(background_info__barangay__name__icontains=search) |
+            Q(background_info__barangay__city__name__icontains=search) |
+            Q(type_of_assistance__icontains=search)
+        )
+
+    # ✅ Ordering (e.g., ?ordering=date_filled or ?ordering=-background_info__last_name)
+    if ordering:
+        applicants_qs = applicants_qs.order_by(ordering)
+
+    # ✅ Paginate results
+    paginated_queryset = paginator.paginate_queryset(applicants_qs, request)
+    serializer = ApplicantSerializer(paginated_queryset, many=True, context={"request": request})
+
+    # ✅ Add preloaded history without extra DB queries
     data = serializer.data
-
-    # Attach application history to each applicant
-    for idx, applicant in enumerate(applicants):
-        history_qs = ApplicantHistory.objects.filter(
-            background_info=applicant.background_info
-        ).order_by("-date_applied")
-
+    for idx, applicant in enumerate(paginated_queryset):
         history_data = [
             {
                 "id": h.id,
@@ -404,15 +511,14 @@ def list_applicants(request):
                 "applicant_id": h.applicant.id if h.applicant else None,
                 "date": h.date_applied,
             }
-            for h in history_qs
+            for h in getattr(applicant.background_info, 'prefetched_history', [])
         ]
-
         data[idx]["application_history"] = history_data
 
-    return Response(data)
+    return paginator.get_paginated_response(data)
 
-#APPROVED UPLOAD
-# Function to upload and process approved applicants list
+    
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser])
@@ -421,6 +527,7 @@ def upload_approved_list(request):
     if not file_obj:
         return Response({"error": "No file uploaded"}, status=400)
 
+    # ✅ Read CSV or Excel safely
     try:
         if file_obj.name.endswith(".csv"):
             df = pd.read_csv(file_obj)
@@ -430,75 +537,88 @@ def upload_approved_list(request):
     except Exception as e:
         return Response({"error": f"Failed to read file: {str(e)}"}, status=400)
 
-    # create batch first
+    # ✅ Create approval batch
     batch = ApprovalBatch.objects.create(
         uploaded_by=request.user,
         file_name=file_obj.name,
-        total_processed=0,
-        total_approved=0,
-        total_already_approved=0,
-        total_not_found=0,
+        total_processed=len(df),
     )
 
-    matched, not_found, already_approved = [], [], []
+    matched = []
 
+    # ✅ Collect all names to query in bulk
+    applicant_filters = Q()
     for _, row in df.iterrows():
-        last_name = str(row.get("last name", "")).strip()
         first_name = str(row.get("first name", "")).strip()
+        last_name = str(row.get("last name", "")).strip()
         middle_name = str(row.get("middle name", "")).strip()
         barangay = str(row.get("barangay", "")).strip()
-        municipal = str(row.get("municipal", "")).strip()
+        city = str(row.get("municipal", "")).strip()
         assistance_type = str(row.get("type of assistance", "")).strip()
-        amount = row.get("amount of assistance")
 
-        try:
-            background = BackgroundInfo.objects.get(
-                first_name__iexact=first_name,
-                last_name__iexact=last_name,
-                barangay__name__iexact=barangay,
-                barangay__city__name__iexact=municipal,
+        # Build Q object to batch query
+        applicant_filters |= (
+            Q(
+                background_info__first_name__iexact=first_name,
+                background_info__middle_initial__iexact=middle_name,
+                background_info__last_name__iexact=last_name,
+                background_info__barangay__name__iexact=barangay,
+                background_info__barangay__city__name__iexact=city,
+                type_of_assistance__iexact=assistance_type,
             )
+        )
 
-            applicant = (
-                Applicant.objects.filter(
-                    background_info=background,
-                    type_of_assistance__iexact=assistance_type
-                )
-                .order_by("-date_filled")
-                .first()
-            )
+    # ✅ Bulk fetch applicants in a single query
+    applicants = {
+        (
+            a.background_info.first_name.lower(),
+            a.background_info.middle_initial.lower() if a.background_info.middle_initial else '',
+            a.background_info.last_name.lower(),
+            a.background_info.barangay.name.lower(),
+            a.background_info.barangay.city.name.lower(),
+            a.type_of_assistance.lower(),
+        ): a
+        for a in Applicant.objects.select_related(
+            'background_info',
+            'background_info__barangay__city'
+        ).filter(applicant_filters)
+    }
+
+    # ✅ Process approvals in one transaction
+    with transaction.atomic():
+        for _, row in df.iterrows():
+            first_name = str(row.get("first name", "")).strip().lower()
+            last_name = str(row.get("last name", "")).strip().lower()
+            middle_name = str(row.get("middle name", "")).strip().lower()
+            barangay = str(row.get("barangay", "")).strip().lower()
+            city = str(row.get("municipal", "")).strip().lower()
+            assistance_type = str(row.get("type of assistance", "")).strip().lower()
+            amount = row.get("amount of assistance")
+
+            key = (first_name, middle_name, last_name, barangay, city, assistance_type)
+            applicant = applicants.get(key)
 
             if not applicant:
-                not_found.append(f"{first_name} {last_name} - {barangay} ({assistance_type})")
-                continue
+                continue  # Skip if not found, no error needed
 
-            if hasattr(applicant, "approval"):
-                already_approved.append(f"{first_name} {last_name} - {barangay} ({assistance_type})")
-            else:
-                Approval.objects.create(
-                    applicant=applicant,
-                    batch=batch,  # 👈 link approval to this batch
-                    approved_by=request.user,
-                    notes=f"Approved amount: {amount}"
-                )
-                matched.append(f"{first_name} {last_name} - {barangay} ({assistance_type})")
+            Approval.objects.create(
+                applicant=applicant,
+                batch=batch,
+                approved_by=request.user,
+                notes=f"Approved amount: {amount}"
+            )
+            matched.append(f"{first_name.title()} {last_name.title()} - {barangay.title()} ({assistance_type.title()})")
 
-        except BackgroundInfo.DoesNotExist:
-            not_found.append(f"{first_name} {last_name} - {barangay} ({assistance_type})")
-
-    # update batch summary
-    batch.total_processed = len(df)
+    # ✅ Update batch summary
     batch.total_approved = len(matched)
-    batch.total_already_approved = len(already_approved)
-    batch.total_not_found = len(not_found)
-    batch.save()
+    batch.save(update_fields=["total_processed", "total_approved"])
 
     return Response({
         "approved": matched,
-        "already_approved": already_approved,
-        "not_found": not_found,
-        "total_processed": len(df)
-    })
+        "total_processed": len(df),
+        "total_approved": len(matched),
+        "message": "Approved applicants processed successfully"
+    }, status=201)
 
 
 
@@ -508,6 +628,7 @@ def upload_approved_list(request):
 @permission_classes([IsAuthenticated])
 def approved_applicants(request):
     approvals = Approval.objects.select_related(
+        "applicant",
         "applicant__background_info",
         "approved_by"
     ).order_by("-approved_at")
@@ -529,7 +650,6 @@ def approved_applicants(request):
     return Response(data)
 
 #APPROVAL BATCHES
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def approval_batches(request):
@@ -780,6 +900,8 @@ def restore_archived_applicant(request, pk):
 # Function to retrieve applicant locations for mapping
 def get_applicant_locations(request):
     applicants = Applicant.objects.select_related(
+        'background_info',
+        'background_info__barangay',
         'background_info__barangay__city'
     ).exclude(latitude__isnull=True, longitude__isnull=True)
 
@@ -897,10 +1019,12 @@ def total_applicants(request):
     start_of_week = today - timedelta(days=today.weekday())
     start_of_month = today.replace(day=1)
 
+    applicants = Applicant.objects.all()
+
     return Response({
-        'daily': Applicant.objects.filter(date_filled__date=today).count(),
-        'weekly': Applicant.objects.filter(date_filled__date__gte=start_of_week).count(),
-        'monthly': Applicant.objects.filter(date_filled__date__gte=start_of_month).count()
+        'daily': applicants.filter(date_filled__date=today).count(),
+        'weekly': applicants.filter(date_filled__date__gte=start_of_week).count(),
+        'monthly': applicants.filter(date_filled__date__gte=start_of_month).count()
     })
 
 
