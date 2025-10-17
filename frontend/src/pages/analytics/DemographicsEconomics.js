@@ -250,13 +250,33 @@ const DemographicsEconomics = () => {
   const topOccupation = isOccupationLoaded ? transformedOccupationData[0] : { occupation: '...', count: '...' };
   const totalIncome = isIncomeLoaded ? incomeDistribution.reduce((s, i) => s + i.count, 0) : '...';
 
-  if (error)
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-center">
-        <AlertCircle className="h-10 w-10 text-red-500 mb-3" />
-        <p className="text-gray-700">{error}</p>
-      </div>
-    );
+  if (error) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-red-50 to-indigo-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 left-20 w-72 h-72 bg-red-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+          </div>
+  
+          <div className="relative z-10 bg-white p-10 rounded-3xl shadow-2xl border border-red-200 max-w-md w-full mx-4">
+            <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl mx-auto mb-6 shadow-lg">
+              <AlertCircle className="h-10 w-10 text-white" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              Error Loading Data
+            </h3>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              {error || "Failed to fetch trends data. Please try again later."}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      );
+    }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">

@@ -68,7 +68,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
             <p className="text-blue50 text-base leading-relaxed">
               Please provide your identification and assistance information. Fields marked with{" "}
               <span className="text-white font-semibold bg-white/20 px-1.5 py-0.5 rounded">*</span>{" "}
-              are required.
+              are required.(Ang lahat ng field na may markang * ay kinakailangan.)
             </p>
           </div>
 
@@ -313,7 +313,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_first_name"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        First Name <span className="text-red-500">*</span>
+                        First Name (Unang Pangalan)<span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <input
@@ -354,7 +354,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_last_name"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Last Name <span className="text-red-500">*</span>
+                        Last Name(Apelyido) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <input
@@ -395,7 +395,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
     htmlFor="rep_middle_name"
     className="block text-sm font-semibold text-gray-700 mb-2"
   >
-    Middle Name
+    Middle Name(Gitnang Pangalan)<span className="text-red-500">*</span>
   </label>
   <input
     type="text"
@@ -454,7 +454,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_address"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Address <span className="text-red-500">*</span>
+                        Address(Tirahan) <span className="text-red-500">*</span>
                       </label>
                       <label className="flex items-center mb-3 space-x-2 cursor-pointer group">
                         <input
@@ -474,7 +474,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           className="w-4 h-4 text-blue-500 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors">
-                          Same as applicant's address
+                          Same as applicant's address(Kagaya ng tirahan ng aplikante)
                         </span>
                       </label>
                       <div className="relative">
@@ -517,7 +517,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_birthday"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Birthday <span className="text-red-500">*</span>
+                        Birthday(Kaarawan) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <input
@@ -557,7 +557,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_gender"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Sex <span className="text-red-500">*</span>
+                        Sex(Kasarian) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <select
@@ -572,9 +572,9 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           }`}
                           required
                         >
-                          <option value="">Select Sex</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
+                          <option value="">Select Sex(Mamili ng Kasarian)</option>
+                          <option value="Male">Male(Lalaki)</option>
+                          <option value="Female">Female(Babae)</option>
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                           <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -598,7 +598,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_civil_status"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Civil Status <span className="text-red-500">*</span>
+                        Civil Status(Katayuang Sibil) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <select
@@ -613,12 +613,12 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           }`}
                           required
                         >
-                          <option value="">Select Civil Status</option>
-                          <option value="Single">Single</option>
-                          <option value="Married">Married</option>
-                          <option value="Widowed">Widowed</option>
-                          <option value="Separated">Separated</option>
-                          <option value="Divorced">Divorced</option>
+                          <option value="">Select Civil Status(Pumili ng Katayuang Sibil)</option>
+                          <option value="Single">Single(Walang Asawa)</option>
+                          <option value="Married">Married(Kasal)</option>
+                          <option value="Widowed">Widowed(Balo)</option>
+                          <option value="Separated">Separated(Hiwalay)</option>
+                          <option value="Divorced">Divorced(Diborsiyado)</option>
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                           <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -642,7 +642,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_occupation"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Occupation
+                        Occupation(Trabaho)
                       </label>
                       <input
                         type="text"
@@ -661,7 +661,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_monthly_income"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Monthly Income
+                        Monthly Income(Buwanang Kita)
                       </label>
                       <div className="relative">
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
@@ -685,7 +685,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_relationship"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Relationship to Beneficiary <span className="text-red-500">*</span>
+                        Relationship to Beneficiary(Relasyon sa Benepisyaryo) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <input
@@ -734,13 +734,13 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                 <svg className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
                 </svg>
-                <span>Back</span>
+                <span>Back(Bumalik)</span>
               </button>
               <button
                 type="submit"
                 className="group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white font-semibold rounded-xl px-8 py-3.5 inline-flex items-center gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-105 active:scale-95"
               >
-                <span>Continue to Preview</span>
+                <span>Continue to Preview(Magpatuloy)</span>
                 <svg className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>

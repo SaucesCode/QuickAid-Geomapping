@@ -16,10 +16,10 @@ import {
   X,
   Plus,
   TrendingUp,
-  PieChart,
   Activity,
   MapPin,
   Layers,
+  ChevronLeft,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import CustomToast from "./CustomToast";
@@ -49,50 +49,55 @@ const Sidebar = () => {
 
   useEffect(() => {
     if (!collapsed) {
-      const timer = setTimeout(() => setShowContent(true), 250);
+      const timer = setTimeout(() => setShowContent(true), 200);
       return () => clearTimeout(timer);
     }
   }, [collapsed]);
 
   const toggleSection = (section) => {
-  if (collapsed) setCollapsed(false);
-
-  setOpenSections((prev) => {
-    // Close all sections first
-    const newState = {
-      applicants: false,
-      analytics: false,
-      maps: false,
-    };
-
-    // Toggle only the clicked section
-    newState[section] = !prev[section];
-    return newState;
-  });
-};
-
-
-
+    if (collapsed) {
+      setCollapsed(false);
+      setTimeout(() => {
+        setOpenSections((prev) => ({
+          ...prev,
+          [section]: !prev[section],
+        }));
+      }, 200);
+    } else {
+      setOpenSections((prev) => {
+        const newState = {
+          applicants: false,
+          analytics: false,
+          maps: false,
+        };
+        newState[section] = !prev[section];
+        return newState;
+      });
+    }
+  };
 
   // Auto-open sections based on current route
   useEffect(() => {
+    const path = location.pathname;
+    const newOpenSections = { applicants: false, analytics: false, maps: false };
+
     if (
-      location.pathname.startsWith("/register-applicant") ||
-      location.pathname.startsWith("/applicants") ||
-      location.pathname.startsWith("/approved") ||
-      location.pathname.startsWith("/archived-applicants")
+      path.includes("/register-applicant") ||
+      path.includes("/applicants") ||
+      path.includes("/approved") ||
+      path.includes("/archived-applicants") ||
+      path.includes("/export-applicants")
     ) {
-      setOpenSections(prev => ({ ...prev, applicants: true }));
+      newOpenSections.applicants = true;
     }
-    if (location.pathname.startsWith("/analytics")) {
-      setOpenSections(prev => ({ ...prev, analytics: true }));
+    if (path.includes("/analytics")) {
+      newOpenSections.analytics = true;
     }
-    if (
-      location.pathname.startsWith("/geomapping") ||
-      location.pathname.startsWith("/heatmap")
-    ) {
-      setOpenSections(prev => ({ ...prev, maps: true }));
+    if (path.includes("/geomapping") || path.includes("/heatmap")) {
+      newOpenSections.maps = true;
     }
+
+    setOpenSections(newOpenSections);
   }, [location.pathname]);
 
   // Close mobile menu on route change
@@ -101,90 +106,96 @@ const Sidebar = () => {
   }, [location.pathname]);
 
   const getPageTitle = () => {
-  const map = {
-    "/dashboard": "Dashboard",
-    "/geomapping": "Geographic Mapping",
-    "/heatmap": "Heat Map Analysis",
-    "/register-applicant": "New Applicant",
-    "/applicants": "All Applicants",
-    "/approved": "Approved Applications",
-    "/archived-applicants": "Archived Applications",
-    "/export-applicants": "Export Data",
-    "/analytics/overview": "Analytics Overview",
-    "/analytics/reports": "Detailed Reports",
-    "/analytics/trends": "Trend Analysis",
-    "/analytics/demographics-economics": "Demographics & Economics",
-    "/admin-management": "Admin Management",
-    "/settings": "Settings",
-    "/analytics/performance": "Performance Insights",
-    "/analytics/geographic": "Geographic Analytics",
+    const map = {
+      "/dashboard": "Dashboard",
+      "/geomapping": "Geographic Mapping",
+      "/heatmap": "Heat Map Analysis",
+      "/register-applicant": "New Applicant",
+      "/applicants": "All Applicants",
+      "/approved": "Approved Applications",
+      "/archived-applicants": "Archived Applications",
+      "/export-applicants": "Export Data",
+      "/analytics/geographic": "Geographic Analytics",
+      "/analytics/demographics-economics": "Demographics & Economics",
+      "/analytics/trends": "Trends & Forecasting",
+      "/analytics/performance": "Performance Insights",
+      "/admin-management": "Admin Management",
+      "/settings": "Settings",
+    };
+    return map[location.pathname] || "Dashboard";
   };
-  return map[location.pathname] || "QuickAid";
-};
-
 
   const handleLogout = async () => {
-  try {
-    await logoutUser();
+    try {
+      await logoutUser();
 
-    // Clear localStorage or session data
-    localStorage.removeItem("userData");
+      localStorage.removeItem("userData");
 
-    // Show logout success toast
-    toast.custom((t) => <CustomToast t={t} type="logout" />);
+      toast.custom((t) => <CustomToast t={t} type="logout" />);
 
-    // Wait briefly so the toast appears before redirect
-    setTimeout(() => {
-      navigate("/login");
-    }, 800);
-  } catch (err) {
-    // If something goes wrong, show a generic error toast
-    toast.error("Logout failed. Please try again.");
-  }
-};
-
+      setTimeout(() => {
+        navigate("/login");
+      }, 800);
+    } catch (err) {
+      toast.error("Logout failed. Please try again.");
+    }
+  };
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-gray-100">
       <Toaster position="top-center" reverseOrder={false} />
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden"
           onClick={toggleMobileMenu}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-screen flex flex-col bg-slate-900 border-r border-slate-700 transition-all duration-300 ease-in-out z-50
-          ${collapsed ? "w-16" : "w-60"}
+        className={`fixed top-0 left-0 h-screen flex flex-col bg-gray-800 border-r border-gray-700 transition-all duration-300 ease-in-out z-50
+          ${collapsed ? "w-16" : "w-56"}
           ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        {/* Top Section */}
-       <div className="flex-shrink-0 p-4 border-b border-slate-800 flex flex-col items-center">
-  
+        {/* Top Section - Burger Icon and New Application Button */}
+        <div className="flex-shrink-0 p-3 border-b border-gray-700 flex flex-col gap-3">
+          {/* Collapse/Expand Toggle (Burger Icon inside Sidebar) */}
+          <div
+            className={`flex ${collapsed ? "justify-center" : "justify-end"}`}
+          >
+            <button
+              onClick={toggleSidebar}
+              className="text-white hover:text-white hover:bg-gray-700 p-2 rounded-full transition-colors hidden md:block"
+              title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            >
+              {collapsed ? (
+                <Menu className="w-5 h-5" />
+              ) : (
+                <ChevronLeft className="w-5 h-5" />
+              )}
+            </button>
+          </div>
 
-  {/* New Application Button below */}
-  <button
-    onClick={() => navigate("/register-applicant")}
-    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-  >
-    <Plus className="w-4 h-4" />
-    {!collapsed && (
-      <span
-        className={`transition-opacity text-white duration-300 ${
-          showContent ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        New Application
-      </span>
-    )}
-  </button>
-</div>
-
+          {/* New Application Button */}
+          <button
+            onClick={() => navigate("/register-applicant")}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-md transition-colors duration-200"
+          >
+            <Plus className="w-4 h-4" />
+            {!collapsed && (
+              <span
+                className={`transition-opacity text-white duration-300 ${
+                  showContent ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                New Application
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-hidden flex flex-col">
@@ -202,12 +213,13 @@ const Sidebar = () => {
             `}</style>
 
             {/* Main Navigation */}
-            <div className="space-y-6 pt-4">
+            <div className="space-y-6 py-4">
               {/* Overview Section */}
               <div>
                 {!collapsed && (
                   <h3
-                    className={`text-xs font-semibold text-slate-300 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
+                    // Ensured this is pure white
+                    className={`text-white font-bold uppercase tracking-wider px-3 mb-2 transition-opacity duration-300 text-xs ${
                       showContent ? "opacity-100" : "opacity-0"
                     }`}
                   >
@@ -218,17 +230,18 @@ const Sidebar = () => {
                   <NavLink
                     to="/dashboard"
                     className={({ isActive }) =>
-                      `flex items-center gap-3 text-white px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                      `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                         isActive
-                          ? "bg-blue-700 text-white font-medium shadow-sm"
-                          : "text-slate-100 hover:bg-slate-800 hover:text-white"
+                          ? "bg-gray-700 text-white font-semibold shadow-inner shadow-gray-900/50"
+                          // Ensured inactive text is pure white
+                          : "text-white hover:bg-gray-700 hover:text-white"
                       } ${collapsed ? "justify-center" : ""}`
                     }
                   >
-                    <LayoutDashboard className="w-4 h-4" />
+                    <LayoutDashboard className="w-5 h-5" />
                     {!collapsed && (
                       <span
-                        className={`transition-opacity duration-300 text-gray-400 ${
+                        className={`transition-opacity text-white duration-300 ${
                           showContent ? "opacity-100" : "opacity-0"
                         }`}
                       >
@@ -244,7 +257,8 @@ const Sidebar = () => {
                 <div>
                   {!collapsed && (
                     <h3
-                      className={`text-xs font-semibold text-slate-300 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
+                      // Ensured this is pure white
+                      className={`text-white font-bold uppercase tracking-wider px-3 mb-2 transition-opacity duration-300 text-xs ${
                         showContent ? "opacity-100" : "opacity-0"
                       }`}
                     >
@@ -254,15 +268,16 @@ const Sidebar = () => {
                   <div className="space-y-1">
                     <button
                       onClick={() => toggleSection("maps")}
-                      className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-slate-200 hover:bg-slate-800 hover:text-white ${
+                      // Ensured button text and icon is pure white
+                      className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-white hover:bg-gray-700 hover:text-white ${
                         collapsed ? "justify-center" : ""
                       }`}
                     >
-                      <Map className="w-4 h-4" />
+                      <Map className="w-5 h-5" />
                       {!collapsed && (
                         <>
                           <span
-                            className={`flex-1 text-left transition-opacity text-gray-400 duration-300 ${
+                            className={`flex-1 text-left text-white transition-opacity duration-300 ${
                               showContent ? "opacity-100" : "opacity-0"
                             }`}
                           >
@@ -279,21 +294,22 @@ const Sidebar = () => {
 
                     {openSections.maps && !collapsed && (
                       <div
-                        className={`ml-4 space-y-1 border-l border-slate-700 pl-3 transition-opacity duration-300 ${
+                        className={`ml-4 space-y-1 border-l-2 border-gray-600 pl-3 transition-opacity duration-300 ${
                           showContent ? "opacity-100" : "opacity-0"
                         }`}
                       >
                         <NavLink
                           to="/geomapping"
                           className={({ isActive }) =>
-                            `flex items-center  gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                            `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-700 text-white font-medium shadow-sm"
-                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                                ? "bg-gray-700 text-white font-medium"
+                                // Ensured nested link text is pure white
+                                : "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
-                          <MapPin className="w-4 h-4 " />
+                          <MapPin className="w-4 h-4" />
                           <span className="text-white">Geographic Map</span>
                         </NavLink>
                         <NavLink
@@ -301,8 +317,9 @@ const Sidebar = () => {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-700 text-white font-medium shadow-sm"
-                                : "text-slate-300 hover:bg-slate-800 hover:text-white-800"
+                                ? "bg-gray-700 text-white font-medium"
+                                // Ensured nested link text is pure white
+                                : "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
@@ -320,7 +337,8 @@ const Sidebar = () => {
                 <div>
                   {!collapsed && (
                     <h3
-                      className={`text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
+                      // Ensured this is pure white
+                      className={`text-white font-bold uppercase tracking-wider px-3 mb-2 transition-opacity duration-300 text-xs ${
                         showContent ? "opacity-100" : "opacity-0"
                       }`}
                     >
@@ -330,15 +348,16 @@ const Sidebar = () => {
                   <div className="space-y-1">
                     <button
                       onClick={() => toggleSection("analytics")}
-                      className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-slate-200 hover:bg-slate-800 hover:text-white ${
+                      // Ensured button text and icon is pure white
+                      className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-white hover:bg-gray-700 hover:text-white ${
                         collapsed ? "justify-center" : ""
                       }`}
                     >
-                      <BarChart3 className="w-4 h-4" />
+                      <BarChart3 className="w-5 h-5" />
                       {!collapsed && (
                         <>
                           <span
-                            className={`flex-1 text-left text-gray-400 transition-opacity duration-300 ${
+                            className={`flex-1 text-white text-left transition-opacity duration-300 ${
                               showContent ? "opacity-100" : "opacity-0"
                             }`}
                           >
@@ -355,7 +374,7 @@ const Sidebar = () => {
 
                     {openSections.analytics && !collapsed && (
                       <div
-                        className={`ml-4 space-y-1 border-l border-slate-700 pl-3 transition-opacity duration-300 ${
+                        className={`ml-4 space-y-1 border-l-2 border-gray-600 pl-3 transition-opacity duration-300 ${
                           showContent ? "opacity-100" : "opacity-0"
                         }`}
                       >
@@ -364,8 +383,9 @@ const Sidebar = () => {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-700 text-white font-medium shadow-sm"
-                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                                ? "bg-gray-700 text-white font-medium"
+                                // Ensured nested link text is pure white
+                                : "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
@@ -378,8 +398,9 @@ const Sidebar = () => {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-700 text-white font-medium shadow-sm"
-                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                                ? "bg-gray-700 text-white font-medium"
+                                // Ensured nested link text is pure white
+                                : "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
@@ -392,8 +413,9 @@ const Sidebar = () => {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-700 text-white font-medium shadow-sm"
-                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                                ? "bg-gray-700 text-white font-medium"
+                                // Ensured nested link text is pure white
+                                : "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
@@ -406,8 +428,9 @@ const Sidebar = () => {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
-                                ? "bg-blue-700 text-white font-medium shadow-sm"
-                                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                                ? "bg-gray-700 text-white font-medium"
+                                // Ensured nested link text is pure white
+                                : "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
@@ -423,26 +446,28 @@ const Sidebar = () => {
               {/* Applicants Section */}
               <div>
                 {!collapsed && (
-                  <h3
-                    className={`text-xs font-semibold text-slate-300 uppercase tracking-wider px-3 mb-3 transition-opacity duration-300 ${
-                      showContent ? "opacity-100" : "opacity-0"
-                    }`}
-                  >
-                    Management
-                  </h3>
-                )}
+                    <h3
+                      // Ensured this is pure white
+                      className={`text-white font-bold uppercase tracking-wider px-3 mb-2 transition-opacity duration-300 text-xs ${
+                        showContent ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
+                      Management
+                    </h3>
+                  )}
                 <div className="space-y-1">
                   <button
                     onClick={() => toggleSection("applicants")}
-                    className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-slate-200 hover:bg-slate-800 hover:text-white ${
+                    // Ensured button text and icon is pure white
+                    className={`flex items-center gap-3 w-full px-3 py-2 text-sm rounded-lg transition-all duration-200 text-white hover:bg-gray-700 hover:text-white ${
                       collapsed ? "justify-center" : ""
                     }`}
                   >
-                    <Users className="w-4 h-4" />
+                    <Users className="w-5 h-5" />
                     {!collapsed && (
                       <>
                         <span
-                          className={`flex-1 text-left text-gray-400 transition-opacity duration-300 ${
+                          className={`flex-1 text-white text-left transition-opacity duration-300 ${
                             showContent ? "opacity-100" : "opacity-0"
                           }`}
                         >
@@ -459,7 +484,7 @@ const Sidebar = () => {
 
                   {openSections.applicants && !collapsed && (
                     <div
-                      className={`ml-4 space-y-1 border-l border-slate-700 pl-3 transition-opacity duration-300 ${
+                      className={`ml-4 space-y-1 border-l-2 border-gray-600 pl-3 transition-opacity duration-300 ${
                         showContent ? "opacity-100" : "opacity-0"
                       }`}
                     >
@@ -468,8 +493,9 @@ const Sidebar = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-blue-700 text-white font-medium shadow-sm"
-                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                              ? "bg-gray-700 text-white font-medium"
+                              // Ensured nested link text is pure white
+                              : "text-white hover:bg-gray-700 hover:text-white"
                           }`
                         }
                       >
@@ -482,8 +508,9 @@ const Sidebar = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-blue-700 text-white font-medium shadow-sm"
-                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                              ? "bg-gray-700 text-white font-medium"
+                              // Ensured nested link text is pure white
+                              : "text-white hover:bg-gray-700 hover:text-white"
                           }`
                         }
                       >
@@ -495,8 +522,9 @@ const Sidebar = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-blue-700 text-white font-medium shadow-sm"
-                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                              ? "bg-gray-700 text-white font-medium"
+                              // Ensured nested link text is pure white
+                              : "text-white hover:bg-gray-700 hover:text-white"
                           }`
                         }
                       >
@@ -508,8 +536,9 @@ const Sidebar = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-blue-700 text-white font-medium shadow-sm"
-                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                              ? "bg-gray-700 text-white font-medium"
+                              // Ensured nested link text is pure white
+                              : "text-white hover:bg-gray-700 hover:text-white"
                           }`
                         }
                       >
@@ -521,8 +550,9 @@ const Sidebar = () => {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
-                              ? "bg-blue-700 text-white font-medium shadow-sm"
-                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                              ? "bg-gray-700 text-white font-medium"
+                              // Ensured nested link text is pure white
+                              : "text-white hover:bg-gray-700 hover:text-white"
                           }`
                         }
                       >
@@ -539,15 +569,16 @@ const Sidebar = () => {
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                           isActive
-                            ? "bg-blue-700 text-white font-medium shadow-sm"
-                            : "text-slate-200 hover:bg-slate-800 hover:text-white"
+                            ? "bg-gray-700 text-white font-semibold shadow-inner shadow-gray-900/50"
+                            // Ensured inactive text is pure white
+                            : "text-white hover:bg-gray-700 hover:text-white"
                         } ${collapsed ? "justify-center" : ""}`
                       }
                     >
-                      <Shield className="w-4 h-4" />
+                      <Shield className="w-5 h-5" />
                       {!collapsed && (
                         <span
-                          className={`transition-opacity text-gray-400 duration-300 ${
+                          className={`text-white transition-opacity duration-300 ${
                             showContent ? "opacity-100" : "opacity-0"
                           }`}
                         >
@@ -561,27 +592,29 @@ const Sidebar = () => {
             </div>
           </div>
 
-          <div className="border-t border-slate-700">
+          {/* User Profile/Settings/Logout Section */}
+          <div className="border-t border-gray-700 px-2 py-2">
             <div className="relative">
               {/* Profile Button */}
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex items-center w-full gap-3 p-3 hover:bg-slate-800 transition-colors"
+                className="flex items-center w-full gap-3 p-2 hover:bg-gray-700 rounded-lg transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
-  {user
-    ? (user.first_name
-        ? user.first_name.charAt(0).toUpperCase()
-        : user.username?.charAt(0).toUpperCase() || "?")
-    : "?"}
-</div>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-semibold">
+                  {user
+                    ? (user.first_name
+                        ? user.first_name.charAt(0).toUpperCase()
+                        : user.username?.charAt(0).toUpperCase() || "?")
+                    : "?"}
+                </div>
 
                 {!collapsed && (
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium text-slate-100 truncate">
+                    <p className="text-sm font-semibold text-white truncate">
                       {user ? `${user.first_name} ${user.last_name}` : "User"}
                     </p>
-                    <p className="text-xs text-slate-300">
+                    {/* Changed to white for consistency */}
+                    <p className="text-xs text-white">
                       {user?.is_superuser ? "Administrator" : "Staff Member"}
                     </p>
                   </div>
@@ -590,12 +623,13 @@ const Sidebar = () => {
 
               {/* Dropdown */}
               {!collapsed && profileMenuOpen && (
-                <div className="absolute bottom-16 left-3 right-3 bg-slate-900 rounded-xl shadow-lg border border-slate-700 py-2 z-50 animate-fade-in">
-                  <div className="px-3 py-2 border-b border-slate-700">
-                    <p className="text-sm font-medium text-slate-100">
+                <div className="absolute bottom-14 left-3 right-3 bg-gray-800 rounded-lg shadow-2xl border border-gray-700 py-2 z-50 animate-fade-in">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-sm font-semibold text-white">
                       {user ? `${user.first_name} ${user.last_name}` : "User"}
                     </p>
-                    <p className="text-xs text-slate-300">
+                    {/* Changed to white for consistency */}
+                    <p className="text-xs text-white">
                       {user?.is_superuser ? "Administrator" : "Staff Member"}
                     </p>
                   </div>
@@ -604,13 +638,15 @@ const Sidebar = () => {
                       navigate("/settings");
                       setProfileMenuOpen(false);
                     }}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 transition-colors"
+                    // Ensured menu button text is pure white
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
                   >
                     <Settings className="w-4 h-4" /> Settings
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-slate-800 transition-colors"
+                    // Logout text remains red for safety/prominence
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors"
                   >
                     <LogOut className="w-4 h-4" /> Logout
                   </button>
@@ -624,33 +660,26 @@ const Sidebar = () => {
       {/* Main Content */}
       <main
         className={`flex-1 transition-all duration-300 ${
-          collapsed ? "md:ml-16" : "md:ml-60"
-        } z-50`}
+          collapsed ? "md:ml-16" : "md:ml-56" 
+        } z-30`}
       >
         {/* Header */}
-        <header className="sticky top-0 z-50 flex items-center justify-between bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
+        <header className="sticky top-0 z-40 flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
           <div className="sticky flex items-center gap-4 z-50">
-            {/* Mobile Menu Button */}
-            <button className="text-slate-600 md:hidden" onClick={toggleMobileMenu}>
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {/* Mobile Menu Button (Remains) */}
+            <button className="text-gray-600 md:hidden" onClick={toggleMobileMenu}>
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            {/* Desktop Sidebar Toggle */}
-            <button
-              className="text-slate-600 hidden md:block hover:bg-slate-100 p-2 rounded-lg transition-colors"
-              onClick={toggleSidebar}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-
-            <h1 className="text-lg font-semibold text-slate-900">{getPageTitle()}</h1>
+            {/* The main title/page name */}
+            <h1 className="text-xl font-bold text-gray-900">{getPageTitle()}</h1>
           </div>
 
           <div className="flex items-center gap-3"></div>
         </header>
 
         {/* Page Content */}
-        <div className="p-6 -z-1">
+        <div className="p-6">
           <Outlet />
         </div>
       </main>

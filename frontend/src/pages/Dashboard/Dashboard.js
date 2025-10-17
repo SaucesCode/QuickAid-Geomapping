@@ -24,6 +24,7 @@ import {
 // --- Skeleton Components ---
 
 const KPISkeleton = () => (
+    // Responsive: Full width on all screens, but part of the responsive grid
     <div className="animate-pulse bg-white rounded-2xl shadow-lg p-6 border border-gray-100 h-[130px]">
         <div className="flex justify-between items-start mb-4">
             <div className="flex-1">
@@ -37,6 +38,7 @@ const KPISkeleton = () => (
 );
 
 const ChartSkeleton = () => (
+    // Responsive: Full width within its Card container
     <div className="animate-pulse bg-white rounded-3xl shadow-xl p-8 border border-gray-100 h-[450px]">
         {/* Title is rendered by the parent Card component now, so only the body is skeletonized */}
         <div className="h-[300px] bg-gray-200 rounded-xl"></div>
@@ -63,6 +65,7 @@ const ListSkeleton = ({ items = 5 }) => (
 
 // Modern Card Component (Container for Charts and Lists)
 const Card = ({ title, icon: Icon, children, gradient = "from-indigo-600 to-blue-700" }) => (
+    // Responsive: Full width within its grid cell
     <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 transition-all duration-300 hover:shadow-2xl">
         <div className="flex items-center gap-4 mb-6">
             <div className={`w-10 h-10 bg-gradient-to-br ${gradient} rounded-lg flex items-center justify-center shadow-lg`}>
@@ -77,6 +80,7 @@ const Card = ({ title, icon: Icon, children, gradient = "from-indigo-600 to-blue
 
 // Modern Stat Card Component (KPIs)
 const StatCard = ({ icon: Icon, title, value, gradient, colorHex }) => (
+    // Responsive: Full width within its grid cell
     <div className={`bg-white rounded-2xl shadow-lg p-6 border border-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}>
         <div className="flex justify-between items-start mb-4">
             <div className="flex-1">
@@ -100,9 +104,8 @@ const Dashboard = () => {
     const [totals, setTotals] = useState(null);
     const [growth, setGrowth] = useState(null);
     const [monthlyTrend, setMonthlyTrend] = useState([]);
-    const [staffActivity, setStaffActivity] = useState([]);
-    const [recentApplicants, setRecentApplicants] = useState([]);
-    // State is still needed, but will only control the *content* below the header
+    const [staffActivity, setStaffActivity] = useState(null);
+    const [recentApplicants, setRecentApplicants] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -155,31 +158,31 @@ const Dashboard = () => {
             minute: "2-digit",
         });
     };
-
-    // Removed the large `if (loading) { return ... }` block
     
     return (
-        <div className="p-8 space-y-8 bg-gray-50 min-h-screen">
+        // Responsive: Uses padding, min-height, and gap spacing to maintain layout consistency
+        <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 bg-gray-50 min-h-screen">
             
             {/* 1. Formal Header - Renders Immediately */}
-            <header className="bg-white rounded-3xl shadow-2xl p-6 border border-gray-100">
+            <header className="bg-white rounded-3xl shadow-2xl p-4 sm:p-6 border border-gray-100">
                 <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl flex items-center justify-center shadow-xl">
-                        <LayoutDashboard className="w-7 h-7 text-white" />
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl flex items-center justify-center shadow-xl flex-shrink-0">
+                        <LayoutDashboard className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-blue-800">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-blue-800">
                             Operational Dashboard
                         </h1>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">
                             A high-level overview of key QuickAid metrics and recent activities.
                         </p>
                     </div>
                 </div>
             </header>
 
-            {/* 2. KPI Cards - Conditional Rendering */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* 2. KPI Cards - Responsive Grid */}
+            {/* grid-cols-1: Mobile (default) -> md:grid-cols-2: Tablet -> lg:grid-cols-4: Desktop */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {loading ? (
                     <>
                         <KPISkeleton /><KPISkeleton /><KPISkeleton /><KPISkeleton />
@@ -200,7 +203,6 @@ const Dashboard = () => {
                             gradient="from-fuchsia-600 to-pink-700"
                             colorHex="#db2777"
                         />
-                        {/* BROKEN LOGIC: Shows highest growth value, but uses "Lowest" title. */}
                         <StatCard
                             icon={TrendingUp}
                             title="Lowest Observed Growth Rate (Misleading)" 
@@ -219,13 +221,14 @@ const Dashboard = () => {
                 )}
             </div>
 
-            {/* 3. Monthly Trend Chart - Conditional Rendering */}
+            {/* 3. Monthly Trend Chart - Full Width */}
             <Card title="Monthly Application Volume" icon={TrendingUp} gradient="from-indigo-600 to-blue-700">
                 {loading ? (
                     <ChartSkeleton />
                 ) : (
                     <>
                         <p className="text-sm text-gray-500 mb-4">Tracking application submission rates over time.</p>
+                        {/* ResponsiveContainer ensures the chart fills its parent's width and height */}
                         <ResponsiveContainer width="100%" height={300}>
                             <LineChart data={monthlyTrend}>
                                 <defs>
@@ -267,15 +270,16 @@ const Dashboard = () => {
                 )}
             </Card>
 
-            {/* 4. Staff Activity + Recent Applicants Grid - Conditional Rendering */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 4. Staff Activity + Recent Applicants Grid - Responsive Grid */}
+            {/* grid-cols-1: Mobile/Tablet (default) -> lg:grid-cols-2: Desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 
                 {/* Staff Activity Leaderboard */}
                 <Card title="Staff Activity Leaderboard" icon={Activity} gradient="from-fuchsia-600 to-pink-700">
                     {loading ? (
                         <ListSkeleton items={5} />
                     ) : (
-                        staffActivity.length > 0 ? (
+                        (staffActivity && staffActivity.length > 0) ? (
                             <ul className="space-y-3">
                                 {staffActivity.slice(0, 5).map((s, i) => (
                                     <li
@@ -288,7 +292,7 @@ const Dashboard = () => {
                                             </div>
                                             <span className="font-semibold text-gray-800">{s.staff__username}</span>
                                         </div>
-                                        <span className="px-4 py-1 bg-fuchsia-100 text-fuchsia-700 rounded-full text-sm font-bold shadow-sm">
+                                        <span className="px-4 py-1 bg-fuchsia-100 text-fuchsia-700 rounded-full text-sm font-bold shadow-sm flex-shrink-0">
                                             {s.count} Processed
                                         </span>
                                     </li>
@@ -308,18 +312,19 @@ const Dashboard = () => {
                     {loading ? (
                         <ListSkeleton items={5} />
                     ) : (
+                        // overflow-x-auto makes the table scroll horizontally on small screens if needed
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm border-collapse">
                                 <thead>
                                     <tr className="bg-gray-100 border-b border-gray-200">
-                                        <th className="p-4 text-left font-bold text-gray-700">Applicant Name</th>
-                                        <th className="p-4 text-center font-bold text-gray-700">Barangay</th>
-                                        <th className="p-4 text-center font-bold text-gray-700">Type</th>
-                                        <th className="p-4 text-right font-bold text-gray-700">Timestamp</th>
+                                        <th className="p-4 text-left font-bold text-gray-700 whitespace-nowrap">Applicant Name</th>
+                                        <th className="p-4 text-center font-bold text-gray-700 whitespace-nowrap">Barangay</th>
+                                        <th className="p-4 text-center font-bold text-gray-700 whitespace-nowrap">Type</th>
+                                        <th className="p-4 text-right font-bold text-gray-700 whitespace-nowrap">Timestamp</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {recentApplicants.slice(0, 5).map((a, idx) => (
+                                    {(recentApplicants && recentApplicants.slice(0, 5).map((a, idx) => (
                                         <tr
                                             key={idx}
                                             className="border-b border-gray-100 transition-colors duration-150 hover:bg-green-50/50"
@@ -335,10 +340,10 @@ const Dashboard = () => {
                                             </td>
                                             <td className="p-4 text-right text-gray-500 text-xs whitespace-nowrap">{formatDate(a.date_filled)}</td>
                                         </tr>
-                                    ))}
+                                    ))) || null}
                                 </tbody>
                             </table>
-                            {recentApplicants.length === 0 && (
+                            {(!recentApplicants || recentApplicants.length === 0) && (
                                 <div className="text-center py-12 bg-gray-100 rounded-b-xl">
                                     <FileText className="w-10 h-10 text-gray-400 mx-auto mb-3" />
                                     <p className="text-sm text-gray-500 font-medium">No recent applications found.</p>
