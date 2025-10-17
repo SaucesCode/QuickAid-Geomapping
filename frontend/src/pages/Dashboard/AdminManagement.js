@@ -42,6 +42,8 @@ const AdminManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  console.log("Activity Logs:", activityLogs);
+
   useEffect(() => {
     document.title = "QuickAid | Admin Management";
     return () => {
@@ -80,11 +82,15 @@ const AdminManagement = () => {
         },
       });
 
-      if (!response.data || !Array.isArray(response.data)) {
-        throw new Error("Invalid data format received");
-      }
+      const logs = Array.isArray(response.data) ? response.data : response.data.results || [];
 
-      setActivityLogs(response.data);
+      setActivityLogs(logs);
+
+      // if (!response.data || !Array.isArray(response.data)) {
+      //   throw new Error("Invalid data format received");
+      // }
+
+      // setActivityLogs(response.data);
     } catch (error) {
       const errorMessage =
         error.response?.data?.details ||

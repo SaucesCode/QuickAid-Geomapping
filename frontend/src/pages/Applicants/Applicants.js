@@ -11,7 +11,18 @@ import EditModal from "./components/EditModal";
 import ArchiveModal from "./components/ArchiveModal";
 import toast, { Toaster } from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
-import { Users, FileText, CheckCircle2, TrendingUp, Activity, GraduationCap, Stethoscope, Plus, Heart, Sparkles } from "lucide-react";
+import {
+  Users,
+  FileText,
+  CheckCircle2,
+  TrendingUp,
+  Activity,
+  GraduationCap,
+  Stethoscope,
+  Plus,
+  Heart,
+  Sparkles,
+} from "lucide-react";
 
 const csvHeaders = [
   { label: "ID", key: "id" },
@@ -37,6 +48,7 @@ const csvHeaders = [
 
 const Applicants = () => {
   const [applicants, setApplicants] = useState([]);
+  const [nextUrl, setNextUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [editView, setEditView] = useState(false);
@@ -56,11 +68,22 @@ const Applicants = () => {
     };
   }, []);
 
-  const fetchApplicants = async () => {
+  const fetchApplicants = async (url = "/applicants/?limit=50") => {
     setLoading(true);
     try {
-      const res = await api.get("/applicants/");
-      setApplicants(res.data);
+      const res = await api.get(url);
+      const data = res.data;
+
+      // DRF paginated response (has results array)
+      if (data.results) {
+        setApplicants(prev => [...prev, ...data.results]);
+        setNextUrl(data.next);
+      }
+      // Non-paginated fallback (in case pagination is off)
+      else if (Array.isArray(data)) {
+        setApplicants(prev => [...prev, ...data]);
+        setNextUrl(null);
+      }
     } catch (err) {
       console.error("Fetch applicants failed:", err);
     } finally {
@@ -72,7 +95,13 @@ const Applicants = () => {
     fetchApplicants();
   }, []);
 
-  const openEditView = (applicant) => {
+  const handleScroll = () => {
+    if (nextUrl && !loading) {
+      fetchApplicants(nextUrl);
+    }
+  };
+
+  const openEditView = applicant => {
     setEditingApplicant({
       ...applicant,
       valid_id_presented: applicant.valid_id_presented || "",
@@ -86,7 +115,7 @@ const Applicants = () => {
     setEditView(false);
   };
 
-  const openPreviewView = (applicant) => {
+  const openPreviewView = applicant => {
     setPreviewApplicant({ ...applicant });
     setPreviewView(true);
   };
@@ -96,7 +125,7 @@ const Applicants = () => {
     setPreviewView(false);
   };
 
-  const openArchiveModal = (id) => {
+  const openArchiveModal = id => {
     setArchiveModal({ show: true, applicantId: id });
   };
 
@@ -108,7 +137,7 @@ const Applicants = () => {
     if (!archiveModal.applicantId) return;
     try {
       await api.delete(`/applicants/${archiveModal.applicantId}/`);
-      toast.custom((t) => <CustomToast t={t} type="archive" />);
+      toast.custom(t => <CustomToast t={t} type="archive" />);
       fetchApplicants();
       closeArchiveModal();
     } catch (err) {
@@ -117,15 +146,15 @@ const Applicants = () => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
-    setEditingApplicant((prev) => ({
+    setEditingApplicant(prev => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleSave = async (e) => {
+  const handleSave = async e => {
     e.preventDefault();
     if (!editingApplicant || !editingApplicant.id) return;
 
@@ -154,7 +183,7 @@ const Applicants = () => {
     }
   };
 
-  const handleSort = (key) => {
+  const handleSort = key => {
     let direction = "ascending";
     if (sortConfig.key === key && sortConfig.direction === "ascending") {
       direction = "descending";
@@ -162,7 +191,7 @@ const Applicants = () => {
     setSortConfig({ key, direction });
   };
 
-  const getSortedData = (data) => {
+  const getSortedData = data => {
     if (!sortConfig.key) return data;
     return [...data].sort((a, b) => {
       let aValue = a[sortConfig.key];
@@ -173,7 +202,7 @@ const Applicants = () => {
     });
   };
 
-  const filteredApplicants = applicants.filter((a) => {
+  const filteredApplicants = applicants.filter(a => {
     const keyword = searchTerm.toLowerCase();
     return (
       (a.background_info?.first_name || "").toLowerCase().includes(keyword) ||
@@ -191,19 +220,21 @@ const Applicants = () => {
   const currentItems = sortedApplicants.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(sortedApplicants.length / itemsPerPage);
 
-  const handlePageChange = (pageNumber) => {
+  const handlePageChange = pageNumber => {
     setCurrentPage(pageNumber);
   };
 
-  const handleItemsPerPageChange = (e) => {
+  const handleItemsPerPageChange = e => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1);
   };
 
   // Calculate statistics
   const medicalCount = applicants.filter(a => a.type_of_assistance === "Medical").length;
-  const financialCount = applicants.filter(a => a.type_of_assistance === "Financial").length;
-  const educationalCount = applicants.filter(a => a.type_of_assistance === "Educational").length;
+  const burialCount = applicants.filter(a => a.type_of_assistance === "Burial").length;
+  const educationalCount = applicants.filter(
+    a => a.type_of_assistance === "Educational"
+  ).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
@@ -239,7 +270,9 @@ const Applicants = () => {
                   <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 mb-2">
                     {applicants.length}
                   </p>
-                  <p className="text-gray-500 text-sm font-medium">All registered applicants</p>
+                  <p className="text-gray-500 text-sm font-medium">
+                    All registered applicants
+                  </p>
                 </div>
                 <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
                   <Users className="w-7 h-7 text-white" />
@@ -283,7 +316,7 @@ const Applicants = () => {
                     </p>
                   </div>
                   <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-green-700 mb-2">
-                    {financialCount}
+                    {educationalCount}
                   </p>
                   <p className="text-gray-500 text-sm font-medium">Active educational cases</p>
                 </div>
@@ -306,7 +339,7 @@ const Applicants = () => {
                     </p>
                   </div>
                   <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-purple-700 mb-2">
-                    {educationalCount}
+                    {burialCount}
                   </p>
                   <p className="text-gray-500 text-sm font-medium">Active burial cases</p>
                 </div>
