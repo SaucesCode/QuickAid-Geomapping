@@ -2,6 +2,61 @@
 import React, { useState } from "react";
 import AddressDropdown from "./AddressDropdown";
 
+// Filipino-English Hybrid Translations
+const T = {
+  // Main Header
+  headerTitle: "Address & Personal Details (Tirahan at Personal na Detalye)",
+  headerSubtitle: "Please provide your address and additional personal information. All fields marked with",
+  requiredNote: "are required. (Ang lahat ng field na may markang * ay kinakailangan.)",
+
+  // Section Titles
+  addressInfo: "Address Information (Impormasyon sa Tirahan)",
+  personalDetails: "Personal Details (Personal na Detalye)",
+
+  // Form Labels
+  streetAddress: "Street Address (Kalye/Purok)",
+  dateOfBirth: "Date of Birth (Petsa ng Kapanganakan)",
+  sex: "Sex (Kasarian)",
+  civilStatus: "Civil Status (Katayuang Sibil)",
+  occupation: "Occupation (Trabaho) - Indicate 'None' if none",
+  monthlyIncome: "Monthly Income (Buwanang Kita) - PHP",
+
+  // Dropdown Options
+  selectSex: "Select Sex (Pumili ng Kasarian)",
+  male: "Male (Lalaki)",
+  female: "Female (Babae)",
+  selectCivilStatus: "Select Civil Status (Pumili ng Katayuang Sibil)",
+  single: "Single (Walang Asawa)",
+  married: "Married (Kasal)",
+  widowed: "Widowed (Balo)",
+  separated: "Separated (Hiwalay)",
+  divorced: "Divorced (Diborsiyado)",
+
+  // Placeholders
+  placeholderStreet: "Enter your street/purok",
+  placeholderOccupation: "Enter your occupation (e.g., Teacher, Driver, None)",
+  placeholderIncome: "e.g. 15000",
+
+  // Buttons
+  back: "Back (Bumalik)",
+  continue: "Continue to Assistance (Magpatuloy sa Tulong)",
+
+  // Help Text
+  helpText: "Need help? Contact our support team for assistance. (Kailangan ng tulong? Kontakin ang aming support team.)",
+
+  // Validation Messages (Kept in English for consistency in error reporting)
+  errorBarangay: "Barangay is required (Kinakailangan)",
+  errorCity: "City/Municipality is required (Kinakailangan)",
+  errorStreet: "Street address is required (Kinakailangan)",
+  errorBirthday: "Date of birth is required (Kinakailangan)",
+  errorSex: "Sex is required (Kinakailangan)",
+  errorCivilStatus: "Civil status is required (Kinakailangan)",
+  errorOccupation: "Occupation is required (Kinakailangan)",
+  errorMonthlyIncome: "Monthly income is required (Kinakailangan)",
+  errorIncomeNegative: "Monthly income cannot be negative (Hindi pwedeng negatibo)",
+};
+
+
 const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
   const [errors, setErrors] = useState({});
 
@@ -16,34 +71,34 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
     const newErrors = {};
 
     if (!formData.barangay?.trim()) {
-      newErrors.barangay = "Barangay is required";
+      newErrors.barangay = T.errorBarangay;
     }
     if (!formData.city_municipality?.trim()) {
-      newErrors.city_municipality = "City/Municipality is required";
+      newErrors.city_municipality = T.errorCity;
     }
     if (!formData.street_address?.trim()) {
-      newErrors.street_address = "Street address is required";
+      newErrors.street_address = T.errorStreet;
     }
     if (!formData.birthday) {
-      newErrors.birthday = "Date of birth is required";
+      newErrors.birthday = T.errorBirthday;
     }
     if (!formData.sex) {
-      newErrors.sex = "Sex is required";
+      newErrors.sex = T.errorSex;
     }
     if (!formData.civil_status) {
-      newErrors.civil_status = "Civil status is required";
+      newErrors.civil_status = T.errorCivilStatus;
     }
     if (!formData.occupation?.trim()) {
-      newErrors.occupation = "Occupation is required";
+      newErrors.occupation = T.errorOccupation;
     }
     if (
       formData.monthly_income === undefined ||
       formData.monthly_income === null ||
       formData.monthly_income === ""
     ) {
-      newErrors.monthly_income = "Monthly income is required";
-    } else if (formData.monthly_income < 0) {
-      newErrors.monthly_income = "Monthly income cannot be negative";
+      newErrors.monthly_income = T.errorMonthlyIncome;
+    } else if (parseFloat(formData.monthly_income) < 0) {
+      newErrors.monthly_income = T.errorIncomeNegative;
     }
 
     setErrors(newErrors);
@@ -51,59 +106,59 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
   };
 
   const handleNext = e => {
-  e.preventDefault();
-  e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
 
-  if (validateForm()) {
-    window.scrollTo({ top: 0, behavior: "smooth" }); // 👈 Scrolls up smoothly
-    nextStep();
-  }
-};
+    if (validateForm()) {
+      window.scrollTo({ top: 0, behavior: "smooth" }); // 👈 Scrolls up smoothly
+      nextStep();
+    }
+  };
 
 
   const handleInputChange = (e) => {
-  const { name, value, type } = e.target;
+    const { name, value, type } = e.target;
 
-  // ✅ Allow numbers but prevent negatives or leading zeros
-  if (type === "number") {
-    if (value === "") {
-      handleChange(e);
-      return;
+    // ✅ Allow numbers but prevent negatives or leading zeros
+    if (type === "number") {
+      if (value === "") {
+        handleChange(e);
+        return;
+      }
+      const numValue = parseFloat(value);
+      if (numValue < 0) return;
+      if (value.startsWith("0") && value.length > 1) return;
     }
-    const numValue = parseFloat(value);
-    if (numValue < 0) return;
-    if (value.startsWith("0") && value.length > 1) return;
-  }
 
-  // 🟦 Auto-capitalize first letter for occupation
-  if (name === "occupation") {
-    const formattedValue =
-      value.charAt(0).toUpperCase() + value.slice(1);
-    handleChange({ target: { name, value: formattedValue } });
-  }
-  // 🟩 Auto-format street_address (Title Case + allow spaces)
-  else if (name === "street_address") {
-    // Keep spaces as user types
-    const formattedValue = value
-      .split(" ")
-      .map((word) =>
-        word.length > 0
-          ? word.charAt(0).toUpperCase() + word.slice(1)
-          : ""
-      )
-      .join(" ");
-    handleChange({ target: { name, value: formattedValue } });
-  }
-  // 🟨 Default for other fields
-  else {
-    handleChange(e);
-  }
+    // 🟦 Auto-capitalize first letter for occupation
+    if (name === "occupation") {
+      const formattedValue =
+        value.charAt(0).toUpperCase() + value.slice(1);
+      handleChange({ target: { name, value: formattedValue } });
+    }
+    // 🟩 Auto-format street_address (Title Case + allow spaces)
+    else if (name === "street_address") {
+      // Keep spaces as user types
+      const formattedValue = value
+        .split(" ")
+        .map((word) =>
+          word.length > 0
+            ? word.charAt(0).toUpperCase() + word.slice(1)
+            : ""
+        )
+        .join(" ");
+      handleChange({ target: { name, value: formattedValue } });
+    }
+    // 🟨 Default for other fields
+    else {
+      handleChange(e);
+    }
 
-  // ✅ Clear field errors
-  if (errors[name]) {
-    setErrors((prev) => ({ ...prev, [name]: null }));
-  }
-};
+    // ✅ Clear field errors
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: null }));
+    }
+  };
 
 
   return (
@@ -122,13 +177,13 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                 </svg>
               </div>
               <h2 className="text-3xl font-bold text-white">
-                Address & Personal Details
+                {T.headerTitle}
               </h2>
             </div>
             <p className="text-blue-50 text-base leading-relaxed">
-              Please provide your address and additional personal information. All fields marked with{" "}
+              {T.headerSubtitle}{" "}
               <span className="text-white font-semibold bg-white/20 px-1.5 py-0.5 rounded">*</span>{" "}
-              are required.
+              {T.requiredNote}
             </p>
           </div>
 
@@ -143,7 +198,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-gray-800">
-                  Address Information
+                  {T.addressInfo}
                 </h3>
               </div>
 
@@ -177,7 +232,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     htmlFor="street_address"
                     className="block text-sm font-semibold text-gray-700 mb-2"
                   >
-                    Street Address <span className="text-red-500">*</span>
+                    {T.streetAddress} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
@@ -196,7 +251,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           ? "border-red-400 bg-red-50 focus:border-red-500"
                           : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                       }`}
-                      placeholder="Enter your street/purok"
+                      placeholder={T.placeholderStreet}
                       required
                     />
                     {formData.street_address && !errors.street_address && (
@@ -228,7 +283,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-gray-800">
-                  Personal Details
+                  {T.personalDetails}
                 </h3>
               </div>
 
@@ -239,7 +294,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     htmlFor="birthday"
                     className="block text-sm font-semibold text-gray-700 mb-2"
                   >
-                    Date of Birth (Day/Month/Year) <span className="text-red-500">*</span>
+                    {T.dateOfBirth} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -276,7 +331,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                 {/* Sex */}
                 <div className="form-group">
                   <label htmlFor="sex" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Sex <span className="text-red-500">*</span>
+                    {T.sex} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -291,9 +346,9 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                       }`}
                       required
                     >
-                      <option value="">Select Sex</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
+                      <option value="">{T.selectSex}</option>
+                      <option value="Male">{T.male}</option>
+                      <option value="Female">{T.female}</option>
                     </select>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                       <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -317,7 +372,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     htmlFor="civil_status"
                     className="block text-sm font-semibold text-gray-700 mb-2"
                   >
-                    Civil Status <span className="text-red-500">*</span>
+                    {T.civilStatus} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -332,12 +387,12 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                       }`}
                       required
                     >
-                      <option value="">Select Civil Status</option>
-                      <option value="Single">Single</option>
-                      <option value="Married">Married</option>
-                      <option value="Widowed">Widowed</option>
-                      <option value="Separated">Separated</option>
-                      <option value="Divorced">Divorced</option>
+                      <option value="">{T.selectCivilStatus}</option>
+                      <option value="Single">{T.single}</option>
+                      <option value="Married">{T.married}</option>
+                      <option value="Widowed">{T.widowed}</option>
+                      <option value="Separated">{T.separated}</option>
+                      <option value="Divorced">{T.divorced}</option>
                     </select>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                       <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -361,7 +416,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     htmlFor="occupation"
                     className="block text-sm font-semibold text-gray-700 mb-2"
                   >
-                    Occupation (None if none) <span className="text-red-500">*</span>
+                    {T.occupation} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
@@ -380,7 +435,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           ? "border-red-400 bg-red-50 focus:border-red-500"
                           : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                       }`}
-                      placeholder="Enter your occupation"
+                      placeholder={T.placeholderOccupation}
                       required
                     />
                     {formData.occupation && !errors.occupation && (
@@ -407,7 +462,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     htmlFor="monthly_income"
                     className="block text-sm font-semibold text-gray-700 mb-2"
                   >
-                    Monthly Income (PHP) <span className="text-red-500">*</span>
+                    {T.monthlyIncome} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
@@ -425,7 +480,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                       }`}
                       min="0"
-                      placeholder="e.g. 15000"
+                      placeholder={T.placeholderIncome}
                       required
                     />
                     {formData.monthly_income !== "" && formData.monthly_income !== null && formData.monthly_income !== undefined && !errors.monthly_income && (
@@ -458,13 +513,13 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                 <svg className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
                 </svg>
-                <span>Back</span>
+                <span>{T.back}</span>
               </button>
               <button
                 type="submit"
                 className="group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white font-semibold rounded-xl px-8 py-3.5 inline-flex items-center gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-105 active:scale-95"
               >
-                <span>Continue to Assistance</span>
+                <span>{T.continue}</span>
                 <svg className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -476,7 +531,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
         {/* Help Text */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500">
-            Need help? Contact our support team for assistance.
+            {T.helpText}
           </p>
         </div>
       </div>

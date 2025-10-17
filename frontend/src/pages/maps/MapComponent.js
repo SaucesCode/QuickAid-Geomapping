@@ -18,6 +18,7 @@ import {
   Target,
   Loader2,
   X,
+  Map as MapIcon,
 } from "lucide-react";
 
 // ============= SETUP & CONFIGURATION =============
@@ -38,11 +39,11 @@ L.Marker.prototype.options.icon = DefaultIcon;
 // Default center (Quezon Province)
 const defaultCenter = [13.938, 121.508];
 
-// Colors
+// Colors (UNCHANGED as per request)
 const assistanceColors = {
-  Medical: "#3b82f6",
-  Burial: "#fef08a",
-  Educational: "#10b981",
+  Medical: "#3b82f6", // blue-500
+  Burial: "#fef08a", // yellow-200
+  Educational: "#10b981", // emerald-500
 };
 
 const assistanceTypes = ["Medical", "Burial", "Educational"];
@@ -130,7 +131,8 @@ const MapComponent = () => {
     } catch (err) {
       console.error("Error fetching locations:", err);
     } finally {
-      setLoading(false);
+        // Added a slight delay for better UX on fast networks
+        setTimeout(() => setLoading(false), 500); 
     }
   };
 
@@ -144,6 +146,7 @@ const MapComponent = () => {
 
   useEffect(() => {
     fetchLocations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typeFilter, cityFilter, barangayFilter]);
 
   useEffect(() => {
@@ -171,24 +174,41 @@ const MapComponent = () => {
 
   // ============= RENDER =============
   return (
-    <div className="relative h-[calc(100vh-4rem)] bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden mt-16">
-      <div className="flex flex-col xl:flex-row h-full">
+    // Main container is responsive and full-height, but without min-h-screen for flexibility
+    <div className="relative w-full h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
+        
+      <style>{`
+        /* Custom CSS for smoother dropdown appearance */
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Leaflet Z-index fixes */
+        .leaflet-container { z-index: 0 !important; }
+      `}</style>
+
+      {/* Responsive layout: vertical stack on mobile (default), horizontal on xl screens */}
+      <div className="flex flex-col xl:flex-row h-full"> 
+        
         {/* Map Container */}
-        <div className="flex-1 relative h-full">
+        <div className="flex-1 relative h-[65vh] xl:h-[calc(100vh-4rem)]">
           {loading ? (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 z-50">
               <div className="bg-white rounded-2xl p-10 shadow-2xl border border-gray-100 flex flex-col items-center gap-6">
                 <div className="relative flex items-center justify-center">
-                  {/* Outer spinning ring */}
-                  <div className="h-24 w-24 rounded-full border-[6px] border-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 border-t-transparent animate-spin"></div>
+                  {/* Outer spinning ring - Modern Blue/Indigo Gradient */}
+                  <div className="h-24 w-24 rounded-full border-[6px] border-transparent border-t-blue-500 border-r-indigo-500 animate-spin"></div>
                   
-                  {/* Inner pulsing ring */}
+                  {/* Inner pulsing ring - Subtle accent */}
                   <div className="absolute inset-2 rounded-full border-4 border-blue-300 border-t-transparent animate-spin" style={{ animationDelay: '150ms' }}></div>
                   
                   {/* Centered icon with gradient background */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full p-4 shadow-xl">
-                      <MapPin className="h-8 w-8 text-white" />
+                      <MapIcon className="h-8 w-8 text-white" />
                     </div>
                   </div>
                 </div>
@@ -204,9 +224,16 @@ const MapComponent = () => {
               </div>
             </div>
           ) : (
-            <div className="h-full rounded-2xl overflow-hidden shadow-2xl m-4 border-2 border-white">
-              <MapContainer center={mapCenter} zoom={11} className="w-full h-full" scrollWheelZoom={false}>
+            // Map Wrapper: Added responsive margin for aesthetic spacing
+            <div className="h-full rounded-none xl:rounded-2xl overflow-hidden shadow-2xl xl:m-4 border-2 border-white">
+              <MapContainer 
+                center={mapCenter} 
+                zoom={11} 
+                className="w-full h-full" 
+                scrollWheelZoom={true} // Enabled scroll wheel zoom for better UX
+              >
                 <TileLayer
+                  // Using a clean, professional map tile
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
@@ -215,13 +242,15 @@ const MapComponent = () => {
                 {geoData && (
                   <GeoJSON
                     data={geoData}
-                    style={{ color: "#f87171", weight: 3, fillOpacity: 0 }}
+                    // Updated boundary color for a more professional look
+                    style={{ color: "#9ca3af", weight: 2, fillOpacity: 0.05 }} 
                   />
                 )}
                 {cityGeoData && (
                   <GeoJSON
                     data={cityGeoData}
-                    style={{ color: "#38b2ac", weight: 1, fillOpacity: 0.2 }}
+                    // Blue-themed city boundary
+                    style={{ color: "#3b82f6", weight: 3, fillOpacity: 0.15 }} 
                   />
                 )}
 
@@ -239,14 +268,14 @@ const MapComponent = () => {
                       >
                         <Popup>
                           <div className="p-2">
-                            <h3 className="font-semibold text-quickaid-text-primary mb-1">
+                            <h3 className="font-semibold text-blue-700 mb-1">
                               {loc.full_name}
                             </h3>
-                            <p className="text-sm text-quickaid-text-secondary mb-2">
+                            <p className="text-sm text-gray-600 mb-2">
                               {loc.address}
                             </p>
                             <span
-                              className="inline-block px-2 py-1 rounded-full text-xs text-white"
+                              className="inline-block px-2 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
                               style={{ backgroundColor: getColor(loc.type_of_assistance) }}
                             >
                               {loc.type_of_assistance}
@@ -262,7 +291,7 @@ const MapComponent = () => {
                         radius={40}
                         pathOptions={{
                           color: getColor(loc.type_of_assistance),
-                          fillOpacity: 0.2,
+                          fillOpacity: 0.3, // Slightly higher opacity for a better visual cue
                           weight: 2,
                         }}
                       />
@@ -274,20 +303,21 @@ const MapComponent = () => {
           )}
         </div>
 
-        {/* Modern Sidebar */}
+        {/* Modern Sidebar: Full width on mobile, fixed width on XL screens */}
         <aside className="w-full xl:w-96 bg-white border-t xl:border-l border-gray-100 flex flex-col shadow-2xl">
           <div className="p-6 flex-1 overflow-y-auto">
+            
             {/* Header */}
-            <div className="mb-8 bg-white pb-6 border-b-2 border-gradient-to-r from-blue-200 to-indigo-200">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+            <div className="mb-6 sm:mb-8 bg-white pb-4 border-b-2 border-blue-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl shadow-xl shadow-blue-500/50">
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-                    Location Map
+                  <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700">
+                    Location Analytics
                   </h1>
-                  <p className="text-xs text-gray-600 font-medium">Track applicant locations</p>
+                  <p className="text-xs text-gray-500 font-medium">Filter and track applicant locations</p>
                 </div>
               </div>
             </div>
@@ -303,9 +333,10 @@ const MapComponent = () => {
               </div>
 
               <div className="space-y-3">
+                {/* Type Filter */}
                 <div className="relative">
                   <select
-                    className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer hover:border-blue-300"
+                    className="w-full px-4 py-3 bg-blue-50 border-2 border-blue-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none cursor-pointer hover:border-blue-400 shadow-sm"
                     onChange={(e) => setTypeFilter(e.target.value)}
                     value={typeFilter}
                   >
@@ -323,9 +354,10 @@ const MapComponent = () => {
                   </div>
                 </div>
 
+                {/* City Filter */}
                 <div className="relative">
                   <select
-                    className="w-full px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer hover:border-purple-300"
+                    className="w-full px-4 py-3 bg-indigo-50 border-2 border-indigo-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 appearance-none cursor-pointer hover:border-indigo-400 shadow-sm"
                     onChange={(e) => setCityFilter(e.target.value)}
                     value={cityFilter}
                   >
@@ -337,16 +369,17 @@ const MapComponent = () => {
                     ))}
                   </select>
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
                 </div>
 
+                {/* Barangay Filter (Conditional) */}
                 {cityFilter && (
                   <div className="relative animate-fadeIn">
                     <select
-                      className="w-full px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer hover:border-green-300"
+                      className="w-full px-4 py-3 bg-green-50 border-2 border-green-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 appearance-none cursor-pointer hover:border-green-400 shadow-sm"
                       onChange={(e) => setBarangayFilter(e.target.value)}
                       value={barangayFilter}
                     >
@@ -365,38 +398,39 @@ const MapComponent = () => {
                   </div>
                 )}
 
+                {/* Reset Button */}
                 <button
-                  className="w-full px-4 py-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-xl font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2 border border-gray-300"
+                  className="w-full px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold text-sm transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 border border-gray-300"
                   onClick={resetFilters}
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-4 h-4 text-gray-500" />
                   Reset Filters
                 </button>
               </div>
 
-              {/* Active Filters */}
+              {/* Active Filters Tags */}
               {(typeFilter || cityFilter || barangayFilter) && (
-                <div className="flex flex-wrap gap-2 mt-4">
+                <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
                   {typeFilter && (
-                    <span className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 rounded-full text-xs font-semibold flex items-center gap-1.5 border border-blue-200">
+                    <span className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all duration-200">
                       Type: {typeFilter}
-                      <button onClick={() => setTypeFilter("")} className="hover:bg-blue-200 rounded-full p-0.5">
+                      <button onClick={() => setTypeFilter("")} className="hover:bg-blue-200 rounded-full p-0.5 ml-1">
                         <X className="w-3 h-3" />
                       </button>
                     </span>
                   )}
                   {cityFilter && (
-                    <span className="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-full text-xs font-semibold flex items-center gap-1.5 border border-purple-200">
+                    <span className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all duration-200">
                       City: {cityFilter}
-                      <button onClick={() => setCityFilter("")} className="hover:bg-purple-200 rounded-full p-0.5">
+                      <button onClick={() => setCityFilter("")} className="hover:bg-indigo-200 rounded-full p-0.5 ml-1">
                         <X className="w-3 h-3" />
                       </button>
                     </span>
                   )}
                   {barangayFilter && (
-                    <span className="px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-full text-xs font-semibold flex items-center gap-1.5 border border-green-200">
+                    <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all duration-200">
                       Brgy: {barangayFilter}
-                      <button onClick={() => setBarangayFilter("")} className="hover:bg-green-200 rounded-full p-0.5">
+                      <button onClick={() => setBarangayFilter("")} className="hover:bg-green-200 rounded-full p-0.5 ml-1">
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -415,8 +449,8 @@ const MapComponent = () => {
                 </h3>
               </div>
 
-              {/* Total Card */}
-              <div className="bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-2xl p-5 text-white mb-4 shadow-xl relative overflow-hidden">
+              {/* Total Card - Premium Gradient Look */}
+              <div className="bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-700 rounded-2xl p-5 text-white mb-4 shadow-xl relative overflow-hidden transform transition-transform duration-300 hover:scale-[1.02]">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-12 -mb-12"></div>
                 <div className="relative flex items-center justify-between">
@@ -424,18 +458,18 @@ const MapComponent = () => {
                     <p className="text-sm font-semibold opacity-90 mb-1">Total Locations</p>
                     <p className="text-4xl font-bold">{locations.length}</p>
                   </div>
-                  <div className="bg-white bg-opacity-20 rounded-xl p-3 backdrop-blur-sm">
+                  <div className="bg-white bg-opacity-20 rounded-xl p-3 backdrop-blur-sm shadow-inner">
                     <MapPin className="w-8 h-8" />
                   </div>
                 </div>
               </div>
 
-              {/* Stats Cards */}
+              {/* Stats Cards - Clean and Color-coded */}
               <div className="space-y-3">
                 {Object.entries(assistanceColors).map(([type, color]) => (
                   <div 
                     key={type} 
-                    className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border-2 border-gray-200 hover:border-blue-300 transition-all duration-200 hover:shadow-md"
+                    className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-blue-300 transition-all duration-200 hover:shadow-lg"
                   >
                     <div className="flex items-center gap-3">
                       <div
@@ -444,7 +478,7 @@ const MapComponent = () => {
                       />
                       <span className="font-semibold text-gray-800">{type}</span>
                     </div>
-                    <span className="text-xl font-bold text-gray-900 bg-white px-3 py-1 rounded-lg shadow-sm">
+                    <span className="text-xl font-bold text-gray-900 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200 shadow-inner">
                       {stats[type] || 0}
                     </span>
                   </div>
@@ -454,23 +488,23 @@ const MapComponent = () => {
           </div>
 
           {/* Legend Footer */}
-          <div className="p-6 border-t-2 border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+          <div className="p-6 border-t-2 border-gray-100 bg-gray-50">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-1 h-5 bg-gradient-to-b from-gray-400 to-gray-600 rounded-full"></div>
-              <h4 className="text-sm font-bold text-gray-800">Legend</h4>
+              <h4 className="text-sm font-bold text-gray-800">Map Legend</h4>
             </div>
             <div className="space-y-2.5">
               <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-red-300 border-2 border-red-400 rounded shadow-sm" />
-                <span className="text-xs font-medium text-gray-700">Province Boundary</span>
+                <div className="w-4 h-4 bg-gray-300 border-2 border-gray-400 rounded-sm" />
+                <span className="text-xs font-medium text-gray-600">Province Boundary</span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-teal-200 border-2 border-teal-500 rounded shadow-sm" />
-                <span className="text-xs font-medium text-gray-700">Selected City</span>
+                <div className="w-4 h-4 bg-blue-200 border-2 border-blue-500 rounded-sm" />
+                <span className="text-xs font-medium text-gray-600">Selected City Boundary</span>
               </div>
               <div className="flex items-center gap-3">
                 <MapPin className="w-4 h-4 text-blue-600" />
-                <span className="text-xs font-medium text-gray-700">Applicant Location</span>
+                <span className="text-xs font-medium text-gray-600">Applicant Location</span>
               </div>
             </div>
           </div>

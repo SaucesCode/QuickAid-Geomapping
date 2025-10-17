@@ -1,6 +1,45 @@
 // File: frontend/src/forms/Step1.js
 import { useState } from "react";
 
+// Filipino-English Hybrid Translations
+const T = {
+  // Header
+  headerTitle: "Personal Information (Impormasyon ng Sarili)",
+  headerSubtitle: "Please provide your basic personal details. All fields marked with",
+  requiredNote: "are required. (Ang lahat ng field na may markang * ay kinakailangan.)",
+  
+  // Form Labels
+  firstName: "First Name (Unang Pangalan)",
+  middleInitial: "Middle Initial (Gitnang Pangalan)",
+  lastName: "Last Name (Apelyido)",
+  suffix: "Suffix (Sufiks)",
+  contactNumber: "Contact Number",
+
+  // Dropdown Options
+  suffixNone: "None (Wala)",
+
+  // Placeholders
+  placeholderFirstName: "Enter your first name (e.g., Juan)",
+  placeholderMiddleInitial: "Enter your middle initial (e.g., M.)",
+  placeholderLastName: "Enter your last name (e.g., Dela Cruz)",
+  placeholderContact: "e.g. 09123456789",
+  helpText: "Enter your 11-digit mobile number (Ilagay ang iyong 11-digit na mobile number)",
+
+  // Buttons
+  continue: "Continue to Address (Magpatuloy sa Tirahan)",
+  
+  // Help/Footer Text
+  footerHelp: "Need help? Contact our support team for assistance. (Kailangan ng tulong? Kontakin ang aming support team.)",
+
+  // Validation Messages (Filipino is the primary error message)
+  errorFirstName: "Kailangan ang Unang Pangalan (First name is required)",
+  errorLastName: "Kailangan ang Apelyido (Last name is required)",
+  errorMiddleInitial: "Kailangan ang Gitnang Pangalan (Middle name is required)",
+  errorContactRequired: "Kailangan ang Contact Number (Contact number is required)",
+  errorContactInvalid: "Pakilagay ang wastong 11-digit na mobile number (Please enter a valid 11-digit mobile number)",
+};
+
+
 const Step1 = ({ formData, handleChange, nextStep }) => {
   const [errors, setErrors] = useState({});
 
@@ -8,18 +47,20 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
     const newErrors = {};
 
     if (!formData.first_name?.trim()) {
-      newErrors.first_name = "First name is required";
+      newErrors.first_name = T.errorFirstName;
     }
     if (!formData.last_name?.trim()) {
-      newErrors.last_name = "Last name is required";
+      newErrors.last_name = T.errorLastName;
     }
+    // Middle name/initial is often considered optional in many official PH forms, but
+    // let's keep it required as per your original logic/requirement.
     if (!formData.middle_initial?.trim()) {
-      newErrors.middle_initial = "Middle name is required";
+      newErrors.middle_initial = T.errorMiddleInitial;
     }
     if (!formData.contact_number?.trim()) {
-      newErrors.contact_number = "Contact number is required";
+      newErrors.contact_number = T.errorContactRequired;
     } else if (!/^[0-9]{11}$/.test(formData.contact_number)) {
-      newErrors.contact_number = "Please enter a valid 11-digit mobile number";
+      newErrors.contact_number = T.errorContactInvalid;
     }
 
     setErrors(newErrors);
@@ -28,7 +69,10 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+
     if (validateForm()) {
+      window.scrollTo({ top: 0, behavior: "smooth" }); // 👈 Scrolls up smoothly
       nextStep();
     }
   };
@@ -36,19 +80,28 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    
-
     // Enforce only digits & limit to 11 numbers for contact_number
     if (name === "contact_number") {
       const cleanedValue = value.replace(/\D/g, "").slice(0, 11);
       handleChange({ target: { name, value: cleanedValue } });
     } 
-    else if (["first_name", "middle_initial", "last_name"].includes(name)) {
-    const capitalizedValue =
-      value.charAt(0).toUpperCase() + value.slice(1);
-    handleChange({ target: { name, value: capitalizedValue } });
-  } 
+    // Auto-capitalize first letter for name fields
+    else if (["first_name", "last_name", "middle_initial"].includes(name)) {
+      // Allow spaces (for composite names) but ensure title-casing
+      const formattedValue = value
+        .split(" ")
+        .map(word =>
+          word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : ""
+        )
+        .join(" ");
+      handleChange({ target: { name, value: formattedValue } });
+    } 
+    // Default for other fields (e.g., suffix)
+    else {
+      handleChange(e);
+    }
 
+    // Clear field errors
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }));
     }
@@ -58,7 +111,6 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         
-
         {/* Main Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           {/* Header Section */}
@@ -70,13 +122,13 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                 </svg>
               </div>
               <h2 className="text-3xl font-bold text-white">
-                Personal Information
+                {T.headerTitle}
               </h2>
             </div>
             <p className="text-blue-50 text-base leading-relaxed">
-              Please provide your basic personal details. Fields marked with{" "}
+              {T.headerSubtitle}{" "}
               <span className="text-white font-semibold bg-white/20 px-1.5 py-0.5 rounded">*</span>{" "}
-              are required.
+              {T.requiredNote}
             </p>
           </div>
 
@@ -89,22 +141,23 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                   htmlFor="first_name"
                   className="block text-sm font-semibold text-gray-700 mb-2"
                 >
-                  First Name <span className="text-red-500">*</span>
+                  {T.firstName} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     id="first_name"
                     name="first_name"
-                    value={formData.first_name}
+                    value={formData.first_name || ""}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
                       errors.first_name
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                     }`}
-                    placeholder="Enter your first name"
+                    placeholder={T.placeholderFirstName}
                     autoComplete="given-name"
+                    required
                   />
                   {formData.first_name && !errors.first_name && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -130,22 +183,23 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                   htmlFor="middle_initial"
                   className="block text-sm font-semibold text-gray-700 mb-2"
                 >
-                  Middle Initial
+                  {T.middleInitial} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     id="middle_initial"
                     name="middle_initial"
-                    value={formData.middle_initial}
+                    value={formData.middle_initial || ""}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
                       errors.middle_initial
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                     }`}
-                    placeholder="Enter middle initial"
+                    placeholder={T.placeholderMiddleInitial}
                     autoComplete="additional-name"
+                    required
                   />
                   {formData.middle_initial && !errors.middle_initial && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -171,22 +225,23 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                   htmlFor="last_name"
                   className="block text-sm font-semibold text-gray-700 mb-2"
                 >
-                  Last Name <span className="text-red-500">*</span>
+                  {T.lastName} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     id="last_name"
                     name="last_name"
-                    value={formData.last_name}
+                    value={formData.last_name || ""}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
                       errors.last_name
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                     }`}
-                    placeholder="Enter your last name"
+                    placeholder={T.placeholderLastName}
                     autoComplete="family-name"
+                    required
                   />
                   {formData.last_name && !errors.last_name && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -212,17 +267,17 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                   htmlFor="suffix"
                   className="block text-sm font-semibold text-gray-700 mb-2"
                 >
-                  Suffix
+                  {T.suffix}
                 </label>
                 <div className="relative">
                   <select
                     id="suffix"
                     name="suffix"
-                    value={formData.suffix}
-                    onChange={handleInputChange}
+                    value={formData.suffix || ""}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300 cursor-pointer"
                   >
-                    <option value="">None</option>
+                    <option value="">{T.suffixNone}</option>
                     <option value="Jr.">Jr.</option>
                     <option value="Sr.">Sr.</option>
                     <option value="I">I</option>
@@ -244,7 +299,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                   htmlFor="contact_number"
                   className="block text-sm font-semibold text-gray-700 mb-2"
                 >
-                  Contact Number <span className="text-red-500">*</span>
+                  {T.contactNumber} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
@@ -256,7 +311,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     type="tel"
                     id="contact_number"
                     name="contact_number"
-                    value={formData.contact_number}
+                    value={formData.contact_number || ""}
                     onChange={handleInputChange}
                     inputMode="numeric"
                     maxLength="11"
@@ -265,8 +320,9 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                     }`}
-                    placeholder="e.g. 09123456789"
+                    placeholder={T.placeholderContact}
                     autoComplete="tel"
+                    required
                   />
                   {formData.contact_number && !errors.contact_number && formData.contact_number.length === 11 && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -292,7 +348,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
                     <small className="text-sm text-gray-500">
-                      Enter your 11-digit mobile number
+                      {T.helpText}
                     </small>
                   </div>
                 )}
@@ -305,7 +361,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                 type="submit"
                 className="group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white font-semibold rounded-xl px-8 py-3.5 inline-flex items-center gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-105 active:scale-95"
               >
-                <span>Continue to Address</span>
+                <span>{T.continue}</span>
                 <svg className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -317,7 +373,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
         {/* Help Text */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500">
-            Need help? Contact our support team for assistance.
+            {T.footerHelp}
           </p>
         </div>
       </div>
