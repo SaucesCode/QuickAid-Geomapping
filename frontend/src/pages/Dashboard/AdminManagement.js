@@ -92,6 +92,40 @@ const AdminManagement = () => {
         } finally {
             setIsLoadingStaff(false);
         }
+  const [staffList, setStaffList] = useState([]);
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+    first_name: "",
+    last_name: "",
+    email: "",
+  });
+  const [showModal, setShowModal] = useState(false);
+  const [editData, setEditData] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
+  const [approvalHistory, setApprovalHistory] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const token = localStorage.getItem("accessToken");
+
+  // Activity logs states
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [isLoadingStaff, setIsLoadingStaff] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  console.log("Activity Logs:", activityLogs);
+
+  useEffect(() => {
+    document.title = "QuickAid | Admin Management";
+    // Using a more modern blue-teal color for accent: 'indigo-600'
+    const newColors = {
+      quickaidBg: theme.background,
+      quickaidSurface: theme.surface,
+      quickaidAccent: theme.primary,
+      quickaidTextPrimary: theme.textPrimary,
+      quickaidTextSecondary: theme.textSecondary,
     };
 
     const fetchActivityLogs = async () => {
@@ -119,6 +153,194 @@ const AdminManagement = () => {
         } finally {
             setIsLoadingLogs(false);
         }
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
+
+  useEffect(() => {
+    fetchStaff();
+    fetchActivityLogs();
+    fetchApprovalHistory();
+  }, [currentPage]);
+
+  const fetchStaff = async () => {
+    setIsLoadingStaff(true);
+    try {
+      const res = await api.get(`/staff-list/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStaffList(res.data || []);
+    } catch (error) {
+      toast.error("Error loading staff list");
+      setStaffList([]);
+    } finally {
+      setIsLoadingStaff(false);
+    }
+  };
+
+  const fetchActivityLogs = async () => {
+    setIsLoadingLogs(true);
+    try {
+      const response = await api.get(`/users/staff-activity/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const logs = Array.isArray(response.data) ? response.data : response.data.results || [];
+
+      setActivityLogs(logs);
+
+      // if (!response.data || !Array.isArray(response.data)) {
+      //   throw new Error("Invalid data format received");
+      // }
+
+      // setActivityLogs(response.data);
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.details ||
+        error.response?.data?.error ||
+        "Failed to load activity logs";
+      toast.error(errorMessage);
+      setActivityLogs([]);
+    } finally {
+      setIsLoadingLogs(false);
+    }
+  };
+
+  const fetchApprovalHistory = async () => {
+    setIsLoadingHistory(true);
+    try {
+      const res = await api.get(`/approved/history/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setApprovalHistory(res.data || []);
+    } catch {
+      toast.error("Error loading approval batch history");
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const handleChange = e => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async () => {
+    try {
+      await api.post(`/register_staff/`, formData, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success("Staff registered successfully!");
+      setFormData({ username: "", password: "", first_name: "", last_name: "", email: "" });
+      setShowModal(false);
+      fetchStaff();
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || "Registration failed";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleDelete = async id => {
+    toast(
+      t => (
+        <div className="bg-white p-4 rounded-xl shadow-2xl flex flex-col items-center max-w-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-6 h-6 text-red-500" />
+            <p className="text-lg text-gray-800 font-semibold">Confirm Deletion</p>
+          </div>
+          <p className="text-gray-600 text-sm text-center mb-5">
+            Are you sure you want to delete this staff member? This action cannot be undone.
+          </p>
+          <div className="flex gap-3 w-full">
+            <button
+              className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 shadow-md"
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  await api.delete(`/delete-staff/${id}/`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                  });
+                  toast.success("Staff deleted successfully");
+                  fetchStaff();
+                } catch {
+                  toast.error("Failed to delete staff");
+                }
+              }}
+            >
+              <Trash2 size={16} /> Delete
+            </button>
+            <button
+              className="flex-1 px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-colors shadow-md"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity }
+    );
+  };
+
+  const handleUpdate = async () => {
+    try {
+      await api.put(`/update-staff/${editData.id}/`, editData, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      toast.success("Staff updated successfully!");
+      fetchStaff();
+      setEditData(null);
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || "Update failed";
+      toast.error(errorMessage);
+    }
+  };
+
+  const getStatusBadge = lastActive => {
+    const isOnline = lastActive ? (new Date() - new Date(lastActive)) / 1000 < 60 : false;
+    const isIdle = !isOnline && lastActive ? (new Date() - new Date(lastActive)) / 1000 < 300 : false;
+
+    if (isOnline) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          Online
+        </span>
+      );
+    }
+    if (isIdle) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700 rounded-full">
+          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+          Idle
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-full">
+        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+        Offline
+      </span>
+    );
+  };
+
+  const getActionBadge = action => {
+    const actionStyles = {
+      login: "bg-green-100 text-green-700",
+      logout: "bg-red-100 text-red-700",
+      create: `bg-${theme.primaryLight} text-${theme.primary}`,
+      update: "bg-yellow-100 text-yellow-700",
+      delete: "bg-red-100 text-red-700",
     };
 
     const fetchApprovalHistory = async () => {

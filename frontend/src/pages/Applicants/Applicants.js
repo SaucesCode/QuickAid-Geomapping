@@ -69,6 +69,18 @@ const SkeletonRow = () => (
 );
 
 // --- Main Component ---
+import {
+  Users,
+  FileText,
+  CheckCircle2,
+  TrendingUp,
+  Activity,
+  GraduationCap,
+  Stethoscope,
+  Plus,
+  Heart,
+  Sparkles,
+} from "lucide-react";
 
 const csvHeaders = [
   { label: "ID", key: "id" },
@@ -94,6 +106,7 @@ const csvHeaders = [
 
 const Applicants = () => {
   const [applicants, setApplicants] = useState([]);
+  const [nextUrl, setNextUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [editView, setEditView] = useState(false);
@@ -113,13 +126,26 @@ const Applicants = () => {
     };
   }, []);
 
-  const fetchApplicants = async () => {
+  const fetchApplicants = async (url = "/applicants/?limit=50") => {
     setLoading(true);
     try {
       // Simulate network delay for skeleton visibility
       await new Promise(resolve => setTimeout(resolve, 800)); 
       const res = await api.get("/applicants/");
       setApplicants(res.data);
+      const res = await api.get(url);
+      const data = res.data;
+
+      // DRF paginated response (has results array)
+      if (data.results) {
+        setApplicants(prev => [...prev, ...data.results]);
+        setNextUrl(data.next);
+      }
+      // Non-paginated fallback (in case pagination is off)
+      else if (Array.isArray(data)) {
+        setApplicants(prev => [...prev, ...data]);
+        setNextUrl(null);
+      }
     } catch (err) {
       console.error("Fetch applicants failed:", err);
     } finally {
@@ -131,7 +157,13 @@ const Applicants = () => {
     fetchApplicants();
   }, []);
 
-  const openEditView = (applicant) => {
+  const handleScroll = () => {
+    if (nextUrl && !loading) {
+      fetchApplicants(nextUrl);
+    }
+  };
+
+  const openEditView = applicant => {
     setEditingApplicant({
       ...applicant,
       valid_id_presented: applicant.valid_id_presented || "",
@@ -145,7 +177,7 @@ const Applicants = () => {
     setEditView(false);
   };
 
-  const openPreviewView = (applicant) => {
+  const openPreviewView = applicant => {
     setPreviewApplicant({ ...applicant });
     setPreviewView(true);
   };
@@ -155,7 +187,7 @@ const Applicants = () => {
     setPreviewView(false);
   };
 
-  const openArchiveModal = (id) => {
+  const openArchiveModal = id => {
     setArchiveModal({ show: true, applicantId: id });
   };
 
@@ -167,7 +199,7 @@ const Applicants = () => {
     if (!archiveModal.applicantId) return;
     try {
       await api.delete(`/applicants/${archiveModal.applicantId}/`);
-      toast.custom((t) => <CustomToast t={t} type="archive" />);
+      toast.custom(t => <CustomToast t={t} type="archive" />);
       fetchApplicants();
       closeArchiveModal();
     } catch (err) {
@@ -176,15 +208,15 @@ const Applicants = () => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
-    setEditingApplicant((prev) => ({
+    setEditingApplicant(prev => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleSave = async (e) => {
+  const handleSave = async e => {
     e.preventDefault();
     if (!editingApplicant || !editingApplicant.id) return;
 
@@ -213,7 +245,7 @@ const Applicants = () => {
     }
   };
 
-  const handleSort = (key) => {
+  const handleSort = key => {
     let direction = "ascending";
     if (sortConfig.key === key && sortConfig.direction === "ascending") {
       direction = "descending";
@@ -221,7 +253,7 @@ const Applicants = () => {
     setSortConfig({ key, direction });
   };
 
-  const getSortedData = (data) => {
+  const getSortedData = data => {
     if (!sortConfig.key) return data;
     return [...data].sort((a, b) => {
       let aValue = a[sortConfig.key];
@@ -232,7 +264,7 @@ const Applicants = () => {
     });
   };
 
-  const filteredApplicants = applicants.filter((a) => {
+  const filteredApplicants = applicants.filter(a => {
     const keyword = searchTerm.toLowerCase();
     return (
       (a.background_info?.first_name || "").toLowerCase().includes(keyword) ||
@@ -250,11 +282,11 @@ const Applicants = () => {
   const currentItems = sortedApplicants.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(sortedApplicants.length / itemsPerPage);
 
-  const handlePageChange = (pageNumber) => {
+  const handlePageChange = pageNumber => {
     setCurrentPage(pageNumber);
   };
 
-  const handleItemsPerPageChange = (e) => {
+  const handleItemsPerPageChange = e => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1);
   };
@@ -285,6 +317,10 @@ const Applicants = () => {
         return "bg-gray-100 text-gray-700";
     }
   };
+  const burialCount = applicants.filter(a => a.type_of_assistance === "Burial").length;
+  const educationalCount = applicants.filter(
+    a => a.type_of_assistance === "Educational"
+  ).length;
 
   return (
     // Outermost Container: overflow-x-hidden is crucial for removing horizontal scrollbar
@@ -403,6 +439,101 @@ const Applicants = () => {
                     </div>
                 </>
             )}
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Total Applicants */}
+            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-blue-200 p-6 overflow-hidden hover:-translate-y-1">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+              <div className="relative flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
+                      Total Applicants
+                    </p>
+                  </div>
+                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 mb-2">
+                    {applicants.length}
+                  </p>
+                  <p className="text-gray-500 text-sm font-medium">
+                    All registered applicants
+                  </p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                  <Users className="w-7 h-7 text-white" />
+                </div>
+              </div>
+              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
+            </div>
+
+            {/* Medical */}
+            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-amber-200 p-6 overflow-hidden hover:-translate-y-1">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+              <div className="relative flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
+                      Medical Assistance
+                    </p>
+                  </div>
+                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-700 mb-2">
+                    {medicalCount}
+                  </p>
+                  <p className="text-gray-500 text-sm font-medium">Active medical cases</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                  <Stethoscope className="w-7 h-7 text-white" />
+                </div>
+              </div>
+              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full"></div>
+            </div>
+
+            {/* Educational */}
+            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-emerald-200 p-6 overflow-hidden hover:-translate-y-1">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-green-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+              <div className="relative flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
+                      Educational Assistance
+                    </p>
+                  </div>
+                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-green-700 mb-2">
+                    {educationalCount}
+                  </p>
+                  <p className="text-gray-500 text-sm font-medium">Active educational cases</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                  <GraduationCap className="w-7 h-7 text-white" />
+                </div>
+              </div>
+              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-emerald-500 to-green-600 rounded-full"></div>
+            </div>
+
+            {/* Burial */}
+            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-violet-200 p-6 overflow-hidden hover:-translate-y-1">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+              <div className="relative flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse"></div>
+                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
+                      Burial Assistance
+                    </p>
+                  </div>
+                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-purple-700 mb-2">
+                    {burialCount}
+                  </p>
+                  <p className="text-gray-500 text-sm font-medium">Active burial cases</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                  <Heart className="w-7 h-7 text-white" />
+                </div>
+              </div>
+              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-violet-500 to-purple-600 rounded-full"></div>
+            </div>
           </div>
         </div>
 

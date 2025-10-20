@@ -68,6 +68,8 @@ const ArchiveApplicants = () => {
       await new Promise(resolve => setTimeout(resolve, 800)); 
       const res = await api.get("/list-archived-applicants/");
       setArchivedApplicants(res.data);
+      const res = await api.get("/list-archived-applicants/?limit=50");
+      setArchivedApplicants(res.data.results);
     } catch (err) {
       console.error("Fetch applicants failed:", err);
     } finally {

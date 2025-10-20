@@ -1,4 +1,3 @@
-# your_app/middleware.py
 from django.utils import timezone
 import datetime
 
