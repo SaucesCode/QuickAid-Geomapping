@@ -4,6 +4,8 @@ import datetime
 import requests
 import pandas as pd
 from dateutil.relativedelta import relativedelta
+from datetime import datetime, timedelta
+
 
 # Django
 from django.contrib.auth import get_user_model
@@ -14,11 +16,9 @@ from django.db.models import (
     IntegerField, Max, Q, Prefetch
 )
 from django.db.models.functions import TruncDate, ExtractYear, TruncMonth, ExtractHour
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.utils import timezone
 from django.utils.timezone import now, timedelta
-from django.views import View
-from django.views.decorators.csrf import csrf_exempt
 
 # Django REST Framework
 from rest_framework import status
@@ -37,7 +37,7 @@ from rest_framework.pagination import LimitOffsetPagination
 # Local
 from .models import (
     Applicant, CustomUser, StaffActivityLog,
-    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch, Representative
+    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch
 )
 from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer
 
@@ -653,7 +653,12 @@ def approved_applicants(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def approval_batches(request):
-    batches = ApprovalBatch.objects.order_by("-uploaded_at").all()
+    paginator = LimitOffsetPagination()
+    paginator.default_limit = 50
+
+    batches = ApprovalBatch.objects.select_related("uploaded_by").order_by("-uploaded_at")
+    paginated_queryset = paginator.paginate_queryset(batches, request)
+
     data = [
         {
             "id": batch.id,
@@ -665,18 +670,27 @@ def approval_batches(request):
             "total_already_approved": batch.total_already_approved,
             "total_not_found": batch.total_not_found,
         }
-        for batch in batches
+        for batch in paginated_queryset
     ]
-    return Response(data)
+    return paginator.get_paginated_response(data)
+
 
 #APPROVED APPLICANTS BY BATCH
-#
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def approvals_for_batch(request, batch_id):
+    paginator = LimitOffsetPagination()
+    paginator.default_limit = 50
+
     approvals = Approval.objects.filter(batch_id=batch_id).select_related(
-        "applicant__background_info", "approved_by"
+        "applicant",
+        "applicant__background_info", 
+        "applicant__background_info__barangay", 
+        "applicant__background_info__barangay__city", 
+        "approved_by"
     )
+
+    paginated_queryset = paginator.paginate_queryset(approvals, request)
 
     data = [
         {
@@ -690,9 +704,9 @@ def approvals_for_batch(request, batch_id):
             "approved_at": approval.approved_at.isoformat(),
             "approved_by": approval.approved_by.username if approval.approved_by else "System",
         }
-        for approval in approvals
+        for approval in paginated_queryset
     ]
-    return Response(data)
+    return paginator.get_paginated_response(data)
 
 
 #APPROVAL HISTORY
@@ -700,7 +714,12 @@ def approvals_for_batch(request, batch_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def approval_batch_history(request):
-    batches = ApprovalBatch.objects.all().order_by("-uploaded_at")
+    paginator = LimitOffsetPagination()
+    paginator.default_limit = 50 
+
+    batches = ApprovalBatch.objects.select_related("uploaded_by").order_by("-uploaded_at")
+
+    paginated_queryset = paginator.paginate_queryset(batches, request)
     data = [
         {
             "id": batch.id,
@@ -712,20 +731,33 @@ def approval_batch_history(request):
             "total_already_approved": batch.total_already_approved,
             "total_not_found": batch.total_not_found,
         }
-        for batch in batches
+        for batch in paginated_queryset
     ]
-    return Response(data)
+    return paginator.get_paginated_response(data)
 
+# ✅ Helper class for streaming CSV (memory efficient)
+class Echo:
+    def write(self, value):
+        return value
+    
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def export_applicants_csv(request):
-    from datetime import datetime, timedelta
-
+    """
+    Export filtered applicant data as a CSV file.
+    Includes representative information when available.
+    """
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
     assistance_type = request.GET.get("assistance_type")
 
-    qs = Applicant.objects.filter(is_archived=False)
+    # Base queryset
+    qs = Applicant.objects.filter(is_archived=False).select_related(
+        "background_info",
+        "background_info__barangay",
+        "background_info__barangay__city",
+        "background_info__barangay__city__province"
+    ).prefetch_related("representative__background_info")
 
     # 📅 Date filtering
     if start_date and end_date:
@@ -736,19 +768,17 @@ def export_applicants_csv(request):
             )
             qs = qs.filter(date_filled__range=[start, end])
         except ValueError:
-            print("Invalid date format received for start_date or end_date")
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
 
     # 🎯 Assistance type filtering (case-insensitive)
     if assistance_type:
         qs = qs.filter(type_of_assistance__iexact=assistance_type)
 
-    # 📂 Build CSV response
-    response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = 'attachment; filename="applicants.csv"'
-    writer = csv.writer(response)
+    # 🧠 Use iterator() for large datasets — avoids loading all into memory
+    qs = qs.iterator(chunk_size=500)
 
-    # Header row (added representative fields)
-    writer.writerow([
+    # Prepare CSV header
+    header = [
         "Applicant ID", "First Name", "Middle Initial", "Last Name", "Suffix",
         "Contact Number", "Barangay", "City", "Province",
         "Birthday", "Sex", "Civil Status", "Occupation",
@@ -756,17 +786,23 @@ def export_applicants_csv(request):
         "Applicant Type", "Date Filled",
         "Representative First Name", "Representative Last Name",
         "Representative Contact Number"
-    ])
+    ]
 
-    # Data rows
+    # ⚡ Streaming response setup
+    pseudo_buffer = Echo()
+    writer = csv.writer(pseudo_buffer)
+    rows = []
+
+    # Header row first
+    rows.append(writer.writerow(header))
+
+    # Data rows generator (lazy)
     for app in qs:
         bg = app.background_info
-
-        # ✅ safely check representative
         rep = getattr(app, "representative", None)
         rep_bg = getattr(rep, "background_info", None) if rep else None
 
-        writer.writerow([
+        rows.append(writer.writerow([
             app.id,
             bg.first_name,
             bg.middle_initial or "",
@@ -776,7 +812,7 @@ def export_applicants_csv(request):
             bg.barangay.name,
             bg.barangay.city.name,
             bg.barangay.city.province.name,
-            bg.birthday,
+            bg.birthday.strftime("%Y-%m-%d"),
             bg.sex,
             bg.civil_status,
             bg.occupation or "",
@@ -787,39 +823,50 @@ def export_applicants_csv(request):
             app.date_filled.strftime("%Y-%m-%d %H:%M:%S"),
             rep_bg.first_name if rep_bg else "",
             rep_bg.last_name if rep_bg else "",
-            rep.contact_number if rep else "",
-        ])
+            getattr(rep, "contact_number", ""),
+        ]))
 
-    print(f"Exported {qs.count()} applicants to CSV")
+    response = StreamingHttpResponse(rows, content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="applicants.csv"'
     return response
-
-
-
 
 # RECENT APPLICANTS
 # Function to get the 5 most recent applicants
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def recent_applicants(request):
-    applicants = Applicant.objects.all().order_by('-date_filled')[:5]
+    applicants = Applicant.objects.filter(is_archived=False)\
+        .select_related(
+            'background_info',
+            'background_info__barangay',
+            "background_info__barangay__city")\
+        .order_by('-date_filled')[:5]
     serializer = ApplicantSerializer(applicants, many=True)
     return Response(serializer.data)
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def applicant_detail(request, applicant_id):
-    try:
-        applicant = Applicant.objects.get(pk=applicant_id)
-    except Applicant.DoesNotExist:
-        return Response({'error': 'Applicant not found'}, status=404)
+
+    applicant = get_object_or_404(
+        Applicant.objects.select_related(
+            "background_info__barangay__city",
+            "background_info__barangay__city__province",
+            "representative__background_info",
+        ),
+        pk=applicant_id,
+    )
 
     if request.method == 'GET':
-        serializer = ApplicantSerializer(applicant)
+        serializer = ApplicantSerializer(applicant, context={"request": request})
 
         # Include full history for this applicant’s BackgroundInfo
-        history_qs = ApplicantHistory.objects.filter(
-            background_info=applicant.background_info
-        ).order_by("-date_applied")
+        history_qs = (
+            ApplicantHistory.objects
+            .filter(background_info=applicant.background_info)
+            .select_related("applicant")  # avoids query per history row
+            .order_by("-date_applied")
+        )
 
         history_data = [
             {
@@ -841,24 +888,29 @@ def applicant_detail(request, applicant_id):
         serializer = ApplicantSerializer(applicant, data=request.data, context={"request": request})
         if serializer.is_valid():
             serializer.save()
+
             log_staff_activity(
                 request.user,
-                'UPDATE',
+                "UPDATE",
                 f"Updated application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
                 request
             )
+
             return Response(serializer.data)
+
         return Response(serializer.errors, status=400)
 
     elif request.method == 'DELETE':
         applicant.is_archived = True
-        applicant.save()
+        applicant.save(update_fields=["is_archived"])
+
         log_staff_activity(
             request.user,
-            'ARCHIVE',
+            "ARCHIVE",
             f"Archived application for {applicant.background_info.first_name} {applicant.background_info.last_name}",
             request
         )
+
         return Response({"message": "Applicant archived successfully"})
 
 
@@ -868,9 +920,20 @@ def applicant_detail(request, applicant_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_archived_applicants(request):
-    applicants = Applicant.objects.filter(is_archived=True)
-    serializer = ApplicantSerializer(applicants, many=True)
-    return Response(serializer.data)
+
+    paginator = LimitOffsetPagination()
+    paginator.default_limit = 50
+
+    applicants = Applicant.objects.filter(is_archived=True)\
+        .select_related(
+            "background_info",
+            "background_info__barangay",
+        )\
+        .order_by("-date_filled")
+
+    paginated_query = paginator.paginate_queryset(applicants, request)
+    serializer = ApplicantSerializer(paginated_query, many=True, context={"request": request})
+    return paginator.get_paginated_response(serializer.data)
 
 # RESTORE ARCHIVED APPLICANT
 # Function to restore an archived applicant

@@ -25,8 +25,8 @@ const Approved = () => {
   // 🔹 Fetch approval batches
   const fetchBatches = async () => {
     try {
-      const res = await api.get("/approved/batches/");
-      setBatches(res.data);
+      const res = await api.get("/approved/batches/?limit=50");
+      setBatches(res.data.results);
     } catch (err) {
       console.error("Failed to fetch batches:", err);
     }
@@ -35,9 +35,11 @@ const Approved = () => {
   // 🔹 Fetch approvals under a batch
   const fetchApprovals = async batchId => {
     try {
-      const res = await api.get(`/approved/batch/${batchId}/approvals/`);
+      const res = await api.get(`/approved/batch/${batchId}/approvals/?limit=100`);
       setBatches(prev =>
-        prev.map(b => (b.id === batchId ? { ...b, approvals: res.data, expanded: true } : b))
+        prev.map(b =>
+          b.id === batchId ? { ...b, approvals: res.data.results, expanded: true } : b
+        )
       );
     } catch (err) {
       console.error("Failed to load approvals:", err);
