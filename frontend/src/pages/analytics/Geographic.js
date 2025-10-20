@@ -438,7 +438,10 @@ const Geographic = () => {
                   zoomControl={false}
                   attributionControl={false}
                 >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <TileLayer 
+  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
+  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+/>
                 </MapContainer>
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent bg-opacity-0 hover:bg-opacity-10 transition-all duration-300 cursor-pointer flex items-center justify-center group">

@@ -7,10 +7,11 @@ const T = {
   headerTitle: "Personal Information (Impormasyon ng Sarili)",
   headerSubtitle: "Please provide your basic personal details. All fields marked with",
   requiredNote: "are required. (Ang lahat ng field na may markang * ay kinakailangan.)",
-  
+
   // Form Labels
   firstName: "First Name (Unang Pangalan)",
-  middleInitial: "Middle Initial (Gitnang Pangalan)",
+  // UPDATED: Middle Initial is now optional
+  middleInitial: "Middle Initial (Gitnang Pangalan) - Optional", 
   lastName: "Last Name (Apelyido)",
   suffix: "Suffix (Sufiks)",
   contactNumber: "Contact Number",
@@ -27,14 +28,14 @@ const T = {
 
   // Buttons
   continue: "Continue to Address (Magpatuloy sa Tirahan)",
-  
+
   // Help/Footer Text
   footerHelp: "Need help? Contact our support team for assistance. (Kailangan ng tulong? Kontakin ang aming support team.)",
 
   // Validation Messages (Filipino is the primary error message)
   errorFirstName: "Kailangan ang Unang Pangalan (First name is required)",
   errorLastName: "Kailangan ang Apelyido (Last name is required)",
-  errorMiddleInitial: "Kailangan ang Gitnang Pangalan (Middle name is required)",
+  // REMOVED: errorMiddleInitial is no longer needed as the field is optional
   errorContactRequired: "Kailangan ang Contact Number (Contact number is required)",
   errorContactInvalid: "Pakilagay ang wastong 11-digit na mobile number (Please enter a valid 11-digit mobile number)",
 };
@@ -52,11 +53,12 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
     if (!formData.last_name?.trim()) {
       newErrors.last_name = T.errorLastName;
     }
-    // Middle name/initial is often considered optional in many official PH forms, but
-    // let's keep it required as per your original logic/requirement.
+    // 👇 REMOVED: This block makes the Middle Initial NOT required.
+    /*
     if (!formData.middle_initial?.trim()) {
       newErrors.middle_initial = T.errorMiddleInitial;
     }
+    */
     if (!formData.contact_number?.trim()) {
       newErrors.contact_number = T.errorContactRequired;
     } else if (!/^[0-9]{11}$/.test(formData.contact_number)) {
@@ -177,13 +179,14 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                 )}
               </div>
 
-              {/* Middle Initial */}
+              {/* Middle Initial - NO LONGER REQUIRED */}
               <div className="form-group">
                 <label
                   htmlFor="middle_initial"
                   className="block text-sm font-semibold text-gray-700 mb-2"
                 >
-                  {T.middleInitial} <span className="text-red-500">*</span>
+                  {/* REMOVED: The required asterisk */}
+                  {T.middleInitial} 
                 </label>
                 <div className="relative">
                   <input
@@ -193,13 +196,13 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     value={formData.middle_initial || ""}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
-                      errors.middle_initial
+                      errors.middle_initial // This error check remains for display, though validation is gone
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                     }`}
                     placeholder={T.placeholderMiddleInitial}
                     autoComplete="additional-name"
-                    required
+                    // REMOVED: The HTML required attribute
                   />
                   {formData.middle_initial && !errors.middle_initial && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
