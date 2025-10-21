@@ -30,7 +30,7 @@ const ApplicantForm = () => {
       const response = await api.get(`/applicants/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await response.data;
+      const data = response.data.results;
       setApplicants(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching applicants:", error);
@@ -42,7 +42,7 @@ const ApplicantForm = () => {
     fetchApplicants();
   }, []);
 
-  const formatDate = (dateString) => {
+  const formatDate = dateString => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -54,19 +54,15 @@ const ApplicantForm = () => {
   };
 
   const filteredApplicants = applicants.filter(
-    (applicant) =>
+    applicant =>
       `${applicant.background_info.first_name} ${applicant.background_info.last_name}`
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      applicant.background_info.barangay
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
+      applicant.background_info.barangay.toLowerCase().includes(searchTerm.toLowerCase()) ||
       applicant.background_info.barangay_details.city_name
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      applicant.type_of_assistance
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
+      applicant.type_of_assistance.toLowerCase().includes(searchTerm.toLowerCase()) ||
       formatDate(applicant.created_at).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -94,7 +90,7 @@ const ApplicantForm = () => {
             {/* ✅ Updated Navigation Button */}
             <a
               href="#"
-              onClick={(e) => {
+              onClick={e => {
                 e.preventDefault();
                 navigate("/new-applicant"); // ✅ navigate to step 1
               }}
@@ -117,21 +113,16 @@ const ApplicantForm = () => {
                   type="text"
                   placeholder="Search by name, barangay, city, or assistance type..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white text-gray-700 placeholder-gray-400"
                 />
               </div>
 
               {/* Stats Badge */}
               <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-blue-100/50 px-6 py-3.5 rounded-xl border-2 border-blue-200/50">
-                
                 <div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {applicants.length}
-                  </div>
-                  <div className="text-xs font-medium text-blue-700">
-                    Total Applicants
-                  </div>
+                  <div className="text-2xl font-bold text-blue-600">{applicants.length}</div>
+                  <div className="text-xs font-medium text-blue-700">Total Applicants</div>
                 </div>
               </div>
             </div>
@@ -231,9 +222,7 @@ const ApplicantForm = () => {
               <div className="mb-6 p-6 bg-gradient-to-br from-blue-100 to-blue-50 rounded-3xl">
                 <FileText className="w-20 h-20 text-blue-300" />
               </div>
-              <h3 className="text-2xl font-bold mb-3 text-blue-900">
-                No applicants found
-              </h3>
+              <h3 className="text-2xl font-bold mb-3 text-blue-900">No applicants found</h3>
               <p className="text-blue-600 mb-8 max-w-md">
                 {searchTerm
                   ? "Try adjusting your search criteria to find what you're looking for"
@@ -243,7 +232,7 @@ const ApplicantForm = () => {
               {/* ✅ Also navigates to Step 1 */}
               <a
                 href="#"
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault();
                   navigate("/new-applicant");
                 }}

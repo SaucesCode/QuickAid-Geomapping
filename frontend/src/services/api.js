@@ -1,12 +1,8 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-// export const API_URL = "https://quickaid-geomapping.onrender.com/api"; 
+// export const API_URL = process.env.REACT_APP_DJANGO_URL;
 export const API_URL = "http://127.0.0.1:8000/api";
-
-// let API_URL = process.env.REACT_APP_DJANGO_URL;
-let API_URL = "http://127.0.0.1:8000/api";
-
 
 export const api = axios.create({
   baseURL: API_URL,
