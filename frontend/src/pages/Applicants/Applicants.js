@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { api } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "../../utils/FormatDate";
@@ -22,6 +22,7 @@ import {
   Plus,
   Heart,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 
 const csvHeaders = [
@@ -46,6 +47,14 @@ const csvHeaders = [
   { label: "Date Filled", key: "date_filled" },
 ];
 
+// Define a placeholder for the stats data structure
+const initialStats = {
+  total: { value: 0, loading: true, color: "blue", icon: Users, title: "Total Applicants" },
+  medical: { value: 0, loading: true, color: "amber", icon: Stethoscope, title: "Medical Assistance" },
+  educational: { value: 0, loading: true, color: "emerald", icon: GraduationCap, title: "Educational Assistance" },
+  burial: { value: 0, loading: true, color: "violet", icon: Heart, title: "Burial Assistance" },
+};
+
 const Applicants = () => {
   const [applicants, setApplicants] = useState([]);
   const [nextUrl, setNextUrl] = useState(null);
@@ -59,6 +68,9 @@ const Applicants = () => {
   const [archiveModal, setArchiveModal] = useState({ show: false, applicantId: null });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  // New state for concurrent stats loading
+  const [stats, setStats] = useState(initialStats);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,13 +86,10 @@ const Applicants = () => {
       const res = await api.get(url);
       const data = res.data;
 
-      // DRF paginated response (has results array)
       if (data.results) {
         setApplicants(prev => [...prev, ...data.results]);
         setNextUrl(data.next);
-      }
-      // Non-paginated fallback (in case pagination is off)
-      else if (Array.isArray(data)) {
+      } else if (Array.isArray(data)) {
         setApplicants(prev => [...prev, ...data]);
         setNextUrl(null);
       }
@@ -91,9 +100,66 @@ const Applicants = () => {
     }
   };
 
+  // --- NEW CONCURRENT STATS FETCHING LOGIC ---
+
+  const fetchStat = useCallback(async (key, apiPath, minDelay = 200, maxDelay = 1000) => {
+    try {
+      // 1. Simulate varying network delay
+      const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      // 2. Fetch data (Simulated call by fetching all and calculating locally)
+      // In a real app, this would be a quick call to a dedicated count endpoint.
+      const res = await api.get("/applicants/");
+      const allApplicants = res.data.results || [];
+      
+      let count = 0;
+      if (key === 'total') {
+        count = allApplicants.length;
+      } else {
+        const assistanceType = stats[key].title.split(' ')[0]; // Medical, Educational, Burial
+        count = allApplicants.filter(a => a.type_of_assistance === assistanceType).length;
+      }
+
+      // 3. Update the state immediately after the promise resolves
+      setStats(prev => ({
+        ...prev,
+        [key]: { ...prev[key], value: count, loading: false },
+      }));
+
+      return { key, count };
+
+    } catch (err) {
+      console.error(`Fetch for ${key} failed:`, err);
+      setStats(prev => ({
+        ...prev,
+        [key]: { ...prev[key], loading: false, value: 'Error' },
+      }));
+    }
+  }, [stats]);
+
+
+  const fetchAllStatsConcurrently = useCallback(() => {
+    // Reset all stats to loading
+    setStats(initialStats);
+    
+    // Define all promises to run concurrently
+    const totalPromise = fetchStat('total', '/applicants/count/total');
+    const medicalPromise = fetchStat('medical', '/applicants/count/medical');
+    const educationalPromise = fetchStat('educational', '/applicants/count/educational');
+    const burialPromise = fetchStat('burial', '/applicants/count/burial');
+    
+    // Wait for all promises to settle, allowing the setStats inside fetchStat 
+    // to update the UI in the order they resolve (fastest first).
+    Promise.allSettled([totalPromise, medicalPromise, educationalPromise, burialPromise]);
+  }, [fetchStat]);
+  
+  // --- END NEW CONCURRENT STATS FETCHING LOGIC ---
+
   useEffect(() => {
-    fetchApplicants();
-  }, []);
+    fetchApplicants(); // For the table data
+    fetchAllStatsConcurrently(); // For the top stats cards
+  }, [fetchAllStatsConcurrently]);
 
   const handleScroll = () => {
     if (nextUrl && !loading) {
@@ -138,7 +204,8 @@ const Applicants = () => {
     try {
       await api.delete(`/applicants/${archiveModal.applicantId}/`);
       toast.custom(t => <CustomToast t={t} type="archive" />);
-      fetchApplicants();
+      // Remove the item locally:
+      setApplicants(prev => prev.filter(a => a.id !== archiveModal.applicantId)); 
       closeArchiveModal();
     } catch (err) {
       console.error("Archive failed:", err);
@@ -146,19 +213,67 @@ const Applicants = () => {
     }
   };
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setEditingApplicant(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    setEditingApplicant((prev) => {
+      const updated = { ...prev };
+
+      // Handle background info
+      if (name.startsWith("rep_bg_")) {
+        updated.representative = {
+          ...updated.representative,
+          background_info: {
+            ...updated.representative?.background_info,
+            [name.replace("rep_bg_", "")]: value,
+          },
+        };
+      } else if (name.startsWith("background_info.") || [
+        "first_name",
+        "middle_initial",
+        "last_name",
+        "suffix",
+        "birth_date",
+        "birth_place",
+        "age",
+        "sex",
+        "civil_status",
+        "street_address",
+        "barangay",
+        "municipality",
+        "province",
+      ].includes(name)) {
+        updated.background_info = {
+          ...updated.background_info,
+          [name.replace("background_info.", "")]: value,
+        };
+      }
+      // Representative relationship
+      else if (name === "rep_relationship") {
+        updated.representative = {
+          ...updated.representative,
+          relationship: value,
+        };
+      }
+      // Assistance info
+      else if (["type_of_assistance", "amount", "purpose"].includes(name)) {
+        updated.assistance_info = {
+          ...updated.assistance_info,
+          [name]: value,
+        };
+      }
+      return updated;
+    });
   };
+
+
 
   const handleSave = async e => {
     e.preventDefault();
     if (!editingApplicant || !editingApplicant.id) return;
 
     try {
+      // API call for coordinates (assuming this is necessary for the update)
       const { data } = await api.post("/update_coordinates/", {
         id: editingApplicant.id,
         background_info: {
@@ -176,7 +291,7 @@ const Applicants = () => {
       };
 
       await api.put(`/applicants/${editingApplicant.id}/`, updatedApplicant);
-      fetchApplicants();
+      fetchApplicants(); // Re-fetch the table data
       closeEditView();
     } catch (err) {
       console.error("Error saving applicant:", err);
@@ -229,125 +344,101 @@ const Applicants = () => {
     setCurrentPage(1);
   };
 
-  // Calculate statistics
-  const medicalCount = applicants.filter(a => a.type_of_assistance === "Medical").length;
-  const burialCount = applicants.filter(a => a.type_of_assistance === "Burial").length;
-  const educationalCount = applicants.filter(
-    a => a.type_of_assistance === "Educational"
-  ).length;
+  // Helper component for the Stat Cards
+  const StatCardContent = ({ stat }) => {
+    const primaryColor = stat.color;
+    const from = `${primaryColor}-500`;
+    const to = `${primaryColor}-600`;
+    const toDark = `${primaryColor}-800`;
+    const fromDark = `${primaryColor}-700`;
+
+    // The Title/Name is rendered unconditionally
+    return (
+      <div className="relative">
+        <p className="text-gray-600 text-xs font-semibold uppercase tracking-widest mb-1">
+          {stat.title}
+        </p>
+        
+        {stat.loading ? (
+          // Renders the loading state (skeleton for value and progress bar)
+          <div className="relative flex flex-col justify-between h-full">
+            {/* Skeleton for the numeric value */}
+            <div className={`text-4xl font-extrabold text-gray-300 animate-pulse h-10 w-1/3 rounded-md bg-gray-200`}>
+            </div>
+            {/* Skeleton for the progress bar */}
+            <div className={`mt-4 h-1 w-full bg-${primaryColor}-100 rounded-full`}>
+                <div className={`h-1 w-1/4 bg-gray-300 rounded-full animate-pulse`} ></div>
+            </div>
+          </div>
+        ) : (
+          // Renders the loaded state (value and actual progress bar)
+          <>
+            <p className={`text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-${fromDark} to-${toDark}`}>
+              {stat.value.toLocaleString()}
+            </p>
+            
+            {/* Render progress bar only for assistance types */}
+            {stat.title !== "Total Applicants" && (
+                <div className={`mt-4 h-1 w-full bg-${primaryColor}-100 rounded-full`}>
+                    <div
+                      className={`h-1 bg-gradient-to-r from-${from} to-${to} rounded-full`}
+                      style={{ 
+                        // Use stats.total.value for calculation if loaded, otherwise 0
+                        width: `${stats.total.value > 0 ? (stat.value / stats.total.value) * 100 : 0}%` 
+                      }}
+                    ></div>
+                </div>
+            )}
+            {/* NOTE: Total Applicants card does not need a progress bar, so no else block is needed */}
+          </>
+        )}
+      </div>
+    );
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-      {/* Animated Background */}
+      {/* Animated Background (Subtle Modern Touch) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/3 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute top-1/3 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse delay-200"></div>
+        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse delay-400"></div>
       </div>
 
-      <div className="relative z-10 p-6 md:p-10">
+      <div className="relative z-10 p-4 sm:p-6 md:p-10">
         <Toaster position="top-center" reverseOrder={false} />
 
-        {/* Header Section */}
-        <div className="mb-10">
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-8 mb-8">
+        {/* Header Section (Modernized) */}
+        <div className="mb-8 md:mb-10">
+          <div className="bg-white bg-opacity-90 backdrop-blur-md rounded-2xl shadow-2xl border border-blue-100 p-6 sm:p-8 mb-6">
             <ApplicantsHeader />
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Stats Cards - Now uses the new state and helper component */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Total Applicants */}
-            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-blue-200 p-6 overflow-hidden hover:-translate-y-1">
+            <div className="group relative bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-200 p-5 sm:p-6 overflow-hidden hover:-translate-y-0.5">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
-              <div className="relative flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
-                      Total Applicants
-                    </p>
-                  </div>
-                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 mb-2">
-                    {applicants.length}
-                  </p>
-                  <p className="text-gray-500 text-sm font-medium">
-                    All registered applicants
-                  </p>
-                </div>
-                <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                  <Users className="w-7 h-7 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
+              <StatCardContent stat={stats.total} />
             </div>
 
             {/* Medical */}
-            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-amber-200 p-6 overflow-hidden hover:-translate-y-1">
+            <div className="group relative bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-amber-200 p-5 sm:p-6 overflow-hidden hover:-translate-y-0.5">
               <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
-              <div className="relative flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
-                      Medical Assistance
-                    </p>
-                  </div>
-                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-700 mb-2">
-                    {medicalCount}
-                  </p>
-                  <p className="text-gray-500 text-sm font-medium">Active medical cases</p>
-                </div>
-                <div className="p-4 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                  <Stethoscope className="w-7 h-7 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full"></div>
+              <StatCardContent stat={stats.medical} />
             </div>
 
             {/* Educational */}
-            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-emerald-200 p-6 overflow-hidden hover:-translate-y-1">
+            <div className="group relative bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-emerald-200 p-5 sm:p-6 overflow-hidden hover:-translate-y-0.5">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-green-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
-              <div className="relative flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
-                      Educational Assistance
-                    </p>
-                  </div>
-                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-green-700 mb-2">
-                    {educationalCount}
-                  </p>
-                  <p className="text-gray-500 text-sm font-medium">Active educational cases</p>
-                </div>
-                <div className="p-4 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                  <GraduationCap className="w-7 h-7 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-emerald-500 to-green-600 rounded-full"></div>
+              <StatCardContent stat={stats.educational} />
             </div>
 
             {/* Burial */}
-            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-violet-200 p-6 overflow-hidden hover:-translate-y-1">
+            <div className="group relative bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-violet-200 p-5 sm:p-6 overflow-hidden hover:-translate-y-0.5">
               <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
-              <div className="relative flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse"></div>
-                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
-                      Burial Assistance
-                    </p>
-                  </div>
-                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-purple-700 mb-2">
-                    {burialCount}
-                  </p>
-                  <p className="text-gray-500 text-sm font-medium">Active burial cases</p>
-                </div>
-                <div className="p-4 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                  <Heart className="w-7 h-7 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-violet-500 to-purple-600 rounded-full"></div>
+              <StatCardContent stat={stats.burial} />
             </div>
           </div>
         </div>
@@ -365,28 +456,26 @@ const Applicants = () => {
         {/* Loading Spinner */}
         {loading ? (
           <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-2xl border border-blue-200 p-16 text-center">
-              <div className="relative flex items-center justify-center mx-auto mb-8">
-                <div className="h-24 w-24 rounded-full border-[6px] border-blue-200 border-t-blue-600 animate-spin"></div>
-                <div className="absolute flex items-center justify-center">
-                  <Users className="h-10 w-10 text-blue-600 animate-pulse" />
-                </div>
+            <div className="bg-white bg-opacity-90 backdrop-blur-md rounded-3xl shadow-2xl border border-blue-200 p-12 sm:p-16 text-center w-full max-w-lg">
+              <div className="relative flex items-center justify-center mx-auto mb-6">
+                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full border-[6px] border-blue-200 border-t-blue-600 animate-spin"></div>
               </div>
-              <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 mb-3">
+              <h3 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 mb-2">
                 Loading Applicants...
               </h3>
-              <p className="text-gray-600 text-lg max-w-md mx-auto">
+              <p className="text-gray-500 text-sm sm:text-base max-w-sm mx-auto">
                 Please wait while we fetch the latest applicant data.
               </p>
-              <div className="flex gap-2 justify-center mt-6">
+              <div className="flex gap-2 justify-center mt-4">
                 <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-100"></div>
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-200"></div>
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-150"></div>
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-300"></div>
               </div>
             </div>
           </div>
         ) : applicants.length > 0 ? (
           <>
+            {/* Applicant Table (Assumes ApplicantTable uses a modern design) */}
             <ApplicantTable
               currentItems={currentItems}
               sortConfig={sortConfig}
@@ -398,42 +487,45 @@ const Applicants = () => {
               formatDate={formatDate}
             />
 
+            {/* Pagination */}
             {sortedApplicants.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                handlePageChange={handlePageChange}
-                itemsPerPage={itemsPerPage}
-                handleItemsPerPageChange={handleItemsPerPageChange}
-                totalItems={sortedApplicants.length}
-                indexOfFirstItem={indexOfFirstItem}
-                indexOfLastItem={indexOfLastItem}
-              />
+              <div className="mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  handlePageChange={handlePageChange}
+                  itemsPerPage={itemsPerPage}
+                  handleItemsPerPageChange={handleItemsPerPageChange}
+                  totalItems={sortedApplicants.length}
+                  indexOfFirstItem={indexOfFirstItem}
+                  indexOfLastItem={indexOfLastItem}
+                />
+              </div>
             )}
           </>
         ) : (
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
-            <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
-              <div className="mb-8 p-10 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl border-2 border-blue-200 shadow-lg">
-                <Users className="w-28 h-28 text-blue-400 mx-auto" />
+          /* Empty State */
+          <div className="bg-white bg-opacity-90 backdrop-blur-md rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
+            <div className="flex flex-col items-center justify-center py-20 sm:py-32 px-4 sm:px-6 text-center">
+              <div className="mb-6 p-6 sm:p-10 bg-blue-50 rounded-full border-2 border-blue-200 shadow-inner">
+                <span className="text-5xl sm:text-6xl text-blue-500 font-extrabold">0</span>
               </div>
-              <h3 className="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">
-                No applicants found
+              <h3 className="text-2xl sm:text-3xl font-bold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-800">
+                No Applicants Yet
               </h3>
-              <p className="text-gray-600 mb-8 max-w-md text-lg leading-relaxed">
+              <p className="text-gray-500 mb-6 max-w-md text-sm sm:text-base leading-relaxed">
                 {searchTerm
-                  ? "Try adjusting your search criteria to find what you're looking for"
-                  : "Start adding applicants to get started with the management system"}
+                  ? "Your search returned no results. Try adjusting the keywords or filters."
+                  : "Start adding your first applicant to begin managing your records."}
               </p>
-              <div className="flex items-center gap-2 px-6 py-3 bg-blue-100 rounded-xl border border-blue-200">
-                <Sparkles className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-semibold text-blue-700">Ready to begin</span>
+              <div className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-colors cursor-pointer">
+                <span className="text-sm font-semibold text-white">Add New Applicant</span>
               </div>
             </div>
           </div>
         )}
 
-        {/* Modals */}
+        {/* Modals (Logic Unchanged) */}
         {previewView && previewApplicant && (
           <PreviewModal
             previewApplicant={previewApplicant}

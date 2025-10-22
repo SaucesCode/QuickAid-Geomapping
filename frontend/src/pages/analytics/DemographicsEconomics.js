@@ -108,48 +108,33 @@ const DemographicsEconomics = () => {
     "#99CCFF",
     "#FFB366",
   ];
-
+  
   // Fetch per section
   useEffect(() => {
-    const fetchSection = async (key, apiCall, setData) => {
-      try {
-        const res = await apiCall();
-        setData(res.data || []);
-      } catch (err) {
-        console.error(`Error fetching ${key} data:`, err);
-        setError("Failed to fetch some data. Please try again later.");
-      } finally {
-        setSectionLoaded(key);
-      }
-    };
+  // Independent section fetcher
+  const fetchSection = async (key, apiCall, setData, transformFn = null) => {
+    try {
+      const res = await apiCall();
+      let data = res.data || [];
+      if (transformFn) data = transformFn(data);
+      setData(data);
+      setLoadingStates((prev) => ({ ...prev, [key]: false }));
+    } catch (err) {
+      console.error(`Error fetching ${key}:`, err);
+      // keep loading spinner forever if it fails
+    }
+  };
 
-    fetchSection("gender", () => api.get("/analytics/demographics/gender/"), setGenderData);
-    fetchSection(
-      "civilStatus",
-      () => api.get("/analytics/demographics/civil-status/"),
-      setCivilStatusData
-    );
-    fetchSection(
-      "ageGroup",
-      () => api.get("/analytics/demographics/age-groups/"),
-      setAgeGroupData
-    );
-    fetchSection(
-      "occupation",
-      () => api.get("/analytics/demographics/occupation/"),
-      setOccupationData
-    );
-    fetchSection(
-      "ageGender",
-      () => api.get("/analytics/demographics/age-gender/"),
-      setAgeGenderData
-    );
-    fetchSection(
-      "income",
-      () => api.get("/analytics/economics/income-distribution/"),
-      setIncomeDistribution
-    );
-  }, []);
+  // All calls start at once (parallel)
+  fetchSection("gender", () => api.get("/analytics/demographics/gender/"), setGenderData);
+  fetchSection("civilStatus", () => api.get("/analytics/demographics/civil-status/"), setCivilStatusData);
+  fetchSection("ageGroup", () => api.get("/analytics/demographics/age-group/"), setAgeGroupData);
+  fetchSection("occupation", () => api.get("/analytics/economics/occupation/"), setOccupationData);
+  fetchSection("ageGender", () => api.get("/analytics/demographics/age-gender/"), setAgeGenderData);
+  fetchSection("income", () => api.get("/analytics/economics/income/"), setIncomeDistribution);
+}, []);
+
+
 
   // Data transformations
   const transformGenderData = (data) =>
