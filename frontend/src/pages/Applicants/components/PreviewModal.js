@@ -30,176 +30,177 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
     repBackground.barangay_details?.province_name || ""
   }`;
 
+  // Custom component for a data row to reduce repetition and ensure consistent styling
+  const DataRow = ({ label, value }) => (
+    <div className="flex justify-between py-3 border-b border-blue-50/50 last:border-b-0">
+      <div className="font-semibold text-blue-700 w-1/3 min-w-[120px] pr-2">
+        {label}
+      </div>
+      <div className="text-gray-800 w-2/3 break-words text-right sm:text-left">
+        {value || "N/A"}
+      </div>
+    </div>
+  );
+
+  // Custom component for a data section/card
+  const SectionCard = ({ title, children }) => (
+    <div className="bg-white border border-blue-100 rounded-xl shadow-lg p-6">
+      <h3 className="text-xl font-bold text-blue-800 border-b pb-3 mb-4 border-blue-200">
+        {title}
+      </h3>
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-gray-800">Applicant Details</h2>
+    <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 transition-opacity duration-300">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-hidden flex flex-col transition-transform duration-300 transform scale-100">
+        
+        {/* Modal Header */}
+        <div className="sticky top-0 bg-blue-600 px-6 py-4 flex items-center justify-between shadow-md z-10">
+          <h2 className="text-3xl font-extrabold text-white">
+            Applicant Details
+          </h2>
           <button
             onClick={closePreviewView}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-white hover:bg-blue-700 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white"
             aria-label="Close preview"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="p-6 space-y-8">
-          {/* Personal Information Table */}
-          <section>
-            <h3 className="text-xl font-medium text-gray-800 mb-4">Personal Information</h3>
-            <table className="min-w-full border border-gray-200 rounded-lg text-sm">
-              <tbody>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50 w-1/3">Full Name</th>
-                  <td className="px-4 py-2">{fullName || "N/A"}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50">Sex</th>
-                  <td className="px-4 py-2">{background_info.sex || "N/A"}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50">Birthday</th>
-                  <td className="px-4 py-2">
-                    {formatDate(background_info.birthday) || "N/A"}
-                  </td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50">Civil Status</th>
-                  <td className="px-4 py-2">{background_info.civil_status || "N/A"}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50">Occupation</th>
-                  <td className="px-4 py-2">
-                    {background_info.occupation || "Not specified"}
-                  </td>
-                </tr>
-                <tr>
-                  <th className="px-4 py-2 text-left bg-gray-50">Monthly Income</th>
-                  <td className="px-4 py-2">
-                    {background_info.monthly_income
-                      ? `₱${parseFloat(background_info.monthly_income).toLocaleString()}`
-                      : "Not specified"}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
+        {/* Modal Body (Scrollable Content) */}
+        <div className="p-6 md:p-8 space-y-8 overflow-y-auto">
+          {/* Main Information: Responsive Grid Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* Personal Information */}
+            <SectionCard title="Personal Information">
+              <DataRow label="Full Name" value={fullName} />
+              <DataRow label="Sex" value={background_info.sex} />
+              <DataRow
+                label="Birthday"
+                value={formatDate(background_info.birthday)}
+              />
+              <DataRow
+                label="Civil Status"
+                value={background_info.civil_status}
+              />
+              <DataRow label="Occupation" value={background_info.occupation} />
+              <DataRow
+                label="Monthly Income"
+                value={
+                  background_info.monthly_income
+                    ? `₱${parseFloat(
+                        background_info.monthly_income
+                      ).toLocaleString()}`
+                    : "Not specified"
+                }
+              />
+            </SectionCard>
 
-          {/* Contact Information Table */}
-          <section>
-            <h3 className="text-xl font-medium text-gray-800 mb-4">Contact Information</h3>
-            <table className="min-w-full border border-gray-200 rounded-lg text-sm">
-              <tbody>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50 w-1/3">Street Address</th>
-                  <td className="px-4 py-2">{background_info.street_address || "N/A"}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50">Barangay</th>
-                  <td className="px-4 py-2">{background_info.barangay || "N/A"}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50">City/Municipality</th>
-                  <td className="px-4 py-2">
-                    {background_info.barangay_details?.city_name || "N/A"}
-                  </td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50">Province</th>
-                  <td className="px-4 py-2">
-                    {background_info.barangay_details?.province_name || "N/A"}
-                  </td>
-                </tr>
-                <tr>
-                  <th className="px-4 py-2 text-left bg-gray-50">Contact Number</th>
-                  <td className="px-4 py-2">{contact_number || "N/A"}</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
+            {/* Contact Information */}
+            <SectionCard title="Contact Information">
+              <DataRow
+                label="Street Address"
+                value={background_info.street_address}
+              />
+              <DataRow label="Barangay" value={background_info.barangay} />
+              <DataRow
+                label="City/Municipality"
+                value={background_info.barangay_details?.city_name}
+              />
+              <DataRow
+                label="Province"
+                value={background_info.barangay_details?.province_name}
+              />
+              <DataRow label="Contact Number" value={contact_number} />
+              {/* Padding to keep sections visually aligned if they have different number of rows */}
+              <div className="py-3 hidden lg:block"></div> 
+            </SectionCard>
 
-          {/* Assistance Details Table */}
-          <section>
-            <h3 className="text-xl font-medium text-gray-800 mb-4">Assistance Details</h3>
-            <table className="min-w-full border border-gray-200 rounded-lg text-sm">
-              <tbody>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50 w-1/3">Assistance Type</th>
-                  <td className="px-4 py-2">
-                    <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                      {type_of_assistance || "N/A"}
-                    </span>
-                  </td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50">Applicant Type</th>
-                  <td className="px-4 py-2">{applicant_type || "N/A"}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <th className="px-4 py-2 text-left bg-gray-50">Date Filled</th>
-                  <td className="px-4 py-2">{formatDate(date_filled) || "N/A"}</td>
-                </tr>
-                <tr>
-                  <th className="px-4 py-2 text-left bg-gray-50">Valid ID Presented</th>
-                  <td className="px-4 py-2">
-                    {valid_id_presented}
-                    {other_valid_id && ` (${other_valid_id})`}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
+            {/* Assistance Details */}
+            <SectionCard title="Assistance Details">
+              <DataRow
+                label="Assistance Type"
+                value={
+                  <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 font-medium rounded-full text-sm">
+                    {type_of_assistance || "N/A"}
+                  </span>
+                }
+              />
+              <DataRow label="Applicant Type" value={applicant_type} />
+              <DataRow label="Date Filled" value={formatDate(date_filled)} />
+              <DataRow
+                label="Valid ID Presented"
+                value={`${valid_id_presented || "N/A"} ${
+                  other_valid_id ? ` (${other_valid_id})` : ""
+                }`}
+              />
+              {/* Padding for alignment */}
+              <div className="py-3 hidden lg:block"></div>
+              <div className="py-3 hidden lg:block"></div>
+            </SectionCard>
+          </div>
 
-          {/* Representative Information Table */}
+          {/* Representative Information */}
           {representative && (
-            <section>
-              <h3 className="text-xl font-medium text-gray-800 mb-4">
-                Representative Information
-              </h3>
-              <table className="min-w-full border border-gray-200 rounded-lg text-sm">
-                <tbody>
-                  <tr className="border-b border-gray-200">
-                    <th className="px-4 py-2 text-left bg-gray-50 w-1/3">Full Name</th>
-                    <td className="px-4 py-2">{repFullName || "N/A"}</td>
-                  </tr>
-                  <tr className="border-b border-gray-200">
-                    <th className="px-4 py-2 text-left bg-gray-50">Relationship</th>
-                    <td className="px-4 py-2">{repInfo.relationship || "N/A"}</td>
-                  </tr>
-                  <tr>
-                    <th className="px-4 py-2 text-left bg-gray-50">Address</th>
-                    <td className="px-4 py-2">{repFullAddress || "N/A"}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </section>
+            <SectionCard title="Representative Information">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+                <DataRow label="Full Name" value={repFullName} />
+                <DataRow label="Relationship" value={repInfo.relationship} />
+                <DataRow label="Address" value={repFullAddress} />
+              </div>
+            </SectionCard>
           )}
 
           {/* Application History Table */}
           <section>
-            <h3 className="text-xl font-medium text-gray-800 mb-4">Application History</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm border border-gray-200 rounded-lg">
-                <thead className="bg-gray-100">
+            <h3 className="text-2xl font-bold text-blue-800 mb-4">
+              Application History
+            </h3>
+            <div className="overflow-x-auto rounded-lg shadow-md border border-blue-200">
+              <table className="min-w-full text-sm">
+                <thead className="bg-blue-50">
                   <tr>
-                    <th className="px-4 py-2 text-left w-12">#</th>
-                    <th className="px-4 py-2 text-left">Type of Assistance</th>
-                    <th className="px-4 py-2 text-left">Date Applied</th>
+                    <th className="px-4 py-3 text-left w-12 text-blue-700 font-bold">
+                      #
+                    </th>
+                    <th className="px-4 py-3 text-left text-blue-700 font-bold">
+                      Type of Assistance
+                    </th>
+                    <th className="px-4 py-3 text-left text-blue-700 font-bold">
+                      Date Applied
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {application_history && application_history.length > 0 ? (
                     application_history.map((h, index) => (
-                      <tr key={h.id} className="border-t border-gray-200">
-                        <td className="px-4 py-2">{index + 1}</td>
-                        <td className="px-4 py-2">{h.type_of_assistance}</td>
-                        <td className="px-4 py-2">{formatDate(h.date)}</td>
+                      <tr
+                        key={h.id}
+                        className={
+                          index % 2 === 0
+                            ? "bg-white border-b border-gray-100"
+                            : "bg-blue-50 border-b border-gray-100"
+                        }
+                      >
+                        <td className="px-4 py-3 text-gray-700">{index + 1}</td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {h.type_of_assistance}
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {formatDate(h.date)}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="3" className="px-4 py-4 text-center text-gray-500 italic">
+                      <td
+                        colSpan="3"
+                        className="px-4 py-4 text-center text-gray-500 italic bg-white"
+                      >
                         No history available
                       </td>
                     </tr>
@@ -208,39 +209,71 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
               </table>
             </div>
           </section>
+
           {/* Approvals Section */}
           <section>
-            <h3 className="text-xl font-medium text-gray-800 mb-4">Approvals</h3>
-            <p className="mb-2">
-              <span className="font-semibold">Times Approved:</span>{" "}
-              {previewApplicant.approval_count || 0}
+            <h3 className="text-2xl font-bold text-blue-800 mb-4">Approvals</h3>
+            <p className="mb-4 text-lg">
+              <span className="font-bold text-blue-700">Times Approved:</span>{" "}
+              <span className="text-gray-800">
+                {previewApplicant.approval_count || 0}
+              </span>
             </p>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm border border-gray-200 rounded-lg">
-                <thead className="bg-gray-100">
+            <div className="overflow-x-auto rounded-lg shadow-md border border-blue-200">
+              <table className="min-w-full text-sm">
+                <thead className="bg-blue-50">
                   <tr>
-                    <th className="px-4 py-2 text-left w-12">#</th>
-                    <th className="px-4 py-2 text-left">Approved At</th>
-                    <th className="px-4 py-2 text-left">Approved By</th>
-                    <th className="px-4 py-2 text-left">Batch File</th>
-                    <th className="px-4 py-2 text-left">Notes</th>
+                    <th className="px-4 py-3 text-left w-12 text-blue-700 font-bold">
+                      #
+                    </th>
+                    <th className="px-4 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
+                      Approved At
+                    </th>
+                    <th className="px-4 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
+                      Approved By
+                    </th>
+                    <th className="px-4 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
+                      Batch File
+                    </th>
+                    <th className="px-4 py-3 text-left text-blue-700 font-bold">
+                      Notes
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {previewApplicant.approvals && previewApplicant.approvals.length > 0 ? (
+                  {previewApplicant.approvals &&
+                  previewApplicant.approvals.length > 0 ? (
                     previewApplicant.approvals.map((a, index) => (
-                      <tr key={a.id} className="border-t border-gray-200">
-                        <td className="px-4 py-2">{index + 1}</td>
-                        <td className="px-4 py-2">{formatDate(a.approved_at)}</td>
-                        <td className="px-4 py-2">{a.approved_by || "N/A"}</td>
-                        <td className="px-4 py-2">{a.batch_file || "N/A"}</td>
-                        <td className="px-4 py-2">{a.notes || "—"}</td>
+                      <tr
+                        key={a.id}
+                        className={
+                          index % 2 === 0
+                            ? "bg-white border-b border-gray-100"
+                            : "bg-blue-50 border-b border-gray-100"
+                        }
+                      >
+                        <td className="px-4 py-3 text-gray-700">{index + 1}</td>
+                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                          {formatDate(a.approved_at)}
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {a.approved_by || "N/A"}
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {a.batch_file || "N/A"}
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {a.notes || "—"}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="px-4 py-4 text-center text-gray-500 italic">
+                      <td
+                        colSpan="5"
+                        className="px-4 py-4 text-center text-gray-500 italic bg-white"
+                      >
                         No approvals found
                       </td>
                     </tr>
@@ -251,10 +284,11 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
           </section>
         </div>
 
-        <div className="border-t border-gray-200 px-6 py-4 flex justify-end">
+        {/* Modal Footer */}
+        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end shadow-inner z-10">
           <button
             onClick={closePreviewView}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Close
           </button>

@@ -21,22 +21,15 @@ import {
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
-// --- Custom Tailwind Theme Configuration (Simulated) ---
-// Note: In a real project, these would be configured in tailwind.config.js,
-// but for a standalone component, we use custom classes for clarity.
+
 const theme = {
-  // Primary blue for main accents, buttons, and icons
+  
   primary: "indigo-600",
   primaryHover: "indigo-700",
-  // Light background for accents
   primaryLight: "indigo-50",
-  // Main background color (subtle off-white/light gray)
   background: "gray-50",
-  // Card/surface color (pure white for contrast)
   surface: "white",
-  // Dark text for headings
   textPrimary: "gray-800",
-  // Lighter text for details/secondary info
   textSecondary: "gray-500",
 };
 
@@ -57,7 +50,6 @@ const AdminManagement = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const token = localStorage.getItem("accessToken");
 
-  // Activity logs states
   const [activityLogs, setActivityLogs] = useState([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
   const [isLoadingStaff, setIsLoadingStaff] = useState(false);
@@ -68,7 +60,6 @@ const AdminManagement = () => {
 
   useEffect(() => {
     document.title = "QuickAid | Admin Management";
-    // Using a more modern blue-teal color for accent: 'indigo-600'
     const newColors = {
       quickaidBg: theme.background,
       quickaidSurface: theme.surface,
@@ -76,9 +67,6 @@ const AdminManagement = () => {
       quickaidTextPrimary: theme.textPrimary,
       quickaidTextSecondary: theme.textSecondary,
     };
-    // Note: In a full Tailwind environment, you'd use a class or CSS variable,
-    // but for this component structure, we'll apply colors directly.
-
     return () => {
       document.title = "QuickAid | Home";
     };
@@ -118,12 +106,6 @@ const AdminManagement = () => {
       const logs = Array.isArray(response.data) ? response.data : response.data.results || [];
 
       setActivityLogs(logs);
-
-      // if (!response.data || !Array.isArray(response.data)) {
-      //   throw new Error("Invalid data format received");
-      // }
-
-      // setActivityLogs(response.data);
     } catch (error) {
       const errorMessage =
         error.response?.data?.details ||
@@ -186,7 +168,7 @@ const AdminManagement = () => {
           </p>
           <div className="flex gap-3 w-full">
             <button
-              className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 shadow-md"
+              className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-1 shadow-md"
               onClick={async () => {
                 toast.dismiss(t.id);
                 try {
@@ -203,7 +185,7 @@ const AdminManagement = () => {
               <Trash2 size={16} /> Delete
             </button>
             <button
-              className="flex-1 px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-colors shadow-md"
+              className="flex-1 px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-sm font-medium transition-colors shadow-md"
               onClick={() => toast.dismiss(t.id)}
             >
               Cancel
@@ -281,15 +263,12 @@ const AdminManagement = () => {
     );
   };
 
-  // Pagination calculations
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = activityLogs.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(activityLogs.length / itemsPerPage);
 
-  // Helper for responsive padding
-  const responsivePadding = "p-4 sm:p-6";
-
+  const responsivePadding = "p-6 sm:p-8"; // Increased padding for modern look
   return (
     <div className={`p-4 sm:p-6 lg:p-8 bg-${theme.background} min-h-screen font-sans`}>
       <Toaster
@@ -310,65 +289,65 @@ const AdminManagement = () => {
       />
 
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10">
           <div>
             <h1
-              className={`text-3xl md:text-4xl font-extrabold text-${theme.textPrimary} flex items-center gap-3`}
+              className={`text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-800 flex items-center gap-4`}
             >
               <div
-                className={`w-10 h-10 bg-${theme.primaryLight} rounded-xl flex items-center justify-center`}
+                // CHANGED: Square container for icon
+                className={`w-12 h-12 bg-${theme.primaryLight} rounded-xl flex items-center justify-center shadow-lg`}
               >
-                <Users className={`w-6 h-6 text-${theme.primary}`} />
+                <Users className={`w-7 h-7 text-${theme.primary}`} />
               </div>
               Admin Management
             </h1>
-            <p className={`text-sm md:text-base text-${theme.textSecondary} mt-2`}>
+            <p className={`text-base md:text-lg text-${theme.textSecondary} mt-3`}>
               Manage staff members and monitor all system activity
             </p>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className={`mt-4 sm:mt-0 inline-flex items-center gap-2 px-5 py-2.5 text-sm bg-${theme.primary} hover:bg-${theme.primaryHover} text-white rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-indigo-200/50 hover:shadow-xl`}
+            // Enhanced button styling with better shadow and hover effect
+            className={`mt-6 sm:mt-0 inline-flex items-center gap-2 px-6 py-3 text-base bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl font-semibold transition-all duration-300 shadow-xl shadow-blue-300/50 hover:shadow-2xl`}
           >
-            <UserPlus className="w-4 h-4" />
+            <UserPlus className="w-5 h-5" />
             Add New Staff
           </button>
         </div>
-
-        {/* Staff Statistics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Total Staff Card */}
+        
+        {/* Stat Cards - Based on image_d0b5f4.png style */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <div
-            className={`bg-${theme.surface} shadow-lg rounded-2xl ${responsivePadding} border border-gray-100 transition-shadow duration-300 hover:shadow-xl`}
+            // Added larger rounded corners and stronger shadow for modern card look
+            className={`bg-${theme.surface} shadow-xl rounded-2xl ${responsivePadding} border border-gray-100 transition-shadow duration-300 hover:shadow-2xl`}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
                 <p className={`text-sm font-medium text-${theme.textSecondary}`}>
                   Total Staff
                 </p>
-                <p className={`text-3xl font-bold text-${theme.textPrimary} mt-1`}>
+                <p className={`text-4xl font-extrabold text-${theme.textPrimary} mt-2`}>
                   {staffList.length}
                 </p>
               </div>
               <div
-                className={`w-14 h-14 bg-${theme.primaryLight} rounded-xl flex items-center justify-center shadow-md`}
+                // CHANGED: Square container for icon
+                className={`w-14 h-14 bg-${theme.primaryLight} rounded-xl flex items-center justify-center shadow-lg`}
               >
                 <Users className={`w-7 h-7 text-${theme.primary}`} />
               </div>
             </div>
           </div>
-
-          {/* Online Staff Card */}
           <div
-            className={`bg-${theme.surface} shadow-lg rounded-2xl ${responsivePadding} border border-gray-100 transition-shadow duration-300 hover:shadow-xl`}
+            className={`bg-${theme.surface} shadow-xl rounded-2xl ${responsivePadding} border border-gray-100 transition-shadow duration-300 hover:shadow-2xl`}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
                 <p className={`text-sm font-medium text-${theme.textSecondary}`}>
                   Currently Online
                 </p>
-                <p className="text-3xl font-bold text-green-600 mt-1">
+                <p className="text-4xl font-extrabold text-green-600 mt-2">
                   {
                     staffList.filter(staff => {
                       if (!staff.last_active) return false;
@@ -378,50 +357,76 @@ const AdminManagement = () => {
                   }
                 </p>
               </div>
-              <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center shadow-md">
+              <div
+                // CHANGED: Square container for icon
+                className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center shadow-lg"
+              >
                 <CheckCircle className="w-7 h-7 text-green-600" />
               </div>
             </div>
           </div>
-
-          {/* Recent Activities Card */}
           <div
-            className={`bg-${theme.surface} shadow-lg rounded-2xl ${responsivePadding} border border-gray-100 transition-shadow duration-300 hover:shadow-xl`}
+            className={`bg-${theme.surface} shadow-xl rounded-2xl ${responsivePadding} border border-gray-100 transition-shadow duration-300 hover:shadow-2xl`}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
                 <p className={`text-sm font-medium text-${theme.textSecondary}`}>
                   Total Activity Logs
                 </p>
-                <p className={`text-3xl font-bold text-${theme.textPrimary} mt-1`}>
+                <p className={`text-4xl font-extrabold text-${theme.textPrimary} mt-2`}>
                   {activityLogs.length}
                 </p>
               </div>
-              <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center shadow-md">
+              <div
+                // CHANGED: Square container for icon
+                className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center shadow-lg"
+              >
                 <Activity className="w-7 h-7 text-purple-600" />
+              </div>
+            </div>
+          </div>
+          <div
+            className={`bg-${theme.surface} shadow-xl rounded-2xl ${responsivePadding} border border-gray-100 transition-shadow duration-300 hover:shadow-2xl`}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <p className={`text-sm font-medium text-${theme.textSecondary}`}>
+                  Processing History
+                </p>
+                <p className={`text-4xl font-extrabold text-${theme.textPrimary} mt-2`}>
+                  {approvalHistory.length}
+                </p>
+              </div>
+              <div
+                // CHANGED: Square container for icon
+                className="w-14 h-14 bg-yellow-100 rounded-xl flex items-center justify-center shadow-lg"
+              >
+                <FileText className="w-7 h-7 text-yellow-600" />
               </div>
             </div>
           </div>
         </div>
 
+        {/* Main Content Grid (Responsive Layout) */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Staff List Section (Takes 2/3 width on large screens) */}
           <div className="xl:col-span-2">
             <div
-              className={`bg-${theme.surface} shadow-lg rounded-2xl ${responsivePadding} border border-gray-100`}
+              className={`bg-${theme.surface} shadow-xl rounded-2xl ${responsivePadding} border border-gray-100`}
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-8 h-8 bg-${theme.primaryLight} rounded-lg flex items-center justify-center`}
+                    // CHANGED: Square container for icon
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center relative`}
                   >
-                    <Users className={`w-5 h-5 text-${theme.primary}`} />
+                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-${theme.primary} h-full rounded-r-md`}></div>
+                    <Users className={`w-5 h-5 text-${theme.primary} ml-2`} />
                   </div>
-                  <h2 className={`text-xl font-semibold text-${theme.textPrimary}`}>
+                  <h2 className={`text-2xl font-semibold text-${theme.textPrimary}`}>
                     Staff Members
                   </h2>
                 </div>
-                <div className={`text-sm font-medium text-${theme.textSecondary}`}>
+                <div className={`text-sm font-medium text-${theme.textSecondary} px-3 py-1 bg-${theme.primaryLight} rounded-full`}>
                   {staffList.length} total
                 </div>
               </div>
@@ -440,7 +445,7 @@ const AdminManagement = () => {
                           header => (
                             <th
                               key={header}
-                              className={`px-4 py-3 text-left font-medium text-${theme.textSecondary} first:rounded-tl-xl last:rounded-tr-xl`}
+                              className={`px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider`}
                             >
                               {header}
                             </th>
@@ -453,26 +458,28 @@ const AdminManagement = () => {
                         staffList.map(staff => (
                           <tr
                             key={staff.id}
-                            className={`border-b border-gray-50 last:border-b-0 hover:bg-${theme.background} transition-colors`}
+                            // Added subtle alternating row color for professionalism
+                            className={`border-b border-gray-100 last:border-b-0 even:bg-gray-50 hover:bg-blue-50/50 transition-colors duration-200`}
                           >
-                            <td className="px-4 py-3.5">
+                            <td className="px-4 py-4">
                               {getStatusBadge(staff.last_active)}
                             </td>
                             <td
-                              className={`px-4 py-3.5 font-medium text-${theme.textPrimary}`}
+                              className={`px-4 py-4 font-medium text-${theme.textPrimary}`}
                             >
                               {staff.username}
                             </td>
-                            <td className={`px-4 py-3.5 text-${theme.textSecondary}`}>
+                            <td className={`px-4 py-4 text-${theme.textSecondary}`}>
                               {staff.first_name} {staff.last_name}
                             </td>
-                            <td className={`px-4 py-3.5 text-${theme.textSecondary}`}>
+                            <td className={`px-4 py-4 text-${theme.textSecondary}`}>
                               {staff.email}
                             </td>
-                            <td className="px-4 py-3.5">
+                            <td className="px-4 py-4">
                               <div className="flex items-center justify-start gap-2">
                                 <button
                                   onClick={() => setEditData(staff)}
+                                  // CHANGED: Square icon wrapper
                                   className={`p-2 text-${theme.primary} hover:bg-${theme.primaryLight} rounded-lg transition-colors`}
                                   title="Edit Staff"
                                 >
@@ -480,6 +487,7 @@ const AdminManagement = () => {
                                 </button>
                                 <button
                                   onClick={() => handleDelete(staff.id)}
+                                  // CHANGED: Square icon wrapper
                                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                   title="Delete Staff"
                                 >
@@ -493,15 +501,18 @@ const AdminManagement = () => {
                         <tr>
                           <td
                             colSpan="5"
-                            className={`text-center px-4 py-12 text-${theme.textSecondary}`}
+                            className={`text-center px-4 py-16 text-${theme.textSecondary}`}
                           >
                             <div className="flex flex-col items-center">
-                              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                              <div
+                                // CHANGED: Square icon wrapper
+                                className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-4"
+                              >
                                 <Users
                                   className={`w-8 h-8 text-${theme.textSecondary} opacity-50`}
                                 />
                               </div>
-                              <p className="text-lg font-medium mb-1">
+                              <p className="text-xl font-medium mb-1">
                                 No staff members found
                               </p>
                               <p className="text-sm">
@@ -517,19 +528,21 @@ const AdminManagement = () => {
               )}
             </div>
           </div>
-
-          {/* Activity Logs Section (Takes 1/3 width on large screens) */}
+          
+          {/* Recent Activity Panel */}
           <div className="xl:col-span-1">
             <div
-              className={`bg-${theme.surface} shadow-lg rounded-2xl ${responsivePadding} border border-gray-100`}
+              className={`bg-${theme.surface} shadow-xl rounded-2xl ${responsivePadding} border border-gray-100`}
             >
               <div className="flex items-center gap-3 mb-6">
                 <div
-                  className={`w-8 h-8 bg-${theme.primaryLight} rounded-lg flex items-center justify-center`}
+                  // CHANGED: Square container for icon
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center relative`}
                 >
-                  <Activity className={`w-5 h-5 text-${theme.primary}`} />
+                  <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-${theme.primary} h-full rounded-r-md`}></div>
+                  <Activity className={`w-5 h-5 text-${theme.primary} ml-2`} />
                 </div>
-                <h2 className={`text-xl font-semibold text-${theme.textPrimary}`}>
+                <h2 className={`text-2xl font-semibold text-${theme.textPrimary}`}>
                   Recent Activity
                 </h2>
               </div>
@@ -546,11 +559,12 @@ const AdminManagement = () => {
                       currentItems.map(log => (
                         <div
                           key={log.id}
-                          className={`p-3 bg-${theme.background} rounded-xl border border-gray-100 hover:border-${theme.primary}/20 transition-colors`}
+                          // Enhanced hover and border for log items
+                          className={`p-4 bg-white rounded-xl border border-gray-100 hover:border-${theme.primary}/30 hover:bg-blue-50/50 transition-colors duration-200 shadow-sm`}
                         >
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <span
-                              className={`text-sm font-semibold text-${theme.textPrimary}`}
+                              className={`text-sm font-bold text-${theme.textPrimary} truncate`}
                             >
                               {log.staff_member || "Unknown"}
                             </span>
@@ -561,14 +575,17 @@ const AdminManagement = () => {
                             </span>
                           </div>
                           <div className="mb-2">{getActionBadge(log.action)}</div>
-                          <p className={`text-xs text-${theme.textSecondary} truncate`}>
+                          <p className={`text-xs text-${theme.textSecondary} line-clamp-2`}>
                             {log.details || "No details provided"}
                           </p>
                         </div>
                       ))
                     ) : (
-                      <div className={`text-center py-8 text-${theme.textSecondary}`}>
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                      <div className={`text-center py-12 text-${theme.textSecondary}`}>
+                        <div
+                          // CHANGED: Square icon wrapper
+                          className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-4 mx-auto"
+                        >
                           <Activity className="w-8 h-8 opacity-50 text-gray-400" />
                         </div>
                         <p className="font-medium mb-1">No activity logs found</p>
@@ -578,8 +595,6 @@ const AdminManagement = () => {
                       </div>
                     )}
                   </div>
-
-                  {/* Pagination for Activity Logs */}
                   {activityLogs && activityLogs.length > 0 && (
                     <div className="border-t border-gray-100 pt-4 flex flex-col items-center sm:flex-row sm:justify-between">
                       <span className={`text-xs text-${theme.textSecondary} mb-2 sm:mb-0`}>
@@ -603,8 +618,9 @@ const AdminManagement = () => {
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            // CHANGED: Square icon wrapper
                             disabled={currentPage === 1}
-                            className={`p-2 text-${theme.textSecondary} hover:text-${theme.primary} hover:bg-${theme.primaryLight} rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
+                            className={`p-2 text-${theme.textSecondary} hover:text-${theme.primary} hover:bg-${theme.primaryLight} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
                           >
                             <ChevronLeft className="w-4 h-4" />
                           </button>
@@ -617,8 +633,9 @@ const AdminManagement = () => {
                             onClick={() =>
                               setCurrentPage(prev => Math.min(prev + 1, totalPages))
                             }
+                            // CHANGED: Square icon wrapper
                             disabled={currentPage === totalPages}
-                            className={`p-2 text-${theme.textSecondary} hover:text-${theme.primary} hover:bg-${theme.primaryLight} rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
+                            className={`p-2 text-${theme.textSecondary} hover:text-${theme.primary} hover:bg-${theme.primaryLight} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
                           >
                             <ChevronRight className="w-4 h-4" />
                           </button>
@@ -631,24 +648,26 @@ const AdminManagement = () => {
             </div>
           </div>
         </div>
-
-        {/* --- Approval Batch History Section --- */}
+        
+        {/* Approval Batch History Table */}
         <div className="mt-8">
           <div
-            className={`bg-${theme.surface} shadow-lg rounded-2xl ${responsivePadding} border border-gray-100`}
+            className={`bg-${theme.surface} shadow-xl rounded-2xl ${responsivePadding} border border-gray-100`}
           >
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-8 h-8 bg-${theme.primaryLight} rounded-lg flex items-center justify-center`}
+                  // CHANGED: Square container for icon
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center relative`}
                 >
-                  <CheckCircle className={`w-5 h-5 text-${theme.primary}`} />
+                  <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-${theme.primary} h-full rounded-r-md`}></div>
+                  <CheckCircle className={`w-5 h-5 text-${theme.primary} ml-2`} />
                 </div>
-                <h2 className={`text-xl font-semibold text-${theme.textPrimary}`}>
+                <h2 className={`text-2xl font-semibold text-${theme.textPrimary}`}>
                   Approval Batch History
                 </h2>
               </div>
-              <div className={`text-sm font-medium text-${theme.textSecondary}`}>
+              <div className={`text-sm font-medium text-${theme.textSecondary} px-3 py-1 bg-${theme.primaryLight} rounded-full`}>
                 {approvalHistory.length} batches
               </div>
             </div>
@@ -664,37 +683,37 @@ const AdminManagement = () => {
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50/50">
                       <th
-                        className={`px-4 py-3 text-left font-medium text-${theme.textSecondary}`}
+                        className={`px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider`}
                       >
                         File
                       </th>
                       <th
-                        className={`px-4 py-3 text-left font-medium text-${theme.textSecondary}`}
+                        className={`px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider`}
                       >
                         Uploaded By
                       </th>
                       <th
-                        className={`px-4 py-3 text-left font-medium text-${theme.textSecondary}`}
+                        className={`px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider`}
                       >
                         Date
                       </th>
                       <th
-                        className={`px-4 py-3 text-center font-medium text-${theme.textSecondary}`}
+                        className={`px-4 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider`}
                       >
                         Processed
                       </th>
                       <th
-                        className={`px-4 py-3 text-center font-medium text-${theme.textSecondary}`}
+                        className={`px-4 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider`}
                       >
                         Approved
                       </th>
                       <th
-                        className={`px-4 py-3 text-center font-medium text-${theme.textSecondary} whitespace-nowrap`}
+                        className={`px-4 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap`}
                       >
                         Already Approved
                       </th>
                       <th
-                        className={`px-4 py-3 text-center font-medium text-${theme.textSecondary} whitespace-nowrap`}
+                        className={`px-4 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap`}
                       >
                         Not Found
                       </th>
@@ -704,42 +723,43 @@ const AdminManagement = () => {
                     {approvalHistory.map(batch => (
                       <tr
                         key={batch.id}
-                        className={`border-b border-gray-50 last:border-b-0 hover:bg-${theme.background} transition-colors`}
+                        // Added subtle alternating row color for professionalism
+                        className={`border-b border-gray-100 last:border-b-0 even:bg-gray-50 hover:bg-blue-50/50 transition-colors duration-200`}
                       >
                         <td
-                          className={`px-4 py-3.5 font-medium text-${theme.textPrimary} flex items-center gap-2`}
+                          className={`px-4 py-4 font-medium text-${theme.textPrimary} flex items-center gap-2`}
                         >
                           <FileText className={`w-4 h-4 text-${theme.primary}`} />
                           {batch.file_name}
                         </td>
-                        <td className={`px-4 py-3.5 text-${theme.textSecondary}`}>
+                        <td className={`px-4 py-4 text-${theme.textSecondary}`}>
                           {batch.uploaded_by}
                         </td>
-                        <td className={`px-4 py-3.5 text-${theme.textSecondary}`}>
+                        <td className={`px-4 py-4 text-${theme.textSecondary}`}>
                           {format(new Date(batch.uploaded_at), "MMM d, yyyy h:mm a")}
                         </td>
-                        <td className="px-4 py-3.5 text-center">
+                        <td className="px-4 py-4 text-center">
                           <span
                             className={`inline-flex items-center px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full`}
                           >
                             {batch.total_processed}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5 text-center">
+                        <td className="px-4 py-4 text-center">
                           <span
                             className={`inline-flex items-center px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full`}
                           >
                             {batch.total_approved}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5 text-center">
+                        <td className="px-4 py-4 text-center">
                           <span
                             className={`inline-flex items-center px-3 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700 rounded-full`}
                           >
                             {batch.total_already_approved}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5 text-center">
+                        <td className="px-4 py-4 text-center">
                           <span
                             className={`inline-flex items-center px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-full`}
                           >
@@ -753,7 +773,10 @@ const AdminManagement = () => {
               </div>
             ) : (
               <div className={`text-center py-12 text-${theme.textSecondary}`}>
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                <div
+                  // CHANGED: Square icon wrapper
+                  className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-4 mx-auto"
+                >
                   <CheckCircle className="w-8 h-8 opacity-50 text-gray-400" />
                 </div>
                 <p className="text-lg font-medium mb-1">No approval batches found</p>
@@ -767,16 +790,17 @@ const AdminManagement = () => {
 
         {/* --- Add Staff Modal --- */}
         {showModal && (
-          <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 transition-opacity duration-300">
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300">
             <div
-              className={`bg-${theme.surface} rounded-2xl shadow-2xl w-full max-w-lg transition-transform duration-300 scale-100`}
+              className={`bg-${theme.surface} rounded-3xl shadow-2xl shadow-indigo-500/20 w-full max-w-lg scale-100 transform transition-all duration-300`}
             >
               {/* Modal Header */}
-              <div className={`flex items-center gap-3 p-6 border-b border-gray-100`}>
+              <div className={`flex items-center gap-4 p-6 border-b border-gray-100`}>
                 <div
-                  className={`w-10 h-10 bg-${theme.primaryLight} rounded-full flex items-center justify-center shadow-md`}
+                  // CHANGED: Square container for icon
+                  className={`w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg`}
                 >
-                  <UserPlus className={`w-5 h-5 text-${theme.primary}`} />
+                  <UserPlus className={`w-5 h-5 text-white`} />
                 </div>
                 <h2 className={`text-xl font-bold text-${theme.textPrimary}`}>
                   Register New Staff Member
@@ -784,8 +808,8 @@ const AdminManagement = () => {
               </div>
 
               {/* Modal Content */}
-              <div className="p-6 space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="form-control">
                     <label
                       className={`block text-sm font-medium text-${theme.textPrimary} mb-1`}
@@ -798,10 +822,11 @@ const AdminManagement = () => {
                         value={formData.first_name}
                         onChange={handleChange}
                         placeholder="e.g., Jane"
-                        className={`w-full p-2.5 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary}`}
+                        // Enhanced input styling
+                        className={`w-full p-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary} transition-shadow`}
                       />
                       <Users
-                        className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-${theme.textSecondary}`}
+                        className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
                       />
                     </div>
                   </div>
@@ -817,10 +842,11 @@ const AdminManagement = () => {
                         value={formData.last_name}
                         onChange={handleChange}
                         placeholder="e.g., Doe"
-                        className={`w-full p-2.5 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary}`}
+                        // Enhanced input styling
+                        className={`w-full p-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary} transition-shadow`}
                       />
                       <Users
-                        className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-${theme.textSecondary}`}
+                        className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
                       />
                     </div>
                   </div>
@@ -839,10 +865,11 @@ const AdminManagement = () => {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="e.g., jane.doe@quickaid.com"
-                      className={`w-full p-2.5 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary}`}
+                      // Enhanced input styling
+                      className={`w-full p-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary} transition-shadow`}
                     />
                     <Mail
-                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-${theme.textSecondary}`}
+                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
                     />
                   </div>
                 </div>
@@ -859,10 +886,11 @@ const AdminManagement = () => {
                       value={formData.username}
                       onChange={handleChange}
                       placeholder="Enter username"
-                      className={`w-full p-2.5 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary}`}
+                      // Enhanced input styling
+                      className={`w-full p-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary} transition-shadow`}
                     />
                     <UserPlus
-                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-${theme.textSecondary}`}
+                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
                     />
                   </div>
                 </div>
@@ -880,10 +908,11 @@ const AdminManagement = () => {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Create a strong password"
-                      className={`w-full p-2.5 pr-10 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary}`}
+                      // Enhanced input styling
+                      className={`w-full p-3 pr-10 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary} transition-shadow`}
                     />
                     <Lock
-                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-${theme.textSecondary}`}
+                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
                     />
                     <button
                       type="button"
@@ -904,13 +933,14 @@ const AdminManagement = () => {
               <div className="flex justify-end gap-3 p-6 border-t border-gray-100">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 text-sm font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                  className="px-6 py-3 text-sm font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className={`px-5 py-2.5 text-sm font-semibold bg-${theme.primary} hover:bg-${theme.primaryHover} text-white rounded-lg transition-colors flex items-center gap-2 shadow-md shadow-indigo-200/50`}
+                  // Enhanced primary button
+                  className={`px-6 py-3 text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl transition-colors flex items-center gap-2 shadow-md shadow-blue-300/50 hover:shadow-lg`}
                 >
                   <Save className="w-4 h-4" />
                   Register Staff
@@ -922,16 +952,17 @@ const AdminManagement = () => {
 
         {/* --- Edit Staff Modal --- */}
         {editData && (
-          <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 transition-opacity duration-300">
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300">
             <div
-              className={`bg-${theme.surface} rounded-2xl shadow-2xl w-full max-w-lg transition-transform duration-300 scale-100`}
+              className={`bg-${theme.surface} rounded-3xl shadow-2xl shadow-indigo-500/20 w-full max-w-lg scale-100 transform transition-all duration-300`}
             >
               {/* Modal Header */}
-              <div className={`flex items-center gap-3 p-6 border-b border-gray-100`}>
+              <div className={`flex items-center gap-4 p-6 border-b border-gray-100`}>
                 <div
-                  className={`w-10 h-10 bg-${theme.primaryLight} rounded-full flex items-center justify-center shadow-md`}
+                  // CHANGED: Square container for icon
+                  className={`w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg`}
                 >
-                  <Edit3 className={`w-5 h-5 text-${theme.primary}`} />
+                  <Edit3 className={`w-5 h-5 text-white`} />
                 </div>
                 <h2 className={`text-xl font-bold text-${theme.textPrimary}`}>
                   Edit Staff Member: {editData.username}
@@ -939,8 +970,8 @@ const AdminManagement = () => {
               </div>
 
               {/* Modal Content */}
-              <div className="p-6 space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="form-control">
                     <label
                       className={`block text-sm font-medium text-${theme.textPrimary} mb-1`}
@@ -955,10 +986,11 @@ const AdminManagement = () => {
                           setEditData({ ...editData, first_name: e.target.value })
                         }
                         placeholder="First Name"
-                        className={`w-full p-2.5 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary}`}
+                        // Enhanced input styling
+                        className={`w-full p-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary} transition-shadow`}
                       />
                       <Users
-                        className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-${theme.textSecondary}`}
+                        className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
                       />
                     </div>
                   </div>
@@ -974,10 +1006,11 @@ const AdminManagement = () => {
                         value={editData.last_name || ""}
                         onChange={e => setEditData({ ...editData, last_name: e.target.value })}
                         placeholder="Last Name"
-                        className={`w-full p-2.5 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary}`}
+                        // Enhanced input styling
+                        className={`w-full p-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary} transition-shadow`}
                       />
                       <Users
-                        className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-${theme.textSecondary}`}
+                        className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
                       />
                     </div>
                   </div>
@@ -996,10 +1029,11 @@ const AdminManagement = () => {
                       value={editData.email || ""}
                       onChange={e => setEditData({ ...editData, email: e.target.value })}
                       placeholder="Email Address"
-                      className={`w-full p-2.5 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary}`}
+                      // Enhanced input styling
+                      className={`w-full p-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary} transition-shadow`}
                     />
                     <Mail
-                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-${theme.textSecondary}`}
+                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
                     />
                   </div>
                 </div>
@@ -1016,10 +1050,11 @@ const AdminManagement = () => {
                       value={editData.username || ""}
                       onChange={e => setEditData({ ...editData, username: e.target.value })}
                       placeholder="Username"
-                      className={`w-full p-2.5 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary}`}
+                      // Enhanced input styling
+                      className={`w-full p-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary} transition-shadow`}
                     />
                     <UserPlus
-                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-${theme.textSecondary}`}
+                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
                     />
                   </div>
                 </div>
@@ -1037,10 +1072,11 @@ const AdminManagement = () => {
                       value={editData.password || ""}
                       onChange={e => setEditData({ ...editData, password: e.target.value })}
                       placeholder="Leave blank to keep current password"
-                      className={`w-full p-2.5 pr-10 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary}`}
+                      // Enhanced input styling
+                      className={`w-full p-3 pr-10 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-${theme.primary} focus:border-${theme.primary} text-sm text-${theme.textPrimary} transition-shadow`}
                     />
                     <Lock
-                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-${theme.textSecondary}`}
+                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
                     />
                     <button
                       type="button"
@@ -1061,13 +1097,14 @@ const AdminManagement = () => {
               <div className="flex justify-end gap-3 p-6 border-t border-gray-100">
                 <button
                   onClick={() => setEditData(null)}
-                  className="px-5 py-2.5 text-sm font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                  className="px-6 py-3 text-sm font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleUpdate}
-                  className={`px-5 py-2.5 text-sm font-semibold bg-${theme.primary} hover:bg-${theme.primaryHover} text-white rounded-lg transition-colors flex items-center gap-2 shadow-md shadow-indigo-200/50`}
+                  // Enhanced primary button
+                  className={`px-6 py-3 text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl transition-colors flex items-center gap-2 shadow-md shadow-blue-300/50 hover:shadow-lg`}
                 >
                   <Save className="w-4 h-4" />
                   Save Changes

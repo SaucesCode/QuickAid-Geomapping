@@ -680,7 +680,7 @@ const Sidebar = () => {
 
         {/* Page Content */}
         <div className="p-6">
-          <Outlet />
+          <Outlet context={{ isSidebarMinimized: collapsed }} />
         </div>
       </main>
     </div>

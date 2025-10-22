@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { api } from "../../services/api";
 import toast from "react-hot-toast";
 import {
@@ -11,10 +11,13 @@ import {
   FileText,
   PieChart as PieIcon,
   BarChart as BarIcon,
+  Calendar, // Icon for Today's Applicants
+  BarChart2, // Icon for Weekly Applicants
+  LineChart, // Icon for Monthly Applicants
   Loader2,
 } from "lucide-react";
 import {
-  LineChart,
+  LineChart as RechartsLineChart, // Renamed to avoid conflict with lucide LineChart
   Line,
   XAxis,
   YAxis,
@@ -42,6 +45,65 @@ const STATUS_COLORS = {
   "Pending Review": "#fbbf24", // Yellow
   Approved: "#10b981", // Green
   Rejected: "#ef4444", // Red
+};
+
+// --- INITIAL STATE FOR CONCURRENT KPI LOADING ---
+const initialKpiStats = {
+  today: { value: '-', loading: true, title: "TODAY'S APPLICANTS", icon: Calendar, iconColor: "#06b6d4", gradientEndColor: "#06b6d4" },
+  weekly: { value: '-', loading: true, title: "WEEKLY APPLICANTS", icon: BarChart2, iconColor: "#8b5cf6", gradientEndColor: "#8b5cf6" },
+  monthly: { value: '-', loading: true, title: "MONTHLY APPLICANTS", icon: LineChart, iconColor: "#3b82f6", gradientEndColor: "#3b82f6" },
+  avgTime: { value: '-', loading: true, title: "AVG. PROCESSING TIME", icon: Clock, iconColor: "#06b6d4", gradientEndColor: "#06b6d4" },
+};
+
+
+// --- NEW COMPONENT FOR THE IMAGE STATS (MODIFIED TO PULL FROM STATE) ---
+const SimpleStatCard = ({ stat }) => {
+  const { title, value, loading, icon: Icon, iconColor, gradientEndColor } = stat;
+
+  // Determine display value
+  const displayValue = loading ? (
+    <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 animate-spin" />
+  ) : (
+    value === null || value === undefined ? "N/A" : value.toLocaleString()
+  );
+
+  return (
+    // Base card styling
+    <div className="bg-white rounded-2xl shadow-lg p-5 sm:p-6 border border-gray-100 h-full flex flex-col justify-between overflow-hidden relative">
+      {/* Dynamic Colored Border (left-side) */}
+      <div
+        className={`absolute top-0 left-0 bottom-0 w-2 rounded-l-2xl`}
+        style={{
+          background: `linear-gradient(to bottom, #fff, ${gradientEndColor})`, // White to a color for the soft blend
+          opacity: 0.8,
+        }}
+      ></div>
+
+      {/* Content */}
+      <div className="flex flex-col items-start space-y-2 relative z-10">
+        <div className="flex items-center justify-between w-full">
+          {/* Title */}
+          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider min-w-0 pr-4">
+            {title}
+          </p>
+          {/* Icon */}
+          <div
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0`}
+            style={{
+              backgroundColor: `${iconColor}20`, // Light background for the icon
+            }}
+          >
+            <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: iconColor }} />
+          </div>
+        </div>
+
+        {/* Value (Big Number) */}
+        <p className={`text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mt-2 ${loading ? 'h-10' : ''}`}>
+          {displayValue}
+        </p>
+      </div>
+    </div>
+  );
 };
 
 const KPISkeleton = () => (
@@ -98,29 +160,6 @@ const Card = ({ title, icon: Icon, children, gradient = "from-indigo-600 to-blue
   </div>
 );
 
-const StatCard = ({ icon: Icon, title, value, gradient, colorHex }) => (
-  <div
-    className={`bg-white rounded-2xl shadow-lg p-5 sm:p-6 border border-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 w-full`}
-  >
-    <div className="flex justify-between items-start mb-4">
-      <div className="flex-1 min-w-[60%]">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-          {title}
-        </p>
-        <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">
-          {value}
-        </p>
-      </div>
-      <div
-        className={`w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br ${gradient} rounded-xl flex items-center justify-center shadow-lg flex-shrink-0 ml-4`}
-      >
-        <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-      </div>
-    </div>
-    <div className={`h-1`} style={{ backgroundColor: colorHex, opacity: 0.2 }}></div>
-  </div>
-);
-
 // ------------------------------------
 // --- 2. MAIN DASHBOARD COMPONENT ---
 // ------------------------------------
@@ -128,19 +167,22 @@ const StatCard = ({ icon: Icon, title, value, gradient, colorHex }) => (
 const Dashboard = () => {
   // Data States
   const [summary, setSummary] = useState(null);
-  const [totals, setTotals] = useState(null);
+  const [totals, setTotals] = useState(null); 
   const [growth, setGrowth] = useState(null);
   const [monthlyTrend, setMonthlyTrend] = useState([]);
   const [staffActivity, setStaffActivity] = useState(null);
   const [recentApplicants, setRecentApplicants] = useState(null);
 
-  console.log("total applicants:", totals);
+  // --- MODIFICATION 1: New state for concurrent KPI loading ---
+  const [kpiStats, setKpiStats] = useState(initialKpiStats);
 
   // Analytics Data States
   const [typeBreakdown, setTypeBreakdown] = useState([]);
   const [statusFunnel, setStatusFunnel] = useState([]);
 
-  const [loading, setLoading] = useState(true);
+  // Use separate loading states for granular control
+  // isKPILoading is now replaced by individual loading states in kpiStats
+  const [isChartLoading, setIsChartLoading] = useState(true);
 
   useEffect(() => {
     document.title = "QuickAid | Dashboard";
@@ -149,21 +191,70 @@ const Dashboard = () => {
     };
   }, []);
 
-  // Function to fetch ALL dashboard data from your API
-  const fetchDashboardData = useCallback(async () => {
-    setLoading(true);
+  // --- MODIFICATION 2: Function to fetch a single KPI with random delay ---
+  const fetchKpiStat = useCallback(async (key, endpoint, minDelay = 200, maxDelay = 1500) => {
+    try {
+      // 1. Simulate varying network delay for non-sequential loading (Fastest first)
+      const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      // 2. Fetch data (This endpoint should ideally return a single value)
+      const res = await api.get(endpoint);
+      const data = res.data;
+      
+      let fetchedValue;
+      if (key === 'avgTime') {
+        fetchedValue = data.averageProcessingTime 
+        ? `${data.averageProcessingTime} mins`
+        : "N/A";
+      } else {
+        // Assuming the response key is named 'count' or similar
+        fetchedValue = data.dailyApplicants ?? data.weeklyApplicants ?? data.monthlyApplicants ?? 0;
+      }
+
+      // 3. Update the state for its specific key immediately upon resolution
+      setKpiStats(prev => ({
+        ...prev,
+        [key]: { ...prev[key], value: fetchedValue, loading: false },
+      }));
+
+    } catch (err) {
+      console.error(`KPI fetch error for ${key}:`, err);
+      // Fallback on error to 'Error'
+      setKpiStats(prev => ({
+        ...prev,
+        [key]: { ...prev[key], value: 'Error', loading: false },
+      }));
+    }
+  }, []);
+
+  // --- MODIFICATION 3: New concurrent fetch function ---
+  const fetchAllKpiStatsConcurrently = useCallback(async () => {
+    // Reset all stats to loading
+    setKpiStats(initialKpiStats);
+    
+    // Define all promises to run concurrently
+    const todayPromise = fetchKpiStat('today', "/analytics/dashboard/summary/");
+    const weeklyPromise = fetchKpiStat('weekly', "/analytics/dashboard/summary/");
+    const monthlyPromise = fetchKpiStat('monthly', "/analytics/dashboard/summary/");
+    const avgTimePromise = fetchKpiStat('avgTime', "/analytics/dashboard/summary/");
+    
+    // Wait for all promises to settle. The setKpiStats inside fetchKpiStat 
+    // will update the UI in the order they resolve (fastest first).
+    await Promise.allSettled([todayPromise, weeklyPromise, monthlyPromise, avgTimePromise]);
+  }, [fetchKpiStat]);
+  
+  // Function to fetch the rest of the dashboard data (Slower Loading Content)
+  const fetchContentData = useCallback(async () => {
+    setIsChartLoading(true);
     try {
       const [
-        summaryRes,
         totalsRes,
         growthRes,
         monthlyRes,
         staffRes,
         recentRes,
-        breakdownRes,
-        funnelRes,
       ] = await Promise.all([
-        api.get("/analytics/dashboard/summary/"),
         api.get("/analytics/dashboard/total-applicants/"),
         api.get("/analytics/dashboard/growth-rate/"),
         api.get("/analytics/trends/monthly/"),
@@ -171,26 +262,33 @@ const Dashboard = () => {
         api.get("/recent_applicants/"),
       ]);
 
-      // Set Core Data
-      setSummary(summaryRes.data || {});
       setTotals(totalsRes.data || {});
       setGrowth(growthRes.data || {});
       setMonthlyTrend(monthlyRes.data || []);
       setStaffActivity(staffRes.data || []);
       setRecentApplicants(recentRes.data?.results || recentRes.data || []);
+
+      // NOTE: Setting these to empty array/default to reflect they are not displayed
+      setTypeBreakdown([]);
+      setStatusFunnel([]);
+
     } catch (err) {
-      console.error("Dashboard fetch error:", err);
+      console.error("Dashboard content fetch error:", err);
       toast.error("Failed to load dashboard data. Check API connections.", {
         style: { background: "#1e293b", color: "#f1f5f9", border: "1px solid #334155" },
       });
     } finally {
-      setLoading(false);
+      // Use a slightly longer timeout for chart/list content loading to show the skeleton effect
+      setTimeout(() => setIsChartLoading(false), 800); 
     }
   }, []);
 
+
   useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+    fetchAllKpiStatsConcurrently(); // Fetch KPi stats concurrently for non-sequential loading
+    fetchContentData();
+  }, [fetchAllKpiStatsConcurrently, fetchContentData]);
+
 
   const formatDate = dateString => {
     const date = new Date(dateString);
@@ -250,132 +348,35 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* 2. KPI Cards (Unchanged logic) */}
+      {/* 2. KPI Cards (Now renders based on kpiStats state) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {loading ? (
-          <>
-            <KPISkeleton />
-            <KPISkeleton />
-            <KPISkeleton />
-            <KPISkeleton />
-          </>
-        ) : (
-          <>
-            <StatCard
-              icon={Users}
-              title="Total Applicants"
-              value={totals?.total_applicants ?? 0}
-              gradient="from-indigo-600 to-blue-700"
-              colorHex="#3b82f6"
-            />
-            <StatCard
-              icon={Clock}
-              title="Avg. Processing Time"
-              value={`${summary?.averageProcessingTime ?? 0} mins`}
-              gradient="from-cyan-600 to-sky-700"
-              colorHex="#06b6d4"
-            />
-            <StatCard
-              icon={TrendingUp}
-              title="Recent Growth Rate"
-              value={`${growth?.growth_rate ?? 0}%`}
-              gradient="from-green-600 to-emerald-700"
-              colorHex="#10b981"
-            />
-            <StatCard
-              icon={MapPin}
-              title="Highest Volume Barangay"
-              value={summary?.highestBarangay ?? "N/A"}
-              gradient="from-orange-600 to-amber-700"
-              colorHex="#f59e0b"
-            />
-          </>
-        )}
+        
+        {/* Card 1: Today's Applicants */}
+        <SimpleStatCard stat={kpiStats.today} />
+
+        {/* Card 2: Weekly Applicants */}
+        <SimpleStatCard stat={kpiStats.weekly} />
+        
+        {/* Card 3: Monthly Applicants */}
+        <SimpleStatCard stat={kpiStats.monthly} />
+
+        {/* Card 4: Avg. Processing Time */}
+        <SimpleStatCard stat={kpiStats.avgTime} />
+
       </div>
 
-      {/* 3. Application Analytics (Data and Colors integrated) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* 3a. Application Type Breakdown (Donut/Pie Chart) */}
-        <Card
-          title="Application Type Breakdown"
-          icon={PieIcon}
-          gradient="from-teal-600 to-cyan-700"
-        >
-          {loading ? (
-            <ChartSkeleton />
-          ) : (
-            <div className="h-[300px] flex justify-center items-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={typeBreakdown}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={80}
-                    outerRadius={120}
-                    paddingAngle={5}
-                    fill="#8884d8"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {/* Use TYPE_COLORS map to assign colors based on the data's 'name' property */}
-                    {typeBreakdown.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={TYPE_COLORS[entry.name] || "#ccc"} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </Card>
-
-        {/* 3b. Application Status Funnel (Horizontal Bar Chart) */}
-        <Card
-          title="Application Status Funnel"
-          icon={BarIcon}
-          gradient="from-red-600 to-pink-700"
-        >
-          {loading ? (
-            <ChartSkeleton />
-          ) : (
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={statusFunnel}
-                  layout="vertical"
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
-                  <XAxis type="number" stroke="#6b7280" />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    stroke="#6b7280"
-                    style={{ fontSize: "11px", fontWeight: "500" }}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="value" barSize={30}>
-                    {/* Use STATUS_COLORS map to assign colors based on the data's 'name' property */}
-                    {statusFunnel.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name] || "#ccc"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </Card>
+      {/* 3. Application Analytics */}
+      <div className="grid grid-cols-1">
+        {/* Empty section for removed charts */}
       </div>
 
-      {/* 4. Monthly Trend Chart (Unchanged logic) */}
+      {/* 4. Monthly Trend Chart (Uses Chart Skeleton while loading) */}
       <Card
         title="Monthly Application Volume"
         icon={TrendingUp}
         gradient="from-indigo-600 to-blue-700"
       >
-        {loading ? (
+        {isChartLoading ? (
           <ChartSkeleton />
         ) : (
           <>
@@ -384,7 +385,7 @@ const Dashboard = () => {
             </p>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart
+                <RechartsLineChart // Use the renamed component
                   data={monthlyTrend}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -421,14 +422,14 @@ const Dashboard = () => {
                     dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
                     activeDot={{ r: 8, fill: "#2563eb", stroke: "#fff", strokeWidth: 3 }}
                   />
-                </LineChart>
+                </RechartsLineChart>
               </ResponsiveContainer>
             </div>
           </>
         )}
       </Card>
 
-      {/* 5. Staff Activity + Recent Applicants Grid (Unchanged logic) */}
+      {/* 5. Staff Activity + Recent Applicants Grid (Uses List Skeleton while loading) */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
         <div className="lg:col-span-2">
           <Card
@@ -436,7 +437,7 @@ const Dashboard = () => {
             icon={Activity}
             gradient="from-purple-600 to-indigo-700"
           >
-            {loading ? (
+            {isChartLoading ? ( // Use isChartLoading for this section
               <ListSkeleton items={5} />
             ) : staffActivity && staffActivity.length > 0 ? (
               <ul className="space-y-3">
@@ -476,7 +477,7 @@ const Dashboard = () => {
             icon={FileText}
             gradient="from-green-600 to-teal-700"
           >
-            {loading ? (
+            {isChartLoading ? ( // Use isChartLoading for this section
               <ListSkeleton items={5} />
             ) : (
               <div className="overflow-x-auto w-full">

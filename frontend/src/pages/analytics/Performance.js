@@ -81,78 +81,97 @@ const Performance = () => {
   const HEATMAP_COLORS = ["#FEF3C7", "#FCD34D", "#F59E0B", "#D97706", "#92400E"];
   const LEADERBOARD_COLORS = ["#FFD700", "#C0C0C0", "#CD7F32", "#3B82F6", "#10B981"];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      // Step 1: Fetch the highest priority data (avgProcessingTime) immediately
+ useEffect(() => {
+  const fetchSequentially = async () => {
+    try {
+      // 1️⃣ Avg Processing Time (highest priority)
       try {
-        const avgProcessingTimeRes = await api.get("/analytics/performance/average-processing/");
-        setAvgProcessingTime(avgProcessingTimeRes.data);
-      } catch (e) {
-        console.error("Error fetching avgProcessingTime:", e);
-        // Set error but continue loading other elements
-        // setError(e); // Only set critical error if necessary
+        const res = await api.get("/analytics/performance/average-processing/");
+        setAvgProcessingTime(res.data);
+      } catch (err) {
+        console.error("Error fetching avgProcessingTime:", err);
       }
-      
-      // We set loading to false here so the old full-page loading screen is skipped
-      // and we immediately render the content with skeleton loaders.
-      setLoading(false); 
+      setLoading(false); // hide master loader
+      await new Promise((r) => setTimeout(r, 300)); // small delay before next
 
-      // Step 2: Concurrently fetch the rest of the data
-      const otherFetches = [
-        {
-          apiCall: api.get("/analytics/performance/processing-by-type/"),
-          setter: setAvgProcessingTimeByType,
-          loader: setLoadingType,
-        },
-        {
-          apiCall: api.get("/analytics/performance/processing-distribution/"),
-          setter: setProcessingDistribution,
-          loader: setLoadingDistribution,
-        },
-        {
-          apiCall: api.get("/analytics/performance/staff-productivity/"),
-          setter: setStaffProductivity,
-          loader: setLoadingProductivity,
-        },
-        {
-          apiCall: api.get("/analytics/performance/staff-leaderboard/"),
-          setter: setStaffLeaderboard,
-          loader: setLoadingLeaderboard,
-        },
-        {
-          apiCall: api.get("/analytics/performance/staff-activity/"),
-          setter: setStaffActivity,
-          loader: setLoadingActivity,
-        },
-        {
-          apiCall: api.get("/analytics/performance/staff-heatmap/"),
-          setter: setStaffHeatmap,
-          loader: setLoadingHeatmap,
-        },
-      ];
+      // 2️⃣ Processing by Type
+      setLoadingType(true);
+      try {
+        const res = await api.get("/analytics/performance/processing-by-type/");
+        setAvgProcessingTimeByType(res.data);
+      } catch (err) {
+        console.error("Error fetching processing-by-type:", err);
+      } finally {
+        setLoadingType(false);
+      }
+      await new Promise((r) => setTimeout(r, 300));
 
-      Promise.allSettled(otherFetches.map(item => item.apiCall))
-        .then(results => {
-          results.forEach((result, index) => {
-            const { setter, loader } = otherFetches[index];
-            if (result.status === "fulfilled") {
-              // Ensure we use the proper setter and stop the loader for this component
-              setter(result.value.data || []); 
-            } else {
-              console.error(`Error fetching data for index ${index}:`, result.reason);
-            }
-            loader(false); // Stop loading for this specific component
-          });
-        })
-        .catch(err => {
-            console.error("Critical error in concurrent fetch process:", err);
-            // setError(err); // Consider setting this only if all fail
-        });
-    };
-    
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      // 3️⃣ Processing Distribution
+      setLoadingDistribution(true);
+      try {
+        const res = await api.get("/analytics/performance/processing-distribution/");
+        setProcessingDistribution(res.data);
+      } catch (err) {
+        console.error("Error fetching processing-distribution:", err);
+      } finally {
+        setLoadingDistribution(false);
+      }
+      await new Promise((r) => setTimeout(r, 300));
+
+      // 4️⃣ Staff Productivity
+      setLoadingProductivity(true);
+      try {
+        const res = await api.get("/analytics/performance/staff-productivity/");
+        setStaffProductivity(res.data);
+      } catch (err) {
+        console.error("Error fetching staff-productivity:", err);
+      } finally {
+        setLoadingProductivity(false);
+      }
+      await new Promise((r) => setTimeout(r, 300));
+
+      // 5️⃣ Staff Leaderboard
+      setLoadingLeaderboard(true);
+      try {
+        const res = await api.get("/analytics/performance/staff-leaderboard/");
+        setStaffLeaderboard(res.data);
+      } catch (err) {
+        console.error("Error fetching staff-leaderboard:", err);
+      } finally {
+        setLoadingLeaderboard(false);
+      }
+      await new Promise((r) => setTimeout(r, 300));
+
+      // 6️⃣ Staff Activity
+      setLoadingActivity(true);
+      try {
+        const res = await api.get("/analytics/performance/staff-activity/");
+        setStaffActivity(res.data);
+      } catch (err) {
+        console.error("Error fetching staff-activity:", err);
+      } finally {
+        setLoadingActivity(false);
+      }
+      await new Promise((r) => setTimeout(r, 300));
+
+      // 7️⃣ Staff Heatmap
+      setLoadingHeatmap(true);
+      try {
+        const res = await api.get("/analytics/performance/staff-heatmap/");
+        setStaffHeatmap(res.data);
+      } catch (err) {
+        console.error("Error fetching staff-heatmap:", err);
+      } finally {
+        setLoadingHeatmap(false);
+      }
+    } catch (globalErr) {
+      console.error("Critical error in sequential fetch:", globalErr);
+      setError(globalErr);
+    }
+  };
+
+  fetchSequentially();
+}, []);
 
   // Data transformation functions
   const transformProcessingByType = data => {

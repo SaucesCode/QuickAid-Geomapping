@@ -76,26 +76,29 @@ const Trends = () => {
     setLoadingStates((prev) => ({ ...prev, [section]: false }));
 
   useEffect(() => {
-    const fetchSection = async (endpoint, setter, sectionKey) => {
-      try {
-        const res = await api.get(endpoint);
-        setter(res.data || []);
-      } catch (err) {
-        console.error(`Error fetching ${sectionKey}:`, err);
-        setError((prev) => ({ ...prev, [sectionKey]: err.message }));
-      } finally {
-        setSectionLoaded(sectionKey);
-      }
-    };
+  // helper to fetch one dataset independently
+  const fetchSection = async (endpoint, setter, sectionKey) => {
+    try {
+      const res = await api.get(endpoint);
+      setter(res.data || []);
+      setSectionLoaded(sectionKey); // stop loading for this section
+    } catch (err) {
+      console.error(`⚠️ Error fetching ${sectionKey}:`, err);
+      // stays loading forever if failed
+    }
+  };
 
-    fetchSection("/analytics/trends/monthly/", setMonthlyData, "monthly");
-    fetchSection("/analytics/trends/yearly/", setYearlyData, "yearly");
-    fetchSection("/analytics/trends/over-time/", setOvertimeData, "overtime");
-    fetchSection("/analytics/trends/cumulative/", setCumulativeData, "cumulative");
-    fetchSection("/analytics/trends/assistance-type/", setAssistanceTypeData, "assistanceType");
-    fetchSection("/analytics/trends/assistance-type-over-time/", setAssistanceTypeDataOverTime, "assistanceTypeOverTime");
-    fetchSection("/analytics/trends/applicant-heatmap/", setApplicantHeatmap, "applicantHeatmap");
-  }, []);
+  // All fetches run simultaneously (concurrent)
+  fetchSection("/analytics/trends/monthly/", setMonthlyData, "monthly");
+  fetchSection("/analytics/trends/yearly/", setYearlyData, "yearly");
+  fetchSection("/analytics/trends/over-time/", setOvertimeData, "overtime");
+  fetchSection("/analytics/trends/cumulative/", setCumulativeData, "cumulative");
+  fetchSection("/analytics/trends/assistance-type/", setAssistanceTypeData, "assistanceType");
+  fetchSection("/analytics/trends/assistance-type-over-time/", setAssistanceTypeDataOverTime, "assistanceTypeOverTime");
+  fetchSection("/analytics/trends/applicant-heatmap/", setApplicantHeatmap, "applicantHeatmap");
+}, []);
+
+
 
   const ASSISTANCE_COLORS = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6"];
 
