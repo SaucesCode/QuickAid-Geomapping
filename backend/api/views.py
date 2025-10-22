@@ -1,10 +1,12 @@
 # Standard library
 import csv
 import datetime
+import json
 import requests
 import pandas as pd
 from dateutil.relativedelta import relativedelta
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+
 
 
 # Django
@@ -19,6 +21,7 @@ from django.db.models.functions import TruncDate, ExtractYear, TruncMonth, Extra
 from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.utils.timezone import now, timedelta
 
 # Django REST Framework
@@ -942,9 +945,16 @@ def list_archived_applicants(request):
 @permission_classes([IsAuthenticated])
 def restore_archived_applicant(request, pk):
     try:
-        applicant = Applicant.objects.get(pk=pk)
+        applicant = get_object_or_404(Applicant.objects.select_related("background_info"), pk=pk)
+
+        if not applicant.is_archived:
+            return Response(
+                {"message": "Applicant is already active."},
+                status=400
+            )
+    
         applicant.is_archived = False
-        applicant.save()
+        applicant.save(update_fields=["is_archived"])
         # Log the restore
         log_staff_activity(
             request.user,
@@ -962,16 +972,19 @@ def restore_archived_applicant(request, pk):
 
 # GET APPLICANT LOCATIONS
 # Function to retrieve applicant locations for mapping
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_applicant_locations(request):
+    type_filter = request.GET.get("type")
+    city_filter = request.GET.get("city")
+    barangay_filter = request.GET.get("barangay")
+
     applicants = Applicant.objects.select_related(
         'background_info',
         'background_info__barangay',
         'background_info__barangay__city'
-    ).exclude(latitude__isnull=True, longitude__isnull=True)
+    ).exclude(latitude__isnull=True, longitude__isnull=True).filter(is_archived=False)
 
-    type_filter = request.GET.get("type")
-    city_filter = request.GET.get("city")
-    barangay_filter = request.GET.get("barangay")
 
     if type_filter:
         applicants = applicants.filter(type_of_assistance=type_filter)
@@ -980,21 +993,32 @@ def get_applicant_locations(request):
     if barangay_filter:
         applicants = applicants.filter(background_info__barangay__name=barangay_filter)
 
-    data = []
-    for app in applicants:
-        barangay_name = app.background_info.barangay.name if app.background_info and app.background_info.barangay else "N/A"
-        city_name = app.background_info.barangay.city.name if app.background_info and app.background_info.barangay and app.background_info.barangay.city else "N/A"
+    # ✅ Optional: limit results for performance (configurable via ?limit=)
+    try:
+        limit = int(request.GET.get("limit", 500))
+        if limit > 2000:  # protect the server
+            limit = 2000
+    except ValueError:
+        limit = 500
 
-        data.append({
+    applicants = applicants.order_by("-date_filled")[:limit]
+
+    # ✅ Use list comprehension for clean structure
+    data = [
+        {
             "id": app.id,
             "full_name": f"{app.background_info.first_name} {app.background_info.last_name}",
             "latitude": app.latitude,
             "longitude": app.longitude,
-            "address": f"{app.background_info.street_address}, {barangay_name}, {city_name}",
+            "address": f"{app.background_info.street_address}, "
+                       f"{app.background_info.barangay.name}, "
+                       f"{app.background_info.barangay.city.name}",
             "type_of_assistance": app.type_of_assistance,
-            "barangay": barangay_name,
-            "city": city_name,
-        })
+            "barangay": app.background_info.barangay.name,
+            "city": app.background_info.barangay.city.name,
+        }
+        for app in applicants
+    ]
 
     return JsonResponse(data, safe=False)
 
@@ -1045,8 +1069,10 @@ def summary_metrics(request):
     - Most common assistance type
     - Barangay with highest applications
     """
-    total_applicants = Applicant.objects.count()
-    avg_processing_time = Applicant.objects.exclude(
+    base_qs = Applicant.objects.filter(is_archived=False)
+    total_applicants = base_qs.count()
+
+    avg_processing_time = base_qs.exclude(
         created_at__isnull=True, date_filled__isnull=True
     ).aggregate(
         avg_time=Avg(ExpressionWrapper(
@@ -1054,22 +1080,33 @@ def summary_metrics(request):
             output_field=DurationField()
         ))
     )['avg_time']
+
     avg_minutes = round(avg_processing_time.total_seconds() / 60, 1) if avg_processing_time else 0
 
-    most_common_type = Applicant.objects.values('type_of_assistance').annotate(
+    most_common_type = base_qs.values('type_of_assistance').annotate(
         count=Count('id')
     ).order_by('-count').first()
 
-    highest_barangay = Applicant.objects.values('background_info__barangay__name').annotate(
+    highest_barangay = base_qs.values('background_info__barangay__name').annotate(
         count=Count('id')
     ).order_by('-count').first()
 
-    return Response({
-        'totalApplicants': total_applicants,
-        'averageProcessingTime': avg_minutes,
-        'mostCommonType': most_common_type['type_of_assistance'] if most_common_type else 'N/A',
-        'highestBarangay': highest_barangay['background_info__barangay__name'] if highest_barangay else 'N/A'
-    })
+    data = {
+        "totalApplicants": total_applicants,
+        "averageProcessingTime": avg_minutes,
+        "mostCommonType": (
+            most_common_type["type_of_assistance"]
+            if most_common_type
+            else "N/A"
+        ),
+        "highestBarangay": (
+            highest_barangay["background_info__barangay__name"]
+            if highest_barangay
+            else "N/A"
+        ),
+    }
+
+    return Response(data)
 
 
 @api_view(['GET'])
@@ -1085,33 +1122,47 @@ def total_applicants(request):
 
     applicants = Applicant.objects.all()
 
-    return Response({
+    data = {
         'daily': applicants.filter(date_filled__date=today).count(),
         'weekly': applicants.filter(date_filled__date__gte=start_of_week).count(),
         'monthly': applicants.filter(date_filled__date__gte=start_of_month).count()
-    })
+    }
+
+    return Response(data)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def applicant_growth_rate(request):
     """
-    📊 Dashboard: Applicant growth rate
-    - Compare this month vs previous month (% growth)
+    📊 Dashboard: Applicant Growth Rate
+    - Compares this month vs previous month (% growth)
+    - Uses exact month boundaries, not just last 30 days
     """
-    today = timezone.now().date()
-    last_month = today - timedelta(days=30)
-    prev_month = today - timedelta(days=60)
+    today = timezone.localdate()
+    start_of_this_month = today.replace(day=1)
+    start_of_last_month = (start_of_this_month - timedelta(days=1)).replace(day=1)
+    end_of_last_month = start_of_this_month - timedelta(days=1)
 
-    this_month = Applicant.objects.filter(date_filled__gte=last_month).count()
-    previous_month = Applicant.objects.filter(date_filled__range=[prev_month, last_month]).count()
+    base_qs = Applicant.objects.filter(is_archived=False)
 
-    growth = ((this_month - previous_month) / previous_month * 100) if previous_month > 0 else 0
+    # ✅ Applicants this month and previous month
+    this_month_count = base_qs.filter(date_filled__date__gte=start_of_this_month).count()
+    previous_month_count = base_qs.filter(
+        date_filled__date__range=[start_of_last_month, end_of_last_month]
+    ).count()
+
+    # ✅ Compute growth rate safely
+    growth_rate = (
+        ((this_month_count - previous_month_count) / previous_month_count * 100)
+        if previous_month_count > 0
+        else 0
+    )
 
     return Response({
-        "this_month": this_month,
-        "previous_month": previous_month,
-        "growth_rate": round(growth, 2)
+        "this_month": this_month_count,
+        "previous_month": previous_month_count,
+        "growth_rate": round(growth_rate, 2)
     })
 
 
@@ -1122,8 +1173,23 @@ def repeat_applicants(request):
     📊 Dashboard: Repeat applicants
     - Count of applicants who submitted multiple applications
     """
-    repeat_count = BackgroundInfo.objects.annotate(app_count=Count('applicant')).filter(app_count__gt=1).count()
-    return Response({"repeat_applicants": repeat_count})
+    annotated_qs = BackgroundInfo.objects.annotate(app_count=Count("applicant"))
+    repeat_count = annotated_qs.filter(app_count__gt=1).count()
+    total_applicants = annotated_qs.count()
+
+    repeat_percentage = (
+        round((repeat_count / total_applicants) * 100, 2)
+        if total_applicants > 0
+        else 0
+    )
+
+    data = {
+        "repeat_applicants": repeat_count,
+        "total_applicants": total_applicants,
+        "repeat_percentage": repeat_percentage
+    }
+
+    return Response(data)
 
 
 # ======================================================
@@ -1132,7 +1198,7 @@ def repeat_applicants(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_applicant_locations(request):
+def analytics_applicant_locations(request):
     """
     🌍 Geographic: Applicant locations
     - Returns lat/lon + address for mapping
@@ -1171,13 +1237,18 @@ def top_barangays(request):
     - Returns top 10 barangays by applicant count
     - Optional filters: assistance type, date range
     """
-    qs = Applicant.objects.all()
-    if request.GET.get("type"):
-        qs = qs.filter(type_of_assistance=request.GET["type"])
-    if request.GET.get("start") and request.GET.get("end"):
-        qs = qs.filter(date_filled__date__range=[request.GET["start"], request.GET["end"]])
+    base_qs = Applicant.objects.select_related(
+        "barangay_info",
+        "barangay_info__barangay__name",
+        "barangay_info__barangay__city",
+    ).filter(is_archived=False)
 
-    data = qs.values('background_info__barangay__name').annotate(count=Count('id')).order_by('-count')[:10]
+    if request.GET.get("type"):
+        base_qs = base_qs.filter(type_of_assistance=request.GET["type"])
+    if request.GET.get("start") and request.GET.get("end"):
+        base_qs = base_qs.filter(date_filled__date__range=[request.GET["start"], request.GET["end"]])
+
+    data = base_qs.values('background_info__barangay__name').annotate(count=Count('id')).order_by('-count')[:10]
     return Response(list(data))
 
 
@@ -1185,12 +1256,38 @@ def top_barangays(request):
 @permission_classes([IsAuthenticated])
 def barangay_by_type(request):
     """
-    🌍 Geographic: Applications by barangay & assistance type
+    Geographic: Applications by barangay & assistance type
     """
-    data = Applicant.objects.values(
-        'background_info__barangay__name', 'type_of_assistance'
-    ).annotate(count=Count('id')).order_by('-count')
-    return Response(list(data))
+    qs = Applicant.objects.filter(is_archived=False).select_related(
+        "background_info",
+        "background_info__barangay",
+        "background_info__barangay__city"
+    )
+
+    start_date = parse_date(request.GET.get("start")) if request.GET.get("start") else None
+    end_date = parse_date(request.GET.get("end")) if request.GET.get("end") else None
+    if start_date and end_date:
+        qs = qs.filter(date_filled__date__range=[start_date, end_date])
+
+    # ✅ Group by barangay and assistance type
+    data = (
+        qs.values("background_info__barangay__name", "type_of_assistance")
+        .annotate(count=Count("id"))
+        .exclude(background_info__barangay__name__isnull=True)
+        .order_by("-count")
+    )
+
+    # ✅ Format output for readability
+    response_data = [
+        {
+            "barangay": d["background_info__barangay__name"],
+            "type_of_assistance": d["type_of_assistance"],
+            "count": d["count"]
+        }
+        for d in data
+    ]
+
+    return Response(response_data)
 
 
 @api_view(['GET'])
@@ -1200,20 +1297,35 @@ def approval_rate_by_location(request):
     🌍 Geographic: Approval rates by location
     - Grouped by province/city/barangay (configurable via ?group=)
     """
-    group = request.GET.get("group", "background_info__barangay__city__name")
-    qs = Applicant.objects.values(group).annotate(
-        total=Count("id"),
-        approved=Count("id", filter=Q(approvals__isnull=False))
+    valid_groups = {
+        "province": "background_info__barangay__city__province__name",
+        "city": "background_info__barangay__city__name",
+        "barangay": "background_info__barangay__name",
+    }
+
+    group_field = valid_groups.get(request.GET.get("group", "city"), "background_info__barangay__city__name")
+
+    qs = (
+        Applicant.objects
+        .values(group_field)
+        .annotate(
+            total=Count("id"),
+            approved=Count("id", filter=Q(approvals__isnull=False))
+        )
+        .order_by("-total")
     )
 
-    results = [{
-        "location": item[group],
-        "total": item["total"],
-        "approved": item["approved"],
-        "approval_rate": round((item["approved"] / item["total"] * 100), 2) if item["total"] > 0 else 0
-    } for item in qs]
+    data = [
+        {
+            "location": item[group_field] or "Unknown",
+            "total": item["total"],
+            "approved": item["approved"],
+            "approval_rate": round((item["approved"] / item["total"] * 100), 2) if item["total"] > 0 else 0,
+        }
+        for item in qs
+    ]
 
-    return Response(results)
+    return Response(data)
 
 
 @api_view(['GET'])
@@ -1224,17 +1336,35 @@ def inactive_applicants(request):
     - Applicants with no new applications in X months (default=6)
     """
     months = int(request.GET.get("months", 6))
-    cutoff = now() - timedelta(days=30*months)
+    assistance_type = request.GET.get("assistance_type")
+    cutoff = now() - timedelta(days=30 * months)
 
-    inactive = BackgroundInfo.objects.annotate(
-        last_app=Max("applicant__date_filled")
-    ).filter(Q(last_app__lt=cutoff) | Q(last_app__isnull=True))
+    # Annotate latest application date for each person
+    inactive_qs = (
+        BackgroundInfo.objects.annotate(last_app=Max("applicant__date_filled"))
+        .filter(Q(last_app__lt=cutoff) | Q(last_app__isnull=True))
+        .select_related()  # lightweight optimization
+        .order_by("last_app")
+    )
 
-    data = [{
-        "id": b.id,
-        "name": f"{b.first_name} {b.last_name}",
-        "last_application": b.application_history().first().date_filled if b.application_history().exists() else None
-    } for b in inactive]
+    if assistance_type:
+        inactive_qs = inactive_qs.filter(applicant__type_of_assistance__iexact=assistance_type)
+
+    data = []
+    for b in inactive_qs:
+        last_applicant = (
+            b.applicant_set.order_by("-date_filled").first()
+        )  # Access reverse relation safely
+
+        data.append({
+            "id": b.id,
+            "name": f"{b.first_name} {b.last_name}",
+            "last_application": (
+                last_applicant.date_filled.isoformat()
+                if last_applicant and last_applicant.date_filled
+                else None
+            ),
+        })
 
     return Response(data)
 
@@ -1247,23 +1377,39 @@ def inactive_applicants(request):
 @permission_classes([IsAuthenticated])
 def applicants_by_gender(request):
     """👥 Demographics: Applicants by gender"""
-    return Response(list(Applicant.objects.values("background_info__sex").annotate(count=Count("id"))))
+    applicants = Applicant.objects.filter(is_archived=False)\
+        .values(
+            "background_info__sex"
+        ).annotate(count=Count("id")).order_by("count")
+    
+    print(applicants)
+    return Response(list(applicants))
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def applicants_by_civil_status(request):
     """👥 Demographics: Applicants by civil status"""
-    return Response(list(Applicant.objects.values("background_info__civil_status").annotate(count=Count("id"))))
+    applicants = Applicant.objects.filter(is_archived=False)
+    applicants = applicants.values(
+            "background_info__civil_status"
+        ).annotate(count=Count("id")).order_by("count")
+    return Response(list(applicants))
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def applicants_by_age_group(request):
     """👥 Demographics: Applicants by age groups (0–17, 18–25, … 60+)"""
-    today = datetime.date.today()
-    qs = Applicant.objects.annotate(
-        age=ExpressionWrapper(today.year - ExtractYear("background_info__birthday"), output_field=IntegerField())
+    today = date.today()
+
+    qs = Applicant.objects.filter(is_archived=False)
+
+    qs = qs.annotate(
+        age=ExpressionWrapper(
+            today.year - ExtractYear("background_info__birthday"), 
+            output_field=IntegerField()
+        )
     )
     age_groups = {
         "0-17": qs.filter(age__lte=17).count(),
@@ -1273,7 +1419,16 @@ def applicants_by_age_group(request):
         "46-60": qs.filter(age__gte=46, age__lte=60).count(),
         "60+": qs.filter(age__gt=60).count(),
     }
-    return Response([{"age_group": g, "count": c} for g, c in age_groups.items()])
+
+    data = [
+        {
+            "age_group": g, 
+            "count": c
+        }
+        for g, c in age_groups.items()
+    ]
+
+    return Response(data)
 
 
 @api_view(['GET'])
@@ -1303,9 +1458,13 @@ def applicants_by_occupation(request):
 @permission_classes([IsAuthenticated])
 def applicants_by_age_gender(request):
     """👥 Demographics: Applicants by age × gender cross-tab"""
-    today = datetime.date.today()
-    qs = Applicant.objects.annotate(
-        age=ExpressionWrapper(today.year - ExtractYear("background_info__birthday"), output_field=IntegerField())
+    today = date.today()
+    qs = Applicant.objects.filter(is_archived=False)
+    qs = qs.annotate(
+        age=ExpressionWrapper(
+            today.year - ExtractYear("background_info__birthday"), 
+            output_field=IntegerField()
+        )
     )
     data = qs.values("background_info__sex").annotate(
         under18=Count("id", filter=Q(age__lt=18)),
@@ -1320,6 +1479,10 @@ def applicants_by_age_gender(request):
 @permission_classes([IsAuthenticated])
 def income_distribution(request):
     """💰 Economics: Income distribution by applicant"""
+
+    applicants = Applicant.objects.filter(is_archived=False)
+    applicants = applicants.exclude(background_info__monthly_income=0)
+
     income_ranges = [
         (0, 10000, 'Below 10,000'),
         (10001, 20000, '10,001 - 20,000'),
@@ -1332,9 +1495,9 @@ def income_distribution(request):
     distribution = []
     for min_income, max_income, label in income_ranges:
         if max_income is None:
-            count = Applicant.objects.filter(background_info__monthly_income__gte=min_income).count()
+            count = applicants.filter(background_info__monthly_income__gte=min_income).count()
         else:
-            count = Applicant.objects.filter(
+            count = applicants.filter(
                 background_info__monthly_income__gte=min_income,
                 background_info__monthly_income__lt=max_income
             ).count()
@@ -1355,7 +1518,10 @@ def monthly_trends(request):
     start_date = today.replace(day=1) - relativedelta(months=11)
     qs = Applicant.objects.filter(date_filled__gte=start_date)
 
-    data = qs.annotate(month=TruncMonth("date_filled")).values("month").annotate(count=Count("id")).order_by("month")
+    data = qs.annotate(
+        month=TruncMonth("date_filled")
+    ).values("month").annotate(count=Count("id")).order_by("month")
+
     return Response(list(data))
 
 
@@ -1365,7 +1531,10 @@ def yearly_trends(request):
     """
     📈 Trends: Applicants by year
     """
-    qs = Applicant.objects.annotate(year=ExtractYear("date_filled")).values("year").annotate(count=Count("id")).order_by("year")
+    qs = Applicant.objects.annotate(
+        year=ExtractYear("date_filled")
+    ).values("year").annotate(count=Count("id")).order_by("year")
+    
     return Response(list(qs))
 
 
@@ -1392,7 +1561,9 @@ def cumulative_applicants(request):
     """
     📈 Trends: Cumulative applicants over time
     """
-    qs = Applicant.objects.annotate(day=TruncDate("date_filled")).values("day").annotate(count=Count("id")).order_by("day")
+    qs = Applicant.objects.annotate(
+        day=TruncDate("date_filled")
+    ).values("day").annotate(count=Count("id")).order_by("day")
 
     cumulative = []
     total = 0
@@ -1418,7 +1589,10 @@ def assistance_type_over_time(request):
     """
     📈 Trends: Assistance types over time (monthly stacked)
     """
-    qs = Applicant.objects.annotate(month=TruncMonth("date_filled")).values("month", "type_of_assistance").annotate(count=Count("id")).order_by("month")
+    qs = Applicant.objects.annotate(
+        month=TruncMonth("date_filled")
+    ).values("month", "type_of_assistance").annotate(count=Count("id")).order_by("month")
+
     return Response(list(qs))
 
 
@@ -1428,7 +1602,10 @@ def approval_trends(request):
     """
     📈 Trends: Approval counts over time (monthly)
     """
-    qs = Applicant.objects.filter(approvals__isnull=False).annotate(month=TruncMonth("date_filled")).values("month").annotate(count=Count("id")).order_by("month")
+    qs = Applicant.objects.filter(approvals__isnull=False).annotate(
+        month=TruncMonth("date_filled")
+    ).values("month").annotate(count=Count("id")).order_by("month")
+
     return Response(list(qs))
 
 
@@ -1451,7 +1628,6 @@ def time_to_approval(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def applicant_activity_heatmap(request):
-    from django.db.models.functions import ExtractHour
 
     qs = Applicant.objects.annotate(
         hour=ExtractHour("date_filled")
@@ -1484,6 +1660,7 @@ def average_processing_time(request):
     )
     avg_time = qs.aggregate(avg=Avg("duration"))["avg"]
     avg_minutes = round(avg_time.total_seconds() / 60, 1) if avg_time else 0
+    
     return Response({"average_processing_time_minutes": avg_minutes})
 
 
@@ -1501,10 +1678,13 @@ def processing_time_by_type(request):
         avg_time=Avg("duration")
     ).order_by("type_of_assistance")
 
-    results = [{
-        "type": row["type_of_assistance"],
-        "avg_minutes": round(row["avg_time"].total_seconds() / 60, 1) if row["avg_time"] else 0
-    } for row in data]
+    results = [
+            {
+            "type": row["type_of_assistance"],
+            "avg_minutes": round(row["avg_time"].total_seconds() / 60, 1) if row["avg_time"] else 0
+        } 
+        for row in data
+    ]
 
     return Response(results)
 
@@ -1520,12 +1700,22 @@ def processing_time_distribution(request):
     )
 
     buckets = {
-        "<30 mins": qs.filter(duration__lte=timedelta(minutes=30)).count(),
-        "30-60 mins": qs.filter(duration__gt=timedelta(minutes=30), duration__lte=timedelta(hours=1)).count(),
-        "1-2 hrs": qs.filter(duration__gt=timedelta(hours=1), duration__lte=timedelta(hours=2)).count(),
-        "2+ hrs": qs.filter(duration__gt=timedelta(hours=2)).count()
+        "< 1 min": qs.filter(duration__lte=timedelta(minutes=1)).count(),
+        "1 - 3 mins": qs.filter(duration__gt=timedelta(minutes=1), duration__lte=timedelta(minutes=3)).count(),
+        "3 - 5 mins": qs.filter(duration__gt=timedelta(minutes=3), duration__lte=timedelta(minutes=5)).count(),
+        "5 - 10 mins": qs.filter(duration__gt=timedelta(minutes=5), duration__lte=timedelta(minutes=10)).count(),
+        "10+ mins": qs.filter(duration__gt=timedelta(minutes=10)).count(),
     }
-    return Response([{"bucket": k, "count": v} for k, v in buckets.items()])
+
+    data = [
+        {
+            "bucket": k,
+            "count": v
+        }
+        for k, v in buckets.items()
+    ]
+
+    return Response(data)
 
 
 @api_view(['GET'])
@@ -1554,13 +1744,30 @@ def staff_activity_logs(request):
     """
     ⚡ Performance: Staff activity logs (timeline of actions)
     """
-    logs = StaffActivityLog.objects.all().order_by("-timestamp")[:100]
-    return Response([{
-        "id": log.id,
-        "staff": log.staff.username,
-        "action": log.action,
-        "timestamp": log.timestamp
-    } for log in logs])
+    staff_filter = request.GET.get("staff")
+    action_filter = request.GET.get("action")
+
+    logs = StaffActivityLog.objects.select_related("staff").order_by("-timestamp")
+
+    if staff_filter:
+        logs = logs.filter(staff__username__icontains=staff_filter)
+    if action_filter:
+        logs = logs.filter(action__icontains=action_filter)
+
+    logs = logs[:100]  # limit for performance
+
+    data = [
+        {
+            "id": log.id,
+            "staff": log.staff.username if log.staff else "Unknown",
+            "action": log.action,
+            "timestamp": log.timestamp,
+            "formatted_time": log.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        for log in logs
+    ]
+
+    return Response(data)
 
 
 @api_view(['GET'])
@@ -1569,7 +1776,9 @@ def staff_activity_heatmap(request):
     """
     ⚡ Performance: Staff activity heatmap (hourly distribution)
     """
-    qs = StaffActivityLog.objects.annotate(hour=ExtractHour("timestamp")).values("hour").annotate(count=Count("id")).order_by("hour")
+    qs = StaffActivityLog.objects.annotate(
+        hour=ExtractHour("timestamp")
+    ).values("hour").annotate(count=Count("id")).order_by("hour")
     return Response(list(qs))
 
 
@@ -1578,15 +1787,38 @@ def staff_activity_heatmap(request):
 # =============================================
 
 # LOG STAFF ACTIVITY
-# Helper function to log staff activities
+# Helper function to log staff activities (with IP tracking and error safety)
 def log_staff_activity(staff, action, details=None, request=None):
+    """
+    🧾 Logs a staff member's activity for auditing and analytics.
+    
+    Args:
+        staff (User): The staff user performing the action.
+        action (str): A short description (e.g., "Approved Applicant #123").
+        details (dict | str, optional): Extra contextual info (e.g., applicant data).
+        request (HttpRequest, optional): Used to capture IP address.
+    """
     try:
-        ip_address = request.META.get('REMOTE_ADDR') if request else None
+        # --- Determine the client IP ---
+        ip_address = None
+        if request:
+            # Respect proxy headers if using Nginx / Cloudflare / etc.
+            ip_address = (
+                request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0]
+                or request.META.get('REMOTE_ADDR')
+            )
+
+        # --- Convert dict details to string for storage ---
+        if isinstance(details, dict):
+            details = json.dumps(details, ensure_ascii=False, indent=2)
+
+        # --- Create the activity log record ---
         StaffActivityLog.objects.create(
             staff=staff,
             action=action,
             details=details,
             ip_address=ip_address
         )
+
     except Exception as e:
-        print(f"Error logging staff activity: {str(e)}")
+        print(f"[ActivityLog Error] Failed to log staff activity: {e}")
