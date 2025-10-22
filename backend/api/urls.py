@@ -55,7 +55,7 @@ urlpatterns = [
     # ========================
     # Geographic
     # ========================
-    path("analytics/geographic/locations/", get_applicant_locations, name="analytics-geographic-locations"),
+    path("analytics/geographic/locations/", analytics_applicant_locations, name="analytics-geographic-locations"),
     path("analytics/geographic/top-barangays/", top_barangays, name="analytics-geographic-top"),
     path("analytics/geographic/barangay-by-type/", barangay_by_type, name="analytics-geographic-type"),
     path("analytics/geographic/approval-rate/", approval_rate_by_location, name="analytics-geographic-approval"),
@@ -69,7 +69,6 @@ urlpatterns = [
     path("analytics/demographics/age-groups/", applicants_by_age_group, name="analytics-demographics-age"),
     path("analytics/demographics/occupation/", applicants_by_occupation, name="analytics-demographics-occupation"),
     path("analytics/demographics/age-gender/", applicants_by_age_gender, name="analytics-demographics-age-gender"),
-
     path("analytics/economics/income-distribution/", income_distribution, name="analytics-economics-income"),
     # (future) path("analytics/economics/income-vs-occupation/", income_vs_occupation, name="analytics-economics-income-occupation"),
     # (future) path("analytics/economics/disparities-location/", income_disparities_by_location, name="analytics-economics-disparities"),

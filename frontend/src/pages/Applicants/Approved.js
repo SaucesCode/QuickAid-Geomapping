@@ -1,456 +1,252 @@
-import React, { useEffect, useState } from "react";
+// File: frontend/src/pages/Approved.js
+import React, { useState, useEffect } from "react";
 import { api } from "../../services/api";
-import { useNavigate } from "react-router-dom";
-import { formatDate } from "../../utils/FormatDate";
-import ApplicantsHeader from "./components/ApplicantsHeader";
-import ApplicantActions from "./components/ApplicantActions";
-import ApplicantTable from "./components/ApplicantTable";
-import Pagination from "../../components/Pagination";
-import PreviewModal from "./components/PreviewModal";
-import EditModal from "./components/EditModal";
-import ArchiveModal from "./components/ArchiveModal";
-import toast, { Toaster } from "react-hot-toast";
-import CustomToast from "../../components/CustomToast";
-import { Users, GraduationCap, Stethoscope, Heart, Sparkles } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle,
+  BarChart3,
+  Users,
+} from "lucide-react";
 
-const csvHeaders = [
-  { label: "ID", key: "id" },
-  { label: "First Name", key: "first_name" },
-  { label: "Middle Initial", key: "middle_initial" },
-  { label: "Last Name", key: "last_name" },
-  { label: "Suffix", key: "suffix" },
-  { label: "Contact Number", key: "contact_number" },
-  { label: "Purok", key: "purok" },
-  { label: "Barangay", key: "barangay" },
-  { label: "City/Municipality", key: "city_municipality" },
-  { label: "Province", key: "province" },
-  { label: "Birthday", key: "birthday" },
-  { label: "Sex", key: "gender" },
-  { label: "Civil Status", key: "civil_status" },
-  { label: "Occupation", key: "occupation" },
-  { label: "Monthly Income", key: "monthly_income" },
-  { label: "Valid ID", key: "valid_id_presented" },
-  { label: "Assistance Type", key: "type_of_assistance" },
-  { label: "Applicant Type", key: "applicant_type" },
-  { label: "Date Filled", key: "date_filled" },
-];
+const Approved = () => {
+  const [file, setFile] = useState(null);
+  const [uploadResult, setUploadResult] = useState(null);
+  const [batches, setBatches] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
 
-const Applicants = () => {
-  const [applicants, setApplicants] = useState([]);
-  const [nextUrl, setNextUrl] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editView, setEditView] = useState(false);
-  const [editingApplicant, setEditingApplicant] = useState(null);
-  const [previewView, setPreviewView] = useState(false);
-  const [previewApplicant, setPreviewApplicant] = useState(null);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "ascending" });
-  const [archiveModal, setArchiveModal] = useState({ show: false, applicantId: null });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const navigate = useNavigate();
-
+  // Load batches when page mounts
   useEffect(() => {
-    document.title = "QuickAid | Applicants";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
+    fetchBatches();
   }, []);
 
-  const fetchApplicants = async (url = "/applicants/?limit=50") => {
-    setLoading(true);
+  // 🔹 Fetch approval batches
+  const fetchBatches = async () => {
     try {
-      const res = await api.get(url);
-      const data = res.data;
-
-      // DRF paginated response (has results array)
-      if (data.results) {
-        setApplicants(prev => [...prev, ...data.results]);
-        setNextUrl(data.next);
-      }
-      // Non-paginated fallback (in case pagination is off)
-      else if (Array.isArray(data)) {
-        setApplicants(prev => [...prev, ...data]);
-        setNextUrl(null);
-      }
+      const res = await api.get("/approved/batches/?limit=50");
+      setBatches(res.data.results);
     } catch (err) {
-      console.error("Fetch applicants failed:", err);
-    } finally {
-      setLoading(false);
+      console.error("Failed to fetch batches:", err);
     }
   };
 
-  useEffect(() => {
-    fetchApplicants();
-  }, []);
-
-  const handleScroll = () => {
-    if (nextUrl && !loading) {
-      fetchApplicants(nextUrl);
-    }
-  };
-
-  const openEditView = applicant => {
-    setEditingApplicant({
-      ...applicant,
-      valid_id_presented: applicant.valid_id_presented || "",
-      other_valid_id: applicant.other_valid_id || "",
-    });
-    setEditView(true);
-  };
-
-  const closeEditView = () => {
-    setEditingApplicant(null);
-    setEditView(false);
-  };
-
-  const openPreviewView = applicant => {
-    setPreviewApplicant({ ...applicant });
-    setPreviewView(true);
-  };
-
-  const closePreviewView = () => {
-    setPreviewApplicant(null);
-    setPreviewView(false);
-  };
-
-  const openArchiveModal = id => {
-    setArchiveModal({ show: true, applicantId: id });
-  };
-
-  const closeArchiveModal = () => {
-    setArchiveModal({ show: false, applicantId: null });
-  };
-
-  const handleArchive = async () => {
-    if (!archiveModal.applicantId) return;
+  // 🔹 Fetch approvals under a batch
+  const fetchApprovals = async batchId => {
     try {
-      await api.delete(`/applicants/${archiveModal.applicantId}/`);
-      toast.custom(t => <CustomToast t={t} type="archive" />);
-      fetchApplicants();
-      closeArchiveModal();
+      const res = await api.get(`/approved/batch/${batchId}/approvals/?limit=100`);
+      setBatches(prev =>
+        prev.map(b =>
+          b.id === batchId ? { ...b, approvals: res.data.results, expanded: true } : b
+        )
+      );
     } catch (err) {
-      console.error("Archive failed:", err);
-      alert("Failed to archive applicant.");
+      console.error("Failed to load approvals:", err);
+      alert("Failed to load approvals.");
     }
   };
 
-  const handleChange = e => {
-    const { name, value } = e.target;
-    setEditingApplicant(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSave = async e => {
-    e.preventDefault();
-    if (!editingApplicant || !editingApplicant.id) return;
-
-    try {
-      const { data } = await api.post("/update_coordinates/", {
-        id: editingApplicant.id,
-        background_info: {
-          barangay: editingApplicant.background_info.barangay,
-          barangay_details: {
-            city_name: editingApplicant.background_info.barangay_details.city_name,
-          },
-        },
-      });
-
-      const updatedApplicant = {
-        ...editingApplicant,
-        latitude: data.latitude,
-        longitude: data.longitude,
-      };
-
-      await api.put(`/applicants/${editingApplicant.id}/`, updatedApplicant);
-      fetchApplicants();
-      closeEditView();
-    } catch (err) {
-      console.error("Error saving applicant:", err);
-    }
-  };
-
-  const handleSort = key => {
-    let direction = "ascending";
-    if (sortConfig.key === key && sortConfig.direction === "ascending") {
-      direction = "descending";
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const getSortedData = data => {
-    if (!sortConfig.key) return data;
-    return [...data].sort((a, b) => {
-      let aValue = a[sortConfig.key];
-      let bValue = b[sortConfig.key];
-      if (aValue < bValue) return sortConfig.direction === "ascending" ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === "ascending" ? 1 : -1;
-      return 0;
-    });
-  };
-
-  const filteredApplicants = applicants.filter(a => {
-    const keyword = searchTerm.toLowerCase();
-    return (
-      (a.background_info?.first_name || "").toLowerCase().includes(keyword) ||
-      (a.background_info?.last_name || "").toLowerCase().includes(keyword) ||
-      (a.background_info?.barangay || "").toLowerCase().includes(keyword) ||
-      (formatDate(a.date_filled) || "").toLowerCase().includes(keyword) ||
-      (a.type_of_assistance || "").toLowerCase().includes(keyword)
+  // 🔹 Expand/collapse a batch
+  const toggleBatch = batchId => {
+    setBatches(prev =>
+      prev.map(b => (b.id === batchId ? { ...b, expanded: !b.expanded } : b))
     );
-  });
 
-  const sortedApplicants = getSortedData(filteredApplicants);
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sortedApplicants.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(sortedApplicants.length / itemsPerPage);
-
-  const handlePageChange = pageNumber => {
-    setCurrentPage(pageNumber);
+    const batch = batches.find(b => b.id === batchId);
+    if (batch && !batch.approvals) {
+      fetchApprovals(batchId);
+    }
   };
 
-  const handleItemsPerPageChange = e => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
+  // 🔹 File upload handling
+  const handleFileChange = e => setFile(e.target.files[0]);
 
-  // Calculate statistics
-  const medicalCount = applicants.filter(a => a.type_of_assistance === "Medical").length;
-  const burialCount = applicants.filter(a => a.type_of_assistance === "Burial").length;
-  const educationalCount = applicants.filter(
-    a => a.type_of_assistance === "Educational"
-  ).length;
+  const handleUpload = async () => {
+    if (!file) return;
+    setIsUploading(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await api.post("/approved/upload/", formData);
+      setUploadResult(res.data);
+      setFile(null);
+      fetchBatches(); // refresh batches
+    } catch (err) {
+      console.error(err);
+      alert("Upload failed.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/3 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 p-6 space-y-10">
+      {/* Page Header */}
+      <div className="max-w-7xl mx-auto flex items-center gap-3">
+        <Users className="w-8 h-8 text-blue-700" />
+        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">
+          Approved Applicants
+        </h1>
       </div>
 
-      <div className="relative z-10 p-6 md:p-10">
-        <Toaster position="top-center" reverseOrder={false} />
-
-        {/* Header Section */}
-        <div className="mb-10">
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-8 mb-8">
-            <ApplicantsHeader />
-          </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Total Applicants */}
-            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-blue-200 p-6 overflow-hidden hover:-translate-y-1">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
-              <div className="relative flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
-                      Total Applicants
-                    </p>
-                  </div>
-                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 mb-2">
-                    {applicants.length}
-                  </p>
-                  <p className="text-gray-500 text-sm font-medium">
-                    All registered applicants
-                  </p>
-                </div>
-                <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                  <Users className="w-7 h-7 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
-            </div>
-
-            {/* Medical */}
-            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-amber-200 p-6 overflow-hidden hover:-translate-y-1">
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
-              <div className="relative flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
-                      Medical Assistance
-                    </p>
-                  </div>
-                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-700 mb-2">
-                    {medicalCount}
-                  </p>
-                  <p className="text-gray-500 text-sm font-medium">Active medical cases</p>
-                </div>
-                <div className="p-4 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                  <Stethoscope className="w-7 h-7 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full"></div>
-            </div>
-
-            {/* Educational */}
-            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-emerald-200 p-6 overflow-hidden hover:-translate-y-1">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-green-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
-              <div className="relative flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
-                      Educational Assistance
-                    </p>
-                  </div>
-                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-green-700 mb-2">
-                    {educationalCount}
-                  </p>
-                  <p className="text-gray-500 text-sm font-medium">Active educational cases</p>
-                </div>
-                <div className="p-4 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                  <GraduationCap className="w-7 h-7 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-emerald-500 to-green-600 rounded-full"></div>
-            </div>
-
-            {/* Burial */}
-            <div className="group relative bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-violet-200 p-6 overflow-hidden hover:-translate-y-1">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
-              <div className="relative flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse"></div>
-                    <p className="text-gray-600 text-sm font-bold uppercase tracking-wide">
-                      Burial Assistance
-                    </p>
-                  </div>
-                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-purple-700 mb-2">
-                    {burialCount}
-                  </p>
-                  <p className="text-gray-500 text-sm font-medium">Active burial cases</p>
-                </div>
-                <div className="p-4 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                  <Heart className="w-7 h-7 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 h-1 w-20 bg-gradient-to-r from-violet-500 to-purple-600 rounded-full"></div>
-            </div>
-          </div>
+      {/* Upload Section */}
+      <section className="max-w-7xl mx-auto bg-white border border-blue-200 rounded-2xl shadow-md p-6 hover:shadow-lg transition-all">
+        <div className="flex items-center gap-2 mb-4 border-b border-blue-100 pb-2">
+          <Upload className="w-6 h-6 text-blue-700" />
+          <h2 className="text-xl font-semibold text-blue-800">Upload Approved List</h2>
         </div>
 
-        {/* Search and Export */}
-        <div className="mb-6">
-          <ApplicantActions
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            applicants={applicants}
-            csvHeaders={csvHeaders}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <input
+            type="file"
+            onChange={handleFileChange}
+            className="block w-full sm:w-auto text-gray-700 border border-blue-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
+          <button
+            onClick={handleUpload}
+            disabled={!file || isUploading}
+            className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
+              file && !isUploading
+                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg"
+                : "bg-gray-300 cursor-not-allowed text-gray-600"
+            }`}
+          >
+            <Upload className="w-5 h-5" />
+            {isUploading ? "Uploading..." : "Upload"}
+          </button>
         </div>
 
-        {/* Loading Spinner */}
-        {loading ? (
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-2xl border border-blue-200 p-16 text-center">
-              <div className="relative flex items-center justify-center mx-auto mb-8">
-                <div className="h-24 w-24 rounded-full border-[6px] border-blue-200 border-t-blue-600 animate-spin"></div>
-                <div className="absolute flex items-center justify-center">
-                  <Users className="h-10 w-10 text-blue-600 animate-pulse" />
-                </div>
-              </div>
-              <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 mb-3">
-                Loading Applicants...
-              </h3>
-              <p className="text-gray-600 text-lg max-w-md mx-auto">
-                Please wait while we fetch the latest applicant data.
-              </p>
-              <div className="flex gap-2 justify-center mt-6">
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-100"></div>
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-200"></div>
-              </div>
-            </div>
+        {uploadResult && (
+          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-5 text-blue-900">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-blue-700" />
+              Upload Summary
+            </h3>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-600" /> Approved:{" "}
+                {uploadResult.total_approved ?? 0}
+              </li>
+              <li className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-700" /> Total Processed:{" "}
+                {uploadResult.total_processed ?? 0}
+              </li>
+            </ul>
           </div>
-        ) : applicants.length > 0 ? (
-          <>
-            <ApplicantTable
-              currentItems={currentItems}
-              sortConfig={sortConfig}
-              handleSort={handleSort}
-              openPreviewView={openPreviewView}
-              openEditView={openEditView}
-              openArchiveModal={openArchiveModal}
-              goPrintPage={navigate}
-              formatDate={formatDate}
-            />
+        )}
+      </section>
 
-            {sortedApplicants.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                handlePageChange={handlePageChange}
-                itemsPerPage={itemsPerPage}
-                handleItemsPerPageChange={handleItemsPerPageChange}
-                totalItems={sortedApplicants.length}
-                indexOfFirstItem={indexOfFirstItem}
-                indexOfLastItem={indexOfLastItem}
-              />
-            )}
-          </>
+      {/* Batches Section */}
+      <section className="max-w-7xl mx-auto bg-white border border-blue-200 rounded-2xl shadow-md p-6 hover:shadow-lg transition-all">
+        <div className="flex items-center gap-2 mb-6 border-b border-blue-100 pb-2">
+          <FileText className="w-6 h-6 text-blue-700" />
+          <h2 className="text-xl font-semibold text-blue-800">Approval Batches</h2>
+        </div>
+
+        {batches.length === 0 ? (
+          <p className="text-center text-blue-700 py-10 italic">No approval batches found.</p>
         ) : (
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
-            <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
-              <div className="mb-8 p-10 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl border-2 border-blue-200 shadow-lg">
-                <Users className="w-28 h-28 text-blue-400 mx-auto" />
+          <div className="space-y-6">
+            {batches.map(batch => (
+              <div
+                key={batch.id}
+                className="border border-blue-100 rounded-xl shadow-sm bg-gradient-to-br from-white to-blue-50 hover:shadow-md transition-all"
+              >
+                <button
+                  onClick={() => toggleBatch(batch.id)}
+                  className="w-full flex justify-between items-center p-4 focus:outline-none rounded-t-xl hover:bg-blue-50 transition-all"
+                  aria-expanded={batch.expanded ? "true" : "false"}
+                  aria-controls={`batch-${batch.id}-content`}
+                >
+                  <div className="text-left space-y-1">
+                    <h3 className="text-lg font-semibold text-blue-900 truncate">
+                      📄 File: {batch.file_name}
+                    </h3>
+                    <p className="text-sm text-blue-800">
+                      Uploaded by <span className="font-medium">{batch.uploaded_by}</span> on{" "}
+                      {new Date(batch.uploaded_at).toLocaleString()}
+                    </p>
+                    <p className="text-sm text-blue-700 flex flex-wrap gap-3 mt-1">
+                      <span className="flex items-center gap-1">
+                        <BarChart3 className="w-4 h-4 text-blue-600" /> Processed:{" "}
+                        {batch.total_processed}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4 text-green-600" /> Approved:{" "}
+                        {batch.total_approved}
+                      </span>
+                    </p>
+                  </div>
+
+                  <span className="text-blue-700 font-semibold select-none flex items-center">
+                    {batch.expanded ? (
+                      <ChevronUp className="w-5 h-5" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5" />
+                    )}
+                  </span>
+                </button>
+
+                {batch.expanded && batch.approvals && (
+                  <div
+                    id={`batch-${batch.id}-content`}
+                    className="overflow-x-auto max-h-96 border-t border-blue-100 bg-white rounded-b-xl"
+                  >
+                    <table className="min-w-full text-sm text-left text-blue-900">
+                      <thead className="bg-blue-100 sticky top-0 z-10">
+                        <tr>
+                          <th className="px-4 py-2 border-b border-blue-200">Name</th>
+                          <th className="px-4 py-2 border-b border-blue-200">Barangay</th>
+                          <th className="px-4 py-2 border-b border-blue-200">Municipal</th>
+                          <th className="px-4 py-2 border-b border-blue-200">Assistance</th>
+                          <th className="px-4 py-2 border-b border-blue-200">Amount</th>
+                          <th className="px-4 py-2 border-b border-blue-200">Approved By</th>
+                          <th className="px-4 py-2 border-b border-blue-200">Approved At</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {batch.approvals.map(app => (
+                          <tr
+                            key={app.id}
+                            className="hover:bg-blue-50 transition-all duration-150"
+                          >
+                            <td className="px-4 py-2 border-b border-blue-100">
+                              {app.first_name} {app.last_name}
+                            </td>
+                            <td className="px-4 py-2 border-b border-blue-100">
+                              {app.barangay}
+                            </td>
+                            <td className="px-4 py-2 border-b border-blue-100">
+                              {app.municipal}
+                            </td>
+                            <td className="px-4 py-2 border-b border-blue-100">
+                              {app.type_of_assistance}
+                            </td>
+                            <td className="px-4 py-2 border-b border-blue-100">
+                              {app.amount}
+                            </td>
+                            <td className="px-4 py-2 border-b border-blue-100">
+                              {app.approved_by}
+                            </td>
+                            <td className="px-4 py-2 border-b border-blue-100">
+                              {new Date(app.approved_at).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
-              <h3 className="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">
-                No applicants found
-              </h3>
-              <p className="text-gray-600 mb-8 max-w-md text-lg leading-relaxed">
-                {searchTerm
-                  ? "Try adjusting your search criteria to find what you're looking for"
-                  : "Start adding applicants to get started with the management system"}
-              </p>
-              <div className="flex items-center gap-2 px-6 py-3 bg-blue-100 rounded-xl border border-blue-200">
-                <Sparkles className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-semibold text-blue-700">Ready to begin</span>
-              </div>
-            </div>
+            ))}
           </div>
         )}
-
-        {/* Modals */}
-        {previewView && previewApplicant && (
-          <PreviewModal
-            previewApplicant={previewApplicant}
-            closePreviewView={closePreviewView}
-            formatDate={formatDate}
-          />
-        )}
-
-        {archiveModal.show && (
-          <ArchiveModal
-            archiveModal={archiveModal}
-            closeArchiveModal={closeArchiveModal}
-            handleArchive={handleArchive}
-          />
-        )}
-
-        {editView && editingApplicant && (
-          <EditModal
-            editingApplicant={editingApplicant}
-            closeEditView={closeEditView}
-            handleChange={handleChange}
-            handleSave={handleSave}
-            setEditingApplicant={setEditingApplicant}
-          />
-        )}
-      </div>
+      </section>
     </div>
   );
 };
 
-export default Applicants;
+export default Approved;

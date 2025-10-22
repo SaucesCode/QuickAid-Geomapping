@@ -47,7 +47,7 @@ const Geographic = () => {
   const [approvalRates, setApprovalRates] = useState([]);
   const [inactiveApplicants, setInactiveApplicants] = useState([]);
   // Initialize loading to true
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [stats, setStats] = useState({
@@ -63,7 +63,7 @@ const Geographic = () => {
     const fetchData = async () => {
       // Keep setLoading(true) here for any future manual re-fetches
       // It is already true from the useState initial state
-      
+
       setError(null);
 
       try {
@@ -80,10 +80,14 @@ const Geographic = () => {
           loc => loc.latitude && loc.longitude
         );
 
-        const fetchedTopBarangays = barangaysRes.data || [];
+        const fetchedTopBarangays = Array.isArray(barangaysRes.data)
+          ? barangaysRes.data
+          : barangaysRes.data?.results || [];
         const fetchedBarangayByType = typeRes.data || [];
         const fetchedApprovalRates = approvalRes.data || [];
         const fetchedInactiveApplicants = inactiveRes.data || [];
+
+        console.log("Fetch Barangays by type:", fetchedBarangayByType);
 
         setLocations(validLocations);
         setTopBarangays(fetchedTopBarangays);
@@ -95,8 +99,8 @@ const Geographic = () => {
         const totalApplicants = validLocations.length;
 
         const topBarangay =
-          fetchedTopBarangays.length > 0
-            ? fetchedTopBarangays[0].background_info__barangay__name || "N/A"
+          fetchedTopBarangays?.length > 0
+            ? fetchedTopBarangays[0]?.background_info__barangay__name || "N/A"
             : "N/A";
 
         const barangayCount = [...new Set(validLocations.map(loc => loc.barangay))].length;
@@ -104,8 +108,10 @@ const Geographic = () => {
         const avgApprovalRate =
           fetchedApprovalRates.length > 0
             ? (
-                fetchedApprovalRates.reduce((sum, item) => sum + (item.approval_rate || 0), 0) /
-                fetchedApprovalRates.length
+                fetchedApprovalRates.reduce(
+                  (sum, item) => sum + (item.approval_rate || 0),
+                  0
+                ) / fetchedApprovalRates.length
               ).toFixed(1)
             : 0;
 
@@ -124,16 +130,13 @@ const Geographic = () => {
         setError("Failed to load geographic data. Please try again.");
       } finally {
         // Set loading to false after all fetches (success or fail)
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
 
-  // Initialize Heatmap function (requires leaflet.heat plugin)
-  // Assuming 'L.heatLayer' is available via a script or import, 
-  // though it's not explicitly in the imports list provided.
   const initializeHeatmap = locationData => {
     setTimeout(() => {
       const mapContainer = document.querySelector(".leaflet-container");
@@ -171,26 +174,45 @@ const Geographic = () => {
   };
 
   const processBarangayTypeData = () => {
-    // ... (rest of the data processing logic)
+    const safeData = Array.isArray(barangayByType) ? barangayByType : [];
+
+    // ✅ Use "barangay" directly (from backend response)
     const barangays = [
-      ...new Set(barangayByType.map(item => item.background_info__barangay__name)),
+      ...new Set(
+        safeData
+          .map(item => item.barangay)
+          .filter(name => typeof name === "string" && name.trim().length > 0)
+      ),
     ];
+
     return barangays.slice(0, 6).map(barangay => {
-      const items = barangayByType.filter(
-        item => item.background_info__barangay__name === barangay
-      );
+      const items = safeData.filter(item => item.barangay === barangay);
+
+      const safeBarangayName = barangay || "Unknown";
+
       const result = {
-        barangay: barangay.length > 15 ? barangay.substring(0, 15) + "..." : barangay,
+        barangay:
+          safeBarangayName.length > 15
+            ? safeBarangayName.substring(0, 15) + "..."
+            : safeBarangayName,
       };
+
       items.forEach(item => {
-        result[item.type_of_assistance] = item.count;
+        result[item.type_of_assistance || "Unknown"] = item.count || 0;
       });
+
       return result;
     });
   };
 
+  const chartData =
+    Array.isArray(barangayByType) && barangayByType.length > 0
+      ? processBarangayTypeData()
+      : [];
+
+  console.log("Barangay Chart Data →", chartData);
+
   const processApprovalData = () => {
-    // ... (rest of the data processing logic)
     if (!approvalRates.length) return [];
 
     return approvalRates.slice(0, 5).map(item => ({
@@ -201,7 +223,6 @@ const Geographic = () => {
     }));
   };
 
-  const chartData = processBarangayTypeData();
   const pieData = processApprovalData();
 
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
@@ -218,9 +239,7 @@ const Geographic = () => {
           <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl mx-auto mb-6 shadow-lg">
             <AlertCircle className="h-10 w-10 text-white" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">
-            Error Loading Data
-          </h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">Error Loading Data</h3>
           <p className="text-gray-600 mb-6 leading-relaxed">
             {error || "Failed to fetch trends data. Please try again later."}
           </p>
@@ -254,7 +273,10 @@ const Geographic = () => {
         <div className="w-10 h-10 bg-gray-300 rounded-lg"></div>
         <h3 className="text-xl font-bold text-gray-400">{title}</h3>
       </div>
-      <div className="flex items-center justify-center bg-gray-100 rounded-xl" style={{ height: `${height}px` }}>
+      <div
+        className="flex items-center justify-center bg-gray-100 rounded-xl"
+        style={{ height: `${height}px` }}
+      >
         <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
       </div>
     </div>
@@ -265,9 +287,7 @@ const Geographic = () => {
       <div className="p-6 border-b border-gray-200 flex items-center justify-between bg-gray-50">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gray-300 rounded-lg"></div>
-          <h3 className="text-xl font-bold text-gray-400">
-            Distribution Heatmap Preview
-          </h3>
+          <h3 className="text-xl font-bold text-gray-400">Distribution Heatmap Preview</h3>
         </div>
       </div>
       <div className="h-[350px] relative bg-gray-300 flex items-center justify-center">
@@ -276,7 +296,6 @@ const Geographic = () => {
     </div>
   );
   // --- End Loading/Skeleton Components ---
-
 
   // Main Component Structure - Always Rendered
   const HeaderComponent = (
@@ -290,7 +309,9 @@ const Geographic = () => {
             <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700">
               Geographic Analytics
             </h1>
-            <p className="text-gray-600 text-lg mt-1">Spatial distribution insights across all regions</p>
+            <p className="text-gray-600 text-lg mt-1">
+              Spatial distribution insights across all regions
+            </p>
           </div>
         </div>
 
@@ -302,7 +323,6 @@ const Geographic = () => {
       </div>
     </header>
   );
-
 
   // Render the component
   return (
@@ -333,7 +353,10 @@ const Geographic = () => {
               <LoadingChartSkeleton title="Loading Top Barangays..." />
               <LoadingChartSkeleton title="Loading Approval Rates..." />
             </div>
-            <LoadingChartSkeleton height={350} title="Loading Assistance Types Distribution..." />
+            <LoadingChartSkeleton
+              height={350}
+              title="Loading Assistance Types Distribution..."
+            />
           </>
         ) : (
           /* Show the actual data content */
@@ -438,10 +461,10 @@ const Geographic = () => {
                   zoomControl={false}
                   attributionControl={false}
                 >
-                  <TileLayer 
-  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
-  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-/>
+                  <TileLayer
+                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                  />
                 </MapContainer>
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent bg-opacity-0 hover:bg-opacity-10 transition-all duration-300 cursor-pointer flex items-center justify-center group">
@@ -476,20 +499,20 @@ const Geographic = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
                       <XAxis
                         dataKey="background_info__barangay__name"
-                        tick={{ fontSize: 11, fill: '#4b5563' }}
+                        tick={{ fontSize: 11, fill: "#4b5563" }}
                         angle={-45}
                         textAnchor="end"
                         height={80}
                         interval={0}
                       />
-                      <YAxis tick={{ fontSize: 12, fill: '#4b5563' }} />
+                      <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
                       <RechartsTooltip
                         contentStyle={{
                           backgroundColor: "white",
                           border: "2px solid #dbeafe",
                           borderRadius: "12px",
                           fontSize: "14px",
-                          boxShadow: "0 10px 25px rgba(0,0,0,0.1)"
+                          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
                         }}
                       />
                       <Bar dataKey="count" fill="url(#blueGradient)" radius={[8, 8, 0, 0]} />
@@ -514,7 +537,9 @@ const Geographic = () => {
                   <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-emerald-700 rounded-lg flex items-center justify-center shadow-md">
                     <TrendingUp className="w-5 h-5 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900">Approval Rates by Location</h3>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    Approval Rates by Location
+                  </h3>
                 </div>
                 {pieData.length > 0 ? (
                   <div className="flex items-center">
@@ -545,20 +570,27 @@ const Geographic = () => {
                             border: "2px solid #dbeafe",
                             borderRadius: "12px",
                             fontSize: "14px",
-                            boxShadow: "0 10px 25px rgba(0,0,0,0.1)"
+                            boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
                           }}
                         />
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="flex-1 space-y-3">
                       {pieData.map((item, index) => (
-                        <div key={item.name} className="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors">
+                        <div
+                          key={item.name}
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                        >
                           <div
                             className="w-4 h-4 rounded-md shadow-sm"
                             style={{ backgroundColor: COLORS[index % COLORS.length] }}
                           ></div>
-                          <span className="text-sm font-medium text-gray-700 flex-1">{item.name}</span>
-                          <span className="text-sm font-bold text-gray-900">{item.value}%</span>
+                          <span className="text-sm font-medium text-gray-700 flex-1">
+                            {item.name}
+                          </span>
+                          <span className="text-sm font-bold text-gray-900">
+                            {item.value}%
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -584,28 +616,41 @@ const Geographic = () => {
               {chartData.length > 0 ? (
                 <>
                   <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
+                    <BarChart
+                      data={chartData}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 80 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
                       <XAxis
                         dataKey="barangay"
-                        tick={{ fontSize: 11, fill: '#4b5563' }}
+                        tick={{ fontSize: 11, fill: "#4b5563" }}
                         angle={-45}
                         textAnchor="end"
                         height={100}
                         interval={0}
                       />
-                      <YAxis tick={{ fontSize: 12, fill: '#4b5563' }} />
+                      <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
                       <RechartsTooltip
                         contentStyle={{
                           backgroundColor: "white",
                           border: "2px solid #dbeafe",
                           borderRadius: "12px",
                           fontSize: "14px",
-                          boxShadow: "0 10px 25px rgba(0,0,0,0.1)"
+                          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
                         }}
                       />
-                      <Bar dataKey="Medical" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="Educational" stackId="a" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                      <Bar
+                        dataKey="Medical"
+                        stackId="a"
+                        fill="#ef4444"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="Educational"
+                        stackId="a"
+                        fill="#3b82f6"
+                        radius={[4, 4, 0, 0]}
+                      />
                       <Bar dataKey="Burial" stackId="a" fill="#f97316" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -644,8 +689,9 @@ const Geographic = () => {
                       Geographic Distribution Alert
                     </h3>
                     <p className="text-orange-800 mb-6 leading-relaxed text-base">
-                      {inactiveApplicants.length} applicants from various locations haven't submitted
-                      new applications in over 6 months. This may indicate gaps in outreach coverage.
+                      {inactiveApplicants.length} applicants from various locations haven't
+                      submitted new applications in over 6 months. This may indicate gaps in
+                      outreach coverage.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {inactiveApplicants.slice(0, 3).map(applicant => (
@@ -653,7 +699,9 @@ const Geographic = () => {
                           key={applicant.id}
                           className="bg-white p-4 rounded-xl border-2 border-orange-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                         >
-                          <span className="font-bold text-gray-900 block text-lg mb-1">{applicant.name}</span>
+                          <span className="font-bold text-gray-900 block text-lg mb-1">
+                            {applicant.name}
+                          </span>
                           <span className="text-sm text-gray-600 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             Last: {new Date(applicant.last_application).toLocaleDateString()}
@@ -665,7 +713,8 @@ const Geographic = () => {
                       <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-lg border border-orange-300">
                         <Sparkles className="w-4 h-4 text-orange-600" />
                         <p className="text-sm text-orange-700 font-semibold">
-                          +{inactiveApplicants.length - 3} more inactive applicants across different areas
+                          +{inactiveApplicants.length - 3} more inactive applicants across
+                          different areas
                         </p>
                       </div>
                     )}
