@@ -7,8 +7,6 @@ import pandas as pd
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta, date
 
-
-
 # Django
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password, ValidationError
@@ -42,7 +40,7 @@ from rest_framework.pagination import LimitOffsetPagination
 # Local
 from .models import (
     Applicant, CustomUser, StaffActivityLog,
-    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch
+    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch, SupportMessage
 )
 from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer
 
@@ -1826,3 +1824,57 @@ def log_staff_activity(staff, action, details=None, request=None):
 
     except Exception as e:
         print(f"[ActivityLog Error] Failed to log staff activity: {e}")
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def contact_admin(request):
+    """
+    Staff can send a message to admin if they can't log in.
+    Stores in DB for admins to view later.
+    """
+    name = request.data.get("name")
+    email = request.data.get("email")
+    message = request.data.get("message")
+
+    if not all([name, email, message]):
+        return Response({"error": "All fields are required."}, status=400)
+
+    SupportMessage.objects.create(name=name, email=email, message=message)
+    return Response({"message": "Your message has been sent to the admin."}, status=200)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def list_support_messages(request):
+    """
+    Admin view for all staff support messages.
+    """
+    messages = SupportMessage.objects.all().order_by("-created_at")
+    data = [
+        {
+            "id": m.id,
+            "name": m.name,
+            "email": m.email,
+            "message": m.message,
+            "created_at": m.created_at.strftime("%Y-%m-%d %H:%M"),
+            "is_resolved": m.is_resolved,
+        }
+        for m in messages
+    ]
+    return Response(data)
+
+@api_view(["PATCH"])
+@permission_classes([IsAdminUser])
+def resolve_support_message(request, message_id):
+    """
+    Marks a staff support message as resolved.
+    """
+    try:
+        message = SupportMessage.objects.get(id=message_id)
+        message.is_resolved = True
+        message.save()
+        return Response({"message": "Message marked as resolved."}, status=200)
+    except SupportMessage.DoesNotExist:
+        return Response({"error": "Message not found."}, status=404)
+
+

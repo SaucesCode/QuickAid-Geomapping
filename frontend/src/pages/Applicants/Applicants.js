@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "../../utils/FormatDate";
@@ -52,10 +53,28 @@ const csvHeaders = [
 
 // Define a placeholder for the stats data structure
 const initialStats = {
-    total: { value: 0, loading: true, color: "blue", icon: Users, title: "Total Applicants" },
-    medical: { value: 0, loading: true, color: "amber", icon: Stethoscope, title: "Medical Assistance" },
-    educational: { value: 0, loading: true, color: "emerald", icon: GraduationCap, title: "Educational Assistance" },
-    burial: { value: 0, loading: true, color: "violet", icon: Heart, title: "Burial Assistance" },
+  total: { value: 0, loading: true, color: "blue", icon: Users, title: "Total Applicants" },
+  medical: {
+    value: 0,
+    loading: true,
+    color: "amber",
+    icon: Stethoscope,
+    title: "Medical Assistance",
+  },
+  educational: {
+    value: 0,
+    loading: true,
+    color: "emerald",
+    icon: GraduationCap,
+    title: "Educational Assistance",
+  },
+  burial: {
+    value: 0,
+    loading: true,
+    color: "violet",
+    icon: Heart,
+    title: "Burial Assistance",
+  },
 };
 
 // --- API Fetchers for React Query ---
@@ -74,26 +93,211 @@ const fetchAllApplicantsForStats = async () => {
 
 
 const Applicants = () => {
+  const [applicants, setApplicants] = useState([]);
+  const [nextUrl, setNextUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [editView, setEditView] = useState(false);
+  const [editingApplicant, setEditingApplicant] = useState(null);
+  const [previewView, setPreviewView] = useState(false);
+  const [previewApplicant, setPreviewApplicant] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "ascending" });
+  const [archiveModal, setArchiveModal] = useState({ show: false, applicantId: null });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-    const [searchTerm, setSearchTerm] = useState("");
-    const [editView, setEditView] = useState(false);
-    const [editingApplicant, setEditingApplicant] = useState(null);
-    const [previewView, setPreviewView] = useState(false);
-    const [previewApplicant, setPreviewApplicant] = useState(null);
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: "ascending" });
-    const [archiveModal, setArchiveModal] = useState({ show: false, applicantId: null });
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
+  // New state for concurrent stats loading
+  const [stats, setStats] = useState(initialStats);
+  const navigate = useNavigate();
 
-    // 3. New state for concurrent stats loading (kept for structure fidelity, but calculated via React Query)
-    const [stats, setStats] = useState(initialStats); 
-    const navigate = useNavigate();
-    const queryClient = useQueryClient();
+  useEffect(() => {
+    document.title = "QuickAid | Applicants";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
 
-    useEffect(() => {
-        document.title = "QuickAid | Applicants";
-        return () => {
-            document.title = "QuickAid | Home";
+  const fetchApplicants = async (url = "/applicants/?limit=50") => {
+    setLoading(true);
+    try {
+      const res = await api.get(url);
+      const data = res.data;
+
+      if (data.results) {
+        setApplicants(prev => [...prev, ...data.results]);
+        setNextUrl(data.next);
+      } else if (Array.isArray(data)) {
+        setApplicants(prev => [...prev, ...data]);
+        setNextUrl(null);
+      }
+    } catch (err) {
+      console.error("Fetch applicants failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- NEW CONCURRENT STATS FETCHING LOGIC ---
+
+  const fetchStat = useCallback(async (key, apiPath, minDelay = 200, maxDelay = 1000) => {
+    try {
+      // 1. Simulate varying network delay
+      const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+      await new Promise(resolve => setTimeout(resolve, delay));
+
+      // 2. Fetch data (Simulated call by fetching all and calculating locally)
+      // In a real app, this would be a quick call to a dedicated count endpoint.
+      const res = await api.get("/applicants/");
+      const allApplicants = res.data.results || [];
+
+      let count = 0;
+      if (key === "total") {
+        count = allApplicants.length;
+      } else {
+        const assistanceType = stats[key].title.split(" ")[0]; // Medical, Educational, Burial
+        count = allApplicants.filter(a => a.type_of_assistance === assistanceType).length;
+      }
+
+      // 3. Update the state immediately after the promise resolves
+      setStats(prev => ({
+        ...prev,
+        [key]: { ...prev[key], value: count, loading: false },
+      }));
+
+      return { key, count };
+    } catch (err) {
+      console.error(`Fetch for ${key} failed:`, err);
+      setStats(prev => ({
+        ...prev,
+        [key]: { ...prev[key], loading: false, value: "Error" },
+      }));
+    }
+  }, []);
+
+  const fetchAllStatsConcurrently = useCallback(() => {
+    // Reset all stats to loading
+    setStats(initialStats);
+
+    // Define all promises to run concurrently
+    const totalPromise = fetchStat("total", "/applicants/count/total");
+    const medicalPromise = fetchStat("medical", "/applicants/count/medical");
+    const educationalPromise = fetchStat("educational", "/applicants/count/educational");
+    const burialPromise = fetchStat("burial", "/applicants/count/burial");
+
+    // Wait for all promises to settle, allowing the setStats inside fetchStat
+    // to update the UI in the order they resolve (fastest first).
+    Promise.allSettled([totalPromise, medicalPromise, educationalPromise, burialPromise]);
+  }, [fetchStat]);
+
+  // --- END NEW CONCURRENT STATS FETCHING LOGIC ---
+
+  useEffect(() => {
+    fetchApplicants(); // For the table data
+    fetchAllStatsConcurrently(); // For the top stats cards
+  }, [fetchAllStatsConcurrently]);
+
+  const handleScroll = () => {
+    if (nextUrl && !loading) {
+      fetchApplicants(nextUrl);
+    }
+  };
+
+  const openEditView = applicant => {
+    setEditingApplicant({
+      ...applicant,
+      valid_id_presented: applicant.valid_id_presented || "",
+      other_valid_id: applicant.other_valid_id || "",
+    });
+    setEditView(true);
+  };
+
+  const closeEditView = () => {
+    setEditingApplicant(null);
+    setEditView(false);
+  };
+
+  const openPreviewView = applicant => {
+    setPreviewApplicant({ ...applicant });
+    setPreviewView(true);
+  };
+
+  const closePreviewView = () => {
+    setPreviewApplicant(null);
+    setPreviewView(false);
+  };
+
+  const openArchiveModal = id => {
+    setArchiveModal({ show: true, applicantId: id });
+  };
+
+  const closeArchiveModal = () => {
+    setArchiveModal({ show: false, applicantId: null });
+  };
+
+  const handleArchive = async () => {
+    if (!archiveModal.applicantId) return;
+    try {
+      await api.delete(`/applicants/${archiveModal.applicantId}/`);
+      toast.custom(t => <CustomToast t={t} type="archive" />);
+      // Remove the item locally:
+      setApplicants(prev => prev.filter(a => a.id !== archiveModal.applicantId));
+      closeArchiveModal();
+    } catch (err) {
+      console.error("Archive failed:", err);
+      alert("Failed to archive applicant.");
+    }
+  };
+
+  const handleChange = e => {
+    const { name, value } = e.target;
+
+    setEditingApplicant(prev => {
+      const updated = { ...prev };
+
+      // Handle background info
+      if (name.startsWith("rep_bg_")) {
+        updated.representative = {
+          ...updated.representative,
+          background_info: {
+            ...updated.representative?.background_info,
+            [name.replace("rep_bg_", "")]: value,
+          },
+        };
+      } else if (
+        name.startsWith("background_info.") ||
+        [
+          "first_name",
+          "middle_initial",
+          "last_name",
+          "suffix",
+          "birth_date",
+          "birth_place",
+          "age",
+          "sex",
+          "civil_status",
+          "street_address",
+          "barangay",
+          "municipality",
+          "province",
+        ].includes(name)
+      ) {
+        updated.background_info = {
+          ...updated.background_info,
+          [name.replace("background_info.", "")]: value,
+        };
+      }
+      // Representative relationship
+      else if (name === "rep_relationship") {
+        updated.representative = {
+          ...updated.representative,
+          relationship: value,
+        };
+      }
+      // Assistance info
+      else if (["type_of_assistance", "amount", "purpose"].includes(name)) {
+        updated.assistance_info = {
+          ...updated.assistance_info,
+          [name]: value,
         };
     }, []);
 
@@ -115,25 +319,9 @@ const Applicants = () => {
         // Refetch interval is 0 for simplicity, use a higher value in production
     });
 
-    // Flatten all pages into a single applicants array
-    const applicants = useMemo(() => {
-        return infiniteData?.pages.flatMap(page => page.results || page) || [];
-    }, [infiniteData]);
-
-    const nextUrl = infiniteData?.pages[infiniteData.pages.length - 1]?.next || null;
-    const loading = isLoadingApplicants; // Use the initial loading state
-
-    // 4. Implement handleScroll with React Query's fetchNextPage
-    const handleScroll = () => {
-        if (nextUrl && !isFetchingNextPage) {
-            fetchNextPage();
-        }
-    };
-    const { data: allApplicantsForStats = [], isLoading: isLoadingStats } = useQuery({
-        queryKey: ["applicantsAll"],
-        queryFn: fetchAllApplicantsForStats,
-        staleTime: 5 * 60 * 1000, 
-    });
+  const handleSave = async e => {
+    e.preventDefault();
+    if (!editingApplicant || !editingApplicant.id) return;
 
     // 5. Replace original concurrent stat fetching logic with a derived effect
     useEffect(() => {
@@ -273,10 +461,80 @@ const Applicants = () => {
         setEditView(true);
     };
 
-    const closeEditView = () => {
-        setEditingApplicant(null);
-        setEditView(false);
-    };
+    // The Title/Name is rendered unconditionally
+    return (
+      <div className="relative">
+        <p className="text-gray-600 text-xs font-semibold uppercase tracking-widest mb-1">
+          {stat.title}
+        </p>
+
+        {stat.loading ? (
+          // Renders the loading state (skeleton for value and progress bar)
+          <div className="relative flex flex-col justify-between h-full">
+            {/* Skeleton for the numeric value */}
+            <div
+              className={`text-4xl font-extrabold text-gray-300 animate-pulse h-10 w-1/3 rounded-md bg-gray-200`}
+            ></div>
+            {/* Skeleton for the progress bar */}
+            <div className={`mt-4 h-1 w-full bg-${primaryColor}-100 rounded-full`}>
+              <div className={`h-1 w-1/4 bg-gray-300 rounded-full animate-pulse`}></div>
+            </div>
+          </div>
+        ) : (
+          // Renders the loaded state (value and actual progress bar)
+          <>
+            <p
+              className={`text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-${fromDark} to-${toDark}`}
+            >
+              {stat.value.toLocaleString()}
+            </p>
+
+            {/* Render progress bar only for assistance types */}
+            {stat.title !== "Total Applicants" && (
+              <div className={`mt-4 h-1 w-full bg-${primaryColor}-100 rounded-full`}>
+                <div
+                  className={`h-1 bg-gradient-to-r from-${from} to-${to} rounded-full`}
+                  style={{
+                    // Use stats.total.value for calculation if loaded, otherwise 0
+                    width: `${
+                      stats.total.value > 0 ? (stat.value / stats.total.value) * 100 : 0
+                    }%`,
+                  }}
+                ></div>
+              </div>
+            )}
+            {/* NOTE: Total Applicants card does not need a progress bar, so no else block is needed */}
+          </>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+      {/* Animated Background (Subtle Modern Touch) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute top-1/3 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse delay-200"></div>
+        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse delay-400"></div>
+      </div>
+
+      <div className="relative z-10 p-4 sm:p-6 md:p-10">
+        <Toaster position="top-center" reverseOrder={false} />
+
+        {/* Header Section (Modernized) */}
+        <div className="mb-8 md:mb-10">
+          <div className="bg-white bg-opacity-90 backdrop-blur-md rounded-2xl shadow-2xl border border-blue-100 p-6 sm:p-8 mb-6">
+            <ApplicantsHeader />
+          </div>
+
+          {/* Stats Cards - Now uses the new state and helper component */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {/* Total Applicants */}
+            <div className="group relative bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-200 p-5 sm:p-6 overflow-hidden hover:-translate-y-0.5">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+              <StatCardContent stat={stats.total} />
+            </div>
 
     const openPreviewView = applicant => {
         setPreviewApplicant({ ...applicant });
