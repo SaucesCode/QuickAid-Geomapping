@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from "react";
+import { useQueries } from '@tanstack/react-query'; // Import useQueries
 import { api } from "../../services/api";
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  RadialBarChart,
-  RadialBar,
 } from "recharts";
 import {
   Clock,
@@ -25,13 +21,14 @@ import {
   Zap,
   Target,
   AlertCircle,
-  TrendingUp,
-  Award,
   Timer,
   UserCheck,
   Calendar,
   Loader2,
+  Award,
 } from "lucide-react";
+
+// --- Utility Components (No change, retained for structure) ---
 
 // Fallback skeleton loader component for charts and lists
 const SkeletonLoader = ({ height = 300, type = 'chart' }) => (
@@ -58,122 +55,69 @@ const SkeletonLoader = ({ height = 300, type = 'chart' }) => (
 );
 
 const Performance = () => {
-  const [avgProcessingTime, setAvgProcessingTime] = useState(null);
-  const [avgProcessingTimeByType, setAvgProcessingTimeByType] = useState([]);
-  const [processingDistribution, setProcessingDistribution] = useState([]);
-  const [staffProductivity, setStaffProductivity] = useState([]);
-  const [staffLeaderboard, setStaffLeaderboard] = useState([]);
-  const [staffActivity, setStaffActivity] = useState([]);
-  const [staffHeatmap, setStaffHeatmap] = useState([]);
-  const [loading, setLoading] = useState(true); // Master loading state kept for API compatibility but functionally removed the big screen
-  const [error, setError] = useState(null);
-
-  // New individual loading states
-  const [loadingType, setLoadingType] = useState(true);
-  const [loadingDistribution, setLoadingDistribution] = useState(true);
-  const [loadingProductivity, setLoadingProductivity] = useState(true);
-  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
-  const [loadingActivity, setLoadingActivity] = useState(true);
-  const [loadingHeatmap, setLoadingHeatmap] = useState(true);
-
   // Color palettes
   const PERFORMANCE_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
-  const HEATMAP_COLORS = ["#FEF3C7", "#FCD34D", "#F59E0B", "#D97706", "#92400E"];
   const LEADERBOARD_COLORS = ["#FFD700", "#C0C0C0", "#CD7F32", "#3B82F6", "#10B981"];
 
- useEffect(() => {
-  const fetchSequentially = async () => {
-    try {
-      // 1️⃣ Avg Processing Time (highest priority)
-      try {
-        const res = await api.get("/analytics/performance/average-processing/");
-        setAvgProcessingTime(res.data);
-      } catch (err) {
-        console.error("Error fetching avgProcessingTime:", err);
-      }
-      setLoading(false); // hide master loader
-      await new Promise((r) => setTimeout(r, 300)); // small delay before next
+  // Query definitions
+  const performanceQueries = useQueries({
+    queries: [
+      {
+        queryKey: ['avgProcessingTime'],
+        queryFn: () => api.get("/analytics/performance/average-processing/").then(res => res.data),
+      },
+      {
+        queryKey: ['avgProcessingTimeByType'],
+        queryFn: () => api.get("/analytics/performance/processing-by-type/").then(res => res.data),
+      },
+      {
+        queryKey: ['processingDistribution'],
+        queryFn: () => api.get("/analytics/performance/processing-distribution/").then(res => res.data),
+      },
+      {
+        queryKey: ['staffProductivity'],
+        queryFn: () => api.get("/analytics/performance/staff-productivity/").then(res => res.data),
+      },
+      {
+        queryKey: ['staffLeaderboard'],
+        queryFn: () => api.get("/analytics/performance/staff-leaderboard/").then(res => res.data),
+      },
+      {
+        queryKey: ['staffActivity'],
+        queryFn: () => api.get("/analytics/performance/staff-activity/").then(res => res.data),
+      },
+      {
+        queryKey: ['staffHeatmap'],
+        queryFn: () => api.get("/analytics/performance/staff-heatmap/").then(res => res.data),
+      },
+    ]
+  });
 
-      // 2️⃣ Processing by Type
-      setLoadingType(true);
-      try {
-        const res = await api.get("/analytics/performance/processing-by-type/");
-        setAvgProcessingTimeByType(res.data);
-      } catch (err) {
-        console.error("Error fetching processing-by-type:", err);
-      } finally {
-        setLoadingType(false);
-      }
-      await new Promise((r) => setTimeout(r, 300));
+  // Destructure query results for cleaner access
+  const [
+    avgProcessingTimeQuery,
+    avgProcessingTimeByTypeQuery,
+    processingDistributionQuery,
+    staffProductivityQuery,
+    staffLeaderboardQuery,
+    staffActivityQuery,
+    staffHeatmapQuery,
+  ] = performanceQueries;
 
-      // 3️⃣ Processing Distribution
-      setLoadingDistribution(true);
-      try {
-        const res = await api.get("/analytics/performance/processing-distribution/");
-        setProcessingDistribution(res.data);
-      } catch (err) {
-        console.error("Error fetching processing-distribution:", err);
-      } finally {
-        setLoadingDistribution(false);
-      }
-      await new Promise((r) => setTimeout(r, 300));
+  // Simulate sequential loading by checking the status of previous queries (optional, as React Query favors parallel)
+  // For this refactor, we rely on the individual query statuses for the UI loading states.
+  const allQueriesSucceeded = performanceQueries.every(q => q.isSuccess || q.isIdle);
+  const firstError = performanceQueries.find(q => q.isError)?.error;
 
-      // 4️⃣ Staff Productivity
-      setLoadingProductivity(true);
-      try {
-        const res = await api.get("/analytics/performance/staff-productivity/");
-        setStaffProductivity(res.data);
-      } catch (err) {
-        console.error("Error fetching staff-productivity:", err);
-      } finally {
-        setLoadingProductivity(false);
-      }
-      await new Promise((r) => setTimeout(r, 300));
+  const avgProcessingTime = avgProcessingTimeQuery.data;
+  const avgProcessingTimeByType = avgProcessingTimeByTypeQuery.data || [];
+  const processingDistribution = processingDistributionQuery.data || [];
+  const staffProductivity = staffProductivityQuery.data || [];
+  const staffLeaderboard = staffLeaderboardQuery.data || [];
+  const staffActivity = staffActivityQuery.data || [];
+  const staffHeatmap = staffHeatmapQuery.data;
 
-      // 5️⃣ Staff Leaderboard
-      setLoadingLeaderboard(true);
-      try {
-        const res = await api.get("/analytics/performance/staff-leaderboard/");
-        setStaffLeaderboard(res.data);
-      } catch (err) {
-        console.error("Error fetching staff-leaderboard:", err);
-      } finally {
-        setLoadingLeaderboard(false);
-      }
-      await new Promise((r) => setTimeout(r, 300));
-
-      // 6️⃣ Staff Activity
-      setLoadingActivity(true);
-      try {
-        const res = await api.get("/analytics/performance/staff-activity/");
-        setStaffActivity(res.data);
-      } catch (err) {
-        console.error("Error fetching staff-activity:", err);
-      } finally {
-        setLoadingActivity(false);
-      }
-      await new Promise((r) => setTimeout(r, 300));
-
-      // 7️⃣ Staff Heatmap
-      setLoadingHeatmap(true);
-      try {
-        const res = await api.get("/analytics/performance/staff-heatmap/");
-        setStaffHeatmap(res.data);
-      } catch (err) {
-        console.error("Error fetching staff-heatmap:", err);
-      } finally {
-        setLoadingHeatmap(false);
-      }
-    } catch (globalErr) {
-      console.error("Critical error in sequential fetch:", globalErr);
-      setError(globalErr);
-    }
-  };
-
-  fetchSequentially();
-}, []);
-
-  // Data transformation functions
+  // Data transformation functions (No change, retained for structure)
   const transformProcessingByType = data => {
     return data.map(item => ({
       type: item.type,
@@ -210,6 +154,19 @@ const Performance = () => {
       .slice(0, 10);
   };
 
+  const getTimeAgo = date => {
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return "Just now";
+  };
+  
   const transformStaffActivity = data => {
     return data.slice(0, 20).map(item => ({
       id: item.id,
@@ -243,24 +200,11 @@ const Performance = () => {
     return hours;
   };
 
-  const getTimeAgo = date => {
-    const now = new Date();
-    const diff = now - date;
-    const minutes = Math.floor(diff / (1000 * 60));
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (days > 0) return `${days}d ago`;
-    if (hours > 0) return `${hours}h ago`;
-    if (minutes > 0) return `${minutes}m ago`;
-    return "Just now";
-  };
-
   // Statistics calculations
   const calculateStats = () => {
-    // Only use the transformed data if it has been fetched (i.e., its loader is false)
-    const processedProductivity = loadingProductivity ? [] : transformStaffProductivity(staffProductivity);
-    const processedLeaderboard = loadingLeaderboard ? [] : transformStaffLeaderboard(staffLeaderboard);
+    // Only use the transformed data if the query was successful
+    const processedProductivity = staffProductivityQuery.isSuccess ? transformStaffProductivity(staffProductivity) : [];
+    const processedLeaderboard = staffLeaderboardQuery.isSuccess ? transformStaffLeaderboard(staffLeaderboard) : [];
 
     const totalStaffProcessed = processedProductivity.reduce((sum, item) => sum + item.count, 0);
     const averageProductivity =
@@ -277,6 +221,23 @@ const Performance = () => {
       processingEfficiency,
     };
   };
+
+  // Run transformations only when query is successful
+  const transformedProcessingByType = avgProcessingTimeByTypeQuery.isSuccess ? transformProcessingByType(avgProcessingTimeByType) : [];
+  const transformedStaffProductivity = staffProductivityQuery.isSuccess ? transformStaffProductivity(staffProductivity) : [];
+  const transformedStaffLeaderboard = staffLeaderboardQuery.isSuccess ? transformStaffLeaderboard(staffLeaderboard) : [];
+  const transformedStaffActivity = staffActivityQuery.isSuccess ? transformStaffActivity(staffActivity) : [];
+  const transformedHeatmapData = staffHeatmapQuery.isSuccess && staffHeatmap ? transformHeatmapData(staffHeatmap) : [];
+  
+  const stats = calculateStats();
+  
+  // Calculate loading status for StatCards using query states
+  const isAvgProcessingTimeLoaded = avgProcessingTimeQuery.isSuccess;
+  const isLeaderboardLoaded = staffLeaderboardQuery.isSuccess && staffLeaderboard.length > 0; 
+  const isProductivityLoaded = staffProductivityQuery.isSuccess && staffProductivity.length > 0; 
+  const isTotalProcessedLoaded = isProductivityLoaded; 
+
+  // --- UI Components (StatCard, HeatmapCell - No change, retained for structure) ---
 
   const StatCard = ({ icon: Icon, title, value, subtitle, color, badge, isLoading }) => (
     <div
@@ -329,7 +290,8 @@ const Performance = () => {
   };
         
   
-  if (error) {
+  // Use the combined error state from useQueries
+  if (firstError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center text-center">
         <div className="bg-white p-8 rounded-2xl shadow-lg border border-red-100 max-w-md w-full mx-4">
@@ -340,7 +302,7 @@ const Performance = () => {
             Error Loading Data
           </h3>
           <p className="text-gray-600 mb-4">
-            {error.message || "Failed to fetch trends data. Please try again later."}
+            {firstError.message || "Failed to fetch performance data. Please try again later."}
           </p>
           <button
             onClick={() => window.location.reload()}
@@ -353,21 +315,6 @@ const Performance = () => {
     );
   }
 
-  // Transformations are now run only when needed inside the component or only if data exists
-  const transformedProcessingByType = transformProcessingByType(avgProcessingTimeByType);
-  const transformedStaffProductivity = transformStaffProductivity(staffProductivity);
-  const transformedStaffLeaderboard = transformStaffLeaderboard(staffLeaderboard);
-  const transformedStaffActivity = transformStaffActivity(staffActivity);
-  // Ensure staffHeatmap is not null/undefined before transforming
-  const transformedHeatmapData = staffHeatmap ? transformHeatmapData(staffHeatmap) : [];
-  const stats = calculateStats();
-  
-  // Calculate loading status for StatCards
-  const isAvgProcessingTimeLoaded = avgProcessingTime !== null;
-  const isLeaderboardLoaded = !loadingLeaderboard && staffLeaderboard.length > 0; // Check data and loader
-  const isProductivityLoaded = !loadingProductivity && staffProductivity.length > 0; // Check data and loader
-  // Total is derived from productivity data, so it shares the same loading state
-  const isTotalProcessedLoaded = isProductivityLoaded; 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -387,11 +334,10 @@ const Performance = () => {
           <StatCard
             icon={Timer}
             title="Avg Processing Time"
-            // This is the "highest one" and should load first
-            value={isAvgProcessingTimeLoaded ? `${stats.processingEfficiency.toFixed(1)}min` : '0.0min'}
+            value={isAvgProcessingTimeLoaded ? `${stats.processingEfficiency.toFixed(1)}min` : '...'}
             subtitle="Per application"
             color="#3B82F6"
-            isLoading={!isAvgProcessingTimeLoaded}
+            isLoading={avgProcessingTimeQuery.isLoading}
           />
           <StatCard
             icon={Users}
@@ -399,7 +345,7 @@ const Performance = () => {
             value={isProductivityLoaded ? stats.averageProductivity : '...'}
             subtitle="Avg applications/staff"
             color="#10B981"
-            isLoading={loadingProductivity}
+            isLoading={staffProductivityQuery.isLoading}
           />
           <StatCard
             icon={Trophy}
@@ -408,7 +354,7 @@ const Performance = () => {
             subtitle={isLeaderboardLoaded ? `${stats.topPerformer?.count || 0} applications` : '...'}
             color="#F59E0B"
             badge="🏆"
-            isLoading={loadingLeaderboard}
+            isLoading={staffLeaderboardQuery.isLoading}
           />
           <StatCard
             icon={Activity}
@@ -416,7 +362,7 @@ const Performance = () => {
             value={isTotalProcessedLoaded ? stats.totalStaffProcessed.toLocaleString() : '...'}
             subtitle="By all staff"
             color="#8B5CF6"
-            isLoading={loadingProductivity} // Shares loading state with productivity
+            isLoading={staffProductivityQuery.isLoading} // Shares loading state with productivity
           />
         </div>
 
@@ -430,7 +376,7 @@ const Performance = () => {
                 Processing Time by Assistance Type
               </h2>
             </div>
-            {loadingType ? (
+            {avgProcessingTimeByTypeQuery.isLoading ? (
                 <SkeletonLoader />
             ) : (
                 <ResponsiveContainer width="100%" height={300}>
@@ -469,7 +415,7 @@ const Performance = () => {
                 Processing Time Distribution
               </h2>
             </div>
-            {loadingDistribution ? (
+            {processingDistributionQuery.isLoading ? (
                 <SkeletonLoader />
             ) : (
                 <ResponsiveContainer width="100%" height={300}>
@@ -508,7 +454,7 @@ const Performance = () => {
                 Staff Productivity
               </h2>
             </div>
-            {loadingProductivity ? (
+            {staffProductivityQuery.isLoading ? (
                 <SkeletonLoader height={350} />
             ) : (
                 <ResponsiveContainer width="100%" height={350}>
@@ -549,7 +495,7 @@ const Performance = () => {
                 Staff Leaderboard
               </h2>
             </div>
-            {loadingLeaderboard ? (
+            {staffLeaderboardQuery.isLoading ? (
                 <SkeletonLoader height={320} type="list" />
             ) : (
                 <div className="space-y-3 max-h-80 overflow-y-auto">
@@ -588,7 +534,7 @@ const Performance = () => {
               Staff Activity Heatmap (Hourly Distribution)
             </h2>
           </div>
-            {loadingHeatmap ? (
+            {staffHeatmapQuery.isLoading ? (
                 <SkeletonLoader height={100} type="heatmap" />
             ) : (
                 <>
@@ -629,7 +575,7 @@ const Performance = () => {
               Recent Staff Activity
             </h2>
           </div>
-            {loadingActivity ? (
+            {staffActivityQuery.isLoading ? (
                 <SkeletonLoader height={320} type="list" />
             ) : (
                 <div className="overflow-x-auto">

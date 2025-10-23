@@ -2,33 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
+  LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie,
+  Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import {
-  TrendingUp,
-  Calendar,
-  BarChart3,
-  Activity,
-  Clock,
-  AlertCircle,
-  ArrowUp,
-  ArrowDown,
-  Target,
-  Loader2,
+  TrendingUp, Calendar, BarChart3, Activity, Clock, AlertCircle,
+  ArrowUp, ArrowDown, Target, Loader2,
 } from "lucide-react";
 
 // Fallback skeleton loader component for charts and lists
