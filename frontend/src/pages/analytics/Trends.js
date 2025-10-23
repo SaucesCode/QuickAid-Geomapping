@@ -1,36 +1,34 @@
 import React, { useEffect, useState } from "react";
+// 1. ADD REACT QUERY IMPORTS
+import { useQuery, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { api } from "../../services/api";
 import {
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
+  LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie,
+  Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import {
-  TrendingUp,
-  Calendar,
-  BarChart3,
-  Activity,
-  Clock,
-  AlertCircle,
-  ArrowUp,
-  ArrowDown,
-  Target,
-  Loader2,
+  TrendingUp, Calendar, BarChart3, Activity, Clock, AlertCircle,
+  ArrowUp, ArrowDown, Target, Loader2,
 } from "lucide-react";
 
-// Fallback skeleton loader component for charts and lists
+// 2. INITIALIZE QUERY CLIENT
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Set a short staleTime to ensure the data is refetched if needed, matching the original's imperative fetch
+      staleTime: 5 * 60 * 1000, 
+      refetchOnWindowFocus: false, // Optional: prevents unnecessary refetches on tab switch
+    },
+  },
+});
+
+// Helper function to define the fetcher for useQuery
+const trendsFetcher = (endpoint) => async () => {
+  const res = await api.get(endpoint);
+  return res.data || [];
+};
+
+// Fallback skeleton loader component for charts and lists (unchanged)
 const SkeletonLoader = ({ height = 300, type = 'chart' }) => (
   <div
     // **FIX HERE: Use h-auto to dynamically size for content and add padding**
@@ -39,19 +37,20 @@ const SkeletonLoader = ({ height = 300, type = 'chart' }) => (
   >
     {type === 'chart' && <div className="h-full w-full bg-gray-200 rounded-lg"></div>}
     {type === 'heatmap' && (
-        // Skeleton grid representing the 24 hours in the heatmap
-        // The fixed height above helps contain this grid
-        <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 lg:grid-cols-12 xl:grid-cols-24 gap-3 h-full">
-            {[...Array(12)].map((_, i) => ( // Use 12 items to represent rows that will wrap
-                <div key={i} className="h-10 w-full bg-gray-200 rounded-lg"></div>
-            ))}
-        </div>
+      // Skeleton grid representing the 24 hours in the heatmap
+      // The fixed height above helps contain this grid
+      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 lg:grid-cols-12 xl:grid-cols-24 gap-3 h-full">
+        {[...Array(12)].map((_, i) => ( // Use 12 items to represent rows that will wrap
+          <div key={i} className="h-10 w-full bg-gray-200 rounded-lg"></div>
+        ))}
+      </div>
     )}
   </div>
 );
 
 
 const Trends = () => {
+  // ORIGINAL STATE VARIABLES (DO NOT DELETE/CHANGE - CONSTRAINT)
   const [monthlyData, setMonthlyData] = useState([]);
   const [yearlyData, setYearlyData] = useState([]);
   const [overtimeData, setOvertimeData] = useState([]);
@@ -59,46 +58,92 @@ const Trends = () => {
   const [assistanceTypeData, setAssistanceTypeData] = useState([]);
   const [assistanceTypeDataOverTime, setAssistanceTypeDataOverTime] = useState([]);
   const [applicantHeatmap, setApplicantHeatmap] = useState([]);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); // Retained for consistency
 
-  // Existing individual loading states
+  // Existing individual loading states (DO NOT DELETE/CHANGE - CONSTRAINT)
   const [loadingStates, setLoadingStates] = useState({
-    monthly: true,
-    yearly: true,
-    overtime: true,
-    cumulative: true,
-    assistanceType: true,
-    assistanceTypeOverTime: true,
-    applicantHeatmap: true,
+    monthly: true, yearly: true, overtime: true, cumulative: true,
+    assistanceType: true, assistanceTypeOverTime: true, applicantHeatmap: true,
   });
 
   const setSectionLoaded = (section) =>
     setLoadingStates((prev) => ({ ...prev, [section]: false }));
+  
+  // NOTE: The original useEffect hook that contained the fetching logic has been removed.
 
+  // 3. REACT QUERY HOOKS (REPLACING useEffect FETCHING LOGIC)
+  const monthlyQuery = useQuery({
+    queryKey: ['trends', 'monthly'],
+    queryFn: trendsFetcher("/analytics/trends/monthly/"),
+  });
+  
+  const yearlyQuery = useQuery({
+    queryKey: ['trends', 'yearly'],
+    queryFn: trendsFetcher("/analytics/trends/yearly/"),
+  });
+  
+  const overtimeQuery = useQuery({
+    queryKey: ['trends', 'overtime'],
+    queryFn: trendsFetcher("/analytics/trends/over-time/"),
+  });
+  
+  const cumulativeQuery = useQuery({
+    queryKey: ['trends', 'cumulative'],
+    queryFn: trendsFetcher("/analytics/trends/cumulative/"),
+  });
+  
+  const assistanceTypeQuery = useQuery({
+    queryKey: ['trends', 'assistanceType'],
+    queryFn: trendsFetcher("/analytics/trends/assistance-type/"),
+  });
+  
+  const assistanceTypeOverTimeQuery = useQuery({
+    queryKey: ['trends', 'assistanceTypeOverTime'],
+    queryFn: trendsFetcher("/analytics/trends/assistance-type-over-time/"),
+  });
+  
+  const applicantHeatmapQuery = useQuery({
+    queryKey: ['trends', 'applicantHeatmap'],
+    queryFn: trendsFetcher("/analytics/trends/applicant-heatmap/"),
+  });
+  
+  // 4. MAPPING useEffect (BRIDGING REACT QUERY RESULTS TO ORIGINAL STATE VARIABLES)
   useEffect(() => {
-  // helper to fetch one dataset independently
-  const fetchSection = async (endpoint, setter, sectionKey) => {
-    try {
-      const res = await api.get(endpoint);
-      setter(res.data || []);
-      setSectionLoaded(sectionKey); // stop loading for this section
-    } catch (err) {
-      console.error(`⚠️ Error fetching ${sectionKey}:`, err);
-      // stays loading forever if failed
-    }
-  };
+    // Helper function for mapping
+    const mapQueryToState = (query, setter, sectionKey) => {
+        if (query.isSuccess) {
+            // Log original console.error message on success (if original logic was present)
+            setter(query.data);
+            setSectionLoaded(sectionKey);
+        } else if (query.isError) {
+            // Mimic original behavior: console.error and let loading state remain true
+            console.error(`⚠️ Error fetching ${sectionKey}:`, query.error);
+            setError(query.error.message || `An error occurred fetching ${sectionKey}`);
+        }
+    };
 
-  // All fetches run simultaneously (concurrent)
-  fetchSection("/analytics/trends/monthly/", setMonthlyData, "monthly");
-  fetchSection("/analytics/trends/yearly/", setYearlyData, "yearly");
-  fetchSection("/analytics/trends/over-time/", setOvertimeData, "overtime");
-  fetchSection("/analytics/trends/cumulative/", setCumulativeData, "cumulative");
-  fetchSection("/analytics/trends/assistance-type/", setAssistanceTypeData, "assistanceType");
-  fetchSection("/analytics/trends/assistance-type-over-time/", setAssistanceTypeDataOverTime, "assistanceTypeOverTime");
-  fetchSection("/analytics/trends/applicant-heatmap/", setApplicantHeatmap, "applicantHeatmap");
-}, []);
+    mapQueryToState(monthlyQuery, setMonthlyData, "monthly");
+    mapQueryToState(yearlyQuery, setYearlyData, "yearly");
+    mapQueryToState(overtimeQuery, setOvertimeData, "overtime");
+    mapQueryToState(cumulativeQuery, setCumulativeData, "cumulative");
+    mapQueryToState(assistanceTypeQuery, setAssistanceTypeData, "assistanceType");
+    mapQueryToState(assistanceTypeOverTimeQuery, setAssistanceTypeDataOverTime, "assistanceTypeOverTime");
+    mapQueryToState(applicantHeatmapQuery, setApplicantHeatmap, "applicantHeatmap");
+    
+  }, [
+    monthlyQuery.status, monthlyQuery.data, monthlyQuery.error,
+    yearlyQuery.status, yearlyQuery.data, yearlyQuery.error,
+    overtimeQuery.status, overtimeQuery.data, overtimeQuery.error,
+    cumulativeQuery.status, cumulativeQuery.data, cumulativeQuery.error,
+    assistanceTypeQuery.status, assistanceTypeQuery.data, assistanceTypeQuery.error,
+    assistanceTypeOverTimeQuery.status, assistanceTypeOverTimeQuery.data, assistanceTypeOverTimeQuery.error,
+    applicantHeatmapQuery.status, applicantHeatmapQuery.data, applicantHeatmapQuery.error,
+    setSectionLoaded, setMonthlyData, setYearlyData, setOvertimeData, setCumulativeData,
+    setAssistanceTypeData, setAssistanceTypeDataOverTime, setApplicantHeatmap, setError,
+  ]);
 
 
+  // ORIGINAL LOGIC (UNCHANGED BELOW THIS LINE)
 
   const ASSISTANCE_COLORS = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6"];
 
@@ -606,4 +651,12 @@ const Trends = () => {
   );
 };
 
-export default Trends;
+// 5. WRAPPER COMPONENT
+// The main export should be wrapped in QueryClientProvider to make useQuery available.
+const TrendsWithQuery = () => (
+    <QueryClientProvider client={queryClient}>
+        <Trends />
+    </QueryClientProvider>
+);
+
+export default TrendsWithQuery;

@@ -32,11 +32,12 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
 
   // Custom component for a data row to reduce repetition and ensure consistent styling
   const DataRow = ({ label, value }) => (
-    <div className="flex justify-between py-3 border-b border-blue-50/50 last:border-b-0">
-      <div className="font-semibold text-blue-700 w-1/3 min-w-[120px] pr-2">
+    // Stack label and value on mobile, switch to side-by-side on small screens and up
+    <div className="flex flex-col sm:flex-row sm:justify-between py-3 border-b border-blue-50/50 last:border-b-0">
+      <div className="font-semibold text-blue-700 w-full sm:w-1/3 min-w-[120px] pr-2 mb-1 sm:mb-0 text-left">
         {label}
       </div>
-      <div className="text-gray-800 w-2/3 break-words text-right sm:text-left">
+      <div className="text-gray-800 w-full sm:w-2/3 break-words text-left">
         {value || "N/A"}
       </div>
     </div>
@@ -44,8 +45,8 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
 
   // Custom component for a data section/card
   const SectionCard = ({ title, children }) => (
-    <div className="bg-white border border-blue-100 rounded-xl shadow-lg p-6">
-      <h3 className="text-xl font-bold text-blue-800 border-b pb-3 mb-4 border-blue-200">
+    <div className="bg-white border border-blue-100 rounded-xl shadow-lg p-5 sm:p-6 transition-shadow hover:shadow-xl">
+      <h3 className="text-xl font-extrabold text-blue-800 border-b pb-3 mb-4 border-blue-200">
         {title}
       </h3>
       <div className="space-y-1">{children}</div>
@@ -53,12 +54,13 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
   );
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 transition-opacity duration-300">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-hidden flex flex-col transition-transform duration-300 transform scale-100">
+    // Centered fixed modal background
+    <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-start sm:items-center justify-center z-50 p-2 sm:p-4 transition-opacity duration-300">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[98vh] sm:max-h-[95vh] overflow-hidden flex flex-col transition-transform duration-300 transform scale-100">
         
         {/* Modal Header */}
-        <div className="sticky top-0 bg-blue-600 px-6 py-4 flex items-center justify-between shadow-md z-10">
-          <h2 className="text-3xl font-extrabold text-white">
+        <div className="sticky top-0 bg-blue-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between shadow-lg z-10">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white truncate pr-4">
             Applicant Details
           </h2>
           <button
@@ -71,7 +73,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
         </div>
 
         {/* Modal Body (Scrollable Content) */}
-        <div className="p-6 md:p-8 space-y-8 overflow-y-auto">
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8 overflow-y-auto">
           {/* Main Information: Responsive Grid Layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
@@ -116,8 +118,8 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                 value={background_info.barangay_details?.province_name}
               />
               <DataRow label="Contact Number" value={contact_number} />
-              {/* Padding to keep sections visually aligned if they have different number of rows */}
-              <div className="py-3 hidden lg:block"></div> 
+              {/* Padding removed/simplified as DataRow handles space better now */}
+              <div className="h-0 py-3 hidden xl:block"></div> 
             </SectionCard>
 
             {/* Assistance Details */}
@@ -138,16 +140,17 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                   other_valid_id ? ` (${other_valid_id})` : ""
                 }`}
               />
-              {/* Padding for alignment */}
-              <div className="py-3 hidden lg:block"></div>
-              <div className="py-3 hidden lg:block"></div>
+              {/* Padding removed/simplified as DataRow handles space better now */}
+              <div className="h-0 py-3 hidden xl:block"></div>
+              <div className="h-0 py-3 hidden xl:block"></div>
             </SectionCard>
           </div>
 
           {/* Representative Information */}
           {representative && (
             <SectionCard title="Representative Information">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+              {/* Switched to a flex wrap for small screens, then a grid for medium/large */}
+              <div className="flex flex-col md:grid md:grid-cols-3 gap-4 md:gap-8">
                 <DataRow label="Full Name" value={repFullName} />
                 <DataRow label="Relationship" value={repInfo.relationship} />
                 <DataRow label="Address" value={repFullAddress} />
@@ -164,13 +167,13 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
               <table className="min-w-full text-sm">
                 <thead className="bg-blue-50">
                   <tr>
-                    <th className="px-4 py-3 text-left w-12 text-blue-700 font-bold">
+                    <th className="px-3 py-3 text-left w-12 text-blue-700 font-bold">
                       #
                     </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold">
+                    <th className="px-3 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
                       Type of Assistance
                     </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold">
+                    <th className="px-3 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
                       Date Applied
                     </th>
                   </tr>
@@ -186,11 +189,11 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                             : "bg-blue-50 border-b border-gray-100"
                         }
                       >
-                        <td className="px-4 py-3 text-gray-700">{index + 1}</td>
-                        <td className="px-4 py-3 text-gray-700">
+                        <td className="px-3 py-3 text-gray-700">{index + 1}</td>
+                        <td className="px-3 py-3 text-gray-700">
                           {h.type_of_assistance}
                         </td>
-                        <td className="px-4 py-3 text-gray-700">
+                        <td className="px-3 py-3 text-gray-700 whitespace-nowrap">
                           {formatDate(h.date)}
                         </td>
                       </tr>
@@ -213,7 +216,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
           {/* Approvals Section */}
           <section>
             <h3 className="text-2xl font-bold text-blue-800 mb-4">Approvals</h3>
-            <p className="mb-4 text-lg">
+            <p className="mb-4 text-base sm:text-lg">
               <span className="font-bold text-blue-700">Times Approved:</span>{" "}
               <span className="text-gray-800">
                 {previewApplicant.approval_count || 0}
@@ -224,19 +227,19 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
               <table className="min-w-full text-sm">
                 <thead className="bg-blue-50">
                   <tr>
-                    <th className="px-4 py-3 text-left w-12 text-blue-700 font-bold">
+                    <th className="px-3 py-3 text-left w-12 text-blue-700 font-bold">
                       #
                     </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
+                    <th className="px-3 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
                       Approved At
                     </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
+                    <th className="px-3 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
                       Approved By
                     </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
+                    <th className="px-3 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
                       Batch File
                     </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold">
+                    <th className="px-3 py-3 text-left text-blue-700 font-bold">
                       Notes
                     </th>
                   </tr>
@@ -253,17 +256,17 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                             : "bg-blue-50 border-b border-gray-100"
                         }
                       >
-                        <td className="px-4 py-3 text-gray-700">{index + 1}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                        <td className="px-3 py-3 text-gray-700">{index + 1}</td>
+                        <td className="px-3 py-3 text-gray-700 whitespace-nowrap">
                           {formatDate(a.approved_at)}
                         </td>
-                        <td className="px-4 py-3 text-gray-700">
+                        <td className="px-3 py-3 text-gray-700">
                           {a.approved_by || "N/A"}
                         </td>
-                        <td className="px-4 py-3 text-gray-700">
+                        <td className="px-3 py-3 text-gray-700">
                           {a.batch_file || "N/A"}
                         </td>
-                        <td className="px-4 py-3 text-gray-700">
+                        <td className="px-3 py-3 text-gray-700">
                           {a.notes || "—"}
                         </td>
                       </tr>
@@ -285,7 +288,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
         </div>
 
         {/* Modal Footer */}
-        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end shadow-inner z-10">
+        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-end shadow-inner z-10">
           <button
             onClick={closePreviewView}
             className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"

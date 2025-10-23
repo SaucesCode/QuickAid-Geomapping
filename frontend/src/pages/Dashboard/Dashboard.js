@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useMemo } from "react";
+// Import React Query hooks
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import toast from "react-hot-toast";
 import {
@@ -47,20 +49,20 @@ const STATUS_COLORS = {
   Rejected: "#ef4444", // Red
 };
 
-// --- INITIAL STATE FOR CONCURRENT KPI LOADING ---
-const initialKpiStats = {
-  today: { value: '-', loading: true, title: "TODAY'S APPLICANTS", icon: Calendar, iconColor: "#06b6d4", gradientEndColor: "#06b6d4" },
-  weekly: { value: '-', loading: true, title: "WEEKLY APPLICANTS", icon: BarChart2, iconColor: "#8b5cf6", gradientEndColor: "#8b5cf6" },
-  monthly: { value: '-', loading: true, title: "MONTHLY APPLICANTS", icon: LineChart, iconColor: "#3b82f6", gradientEndColor: "#3b82f6" },
-  avgTime: { value: '-', loading: true, title: "AVG. PROCESSING TIME", icon: Clock, iconColor: "#06b6d4", gradientEndColor: "#06b6d4" },
-};
+// --- KPI Definitions (Mapping the original state structure to Query keys) ---
+// Note: React Query's parallel nature replaces the need for custom delays and setKpiStats logic.
+const KPI_KEYS = [
+  { key: 'today', title: "TODAY'S APPLICANTS", icon: Calendar, iconColor: "#06b6d4", gradientEndColor: "#06b6d4", endpoint: "/analytics/dashboard/summary/" },
+  { key: 'weekly', title: "WEEKLY APPLICANTS", icon: BarChart2, iconColor: "#8b5cf6", gradientEndColor: "#8b5cf6", endpoint: "/analytics/dashboard/summary/" },
+  { key: 'monthly', title: "MONTHLY APPLICANTS", icon: LineChart, iconColor: "#3b82f6", gradientEndColor: "#3b82f6", endpoint: "/analytics/dashboard/summary/" },
+  { key: 'avgTime', title: "AVG. PROCESSING TIME", icon: Clock, iconColor: "#06b6d4", gradientEndColor: "#06b6d4", endpoint: "/analytics/dashboard/summary/" },
+];
 
+// --- SimpleStatCard, Skeletons, and Card components are kept exactly the same. ---
 
-// --- NEW COMPONENT FOR THE IMAGE STATS (MODIFIED TO PULL FROM STATE) ---
 const SimpleStatCard = ({ stat }) => {
   const { title, value, loading, icon: Icon, iconColor, gradientEndColor } = stat;
 
-  // Determine display value
   const displayValue = loading ? (
     <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 animate-spin" />
   ) : (
@@ -68,36 +70,28 @@ const SimpleStatCard = ({ stat }) => {
   );
 
   return (
-    // Base card styling
     <div className="bg-white rounded-2xl shadow-lg p-5 sm:p-6 border border-gray-100 h-full flex flex-col justify-between overflow-hidden relative">
-      {/* Dynamic Colored Border (left-side) */}
       <div
         className={`absolute top-0 left-0 bottom-0 w-2 rounded-l-2xl`}
         style={{
-          background: `linear-gradient(to bottom, #fff, ${gradientEndColor})`, // White to a color for the soft blend
+          background: `linear-gradient(to bottom, #fff, ${gradientEndColor})`,
           opacity: 0.8,
         }}
       ></div>
-
-      {/* Content */}
       <div className="flex flex-col items-start space-y-2 relative z-10">
         <div className="flex items-center justify-between w-full">
-          {/* Title */}
           <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider min-w-0 pr-4">
             {title}
           </p>
-          {/* Icon */}
           <div
             className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0`}
             style={{
-              backgroundColor: `${iconColor}20`, // Light background for the icon
+              backgroundColor: `${iconColor}20`,
             }}
           >
             <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: iconColor }} />
           </div>
         </div>
-
-        {/* Value (Big Number) */}
         <p className={`text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mt-2 ${loading ? 'h-10' : ''}`}>
           {displayValue}
         </p>
@@ -161,28 +155,137 @@ const Card = ({ title, icon: Icon, children, gradient = "from-indigo-600 to-blue
 );
 
 // ------------------------------------
-// --- 2. MAIN DASHBOARD COMPONENT ---
+// --- REACT QUERY FETCH HOOKS ---
+// ------------------------------------
+
+// Combines the original fetchKpiStat and fetchAllKpiStatsConcurrently logic
+const useAllKpiStats = () => {
+    // React Query is designed for parallel fetching, so we only need one query
+    const { data: summaryData, isLoading: isSummaryLoading, isError: isSummaryError } = useQuery({
+        queryKey: ['kpiSummary'],
+        queryFn: async () => {
+            // Note: We skip the artificial delays as React Query is natively concurrent.
+            const { data } = await api.get("/analytics/dashboard/summary/");
+            return data;
+        },
+        // Using a short staleTime for fresh KPI data
+        staleTime: 60000, 
+    });
+
+    // We use useMemo to process the fetched data into the original kpiStats shape
+    const kpiStats = useMemo(() => {
+        const stats = {};
+        KPI_KEYS.forEach(config => {
+            let value = '-';
+            let loading = isSummaryLoading;
+
+            if (summaryData) {
+                loading = false;
+                if (config.key === 'avgTime') {
+                    value = summaryData.averageProcessingTime
+                        ? `${summaryData.averageProcessingTime} mins`
+                        : "N/A";
+                } else if (config.key === 'today') {
+                    // Note: Since all keys fetch the same summary endpoint, 
+                    // this logic assumes the backend returns all daily/weekly/monthly values in one payload.
+                    value = summaryData.dailyApplicants ?? 0;
+                } else if (config.key === 'weekly') {
+                    value = summaryData.weeklyApplicants ?? 0;
+                } else if (config.key === 'monthly') {
+                    value = summaryData.monthlyApplicants ?? 0;
+                }
+            }
+            
+            // If there's a fetching error, display 'Error'
+            if (isSummaryError && !loading) {
+                 value = 'Error';
+            }
+
+            stats[config.key] = {
+                ...config,
+                value: value,
+                loading: loading,
+            };
+        });
+        return stats;
+    }, [summaryData, isSummaryLoading, isSummaryError]);
+
+    return { kpiStats, isLoading: isSummaryLoading, isError: isSummaryError };
+};
+
+
+// Combines the rest of the 'fetchContentData' logic into concurrent React Query hooks
+const useDashboardContent = () => {
+    // This is equivalent to the original Promise.all for the content data
+    const results = useQueries({
+        queries: [
+            { queryKey: ['totals'], queryFn: async () => (await api.get("/analytics/dashboard/total-applicants/")).data || {}, staleTime: 5 * 60000 },
+            { queryKey: ['growth'], queryFn: async () => (await api.get("/analytics/dashboard/growth-rate/")).data || {}, staleTime: 5 * 60000 },
+            { queryKey: ['monthlyTrend'], queryFn: async () => (await api.get("/analytics/trends/monthly/")).data || [], staleTime: 5 * 60000 },
+            { queryKey: ['staffActivity'], queryFn: async () => (await api.get("/analytics/performance/staff-leaderboard/")).data || [], staleTime: 5 * 60000 },
+            { queryKey: ['recentApplicants'], queryFn: async () => {
+                const res = await api.get("/recent_applicants/");
+                return res.data?.results || res.data || [];
+            }, staleTime: 5 * 60000 },
+        ]
+    });
+
+    // Match the original variable names
+    const [totals, growth, monthlyTrend, staffActivity, recentApplicants] = results;
+    
+    // The original `isChartLoading` logic (which included lists/charts)
+    const isChartLoading = results.some(r => r.isLoading);
+
+    // Error handling to match the original toast logic
+    results.forEach(res => {
+        if (res.isError) {
+            console.error("Dashboard content fetch error:", res.error);
+            // This ensures the toast shows only once per query failure
+            if (!toast.current) { 
+                toast.error("Failed to load dashboard data. Check API connections.", {
+                    style: { background: "#1e293b", color: "#f1f5f9", border: "1px solid #334155" },
+                });
+                toast.current = true; // Simple debounce to prevent flood
+                setTimeout(() => toast.current = false, 5000); 
+            }
+        }
+    });
+
+    return {
+        totals: totals.data,
+        growth: growth.data,
+        monthlyTrend: monthlyTrend.data,
+        staffActivity: staffActivity.data,
+        recentApplicants: recentApplicants.data,
+        isChartLoading: isChartLoading,
+    };
+};
+
+
+// ------------------------------------
+// --- MAIN DASHBOARD COMPONENT ---
 // ------------------------------------
 
 const Dashboard = () => {
-  // Data States
-  const [summary, setSummary] = useState(null);
-  const [totals, setTotals] = useState(null); 
-  const [growth, setGrowth] = useState(null);
-  const [monthlyTrend, setMonthlyTrend] = useState([]);
-  const [staffActivity, setStaffActivity] = useState(null);
-  const [recentApplicants, setRecentApplicants] = useState(null);
+  // Use React Query hooks
+  const { kpiStats, isLoading: isKpiLoading } = useAllKpiStats();
+  const { 
+    totals, 
+    growth, 
+    monthlyTrend, 
+    staffActivity, 
+    recentApplicants, 
+    isChartLoading 
+  } = useDashboardContent();
 
-  // --- MODIFICATION 1: New state for concurrent KPI loading ---
-  const [kpiStats, setKpiStats] = useState(initialKpiStats);
-
-  // Analytics Data States
-  const [typeBreakdown, setTypeBreakdown] = useState([]);
-  const [statusFunnel, setStatusFunnel] = useState([]);
-
-  // Use separate loading states for granular control
-  // isKPILoading is now replaced by individual loading states in kpiStats
-  const [isChartLoading, setIsChartLoading] = useState(true);
+  // The original component had these empty states but they are now redundant with React Query data.
+  // We keep the declaration for variable name consistency, but they won't be used for state.
+  const summary = null;
+  const typeBreakdown = [];
+  const statusFunnel = [];
+  
+  // Clean up original logic - React Query manages the fetching and loading, 
+  // so the original `useEffect` with `fetchAllKpiStatsConcurrently` and `fetchContentData` is removed.
 
   useEffect(() => {
     document.title = "QuickAid | Dashboard";
@@ -190,105 +293,6 @@ const Dashboard = () => {
       document.title = "QuickAid | Home";
     };
   }, []);
-
-  // --- MODIFICATION 2: Function to fetch a single KPI with random delay ---
-  const fetchKpiStat = useCallback(async (key, endpoint, minDelay = 200, maxDelay = 1500) => {
-    try {
-      // 1. Simulate varying network delay for non-sequential loading (Fastest first)
-      const delay = Math.random() * (maxDelay - minDelay) + minDelay;
-      await new Promise(resolve => setTimeout(resolve, delay));
-      
-      // 2. Fetch data (This endpoint should ideally return a single value)
-      const res = await api.get(endpoint);
-      const data = res.data;
-      
-      let fetchedValue;
-      if (key === 'avgTime') {
-        fetchedValue = data.averageProcessingTime 
-        ? `${data.averageProcessingTime} mins`
-        : "N/A";
-      } else {
-        // Assuming the response key is named 'count' or similar
-        fetchedValue = data.dailyApplicants ?? data.weeklyApplicants ?? data.monthlyApplicants ?? 0;
-      }
-
-      // 3. Update the state for its specific key immediately upon resolution
-      setKpiStats(prev => ({
-        ...prev,
-        [key]: { ...prev[key], value: fetchedValue, loading: false },
-      }));
-
-    } catch (err) {
-      console.error(`KPI fetch error for ${key}:`, err);
-      // Fallback on error to 'Error'
-      setKpiStats(prev => ({
-        ...prev,
-        [key]: { ...prev[key], value: 'Error', loading: false },
-      }));
-    }
-  }, []);
-
-  // --- MODIFICATION 3: New concurrent fetch function ---
-  const fetchAllKpiStatsConcurrently = useCallback(async () => {
-    // Reset all stats to loading
-    setKpiStats(initialKpiStats);
-    
-    // Define all promises to run concurrently
-    const todayPromise = fetchKpiStat('today', "/analytics/dashboard/summary/");
-    const weeklyPromise = fetchKpiStat('weekly', "/analytics/dashboard/summary/");
-    const monthlyPromise = fetchKpiStat('monthly', "/analytics/dashboard/summary/");
-    const avgTimePromise = fetchKpiStat('avgTime', "/analytics/dashboard/summary/");
-    
-    // Wait for all promises to settle. The setKpiStats inside fetchKpiStat 
-    // will update the UI in the order they resolve (fastest first).
-    await Promise.allSettled([todayPromise, weeklyPromise, monthlyPromise, avgTimePromise]);
-  }, [fetchKpiStat]);
-  
-  // Function to fetch the rest of the dashboard data (Slower Loading Content)
-  const fetchContentData = useCallback(async () => {
-    setIsChartLoading(true);
-    try {
-      const [
-        totalsRes,
-        growthRes,
-        monthlyRes,
-        staffRes,
-        recentRes,
-      ] = await Promise.all([
-        api.get("/analytics/dashboard/total-applicants/"),
-        api.get("/analytics/dashboard/growth-rate/"),
-        api.get("/analytics/trends/monthly/"),
-        api.get("/analytics/performance/staff-leaderboard/"),
-        api.get("/recent_applicants/"),
-      ]);
-
-      setTotals(totalsRes.data || {});
-      setGrowth(growthRes.data || {});
-      setMonthlyTrend(monthlyRes.data || []);
-      setStaffActivity(staffRes.data || []);
-      setRecentApplicants(recentRes.data?.results || recentRes.data || []);
-
-      // NOTE: Setting these to empty array/default to reflect they are not displayed
-      setTypeBreakdown([]);
-      setStatusFunnel([]);
-
-    } catch (err) {
-      console.error("Dashboard content fetch error:", err);
-      toast.error("Failed to load dashboard data. Check API connections.", {
-        style: { background: "#1e293b", color: "#f1f5f9", border: "1px solid #334155" },
-      });
-    } finally {
-      // Use a slightly longer timeout for chart/list content loading to show the skeleton effect
-      setTimeout(() => setIsChartLoading(false), 800); 
-    }
-  }, []);
-
-
-  useEffect(() => {
-    fetchAllKpiStatsConcurrently(); // Fetch KPi stats concurrently for non-sequential loading
-    fetchContentData();
-  }, [fetchAllKpiStatsConcurrently, fetchContentData]);
-
 
   const formatDate = dateString => {
     const date = new Date(dateString);
@@ -318,8 +322,8 @@ const Dashboard = () => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-xl text-sm">
-          {/* Recharts uses 'name' for the category, which is correct for both charts */}
-          <p className="font-semibold text-gray-800">{payload[0].payload.name}</p>
+          {/* We assume the dataKey for recharts is correct, so using 'name' or 'month' */}
+          <p className="font-semibold text-gray-800">{payload[0].payload.month || payload[0].payload.name}</p> 
           <p className="text-blue-600">
             Total: <span className="font-bold">{payload[0].value.toLocaleString()}</span>
           </p>
@@ -347,30 +351,22 @@ const Dashboard = () => {
           </div>
         </div>
       </header>
-
-      {/* 2. KPI Cards (Now renders based on kpiStats state) */}
+      
+      {/* 2. KPI Cards (Using data derived from useAllKpiStats) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        
-        {/* Card 1: Today's Applicants */}
+        {/* We map over the processed kpiStats object */}
         <SimpleStatCard stat={kpiStats.today} />
-
-        {/* Card 2: Weekly Applicants */}
         <SimpleStatCard stat={kpiStats.weekly} />
-        
-        {/* Card 3: Monthly Applicants */}
         <SimpleStatCard stat={kpiStats.monthly} />
-
-        {/* Card 4: Avg. Processing Time */}
         <SimpleStatCard stat={kpiStats.avgTime} />
-
       </div>
 
-      {/* 3. Application Analytics */}
+      {/* 3. Application Analytics (Empty Section) */}
       <div className="grid grid-cols-1">
         {/* Empty section for removed charts */}
       </div>
 
-      {/* 4. Monthly Trend Chart (Uses Chart Skeleton while loading) */}
+      {/* 4. Monthly Trend Chart (Uses isChartLoading, which includes monthlyTrend's loading state) */}
       <Card
         title="Monthly Application Volume"
         icon={TrendingUp}
@@ -385,8 +381,8 @@ const Dashboard = () => {
             </p>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <RechartsLineChart // Use the renamed component
-                  data={monthlyTrend}
+                <RechartsLineChart 
+                  data={monthlyTrend} // Directly using data from hook
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
                   <defs>
@@ -413,6 +409,7 @@ const Dashboard = () => {
                     }}
                     labelStyle={{ color: "#1f2937", fontWeight: "700" }}
                     formatter={value => [value.toLocaleString(), "Applications"]}
+                    content={CustomTooltip}
                   />
                   <Line
                     type="monotone"
@@ -429,7 +426,7 @@ const Dashboard = () => {
         )}
       </Card>
 
-      {/* 5. Staff Activity + Recent Applicants Grid (Uses List Skeleton while loading) */}
+      {/* 5. Staff Activity + Recent Applicants Grid (Uses isChartLoading for list skeletons) */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
         <div className="lg:col-span-2">
           <Card
@@ -439,7 +436,7 @@ const Dashboard = () => {
           >
             {isChartLoading ? ( // Use isChartLoading for this section
               <ListSkeleton items={5} />
-            ) : staffActivity && staffActivity.length > 0 ? (
+            ) : staffActivity && staffActivity.length > 0 ? ( // Use data from hook
               <ul className="space-y-3">
                 {staffActivity.slice(0, 5).map((s, i) => (
                   <li
@@ -499,7 +496,7 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {(recentApplicants &&
+                    {(recentApplicants && // Use data from hook
                       recentApplicants.slice(0, 5).map((a, idx) => (
                         <tr
                           key={idx}

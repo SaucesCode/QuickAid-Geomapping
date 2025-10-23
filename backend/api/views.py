@@ -23,6 +23,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.timezone import now, timedelta
+from .models import Applicant
 
 # Django REST Framework
 from rest_framework import status
@@ -1114,21 +1115,24 @@ def summary_metrics(request):
 def total_applicants(request):
     """
     📊 Dashboard: Applicant counts
-    - Daily, weekly, monthly totals
+    - Daily, weekly, monthly, and total
     """
     today = timezone.now().date()
     start_of_week = today - timedelta(days=today.weekday())
     start_of_month = today.replace(day=1)
 
-    applicants = Applicant.objects.all()
+    # Only include active (non-archived) applicants
+    applicants = Applicant.objects.filter(is_archived=False)
 
     data = {
-        'daily': applicants.filter(date_filled__date=today).count(),
-        'weekly': applicants.filter(date_filled__date__gte=start_of_week).count(),
-        'monthly': applicants.filter(date_filled__date__gte=start_of_month).count()
+        "total": applicants.count(),
+        "daily": applicants.filter(date_filled__date=today).count(),
+        "weekly": applicants.filter(date_filled__date__gte=start_of_week).count(),
+        "monthly": applicants.filter(date_filled__date__gte=start_of_month).count(),
     }
 
     return Response(data)
+
 
 
 @api_view(['GET'])
