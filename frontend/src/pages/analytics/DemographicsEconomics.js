@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
   BarChart,
@@ -29,10 +30,10 @@ import {
 } from "lucide-react";
 
 // Fallback skeleton loader component for charts and lists
-const SkeletonLoader = ({ height = 300, type = 'chart' }) => {
+const SkeletonLoader = ({ height = 300, type = "chart" }) => {
   // Styles for different types of skeletons
   const chartSkeleton = <div className="h-full w-full bg-gray-200 rounded-lg"></div>;
-  
+
   const statSkeleton = (
     <div className="space-y-2 p-1">
       <div className="h-6 w-3/4 bg-gray-200 rounded"></div>
@@ -50,13 +51,13 @@ const SkeletonLoader = ({ height = 300, type = 'chart' }) => {
 
   let content;
   switch (type) {
-    case 'stat':
+    case "stat":
       content = statSkeleton;
       break;
-    case 'list':
+    case "list":
       content = listSkeleton;
       break;
-    case 'chart':
+    case "chart":
     default:
       content = chartSkeleton;
       break;
@@ -64,36 +65,76 @@ const SkeletonLoader = ({ height = 300, type = 'chart' }) => {
 
   return (
     <div
-      className={`animate-pulse bg-gray-100 rounded-xl ${type === 'chart' ? 'p-4' : 'p-3'}`}
-      style={{ height: type !== 'stat' ? height : 'auto' }}
+      className={`animate-pulse bg-gray-100 rounded-xl ${type === "chart" ? "p-4" : "p-3"}`}
+      style={{ height: type !== "stat" ? height : "auto" }}
     >
       {content}
     </div>
   );
 };
 
-
 const DemographicsEconomics = () => {
-  const [genderData, setGenderData] = useState([]);
-  const [civilStatusData, setCivilStatusData] = useState([]);
-  const [ageGroupData, setAgeGroupData] = useState([]);
-  const [occupationData, setOccupationData] = useState([]);
-  const [ageGenderData, setAgeGenderData] = useState([]);
-  const [incomeDistribution, setIncomeDistribution] = useState([]);
-
-  const [loadingStates, setLoadingStates] = useState({
-    gender: true,
-    civilStatus: true,
-    ageGroup: true,
-    occupation: true,
-    ageGender: true,
-    income: true,
-  });
   const [error, setError] = useState(null);
+  const fetchData = async url => {
+    const res = await api.get(url);
+    return res.data;
+  };
 
-  const setSectionLoaded = (section) =>
-    setLoadingStates((prev) => ({ ...prev, [section]: false }));
+  const { data: genderData = [], isLoading: genderLoading } = useQuery({
+    queryKey: ["demographics", "gender"],
+    queryFn: () => fetchData("/analytics/demographics/gender/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
 
+  // Civil Status
+  const { data: civilStatusData = [], isLoading: civilStatusLoading } = useQuery({
+    queryKey: ["demographics", "civil-status"],
+    queryFn: () => fetchData("/analytics/demographics/civil-status/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+
+  // Age Groups
+  const { data: ageGroupData = [], isLoading: ageGroupLoading } = useQuery({
+    queryKey: ["demographics", "age-groups"],
+    queryFn: () => fetchData("/analytics/demographics/age-groups/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+
+  // Occupation
+  const { data: occupationData = [], isLoading: occupationLoading } = useQuery({
+    queryKey: ["demographics", "occupation"],
+    queryFn: () => fetchData("/analytics/demographics/occupation/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+
+  // Age by Gender
+  const { data: ageGenderData = [], isLoading: ageGenderLoading } = useQuery({
+    queryKey: ["demographics", "age-gender"],
+    queryFn: () => fetchData("/analytics/demographics/age-gender/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+
+  // Income Distribution
+  const { data: incomeDistribution = [], isLoading: incomeLoading } = useQuery({
+    queryKey: ["economics", "income-distribution"],
+    queryFn: () => fetchData("/analytics/economics/income-distribution/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+
+  const loadingStates = {
+    gender: genderLoading,
+    civilStatus: civilStatusLoading,
+    ageGroup: ageGroupLoading,
+    occupation: occupationLoading,
+    ageGender: ageGenderLoading,
+    income: incomeLoading,
+  };
 
   // Color palettes
   const GENDER_COLORS = ["#3B82F6", "#EC4899", "#10B981", "#F59E0B"];
@@ -108,58 +149,75 @@ const DemographicsEconomics = () => {
     "#99CCFF",
     "#FFB366",
   ];
-  
+
   // Fetch per section
-  useEffect(() => {
-  // Independent section fetcher
-  const fetchSection = async (key, apiCall, setData, transformFn = null) => {
-    try {
-      const res = await apiCall();
-      let data = res.data || [];
-      if (transformFn) data = transformFn(data);
-      setData(data);
-      setLoadingStates((prev) => ({ ...prev, [key]: false }));
-    } catch (err) {
-      console.error(`Error fetching ${key}:`, err);
-      // keep loading spinner forever if it fails
-    }
-  };
+  // useEffect(() => {
+  //   const fetchSection = async (key, apiCall, setData, transformFn = null) => {
+  //     try {
+  //       const res = await apiCall();
+  //       let data = res.data || [];
+  //       if (transformFn) data = transformFn(data);
+  //       setData(data);
+  //       setLoadingStates(prev => ({ ...prev, [key]: false }));
+  //     } catch (err) {
+  //       console.error(`Error fetching ${key}:`, err);
+  //       // keep loading spinner forever if it fails
+  //     }
+  //   };
 
-  // All calls start at once (parallel)
-  fetchSection("gender", () => api.get("/analytics/demographics/gender/"), setGenderData);
-  fetchSection("civilStatus", () => api.get("/analytics/demographics/civil-status/"), setCivilStatusData);
-  fetchSection("ageGroup", () => api.get("/analytics/demographics/age-group/"), setAgeGroupData);
-  fetchSection("occupation", () => api.get("/analytics/economics/occupation/"), setOccupationData);
-  fetchSection("ageGender", () => api.get("/analytics/demographics/age-gender/"), setAgeGenderData);
-  fetchSection("income", () => api.get("/analytics/economics/income/"), setIncomeDistribution);
-}, []);
-
-
+  //   // All calls start at once (parallel)
+  //   fetchSection("gender", () => api.get("/analytics/demographics/gender/"), setGenderData);
+  //   fetchSection(
+  //     "civilStatus",
+  //     () => api.get("/analytics/demographics/civil-status/"),
+  //     setCivilStatusData
+  //   );
+  //   fetchSection(
+  //     "ageGroup",
+  //     () => api.get("analytics/demographics/age-groups/"),
+  //     setAgeGroupData
+  //   );
+  //   fetchSection(
+  //     "occupation",
+  //     () => api.get("/analytics/demographics/occupation/"),
+  //     setOccupationData
+  //   );
+  //   fetchSection(
+  //     "ageGender",
+  //     () => api.get("/analytics/demographics/age-gender/"),
+  //     setAgeGenderData
+  //   );
+  //   fetchSection(
+  //     "income",
+  //     () => api.get("/analytics/economics/income-distribution/"),
+  //     setIncomeDistribution
+  //   );
+  // }, []);
 
   // Data transformations
-  const transformGenderData = (data) =>
-    data.map((item) => ({
+  const transformGenderData = data =>
+    data.map(item => ({
       gender: item.background_info__sex || item.sex || "Unknown",
       count: item.count,
     }));
 
-  const transformCivilStatusData = (data) =>
-    data.map((item) => ({
+  const transformCivilStatusData = data =>
+    data.map(item => ({
       status: item.background_info__civil_status || item.civil_status || "Unknown",
       count: item.count,
     }));
 
-  const transformOccupationData = (data) =>
+  const transformOccupationData = data =>
     data
-      .filter((item) => item.occupation)
+      .filter(item => item.occupation)
       .slice(0, 10)
-      .map((item) => ({
+      .map(item => ({
         occupation: item.occupation,
         count: item.count,
       }));
 
-  const transformAgeGenderData = (data) =>
-    data.map((item) => ({
+  const transformAgeGenderData = data =>
+    data.map(item => ({
       gender: item.background_info__sex || item.sex || "Unknown",
       "Under 18": item.under18 || 0,
       "18-35": item.between18_35 || 0,
@@ -197,13 +255,13 @@ const DemographicsEconomics = () => {
           <p className="text-gray-600 text-sm font-medium">{title}</p>
           {isLoading ? (
             <div className="mt-1 space-y-2">
-                <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse"></div>
-                {subtitle && <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>}
+              <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+              {subtitle && <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>}
             </div>
           ) : (
             <>
-                <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
-                {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+              <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
+              {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
             </>
           )}
         </div>
@@ -223,45 +281,49 @@ const DemographicsEconomics = () => {
   const isGenderLoaded = !loadingStates.gender;
   const isOccupationLoaded = !loadingStates.occupation;
   const isIncomeLoaded = !loadingStates.income;
-  
-  const totalApplicants = isGenderLoaded ? transformedGenderData.reduce((s, i) => s + i.count, 0) : '...';
-  const dominantGender = isGenderLoaded
-    ? transformedGenderData.reduce(
-        (p, c) => (p.count > c.count ? p : c),
-        { count: 0, gender: "N/A" }
-      )
-    : { count: '...', gender: '...' };
 
-  const topOccupation = isOccupationLoaded ? transformedOccupationData[0] : { occupation: '...', count: '...' };
-  const totalIncome = isIncomeLoaded ? incomeDistribution.reduce((s, i) => s + i.count, 0) : '...';
+  const totalApplicants = isGenderLoaded
+    ? transformedGenderData.reduce((s, i) => s + i.count, 0)
+    : "...";
+  const dominantGender = isGenderLoaded
+    ? transformedGenderData.reduce((p, c) => (p.count > c.count ? p : c), {
+        count: 0,
+        gender: "N/A",
+      })
+    : { count: "...", gender: "..." };
+
+  const topOccupation = isOccupationLoaded
+    ? transformedOccupationData[0]
+    : { occupation: "...", count: "..." };
+  const totalIncome = isIncomeLoaded
+    ? incomeDistribution.reduce((s, i) => s + i.count, 0)
+    : "...";
 
   if (error) {
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-red-50 to-indigo-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 left-20 w-72 h-72 bg-red-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-          </div>
-  
-          <div className="relative z-10 bg-white p-10 rounded-3xl shadow-2xl border border-red-200 max-w-md w-full mx-4">
-            <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl mx-auto mb-6 shadow-lg">
-              <AlertCircle className="h-10 w-10 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
-              Error Loading Data
-            </h3>
-            <p className="text-gray-600 mb-6 leading-relaxed">
-              {error || "Failed to fetch trends data. Please try again later."}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-            >
-              Retry
-            </button>
-          </div>
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-red-50 to-indigo-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-red-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
         </div>
-      );
-    }
+
+        <div className="relative z-10 bg-white p-10 rounded-3xl shadow-2xl border border-red-200 max-w-md w-full mx-4">
+          <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl mx-auto mb-6 shadow-lg">
+            <AlertCircle className="h-10 w-10 text-white" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">Error Loading Data</h3>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            {error || "Failed to fetch trends data. Please try again later."}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -281,7 +343,11 @@ const DemographicsEconomics = () => {
           <StatCard
             icon={Users}
             title="Total Applicants"
-            value={typeof totalApplicants === 'number' ? totalApplicants.toLocaleString() : totalApplicants}
+            value={
+              typeof totalApplicants === "number"
+                ? totalApplicants.toLocaleString()
+                : totalApplicants
+            }
             subtitle="Across all demographics"
             color="#3B82F6"
             isLoading={!isGenderLoaded}
@@ -290,7 +356,11 @@ const DemographicsEconomics = () => {
             icon={UserCheck}
             title="Dominant Gender"
             value={dominantGender.gender || "N/A"}
-            subtitle={`${typeof dominantGender.count === 'number' ? dominantGender.count.toLocaleString() : dominantGender.count} applications`}
+            subtitle={`${
+              typeof dominantGender.count === "number"
+                ? dominantGender.count.toLocaleString()
+                : dominantGender.count
+            } applications`}
             color="#EC4899"
             isLoading={!isGenderLoaded}
           />
@@ -298,14 +368,20 @@ const DemographicsEconomics = () => {
             icon={Briefcase}
             title="Top Occupation"
             value={topOccupation?.occupation || "N/A"}
-            subtitle={`${typeof topOccupation?.count === 'number' ? topOccupation?.count.toLocaleString() : topOccupation?.count || 0} applicants`}
+            subtitle={`${
+              typeof topOccupation?.count === "number"
+                ? topOccupation?.count.toLocaleString()
+                : topOccupation?.count || 0
+            } applicants`}
             color="#10B981"
             isLoading={!isOccupationLoaded}
           />
           <StatCard
             icon={DollarSign}
             title="Income Profiles"
-            value={typeof totalIncome === 'number' ? totalIncome.toLocaleString() : totalIncome}
+            value={
+              typeof totalIncome === "number" ? totalIncome.toLocaleString() : totalIncome
+            }
             subtitle="Total with income data"
             color="#F59E0B"
             isLoading={!isIncomeLoaded}
@@ -336,7 +412,7 @@ const DemographicsEconomics = () => {
                       <Cell key={i} fill={GENDER_COLORS[i % GENDER_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v) => [v, "Count"]} />
+                  <Tooltip formatter={v => [v, "Count"]} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -354,7 +430,13 @@ const DemographicsEconomics = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={transformedCivilStatusData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="status" angle={-45} textAnchor="end" height={80} fontSize={12} />
+                  <XAxis
+                    dataKey="status"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    fontSize={12}
+                  />
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="count" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
@@ -460,7 +542,7 @@ const DemographicsEconomics = () => {
                     fontSize={10}
                   />
                   <YAxis />
-                  <Tooltip formatter={(v) => [v, "Applicants"]} />
+                  <Tooltip formatter={v => [v, "Applicants"]} />
                   <Bar dataKey="count" fill="#F59E0B" radius={[4, 4, 0, 0]}>
                     {incomeDistribution.map((e, i) => (
                       <Cell key={i} fill={INCOME_COLORS[i % INCOME_COLORS.length]} />
@@ -479,35 +561,36 @@ const DemographicsEconomics = () => {
             <div className="bg-blue-50 rounded-lg p-4">
               <h3 className="font-semibold text-blue-800 mb-2">Gender Balance</h3>
               {isGenderLoaded ? (
-                  <p className="text-blue-700 text-sm">
-                      **{dominantGender.gender}** applicants represent the majority with{" "}
-                      {dominantGender.count.toLocaleString()} applications
-                  </p>
+                <p className="text-blue-700 text-sm">
+                  **{dominantGender.gender}** applicants represent the majority with{" "}
+                  {dominantGender.count.toLocaleString()} applications
+                </p>
               ) : (
-                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               )}
             </div>
 
             <div className="bg-green-50 rounded-lg p-4">
               <h3 className="font-semibold text-green-800 mb-2">Employment Patterns</h3>
               {isOccupationLoaded ? (
-                  <p className="text-green-700 text-sm">
-                      **{topOccupation?.occupation || "Various occupations"}** is the most common
-                      occupation among applicants
-                  </p>
+                <p className="text-green-700 text-sm">
+                  **{topOccupation?.occupation || "Various occupations"}** is the most common
+                  occupation among applicants
+                </p>
               ) : (
-                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               )}
             </div>
 
             <div className="bg-yellow-50 rounded-lg p-4">
               <h3 className="font-semibold text-yellow-800 mb-2">Economic Profile</h3>
               {isIncomeLoaded ? (
-                  <p className="text-yellow-700 text-sm">
-                      Total of **{totalIncome.toLocaleString()}** applicants provided income data, showing varied economic backgrounds.
-                  </p>
+                <p className="text-yellow-700 text-sm">
+                  Total of **{totalIncome.toLocaleString()}** applicants provided income data,
+                  showing varied economic backgrounds.
+                </p>
               ) : (
-                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               )}
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import toast from "react-hot-toast";
 import {
@@ -49,12 +50,39 @@ const STATUS_COLORS = {
 
 // --- INITIAL STATE FOR CONCURRENT KPI LOADING ---
 const initialKpiStats = {
-  today: { value: '-', loading: true, title: "TODAY'S APPLICANTS", icon: Calendar, iconColor: "#06b6d4", gradientEndColor: "#06b6d4" },
-  weekly: { value: '-', loading: true, title: "WEEKLY APPLICANTS", icon: BarChart2, iconColor: "#8b5cf6", gradientEndColor: "#8b5cf6" },
-  monthly: { value: '-', loading: true, title: "MONTHLY APPLICANTS", icon: LineChart, iconColor: "#3b82f6", gradientEndColor: "#3b82f6" },
-  avgTime: { value: '-', loading: true, title: "AVG. PROCESSING TIME", icon: Clock, iconColor: "#06b6d4", gradientEndColor: "#06b6d4" },
+  today: {
+    value: "-",
+    loading: true,
+    title: "TODAY'S APPLICANTS",
+    icon: Calendar,
+    iconColor: "#06b6d4",
+    gradientEndColor: "#06b6d4",
+  },
+  weekly: {
+    value: "-",
+    loading: true,
+    title: "WEEKLY APPLICANTS",
+    icon: BarChart2,
+    iconColor: "#8b5cf6",
+    gradientEndColor: "#8b5cf6",
+  },
+  monthly: {
+    value: "-",
+    loading: true,
+    title: "MONTHLY APPLICANTS",
+    icon: LineChart,
+    iconColor: "#3b82f6",
+    gradientEndColor: "#3b82f6",
+  },
+  avgTime: {
+    value: "-",
+    loading: true,
+    title: "AVG. PROCESSING TIME",
+    icon: Clock,
+    iconColor: "#06b6d4",
+    gradientEndColor: "#06b6d4",
+  },
 };
-
 
 // --- NEW COMPONENT FOR THE IMAGE STATS (MODIFIED TO PULL FROM STATE) ---
 const SimpleStatCard = ({ stat }) => {
@@ -63,8 +91,10 @@ const SimpleStatCard = ({ stat }) => {
   // Determine display value
   const displayValue = loading ? (
     <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 animate-spin" />
+  ) : value === null || value === undefined ? (
+    "N/A"
   ) : (
-    value === null || value === undefined ? "N/A" : value.toLocaleString()
+    value.toLocaleString()
   );
 
   return (
@@ -98,7 +128,11 @@ const SimpleStatCard = ({ stat }) => {
         </div>
 
         {/* Value (Big Number) */}
-        <p className={`text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mt-2 ${loading ? 'h-10' : ''}`}>
+        <p
+          className={`text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mt-2 ${
+            loading ? "h-10" : ""
+          }`}
+        >
           {displayValue}
         </p>
       </div>
@@ -167,7 +201,7 @@ const Card = ({ title, icon: Icon, children, gradient = "from-indigo-600 to-blue
 const Dashboard = () => {
   // Data States
   const [summary, setSummary] = useState(null);
-  const [totals, setTotals] = useState(null); 
+  const [totals, setTotals] = useState(null);
   const [growth, setGrowth] = useState(null);
   const [monthlyTrend, setMonthlyTrend] = useState([]);
   const [staffActivity, setStaffActivity] = useState(null);
@@ -197,19 +231,20 @@ const Dashboard = () => {
       // 1. Simulate varying network delay for non-sequential loading (Fastest first)
       const delay = Math.random() * (maxDelay - minDelay) + minDelay;
       await new Promise(resolve => setTimeout(resolve, delay));
-      
+
       // 2. Fetch data (This endpoint should ideally return a single value)
       const res = await api.get(endpoint);
       const data = res.data;
-      
+
       let fetchedValue;
-      if (key === 'avgTime') {
-        fetchedValue = data.averageProcessingTime 
-        ? `${data.averageProcessingTime} mins`
-        : "N/A";
+      if (key === "avgTime") {
+        fetchedValue = data.averageProcessingTime
+          ? `${data.averageProcessingTime} mins`
+          : "N/A";
       } else {
         // Assuming the response key is named 'count' or similar
-        fetchedValue = data.dailyApplicants ?? data.weeklyApplicants ?? data.monthlyApplicants ?? 0;
+        fetchedValue =
+          data.dailyApplicants ?? data.weeklyApplicants ?? data.monthlyApplicants ?? 0;
       }
 
       // 3. Update the state for its specific key immediately upon resolution
@@ -217,13 +252,12 @@ const Dashboard = () => {
         ...prev,
         [key]: { ...prev[key], value: fetchedValue, loading: false },
       }));
-
     } catch (err) {
       console.error(`KPI fetch error for ${key}:`, err);
       // Fallback on error to 'Error'
       setKpiStats(prev => ({
         ...prev,
-        [key]: { ...prev[key], value: 'Error', loading: false },
+        [key]: { ...prev[key], value: "Error", loading: false },
       }));
     }
   }, []);
@@ -232,29 +266,23 @@ const Dashboard = () => {
   const fetchAllKpiStatsConcurrently = useCallback(async () => {
     // Reset all stats to loading
     setKpiStats(initialKpiStats);
-    
+
     // Define all promises to run concurrently
-    const todayPromise = fetchKpiStat('today', "/analytics/dashboard/summary/");
-    const weeklyPromise = fetchKpiStat('weekly', "/analytics/dashboard/summary/");
-    const monthlyPromise = fetchKpiStat('monthly', "/analytics/dashboard/summary/");
-    const avgTimePromise = fetchKpiStat('avgTime', "/analytics/dashboard/summary/");
-    
-    // Wait for all promises to settle. The setKpiStats inside fetchKpiStat 
+    const todayPromise = fetchKpiStat("today", "/analytics/dashboard/summary/");
+    const weeklyPromise = fetchKpiStat("weekly", "/analytics/dashboard/summary/");
+    const monthlyPromise = fetchKpiStat("monthly", "/analytics/dashboard/summary/");
+    const avgTimePromise = fetchKpiStat("avgTime", "/analytics/dashboard/summary/");
+
+    // Wait for all promises to settle. The setKpiStats inside fetchKpiStat
     // will update the UI in the order they resolve (fastest first).
     await Promise.allSettled([todayPromise, weeklyPromise, monthlyPromise, avgTimePromise]);
   }, [fetchKpiStat]);
-  
+
   // Function to fetch the rest of the dashboard data (Slower Loading Content)
   const fetchContentData = useCallback(async () => {
     setIsChartLoading(true);
     try {
-      const [
-        totalsRes,
-        growthRes,
-        monthlyRes,
-        staffRes,
-        recentRes,
-      ] = await Promise.all([
+      const [totalsRes, growthRes, monthlyRes, staffRes, recentRes] = await Promise.all([
         api.get("/analytics/dashboard/total-applicants/"),
         api.get("/analytics/dashboard/growth-rate/"),
         api.get("/analytics/trends/monthly/"),
@@ -271,7 +299,6 @@ const Dashboard = () => {
       // NOTE: Setting these to empty array/default to reflect they are not displayed
       setTypeBreakdown([]);
       setStatusFunnel([]);
-
     } catch (err) {
       console.error("Dashboard content fetch error:", err);
       toast.error("Failed to load dashboard data. Check API connections.", {
@@ -279,16 +306,14 @@ const Dashboard = () => {
       });
     } finally {
       // Use a slightly longer timeout for chart/list content loading to show the skeleton effect
-      setTimeout(() => setIsChartLoading(false), 800); 
+      setTimeout(() => setIsChartLoading(false), 800);
     }
   }, []);
-
 
   useEffect(() => {
     fetchAllKpiStatsConcurrently(); // Fetch KPi stats concurrently for non-sequential loading
     fetchContentData();
   }, [fetchAllKpiStatsConcurrently, fetchContentData]);
-
 
   const formatDate = dateString => {
     const date = new Date(dateString);
@@ -350,25 +375,21 @@ const Dashboard = () => {
 
       {/* 2. KPI Cards (Now renders based on kpiStats state) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        
         {/* Card 1: Today's Applicants */}
         <SimpleStatCard stat={kpiStats.today} />
 
         {/* Card 2: Weekly Applicants */}
         <SimpleStatCard stat={kpiStats.weekly} />
-        
+
         {/* Card 3: Monthly Applicants */}
         <SimpleStatCard stat={kpiStats.monthly} />
 
         {/* Card 4: Avg. Processing Time */}
         <SimpleStatCard stat={kpiStats.avgTime} />
-
       </div>
 
       {/* 3. Application Analytics */}
-      <div className="grid grid-cols-1">
-        {/* Empty section for removed charts */}
-      </div>
+      <div className="grid grid-cols-1">{/* Empty section for removed charts */}</div>
 
       {/* 4. Monthly Trend Chart (Uses Chart Skeleton while loading) */}
       <Card
