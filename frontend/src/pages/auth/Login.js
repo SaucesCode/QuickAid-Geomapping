@@ -15,8 +15,9 @@ import {
   Users,
 } from "lucide-react";
 import { loginStaff } from "../../services/api";
-import toast from "react-hot-toast"; // ✅ import toast
-import CustomToast from "../../components/CustomToast"; // ✅ import your custom toast
+import { api } from "../../services/api";
+import toast from "react-hot-toast";
+import CustomToast from "../../components/CustomToast";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -24,6 +25,9 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
+  const [sending, setSending] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,7 +37,7 @@ const Login = () => {
     };
   }, []);
 
-  const handleLogin = async (e) => {
+  const handleLogin = async e => {
     e.preventDefault();
     if (!username || !password) return;
     setIsLoading(true);
@@ -42,7 +46,7 @@ const Login = () => {
       await loginStaff(username, password);
 
       // ✅ Show custom toast after successful login
-      toast.custom((t) => <CustomToast t={t} type="login" />);
+      toast.custom(t => <CustomToast t={t} type="login" />);
 
       navigate("/dashboard");
     } catch (err) {
@@ -93,8 +97,8 @@ const Login = () => {
           </h1>
           <p className="text-lg text-blue-800 leading-relaxed">
             Sign in to continue managing QuickAid’s{" "}
-            <span className="font-semibold text-blue-900">AICS system</span>{" "}
-            with ease and efficiency.
+            <span className="font-semibold text-blue-900">AICS system</span> with ease and
+            efficiency.
           </p>
         </div>
       </div>
@@ -114,9 +118,7 @@ const Login = () => {
           {/* Login Card */}
           <div className="bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
             <div className="mb-8 text-center">
-              <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
-                Staff Login
-              </h2>
+              <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Staff Login</h2>
               <p className="text-gray-500 text-sm">
                 Enter your credentials to access your dashboard
               </p>
@@ -138,7 +140,7 @@ const Login = () => {
                     type="text"
                     placeholder="Enter your username"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={e => setUsername(e.target.value)}
                     required
                     className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   />
@@ -160,7 +162,7 @@ const Login = () => {
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={e => setPassword(e.target.value)}
                     required
                     className="w-full border border-gray-300 rounded-lg pl-10 pr-10 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   />
@@ -189,9 +191,7 @@ const Login = () => {
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
                   </div>
                 )}
-                <span className={isLoading ? "opacity-0" : "opacity-100"}>
-                  Log In
-                </span>
+                <span className={isLoading ? "opacity-0" : "opacity-100"}>Log In</span>
               </button>
             </form>
 
@@ -199,9 +199,13 @@ const Login = () => {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-500">
                 Having trouble?{" "}
-                <span className="text-blue-600 font-medium">
+                <button
+                  type="button"
+                  onClick={() => setShowContactModal(true)}
+                  className="text-blue-600 font-medium hover:underline"
+                >
                   Contact your administrator
-                </span>
+                </button>
               </p>
             </div>
           </div>
@@ -220,12 +224,8 @@ const Login = () => {
             </button>
             <div className="flex flex-col items-center text-center">
               <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                Login Failed
-              </h3>
-              <p className="text-sm text-gray-600">
-                Invalid credentials. Please try again.
-              </p>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Login Failed</h3>
+              <p className="text-sm text-gray-600">Invalid credentials. Please try again.</p>
               <button
                 onClick={() => setShowModal(false)}
                 className="mt-6 w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition"
@@ -233,6 +233,78 @@ const Login = () => {
                 Try Again
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {showContactModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 relative">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+              onClick={() => setShowContactModal(false)}
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+              Contact Administrator
+            </h3>
+
+            <form
+              onSubmit={async e => {
+                e.preventDefault();
+                setSending(true);
+                try {
+                  await api.post("/contact-admin/", contactForm);
+                  toast.success("Message sent successfully!");
+                  setContactForm({ name: "", email: "", message: "" });
+                  setShowContactModal(false);
+                } catch {
+                  toast.error("Failed to send message. Try again later.");
+                } finally {
+                  setSending(false);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={contactForm.name}
+                  onChange={e => setContactForm({ ...contactForm, name: e.target.value })}
+                  required
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <input
+                  type="email"
+                  placeholder="Your email"
+                  value={contactForm.email}
+                  onChange={e => setContactForm({ ...contactForm, email: e.target.value })}
+                  required
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <textarea
+                  placeholder="Describe your issue..."
+                  value={contactForm.message}
+                  onChange={e => setContactForm({ ...contactForm, message: e.target.value })}
+                  required
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={sending}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 font-medium transition"
+              >
+                {sending ? "Sending..." : "Send Message"}
+              </button>
+            </form>
           </div>
         </div>
       )}

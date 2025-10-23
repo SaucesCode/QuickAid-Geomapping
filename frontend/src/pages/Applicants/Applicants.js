@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "../../utils/FormatDate";
@@ -50,9 +51,27 @@ const csvHeaders = [
 // Define a placeholder for the stats data structure
 const initialStats = {
   total: { value: 0, loading: true, color: "blue", icon: Users, title: "Total Applicants" },
-  medical: { value: 0, loading: true, color: "amber", icon: Stethoscope, title: "Medical Assistance" },
-  educational: { value: 0, loading: true, color: "emerald", icon: GraduationCap, title: "Educational Assistance" },
-  burial: { value: 0, loading: true, color: "violet", icon: Heart, title: "Burial Assistance" },
+  medical: {
+    value: 0,
+    loading: true,
+    color: "amber",
+    icon: Stethoscope,
+    title: "Medical Assistance",
+  },
+  educational: {
+    value: 0,
+    loading: true,
+    color: "emerald",
+    icon: GraduationCap,
+    title: "Educational Assistance",
+  },
+  burial: {
+    value: 0,
+    loading: true,
+    color: "violet",
+    icon: Heart,
+    title: "Burial Assistance",
+  },
 };
 
 const Applicants = () => {
@@ -68,7 +87,7 @@ const Applicants = () => {
   const [archiveModal, setArchiveModal] = useState({ show: false, applicantId: null });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   // New state for concurrent stats loading
   const [stats, setStats] = useState(initialStats);
   const navigate = useNavigate();
@@ -107,17 +126,17 @@ const Applicants = () => {
       // 1. Simulate varying network delay
       const delay = Math.random() * (maxDelay - minDelay) + minDelay;
       await new Promise(resolve => setTimeout(resolve, delay));
-      
+
       // 2. Fetch data (Simulated call by fetching all and calculating locally)
       // In a real app, this would be a quick call to a dedicated count endpoint.
       const res = await api.get("/applicants/");
       const allApplicants = res.data.results || [];
-      
+
       let count = 0;
-      if (key === 'total') {
+      if (key === "total") {
         count = allApplicants.length;
       } else {
-        const assistanceType = stats[key].title.split(' ')[0]; // Medical, Educational, Burial
+        const assistanceType = stats[key].title.split(" ")[0]; // Medical, Educational, Burial
         count = allApplicants.filter(a => a.type_of_assistance === assistanceType).length;
       }
 
@@ -128,32 +147,30 @@ const Applicants = () => {
       }));
 
       return { key, count };
-
     } catch (err) {
       console.error(`Fetch for ${key} failed:`, err);
       setStats(prev => ({
         ...prev,
-        [key]: { ...prev[key], loading: false, value: 'Error' },
+        [key]: { ...prev[key], loading: false, value: "Error" },
       }));
     }
-  }, [stats]);
-
+  }, []);
 
   const fetchAllStatsConcurrently = useCallback(() => {
     // Reset all stats to loading
     setStats(initialStats);
-    
+
     // Define all promises to run concurrently
-    const totalPromise = fetchStat('total', '/applicants/count/total');
-    const medicalPromise = fetchStat('medical', '/applicants/count/medical');
-    const educationalPromise = fetchStat('educational', '/applicants/count/educational');
-    const burialPromise = fetchStat('burial', '/applicants/count/burial');
-    
-    // Wait for all promises to settle, allowing the setStats inside fetchStat 
+    const totalPromise = fetchStat("total", "/applicants/count/total");
+    const medicalPromise = fetchStat("medical", "/applicants/count/medical");
+    const educationalPromise = fetchStat("educational", "/applicants/count/educational");
+    const burialPromise = fetchStat("burial", "/applicants/count/burial");
+
+    // Wait for all promises to settle, allowing the setStats inside fetchStat
     // to update the UI in the order they resolve (fastest first).
     Promise.allSettled([totalPromise, medicalPromise, educationalPromise, burialPromise]);
   }, [fetchStat]);
-  
+
   // --- END NEW CONCURRENT STATS FETCHING LOGIC ---
 
   useEffect(() => {
@@ -205,7 +222,7 @@ const Applicants = () => {
       await api.delete(`/applicants/${archiveModal.applicantId}/`);
       toast.custom(t => <CustomToast t={t} type="archive" />);
       // Remove the item locally:
-      setApplicants(prev => prev.filter(a => a.id !== archiveModal.applicantId)); 
+      setApplicants(prev => prev.filter(a => a.id !== archiveModal.applicantId));
       closeArchiveModal();
     } catch (err) {
       console.error("Archive failed:", err);
@@ -213,10 +230,10 @@ const Applicants = () => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
 
-    setEditingApplicant((prev) => {
+    setEditingApplicant(prev => {
       const updated = { ...prev };
 
       // Handle background info
@@ -228,21 +245,24 @@ const Applicants = () => {
             [name.replace("rep_bg_", "")]: value,
           },
         };
-      } else if (name.startsWith("background_info.") || [
-        "first_name",
-        "middle_initial",
-        "last_name",
-        "suffix",
-        "birth_date",
-        "birth_place",
-        "age",
-        "sex",
-        "civil_status",
-        "street_address",
-        "barangay",
-        "municipality",
-        "province",
-      ].includes(name)) {
+      } else if (
+        name.startsWith("background_info.") ||
+        [
+          "first_name",
+          "middle_initial",
+          "last_name",
+          "suffix",
+          "birth_date",
+          "birth_place",
+          "age",
+          "sex",
+          "civil_status",
+          "street_address",
+          "barangay",
+          "municipality",
+          "province",
+        ].includes(name)
+      ) {
         updated.background_info = {
           ...updated.background_info,
           [name.replace("background_info.", "")]: value,
@@ -265,8 +285,6 @@ const Applicants = () => {
       return updated;
     });
   };
-
-
 
   const handleSave = async e => {
     e.preventDefault();
@@ -358,36 +376,41 @@ const Applicants = () => {
         <p className="text-gray-600 text-xs font-semibold uppercase tracking-widest mb-1">
           {stat.title}
         </p>
-        
+
         {stat.loading ? (
           // Renders the loading state (skeleton for value and progress bar)
           <div className="relative flex flex-col justify-between h-full">
             {/* Skeleton for the numeric value */}
-            <div className={`text-4xl font-extrabold text-gray-300 animate-pulse h-10 w-1/3 rounded-md bg-gray-200`}>
-            </div>
+            <div
+              className={`text-4xl font-extrabold text-gray-300 animate-pulse h-10 w-1/3 rounded-md bg-gray-200`}
+            ></div>
             {/* Skeleton for the progress bar */}
             <div className={`mt-4 h-1 w-full bg-${primaryColor}-100 rounded-full`}>
-                <div className={`h-1 w-1/4 bg-gray-300 rounded-full animate-pulse`} ></div>
+              <div className={`h-1 w-1/4 bg-gray-300 rounded-full animate-pulse`}></div>
             </div>
           </div>
         ) : (
           // Renders the loaded state (value and actual progress bar)
           <>
-            <p className={`text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-${fromDark} to-${toDark}`}>
+            <p
+              className={`text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-${fromDark} to-${toDark}`}
+            >
               {stat.value.toLocaleString()}
             </p>
-            
+
             {/* Render progress bar only for assistance types */}
             {stat.title !== "Total Applicants" && (
-                <div className={`mt-4 h-1 w-full bg-${primaryColor}-100 rounded-full`}>
-                    <div
-                      className={`h-1 bg-gradient-to-r from-${from} to-${to} rounded-full`}
-                      style={{ 
-                        // Use stats.total.value for calculation if loaded, otherwise 0
-                        width: `${stats.total.value > 0 ? (stat.value / stats.total.value) * 100 : 0}%` 
-                      }}
-                    ></div>
-                </div>
+              <div className={`mt-4 h-1 w-full bg-${primaryColor}-100 rounded-full`}>
+                <div
+                  className={`h-1 bg-gradient-to-r from-${from} to-${to} rounded-full`}
+                  style={{
+                    // Use stats.total.value for calculation if loaded, otherwise 0
+                    width: `${
+                      stats.total.value > 0 ? (stat.value / stats.total.value) * 100 : 0
+                    }%`,
+                  }}
+                ></div>
+              </div>
             )}
             {/* NOTE: Total Applicants card does not need a progress bar, so no else block is needed */}
           </>
@@ -395,7 +418,6 @@ const Applicants = () => {
       </div>
     );
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
