@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { api } from "../../services/api";
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../../services/api"; // Assuming the original api service is available
 import {
   BarChart,
   Bar,
   LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -14,8 +14,7 @@ import {
   PieChart,
   Pie,
   Cell,
-  RadialBarChart,
-  RadialBar,
+  // Removed unused LineChart, Line, RadialBarChart, RadialBar
 } from "recharts";
 import {
   Clock,
@@ -25,15 +24,180 @@ import {
   Zap,
   Target,
   AlertCircle,
-  TrendingUp,
-  Award,
+  // Removed unused TrendingUp, Award, Timer, UserCheck, Calendar, Loader2 - keeping only used ones
   Timer,
   UserCheck,
   Calendar,
-  Loader2,
+  Award
 } from "lucide-react";
 
-// Fallback skeleton loader component for charts and lists
+// --- React Query Configuration & Fetchers ---
+
+const performanceKeys = {
+  all: ["performance"],
+  avgTime: () => [...performanceKeys.all, "average-time"],
+  byType: () => [...performanceKeys.all, "by-type"],
+  distribution: () => [...performanceKeys.all, "distribution"],
+  productivity: () => [...performanceKeys.all, "productivity"],
+  leaderboard: () => [...performanceKeys.all, "leaderboard"],
+  activity: () => [...performanceKeys.all, "activity"],
+  heatmap: () => [...performanceKeys.all, "heatmap"],
+};
+
+// Generic fetcher function for reuse
+const performanceFetcher = async (path) => {
+  const { data } = await api.get(`/analytics/performance/${path}`);
+  return data;
+};
+
+// Hook for fetching all data
+const usePerformanceData = () => {
+  // 1️⃣ Avg Processing Time
+  const avgTimeQuery = useQuery({
+    queryKey: performanceKeys.avgTime(),
+    queryFn: () => performanceFetcher("average-processing/"),
+    staleTime: 5 * 60 * 1000, // Data is considered fresh for 5 minutes
+    retry: false, // Don't retry this high-priority metric if it fails
+  });
+
+  // 2️⃣ Processing by Type
+  const byTypeQuery = useQuery({
+    queryKey: performanceKeys.byType(),
+    queryFn: () => performanceFetcher("processing-by-type/"),
+  });
+
+  // 3️⃣ Processing Distribution
+  const distributionQuery = useQuery({
+    queryKey: performanceKeys.distribution(),
+    queryFn: () => performanceFetcher("processing-distribution/"),
+  });
+
+  // 4️⃣ Staff Productivity
+  const productivityQuery = useQuery({
+    queryKey: performanceKeys.productivity(),
+    queryFn: () => performanceFetcher("staff-productivity/"),
+  });
+
+  // 5️⃣ Staff Leaderboard
+  const leaderboardQuery = useQuery({
+    queryKey: performanceKeys.leaderboard(),
+    queryFn: () => performanceFetcher("staff-leaderboard/"),
+  });
+
+  // 6️⃣ Staff Activity
+  const activityQuery = useQuery({
+    queryKey: performanceKeys.activity(),
+    queryFn: () => performanceFetcher("staff-activity/"),
+  });
+
+  // 7️⃣ Staff Heatmap
+  const heatmapQuery = useQuery({
+    queryKey: performanceKeys.heatmap(),
+    queryFn: () => performanceFetcher("staff-heatmap/"),
+  });
+
+  // Combine all results for easier access
+  return {
+    avgTimeQuery,
+    byTypeQuery,
+    distributionQuery,
+    productivityQuery,
+    leaderboardQuery,
+    activityQuery,
+    heatmapQuery,
+  };
+};
+
+// --- Helper Functions (Same as original, moved out of component) ---
+
+const getTimeAgo = (date) => {
+  const now = new Date();
+  const diff = now - date;
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (minutes > 0) return `${minutes}m ago`;
+  return "Just now";
+};
+
+const transformProcessingByType = data => {
+  if (!data) return [];
+  return data.map(item => ({
+    type: item.type,
+    avgMinutes: item.avg_minutes,
+    efficiency:
+      item.avg_minutes < 60
+        ? "Excellent"
+        : item.avg_minutes < 120
+        ? "Good"
+        : "Needs Improvement",
+  }));
+};
+
+const transformStaffProductivity = data => {
+  if (!data) return [];
+  return data
+    .filter(item => item.processed_by__username || item.staff__username)
+    .map(item => ({
+      staff: item.processed_by__username || item.staff__username || "Unknown",
+      count: item.count,
+      productivity: item.count > 50 ? "High" : item.count > 25 ? "Medium" : "Low",
+    }))
+    .slice(0, 10);
+};
+
+const transformStaffLeaderboard = data => {
+  if (!data) return [];
+  return data
+    .filter(item => item.processed_by__username || item.staff__username)
+    .map((item, index) => ({
+      rank: index + 1,
+      staff: item.processed_by__username || item.staff__username || "Unknown",
+      count: item.count,
+      medal: index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`,
+    }))
+    .slice(0, 10);
+};
+
+const transformStaffActivity = data => {
+  if (!data) return [];
+  return data.slice(0, 20).map(item => ({
+    id: item.id,
+    staff: item.staff || "System",
+    action: item.action,
+    timestamp: new Date(item.timestamp).toLocaleString(),
+    timeAgo: getTimeAgo(new Date(item.timestamp)),
+  }));
+};
+
+const transformHeatmapData = data => {
+  if (!data) return [];
+  const hours = Array.from({ length: 24 }, (_, i) => ({
+    hour: i,
+    label: `${i.toString().padStart(2, "0")}:00`,
+    count: 0,
+    intensity: 0,
+  }));
+
+  data.forEach(item => {
+    const hourIndex = item.hour;
+    if (hourIndex >= 0 && hourIndex < 24) {
+      hours[hourIndex].count = item.count;
+    }
+  });
+
+  const maxCount = Math.max(...hours.map(h => h.count));
+  hours.forEach(hour => {
+    hour.intensity = maxCount > 0 ? (hour.count / maxCount) * 100 : 0;
+  });
+
+  return hours;
+};
+
+// Fallback skeleton loader component for charts and lists (kept the same)
 const SkeletonLoader = ({ height = 300, type = 'chart' }) => (
   <div
     className={`animate-pulse bg-gray-100 rounded-lg ${type === 'chart' ? 'p-4' : 'p-3'}`}
@@ -58,209 +222,47 @@ const SkeletonLoader = ({ height = 300, type = 'chart' }) => (
 );
 
 const Performance = () => {
-  const [avgProcessingTime, setAvgProcessingTime] = useState(null);
-  const [avgProcessingTimeByType, setAvgProcessingTimeByType] = useState([]);
-  const [processingDistribution, setProcessingDistribution] = useState([]);
-  const [staffProductivity, setStaffProductivity] = useState([]);
-  const [staffLeaderboard, setStaffLeaderboard] = useState([]);
-  const [staffActivity, setStaffActivity] = useState([]);
-  const [staffHeatmap, setStaffHeatmap] = useState([]);
-  const [loading, setLoading] = useState(true); // Master loading state kept for API compatibility but functionally removed the big screen
-  const [error, setError] = useState(null);
+  // Use the custom hook to get all queries
+  const {
+    avgTimeQuery,
+    byTypeQuery,
+    distributionQuery,
+    productivityQuery,
+    leaderboardQuery,
+    activityQuery,
+    heatmapQuery,
+  } = usePerformanceData();
 
-  // New individual loading states
-  const [loadingType, setLoadingType] = useState(true);
-  const [loadingDistribution, setLoadingDistribution] = useState(true);
-  const [loadingProductivity, setLoadingProductivity] = useState(true);
-  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
-  const [loadingActivity, setLoadingActivity] = useState(true);
-  const [loadingHeatmap, setLoadingHeatmap] = useState(true);
-
-  // Color palettes
+  // Color palettes (kept the same)
   const PERFORMANCE_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
-  const HEATMAP_COLORS = ["#FEF3C7", "#FCD34D", "#F59E0B", "#D97706", "#92400E"];
-  const LEADERBOARD_COLORS = ["#FFD700", "#C0C0C0", "#CD7F32", "#3B82F6", "#10B981"];
+  // Removed unused HEATMAP_COLORS and LEADERBOARD_COLORS as logic uses local colors
 
- useEffect(() => {
-  const fetchSequentially = async () => {
-    try {
-      // 1️⃣ Avg Processing Time (highest priority)
-      try {
-        const res = await api.get("/analytics/performance/average-processing/");
-        setAvgProcessingTime(res.data);
-      } catch (err) {
-        console.error("Error fetching avgProcessingTime:", err);
-      }
-      setLoading(false); // hide master loader
-      await new Promise((r) => setTimeout(r, 300)); // small delay before next
+  // Extract data and loading states from React Query hooks
+  const { data: avgProcessingTime, isLoading: loadingAvgTime, isError: errorAvgTime } = avgTimeQuery;
+  const { data: avgProcessingTimeByType, isLoading: loadingType, isError: errorType } = byTypeQuery;
+  const { data: processingDistribution, isLoading: loadingDistribution, isError: errorDistribution } = distributionQuery;
+  const { data: staffProductivity, isLoading: loadingProductivity, isError: errorProductivity } = productivityQuery;
+  const { data: staffLeaderboard, isLoading: loadingLeaderboard, isError: errorLeaderboard } = leaderboardQuery;
+  const { data: staffActivity, isLoading: loadingActivity, isError: errorActivity } = activityQuery;
+  const { data: staffHeatmap, isLoading: loadingHeatmap, isError: errorHeatmap } = heatmapQuery;
 
-      // 2️⃣ Processing by Type
-      setLoadingType(true);
-      try {
-        const res = await api.get("/analytics/performance/processing-by-type/");
-        setAvgProcessingTimeByType(res.data);
-      } catch (err) {
-        console.error("Error fetching processing-by-type:", err);
-      } finally {
-        setLoadingType(false);
-      }
-      await new Promise((r) => setTimeout(r, 300));
+  // Global Error Handling: If *any* query has a hard error (which is now done individually)
+  // For simplicity, we'll check the most critical ones for the main error screen
+  const hasCriticalError = errorAvgTime || errorProductivity || errorLeaderboard;
+  const criticalError = errorAvgTime || errorProductivity || errorLeaderboard; // Use first critical error object
 
-      // 3️⃣ Processing Distribution
-      setLoadingDistribution(true);
-      try {
-        const res = await api.get("/analytics/performance/processing-distribution/");
-        setProcessingDistribution(res.data);
-      } catch (err) {
-        console.error("Error fetching processing-distribution:", err);
-      } finally {
-        setLoadingDistribution(false);
-      }
-      await new Promise((r) => setTimeout(r, 300));
+  // --- Data Transformations and Stats Calculation (Now run using fetched data) ---
+  
+  const transformedProcessingByType = transformProcessingByType(avgProcessingTimeByType);
+  const transformedStaffProductivity = transformStaffProductivity(staffProductivity);
+  const transformedStaffLeaderboard = transformStaffLeaderboard(staffLeaderboard);
+  const transformedStaffActivity = transformStaffActivity(staffActivity);
+  const transformedHeatmapData = transformHeatmapData(staffHeatmap);
 
-      // 4️⃣ Staff Productivity
-      setLoadingProductivity(true);
-      try {
-        const res = await api.get("/analytics/performance/staff-productivity/");
-        setStaffProductivity(res.data);
-      } catch (err) {
-        console.error("Error fetching staff-productivity:", err);
-      } finally {
-        setLoadingProductivity(false);
-      }
-      await new Promise((r) => setTimeout(r, 300));
-
-      // 5️⃣ Staff Leaderboard
-      setLoadingLeaderboard(true);
-      try {
-        const res = await api.get("/analytics/performance/staff-leaderboard/");
-        setStaffLeaderboard(res.data);
-      } catch (err) {
-        console.error("Error fetching staff-leaderboard:", err);
-      } finally {
-        setLoadingLeaderboard(false);
-      }
-      await new Promise((r) => setTimeout(r, 300));
-
-      // 6️⃣ Staff Activity
-      setLoadingActivity(true);
-      try {
-        const res = await api.get("/analytics/performance/staff-activity/");
-        setStaffActivity(res.data);
-      } catch (err) {
-        console.error("Error fetching staff-activity:", err);
-      } finally {
-        setLoadingActivity(false);
-      }
-      await new Promise((r) => setTimeout(r, 300));
-
-      // 7️⃣ Staff Heatmap
-      setLoadingHeatmap(true);
-      try {
-        const res = await api.get("/analytics/performance/staff-heatmap/");
-        setStaffHeatmap(res.data);
-      } catch (err) {
-        console.error("Error fetching staff-heatmap:", err);
-      } finally {
-        setLoadingHeatmap(false);
-      }
-    } catch (globalErr) {
-      console.error("Critical error in sequential fetch:", globalErr);
-      setError(globalErr);
-    }
-  };
-
-  fetchSequentially();
-}, []);
-
-  // Data transformation functions
-  const transformProcessingByType = data => {
-    return data.map(item => ({
-      type: item.type,
-      avgMinutes: item.avg_minutes,
-      efficiency:
-        item.avg_minutes < 60
-          ? "Excellent"
-          : item.avg_minutes < 120
-          ? "Good"
-          : "Needs Improvement",
-    }));
-  };
-
-  const transformStaffProductivity = data => {
-    return data
-      .filter(item => item.processed_by__username || item.staff__username)
-      .map(item => ({
-        staff: item.processed_by__username || item.staff__username || "Unknown",
-        count: item.count,
-        productivity: item.count > 50 ? "High" : item.count > 25 ? "Medium" : "Low",
-      }))
-      .slice(0, 10);
-  };
-
-  const transformStaffLeaderboard = data => {
-    return data
-      .filter(item => item.processed_by__username || item.staff__username)
-      .map((item, index) => ({
-        rank: index + 1,
-        staff: item.processed_by__username || item.staff__username || "Unknown",
-        count: item.count,
-        medal: index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`,
-      }))
-      .slice(0, 10);
-  };
-
-  const transformStaffActivity = data => {
-    return data.slice(0, 20).map(item => ({
-      id: item.id,
-      staff: item.staff || "System",
-      action: item.action,
-      timestamp: new Date(item.timestamp).toLocaleString(),
-      timeAgo: getTimeAgo(new Date(item.timestamp)),
-    }));
-  };
-
-  const transformHeatmapData = data => {
-    const hours = Array.from({ length: 24 }, (_, i) => ({
-      hour: i,
-      label: `${i.toString().padStart(2, "0")}:00`,
-      count: 0,
-      intensity: 0,
-    }));
-
-    data.forEach(item => {
-      const hourIndex = item.hour;
-      if (hourIndex >= 0 && hourIndex < 24) {
-        hours[hourIndex].count = item.count;
-      }
-    });
-
-    const maxCount = Math.max(...hours.map(h => h.count));
-    hours.forEach(hour => {
-      hour.intensity = maxCount > 0 ? (hour.count / maxCount) * 100 : 0;
-    });
-
-    return hours;
-  };
-
-  const getTimeAgo = date => {
-    const now = new Date();
-    const diff = now - date;
-    const minutes = Math.floor(diff / (1000 * 60));
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (days > 0) return `${days}d ago`;
-    if (hours > 0) return `${hours}h ago`;
-    if (minutes > 0) return `${minutes}m ago`;
-    return "Just now";
-  };
-
-  // Statistics calculations
   const calculateStats = () => {
-    // Only use the transformed data if it has been fetched (i.e., its loader is false)
-    const processedProductivity = loadingProductivity ? [] : transformStaffProductivity(staffProductivity);
-    const processedLeaderboard = loadingLeaderboard ? [] : transformStaffLeaderboard(staffLeaderboard);
+    // Note: The transformations implicitly handle the 'not-yet-fetched' state by returning [] if data is null/undefined
+    const processedProductivity = transformedStaffProductivity;
+    const processedLeaderboard = transformedStaffLeaderboard;
 
     const totalStaffProcessed = processedProductivity.reduce((sum, item) => sum + item.count, 0);
     const averageProductivity =
@@ -268,6 +270,7 @@ const Performance = () => {
         ? Math.round(totalStaffProcessed / processedProductivity.length)
         : 0;
     const topPerformer = processedLeaderboard[0];
+    // Optional chaining `?.` is crucial here because `avgProcessingTime` might be undefined on first render or during loading
     const processingEfficiency = avgProcessingTime?.average_processing_time_minutes || 0; 
 
     return {
@@ -277,6 +280,14 @@ const Performance = () => {
       processingEfficiency,
     };
   };
+
+  const stats = calculateStats();
+  
+  // Calculate loading status for StatCards
+  const isAvgProcessingTimeLoaded = !loadingAvgTime && avgProcessingTime !== undefined;
+  const isLeaderboardLoaded = !loadingLeaderboard && staffLeaderboard?.length > 0;
+  const isProductivityLoaded = !loadingProductivity && staffProductivity?.length > 0;
+  const isTotalProcessedLoaded = isProductivityLoaded; 
 
   const StatCard = ({ icon: Icon, title, value, subtitle, color, badge, isLoading }) => (
     <div
@@ -307,7 +318,7 @@ const Performance = () => {
     </div>
   );
 
-  const HeatmapCell = ({ hour, count, intensity, maxCount }) => {
+  const HeatmapCell = ({ hour, count, intensity }) => {
     const getIntensityColor = intensity => {
       if (intensity === 0) return "#F3F4F6";
       if (intensity < 20) return "#FEF3C7";
@@ -327,9 +338,9 @@ const Performance = () => {
       </div>
     );
   };
-        
+    
   
-  if (error) {
+  if (hasCriticalError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center text-center">
         <div className="bg-white p-8 rounded-2xl shadow-lg border border-red-100 max-w-md w-full mx-4">
@@ -340,7 +351,7 @@ const Performance = () => {
             Error Loading Data
           </h3>
           <p className="text-gray-600 mb-4">
-            {error.message || "Failed to fetch trends data. Please try again later."}
+            {criticalError.message || "Failed to fetch critical data. Please try again later."}
           </p>
           <button
             onClick={() => window.location.reload()}
@@ -353,21 +364,6 @@ const Performance = () => {
     );
   }
 
-  // Transformations are now run only when needed inside the component or only if data exists
-  const transformedProcessingByType = transformProcessingByType(avgProcessingTimeByType);
-  const transformedStaffProductivity = transformStaffProductivity(staffProductivity);
-  const transformedStaffLeaderboard = transformStaffLeaderboard(staffLeaderboard);
-  const transformedStaffActivity = transformStaffActivity(staffActivity);
-  // Ensure staffHeatmap is not null/undefined before transforming
-  const transformedHeatmapData = staffHeatmap ? transformHeatmapData(staffHeatmap) : [];
-  const stats = calculateStats();
-  
-  // Calculate loading status for StatCards
-  const isAvgProcessingTimeLoaded = avgProcessingTime !== null;
-  const isLeaderboardLoaded = !loadingLeaderboard && staffLeaderboard.length > 0; // Check data and loader
-  const isProductivityLoaded = !loadingProductivity && staffProductivity.length > 0; // Check data and loader
-  // Total is derived from productivity data, so it shares the same loading state
-  const isTotalProcessedLoaded = isProductivityLoaded; 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -387,11 +383,10 @@ const Performance = () => {
           <StatCard
             icon={Timer}
             title="Avg Processing Time"
-            // This is the "highest one" and should load first
-            value={isAvgProcessingTimeLoaded ? `${stats.processingEfficiency.toFixed(1)}min` : '0.0min'}
+            value={isAvgProcessingTimeLoaded ? `${stats.processingEfficiency.toFixed(1)}min` : '...'}
             subtitle="Per application"
             color="#3B82F6"
-            isLoading={!isAvgProcessingTimeLoaded}
+            isLoading={loadingAvgTime}
           />
           <StatCard
             icon={Users}
@@ -416,7 +411,7 @@ const Performance = () => {
             value={isTotalProcessedLoaded ? stats.totalStaffProcessed.toLocaleString() : '...'}
             subtitle="By all staff"
             color="#8B5CF6"
-            isLoading={loadingProductivity} // Shares loading state with productivity
+            isLoading={loadingProductivity}
           />
         </div>
 
@@ -448,10 +443,10 @@ const Performance = () => {
                         key={`cell-${index}`}
                         fill={
                             entry.avgMinutes < 60
-                            ? "#10B981"
-                            : entry.avgMinutes < 120
-                            ? "#F59E0B"
-                            : "#EF4444"
+                              ? "#10B981"
+                              : entry.avgMinutes < 120
+                              ? "#F59E0B"
+                              : "#EF4444"
                         }
                         />
                     ))}
@@ -558,8 +553,8 @@ const Performance = () => {
                     key={staff.staff}
                     className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all hover:shadow-md ${
                         index < 3
-                        ? "bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200"
-                        : "bg-gray-50 border-gray-200"
+                            ? "bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200"
+                            : "bg-gray-50 border-gray-200"
                     }`}
                     >
                     <div className="flex items-center space-x-3">
@@ -599,7 +594,6 @@ const Performance = () => {
                         hour={hour}
                         count={hour.count}
                         intensity={hour.intensity}
-                        maxCount={Math.max(...transformedHeatmapData.map(h => h.count))}
                         />
                     ))}
                     </div>
@@ -654,12 +648,12 @@ const Performance = () => {
                             <span
                             className={`px-2 py-1 rounded-full text-xs font-medium ${
                                 activity.action === "CREATE"
-                                ? "bg-green-100 text-green-800"
-                                : activity.action === "UPDATE"
-                                ? "bg-blue-100 text-blue-800"
-                                : activity.action === "LOGIN"
-                                ? "bg-purple-100 text-purple-800"
-                                : "bg-gray-100 text-gray-800"
+                                    ? "bg-green-100 text-green-800"
+                                    : activity.action === "UPDATE"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : activity.action === "LOGIN"
+                                    ? "bg-purple-100 text-purple-800"
+                                    : "bg-gray-100 text-gray-800"
                             }`}
                             >
                             {activity.action}

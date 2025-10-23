@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
   Search,
@@ -11,49 +12,71 @@ import {
   FileText,
   Sparkles,
   History,
+  Loader2, // Added for better loading state visibility
 } from "lucide-react";
 import PreviewModal from "./components/PreviewModal";
 import Pagination from "../../components/Pagination";
 
+// --- Constants ---
+const ARCHIVE_QUERY_KEY = "archivedApplicants";
+
+// --- Query Function ---
+// Fetches the archived applicants list
+const fetchArchivedApplicants = async () => {
+  // Simulating the delay for the skeleton to be noticeable (optional, remove in production)
+  // await new Promise(resolve => setTimeout(resolve, 800));
+
+  const res = await api.get("/list-archived-applicants/?limit=50"); // Fetch limit increased to 50 for filtering/pagination
+  return res.data.results || [];
+};
+
+// --- Mutation Function (Restore) ---
+// Restores a single applicant
+const restoreApplicant = async (applicantId) => {
+  const res = await api.post(`/restore-applicant/${applicantId}/`);
+  return res.data;
+};
+
+// --- Helper Functions (unchanged, but moved outside the component) ---
+const formatPreviewDate = (dateStr) => {
+  if (!dateStr) return "N/A";
+  const date = new Date(dateStr);
+  const options = { year: "numeric", month: "long", day: "numeric" };
+  return date.toLocaleDateString("en-PH", options);
+};
+
+const getAssistanceBadgeClass = (type) => {
+  const lowerType = (type || "").toLowerCase();
+  switch (lowerType) {
+    case "educational":
+      return "bg-blue-100 text-blue-700";
+    case "medical":
+      return "bg-green-100 text-green-700";
+    case "burial":
+      return "bg-amber-100 text-amber-700";
+    case "financial":
+      return "bg-indigo-100 text-indigo-700";
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+};
+
 // --- Skeleton Component for Table Row ---
 const SkeletonRow = () => (
   <tr className="border-b border-gray-100 animate-pulse">
-    {/* Name */}
-    <td className="px-6 py-4">
-      <div className="h-4 bg-gray-200 rounded w-40 sm:w-56"></div>
-    </td>
-    {/* Barangay */}
-    <td className="px-6 py-4">
-      <div className="h-4 bg-gray-100 rounded w-24 sm:w-32"></div>
-    </td>
-    {/* City or Municipality */}
-    <td className="px-6 py-4 hidden sm:table-cell">
-      <div className="h-4 bg-gray-100 rounded w-28"></div>
-    </td>
-    {/* Assistance Type */}
-    <td className="px-6 py-4">
-      <div className="h-6 bg-gray-200 rounded-lg w-20"></div>
-    </td>
-    {/* Date Filled */}
-    <td className="px-6 py-4 hidden md:table-cell">
-      <div className="h-4 bg-gray-100 rounded w-24"></div>
-    </td>
-    {/* Actions */}
-    <td className="px-6 py-4">
-      <div className="flex items-center gap-2">
-        {/* View Button Skeleton */}
-        <div className="h-9 w-16 bg-gray-200 rounded-lg"></div>
-        {/* Restore Button Skeleton */}
-        <div className="h-9 w-24 bg-blue-300 rounded-lg"></div>
-      </div>
-    </td>
+    <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-40 sm:w-56"></div></td>
+    <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-24 sm:w-32"></div></td>
+    <td className="px-6 py-4 hidden sm:table-cell"><div className="h-4 bg-gray-100 rounded w-28"></div></td>
+    <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded-lg w-20"></div></td>
+    <td className="px-6 py-4 hidden md:table-cell"><div className="h-4 bg-gray-100 rounded w-24"></div></td>
+    <td className="px-6 py-4"><div className="flex items-center gap-2"><div className="h-9 w-16 bg-gray-200 rounded-lg"></div><div className="h-9 w-24 bg-blue-300 rounded-lg"></div></div></td>
   </tr>
 );
 // ---------------------------------------------
 
+
 const ArchiveApplicants = () => {
-  const [archivedApplicants, setArchivedApplicants] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [previewView, setPreviewView] = useState(false);
   const [previewApplicant, setPreviewApplicant] = useState(null);
@@ -61,21 +84,47 @@ const ArchiveApplicants = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const fetchArchivedApplicants = async () => {
-    setLoading(true);
-    try {
-      // Add a small delay for the skeleton effect to be noticeable
-      await new Promise(resolve => setTimeout(resolve, 800));
-      const res = await api.get("/list-archived-applicants/?limit=50");
-      setArchivedApplicants(res.data.results);
-    } catch (err) {
-      console.error("Fetch applicants failed:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 2. useQuery for fetching data
+  const {
+    data: archivedApplicants = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery(ARCHIVE_QUERY_KEY, fetchArchivedApplicants, {
+    // Keep data in cache for a while even if the component unmounts
+    staleTime: 5 * 60 * 1000, 
+  });
 
-  const openPreviewView = applicant => {
+  // 3. useMutation for restoring an applicant
+  const restoreMutation = useMutation(restoreApplicant, {
+    onSuccess: () => {
+      // Invalidate the query to force a refetch of the archived list
+      // and update the UI automatically.
+      queryClient.invalidateQueries(ARCHIVE_QUERY_KEY);
+      
+      // OPTIONAL: Also invalidate the main active applicants list 
+      // so the restored item shows up there immediately.
+      queryClient.invalidateQueries("applicantsList");
+      
+      closeRestoreModal();
+    },
+    onError: (err) => {
+      console.error("Restore failed:", err);
+      // You could add a toast notification here
+      closeRestoreModal(); 
+    },
+  });
+
+  // Effect for setting document title (UI side effect)
+  useEffect(() => {
+    document.title = "Quickaid | Archive Applicants";
+    return () => {
+      document.title = "Quickaid | Home";
+    };
+  }, []);
+
+  // Modal handlers (unchanged)
+  const openPreviewView = (applicant) => {
     setPreviewApplicant({ ...applicant });
     setPreviewView(true);
     document.body.classList.add("dialog-open");
@@ -87,7 +136,7 @@ const ArchiveApplicants = () => {
     document.body.classList.remove("dialog-open");
   };
 
-  const openRestoreModal = applicant_id => {
+  const openRestoreModal = (applicant_id) => {
     setRestoreModal({ show: true, applicantId: applicant_id });
     document.body.classList.add("dialog-open");
   };
@@ -97,18 +146,17 @@ const ArchiveApplicants = () => {
     document.body.classList.remove("dialog-open");
   };
 
-  const handleRestore = async () => {
+  // 4. Update handleRestore to use the mutation hook
+  const handleRestore = () => {
     if (!restoreModal.applicantId) return;
 
-    try {
-      await api.post(`/restore-applicant/${restoreModal.applicantId}/`);
-      fetchArchivedApplicants();
-      closeRestoreModal();
-    } catch (err) {
-      console.error("Restore applicant failed:", err);
-    }
+    // Call the mutate function, passing the ID of the applicant to restore
+    restoreMutation.mutate(restoreModal.applicantId);
   };
+  
+  const isRestoring = restoreMutation.isLoading;
 
+  // Filtering Logic (on the data returned by useQuery)
   const filteredApplicants = archivedApplicants.filter(a => {
     const keyword = searchTerm.toLowerCase();
     return (
@@ -119,7 +167,7 @@ const ArchiveApplicants = () => {
     );
   });
 
-  // Pagination logic
+  // Pagination logic (unchanged)
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredApplicants.slice(indexOfFirstItem, indexOfLastItem);
@@ -133,42 +181,26 @@ const ArchiveApplicants = () => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1);
   };
+  
+  // Conditionally render error state
+  if (isError) {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
+            <AlertCircle className="w-6 h-6 text-red-700 mr-2" />
+            <p className="text-xl text-red-700 font-semibold">
+                Error loading archived applicants: {error?.message || "Unknown error"}
+            </p>
+        </div>
+    );
+  }
 
-  const formatPreviewDate = dateStr => {
-    if (!dateStr) return "N/A";
-    const date = new Date(dateStr);
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    return date.toLocaleDateString("en-PH", options);
-  };
-
-  useEffect(() => {
-    fetchArchivedApplicants();
-    document.title = "Quickaid | Archive Applicants";
-    return () => {
-      document.title = "Quickaid | Home";
-    };
-  }, []);
-
-  // Function to determine badge style based on assistance type
-  const getAssistanceBadgeClass = type => {
-    const lowerType = (type || "").toLowerCase();
-    switch (lowerType) {
-      case "educational":
-        return "bg-blue-100 text-blue-700"; // Blue
-      case "medical":
-        return "bg-green-100 text-green-700"; // Green
-      case "burial":
-        return "bg-amber-100 text-amber-700"; // Light Yellow/Amber
-      case "financial":
-        return "bg-indigo-100 text-indigo-700"; // Financial (default/other primary)
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
+  // Use isLoading for both initial loading and refetching logic
+  const showSkeleton = isLoading && !isRestoring;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 relative overflow-hidden">
-      {/* Animated Background - Adjusted for a softer, more modern feel */}
+      {/* Animated Background */}
+      {/* ... (omitted for brevity) ... */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
         <div className="absolute top-1/3 -right-24 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-200"></div>
@@ -229,7 +261,6 @@ const ArchiveApplicants = () => {
 
         {/* Main Content: Table/Skeleton */}
         <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          {/* Table Wrapper: Enables horizontal scroll for table on small screens */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -256,13 +287,13 @@ const ArchiveApplicants = () => {
               </thead>
 
               <tbody className="bg-white divide-y divide-gray-100">
-                {loading ? (
-                  // --- Display Skeleton Rows when loading is true ---
+                {showSkeleton ? (
+                  // Display Skeleton Rows when loading
                   Array.from({ length: itemsPerPage }).map((_, index) => (
                     <SkeletonRow key={index} />
                   ))
                 ) : currentItems.length > 0 ? (
-                  // --- Display Data when not loading and items exist ---
+                  // Display Data when not loading and items exist
                   currentItems.map((applicant, id) => (
                     <tr key={id} className="hover:bg-blue-50 transition-colors group">
                       <td
@@ -281,7 +312,6 @@ const ArchiveApplicants = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          // Applying the new dynamic color class here
                           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${getAssistanceBadgeClass(
                             applicant.type_of_assistance
                           )}`}
@@ -298,23 +328,31 @@ const ArchiveApplicants = () => {
                           <button
                             onClick={() => openPreviewView(applicant)}
                             className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-600 bg-white hover:bg-blue-100 rounded-lg transition-all border border-blue-300 shadow-sm"
+                            disabled={isRestoring}
                           >
                             <Eye className="w-4 h-4" />
                             <span className="hidden sm:inline">View</span>
                           </button>
                           <button
                             onClick={() => openRestoreModal(applicant.id)}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-md"
+                            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            disabled={isRestoring}
                           >
-                            <RotateCcw className="w-4 h-4" />
-                            <span className="hidden sm:inline">Restore</span>
+                            {isRestoring ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <RotateCcw className="w-4 h-4" />
+                            )}
+                            <span className="hidden sm:inline">
+                                {isRestoring ? "Restoring..." : "Restore"}
+                            </span>
                           </button>
                         </div>
                       </td>
                     </tr>
                   ))
                 ) : (
-                  // --- No Applicants Found State ---
+                  // No Applicants Found State
                   <tr>
                     <td colSpan="6" className="px-6 py-24 text-center bg-gray-50">
                       <div className="flex flex-col items-center">
@@ -342,7 +380,7 @@ const ArchiveApplicants = () => {
           </div>
 
           {/* Pagination */}
-          {!loading && filteredApplicants.length > 0 && (
+          {!showSkeleton && filteredApplicants.length > 0 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -393,15 +431,21 @@ const ArchiveApplicants = () => {
                 <button
                   onClick={closeRestoreModal}
                   className="px-5 py-2 text-gray-600 hover:text-blue-800 hover:bg-blue-100 rounded-lg transition-all font-medium border border-blue-300"
+                  disabled={isRestoring}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleRestore}
-                  className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-md font-medium"
+                  className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-md font-medium disabled:bg-blue-400 disabled:cursor-not-allowed"
+                  disabled={isRestoring}
                 >
-                  <Check className="w-4 h-4" />
-                  Restore Applicant
+                    {isRestoring ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <Check className="w-4 h-4" />
+                    )}
+                  {isRestoring ? "Restoring..." : "Restore Applicant"}
                 </button>
               </div>
             </div>

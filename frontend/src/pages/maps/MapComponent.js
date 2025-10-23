@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useQuery } from '@tanstack/react-query'; // 🌟 IMPORT React Query
 import {
   MapContainer,
   TileLayer,
@@ -16,12 +17,11 @@ import {
   RotateCcw,
   MapPin,
   Target,
-  Loader2,
   X,
   Map as MapIcon,
 } from "lucide-react";
 
-// ============= SETUP & CONFIGURATION =============
+// ============= SETUP & CONFIGURATION (UNCHANGED) =============
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 
@@ -56,7 +56,53 @@ const cities = [
   "Dolores",
 ];
 
-// ============= MAP BOUNDS COMPONENT =============
+const getColor = (type) => assistanceColors[type] || "#f87171";
+
+// ============= API FUNCTIONS (React Query Fetchers) =============
+
+/**
+ * Fetches applicant locations based on current filters.
+ * @param {string} typeFilter
+ * @param {string} cityFilter
+ * @param {string} barangayFilter
+ * @returns {Promise<Array>} Validated and processed location data.
+ */
+const fetchApplicantLocations = async ({ typeFilter, cityFilter, barangayFilter }) => {
+  const res = await api.get("/applicant-locations/", {
+    params: { type: typeFilter, city: cityFilter, barangay: barangayFilter },
+  });
+
+  const data = res.data;
+  const validLocations = data.filter(
+    (loc) => loc.latitude && loc.longitude && !isNaN(loc.latitude)
+  );
+
+  return validLocations;
+};
+
+/**
+ * Fetches the main province GeoJSON data.
+ */
+const fetchGeoData = async () => {
+  const res = await fetch("/all_cities.geojson");
+  if (!res.ok) throw new Error("Error loading province GeoJSON");
+  return res.json();
+};
+
+/**
+ * Fetches GeoJSON data for a specific city.
+ * @param {string} cityFilter
+ */
+const fetchCityGeoData = async (cityFilter) => {
+  if (!cityFilter) return null;
+  const fileName = cityFilter.toLowerCase().replace(/ /g, "_") + ".geojson";
+  const res = await fetch(`/${fileName}`);
+  if (!res.ok) throw new Error(`Error loading GeoJSON for ${cityFilter}`);
+  return res.json();
+};
+
+
+// ============= MAP BOUNDS COMPONENT (UNCHANGED) =============
 const MapBounds = ({ cityGeoData }) => {
   const map = useMap();
   useEffect(() => {
@@ -77,106 +123,88 @@ const MapBounds = ({ cityGeoData }) => {
   return null;
 };
 
-// ============= MAIN MAP COMPONENT =============
+// ============= MAIN MAP COMPONENT (REFRACTORED) =============
 const MapComponent = () => {
-  const [locations, setLocations] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // 🌟 REACT STATE FOR FILTERS (Dependencies for useQuery)
   const [typeFilter, setTypeFilter] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [barangayFilter, setBarangayFilter] = useState("");
-  const [availableBarangays, setAvailableBarangays] = useState([]);
-  const [stats, setStats] = useState({});
   const [mapCenter] = useState(defaultCenter);
-  const [markerOffsets, setMarkerOffsets] = useState({});
-  const [geoData, setGeoData] = useState(null);
-  const [cityGeoData, setCityGeoData] = useState(null);
 
-  const getColor = (type) => assistanceColors[type] || "#f87171";
+  // 🌟 REACT QUERY HOOKS
+
+  // 1. Fetch Locations with Filters
+  const { data: locations = [], isLoading: isLoadingLocations } = useQuery({
+    queryKey: ['applicantLocations', typeFilter, cityFilter, barangayFilter], // Key changes on filter change
+    queryFn: () => fetchApplicantLocations({ typeFilter, cityFilter, barangayFilter }),
+    staleTime: 1000 * 60 * 5, // Data is fresh for 5 minutes
+  });
+
+  // 2. Fetch All Cities GeoData (Runs once)
+  const { data: geoData } = useQuery({
+    queryKey: ['allCitiesGeoData'],
+    queryFn: fetchGeoData,
+    staleTime: Infinity, // Geo data is static
+  });
+
+  // 3. Fetch Selected City GeoData (Only runs if a city is selected)
+  const { data: cityGeoData } = useQuery({
+    queryKey: ['cityGeoData', cityFilter],
+    queryFn: () => fetchCityGeoData(cityFilter),
+    enabled: !!cityFilter, // Only fetch when cityFilter is set
+    staleTime: Infinity,
+  });
+
+  // 🌟 DERIVED STATE (using useMemo for performance)
+
+  // Calculate Marker Offsets (moved from fetchLocations)
+  const markerOffsets = useMemo(() => {
+    const offsets = {};
+    locations.forEach((loc) => {
+      const key = loc.id || loc.full_name;
+      offsets[key] = {
+        latOffset: (Math.random() - 0.5) * 0.0005,
+        lngOffset: (Math.random() - 0.5) * 0.0005,
+      };
+    });
+    return offsets;
+  }, [locations]);
+
+  // Calculate Available Barangays
+  const availableBarangays = useMemo(() => {
+    const brgys = locations
+      .filter((loc) => (cityFilter ? loc.city === cityFilter : true))
+      .map((loc) => loc.barangay)
+      .filter(Boolean); // Filter out null/undefined barangays
+    return [...new Set(brgys)].sort();
+  }, [locations, cityFilter]);
+
+  // Calculate Stats
+  const stats = useMemo(() => {
+    const typeCounts = {};
+    assistanceTypes.forEach((t) => {
+      typeCounts[t] = locations.filter((l) => l.type_of_assistance === t).length;
+    });
+    return typeCounts;
+  }, [locations]);
+
+
+  // 🌟 HANDLERS
 
   const resetFilters = () => {
     setTypeFilter("");
     setCityFilter("");
     setBarangayFilter("");
-    setCityGeoData(null);
   };
 
-  const fetchLocations = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/applicant-locations/", {
-        params: { type: typeFilter, city: cityFilter, barangay: barangayFilter },
-      });
+  // 🌟 RENDER
 
-      const data = res.data;
-      const valid = data.filter(
-        (loc) => loc.latitude && loc.longitude && !isNaN(loc.latitude)
-      );
-      setLocations(valid);
+  // Map Loading state is now derived from React Query
+  const showLoadingOverlay = isLoadingLocations;
 
-      const offsets = {};
-      valid.forEach((loc) => {
-        const key = loc.id || loc.full_name;
-        offsets[key] = {
-          latOffset: (Math.random() - 0.5) * 0.0005,
-          lngOffset: (Math.random() - 0.5) * 0.0005,
-        };
-      });
-      setMarkerOffsets(offsets);
-
-      const typeCounts = {};
-      assistanceTypes.forEach((t) => {
-        typeCounts[t] = valid.filter((l) => l.type_of_assistance === t).length;
-      });
-      setStats(typeCounts);
-    } catch (err) {
-      console.error("Error fetching locations:", err);
-    } finally {
-        // Added a slight delay for better UX on fast networks
-        setTimeout(() => setLoading(false), 500); 
-    }
-  };
-
-  useEffect(() => {
-    document.title = "QuickAid | Geolocation Map";
-    fetchLocations();
-    fetch("/all_cities.geojson")
-      .then((r) => r.json())
-      .then(setGeoData);
-  }, []);
-
-  useEffect(() => {
-    fetchLocations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeFilter, cityFilter, barangayFilter]);
-
-  useEffect(() => {
-    const brgys = locations
-      .filter((loc) => (cityFilter ? loc.city === cityFilter : true))
-      .map((loc) => loc.barangay);
-    setAvailableBarangays([...new Set(brgys)].sort());
-  }, [locations, cityFilter]);
-
-  useEffect(() => {
-    const loadCityGeo = async () => {
-      if (!cityFilter) return setCityGeoData(null);
-      const fileName = cityFilter.toLowerCase().replace(/ /g, "_") + ".geojson";
-      try {
-        const res = await fetch(`/${fileName}`);
-        if (!res.ok) throw new Error("Error loading GeoJSON");
-        const data = await res.json();
-        setCityGeoData(data);
-      } catch (e) {
-        console.error("Error loading city geojson:", e);
-      }
-    };
-    loadCityGeo();
-  }, [cityFilter]);
-
-  // ============= RENDER =============
   return (
     // Main container is responsive and full-height, but without min-h-screen for flexibility
     <div className="relative w-full h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
-        
       <style>{`
         /* Custom CSS for smoother dropdown appearance */
         .animate-fadeIn {
@@ -191,20 +219,20 @@ const MapComponent = () => {
       `}</style>
 
       {/* Responsive layout: vertical stack on mobile (default), horizontal on xl screens */}
-      <div className="flex flex-col xl:flex-row h-full"> 
-        
+      <div className="flex flex-col xl:flex-row h-full">
+
         {/* Map Container */}
         <div className="flex-1 relative h-[65vh] xl:h-[calc(100vh-4rem)]">
-          {loading ? (
+          {showLoadingOverlay ? (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 z-50">
               <div className="bg-white rounded-2xl p-10 shadow-2xl border border-gray-100 flex flex-col items-center gap-6">
                 <div className="relative flex items-center justify-center">
                   {/* Outer spinning ring - Modern Blue/Indigo Gradient */}
                   <div className="h-24 w-24 rounded-full border-[6px] border-transparent border-t-blue-500 border-r-indigo-500 animate-spin"></div>
-                  
+
                   {/* Inner pulsing ring - Subtle accent */}
                   <div className="absolute inset-2 rounded-full border-4 border-blue-300 border-t-transparent animate-spin" style={{ animationDelay: '150ms' }}></div>
-                  
+
                   {/* Centered icon with gradient background */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full p-4 shadow-xl">
@@ -212,7 +240,7 @@ const MapComponent = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="text-center space-y-2">
                   <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
                     Loading Map
@@ -226,39 +254,43 @@ const MapComponent = () => {
           ) : (
             // Map Wrapper: Added responsive margin for aesthetic spacing
             <div className="h-full rounded-none xl:rounded-2xl overflow-hidden shadow-2xl xl:m-4 border-2 border-white">
-              <MapContainer 
-                center={mapCenter} 
-                zoom={11} 
-                className="w-full h-full" 
+              <MapContainer
+                center={mapCenter}
+                zoom={11}
+                className="w-full h-full"
                 scrollWheelZoom={true} // Enabled scroll wheel zoom for better UX
+                doubleClickZoom={true}
+                dragging={true}
+                zoomControl={true}
+                attributionControl={true}
               >
                 <TileLayer
-                  // Using a clean, professional map tile
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  // 🌟 CHANGE 1: Switched to CARTO Dark Matter (Black Base)
+                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                 />
                 <MapBounds cityGeoData={cityGeoData} />
 
                 {geoData && (
                   <GeoJSON
                     data={geoData}
-                    // Updated boundary color for a more professional look
-                    style={{ color: "#9ca3af", weight: 2, fillOpacity: 0.05 }} 
+                    // 🌟 CHANGE 2: Updated boundary color for a professional blue look on black map
+                    style={{ color: "#4F46E5", weight: 2, fillOpacity: 0.05 }}
                   />
                 )}
                 {cityGeoData && (
                   <GeoJSON
                     data={cityGeoData}
-                    // Blue-themed city boundary
-                    style={{ color: "#3b82f6", weight: 3, fillOpacity: 0.15 }} 
+                    // 🌟 CHANGE 3: Bright blue boundary for selected city on black map
+                    style={{ color: "#3B82F6", weight: 3, fillOpacity: 0.25 }}
                   />
                 )}
 
                 {locations.map((loc, i) => {
-                  const key = loc.id || loc.full_name;
+                  const key = loc.id || loc.full_name || i; // Ensure a robust key
                   const offset = markerOffsets[key] || { latOffset: 0, lngOffset: 0 };
                   return (
-                    <React.Fragment key={key || i}>
+                    <React.Fragment key={key}>
                       <Marker
                         position={[
                           loc.latitude + offset.latOffset,
@@ -303,10 +335,10 @@ const MapComponent = () => {
           )}
         </div>
 
-        {/* Modern Sidebar: Full width on mobile, fixed width on XL screens */}
+        {/* Modern Sidebar: Full width on mobile, fixed width on XL screens (UNCHANGED) */}
         <aside className="w-full xl:w-96 bg-white border-t xl:border-l border-gray-100 flex flex-col shadow-2xl">
           <div className="p-6 flex-1 overflow-y-auto">
-            
+
             {/* Header */}
             <div className="mb-6 sm:mb-8 bg-white pb-4 border-b-2 border-blue-100">
               <div className="flex items-center gap-3">
@@ -358,7 +390,7 @@ const MapComponent = () => {
                 <div className="relative">
                   <select
                     className="w-full px-4 py-3 bg-indigo-50 border-2 border-indigo-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 appearance-none cursor-pointer hover:border-indigo-400 shadow-sm"
-                    onChange={(e) => setCityFilter(e.target.value)}
+                    onChange={(e) => { setCityFilter(e.target.value); setBarangayFilter(""); }} // Reset barangay when city changes
                     value={cityFilter}
                   >
                     <option value="">All Cities</option>
@@ -382,6 +414,7 @@ const MapComponent = () => {
                       className="w-full px-4 py-3 bg-green-50 border-2 border-green-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 appearance-none cursor-pointer hover:border-green-400 shadow-sm"
                       onChange={(e) => setBarangayFilter(e.target.value)}
                       value={barangayFilter}
+                      disabled={availableBarangays.length === 0}
                     >
                       <option value="">All Barangays</option>
                       {availableBarangays.map((b) => (
@@ -467,8 +500,8 @@ const MapComponent = () => {
               {/* Stats Cards - Clean and Color-coded */}
               <div className="space-y-3">
                 {Object.entries(assistanceColors).map(([type, color]) => (
-                  <div 
-                    key={type} 
+                  <div
+                    key={type}
                     className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-blue-300 transition-all duration-200 hover:shadow-lg"
                   >
                     <div className="flex items-center gap-3">
@@ -487,7 +520,7 @@ const MapComponent = () => {
             </div>
           </div>
 
-          {/* Legend Footer */}
+          {/* Legend Footer (UNCHANGED) */}
           <div className="p-6 border-t-2 border-gray-100 bg-gray-50">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-1 h-5 bg-gradient-to-b from-gray-400 to-gray-600 rounded-full"></div>
