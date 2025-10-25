@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -39,22 +40,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: require("leaflet/dist/images/marker-icon.png"),
   shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
-
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="p-3 bg-white border border-gray-200 shadow-lg rounded-lg text-sm">
-        <p className="font-bold text-gray-800 mb-1">{label}</p>
-        {payload.map((p, i) => (
-          <p key={i} style={{ color: p.color }}>
-            {p.name}: <span className="font-semibold">{p.value}</span>
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
 
 const LoadingCardSkeleton = () => (
   <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-gray-200 animate-pulse">
@@ -98,89 +83,89 @@ const LoadingMapSkeleton = () => (
 );
 
 const Geographic = () => {
-  const [locations, setLocations] = useState([]);
-  const [topBarangays, setTopBarangays] = useState([]);
-  const [barangayByType, setBarangayByType] = useState([]);
-  const [approvalRates, setApprovalRates] = useState([]);
-  const [inactiveApplicants, setInactiveApplicants] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const [stats, setStats] = useState({
-    totalApplicants: 0,
-    topBarangay: "N/A",
-    barangayCount: 0,
-    avgApprovalRate: 0,
-    inactiveCount: 0,
-  });
 
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setError(null);
-      try {
-        const [locationsRes, barangaysRes, typeRes, approvalRes, inactiveRes] =
-          await Promise.all([
-            api.get("/analytics/geographic/locations/"),
-            api.get("/analytics/geographic/top-barangays/"),
-            api.get("/analytics/geographic/barangay-by-type/"),
-            api.get("/analytics/geographic/approval-rate/"),
-            api.get("/analytics/geographic/inactive-applicants/"),
-          ]);
+  const fetchData = async url => {
+    const res = await api.get(url);
+    return res.data;
+  };
 
-        const validLocations = (locationsRes.data || []).filter(
-          loc => loc.latitude && loc.longitude
-        );
+  // Locations
+  const { data: locations = [], isLoading: locationsLoading } = useQuery({
+    queryKey: ["geographic", "locations"],
+    queryFn: () => fetchData("/analytics/geographic/locations/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
 
-        const fetchedTopBarangays = Array.isArray(barangaysRes.data)
-          ? barangaysRes.data
-          : barangaysRes.data?.results || [];
-        const fetchedBarangayByType = typeRes.data || [];
-        const fetchedApprovalRates = approvalRes.data || [];
-        const fetchedInactiveApplicants = inactiveRes.data || [];
+  // Top Barangays
+  const { data: topBarangays = [], isLoading: topBarangaysLoading } = useQuery({
+    queryKey: ["geographic", "topBarangays"],
+    queryFn: () => fetchData("/analytics/geographic/top-barangays/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
 
-        setLocations(validLocations);
-        setTopBarangays(fetchedTopBarangays);
-        setBarangayByType(fetchedBarangayByType);
-        setApprovalRates(fetchedApprovalRates);
-        setInactiveApplicants(fetchedInactiveApplicants);
+  // Barangay by Type
+  const { data: barangayByType = [], isLoading: barangayTypeLoading } = useQuery({
+    queryKey: ["geographic", "barangayByType"],
+    queryFn: () => fetchData("/analytics/geographic/barangay-by-type/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
 
-        const totalApplicants = validLocations.length;
-        const topBarangay =
-          fetchedTopBarangays?.length > 0
-            ? fetchedTopBarangays[0]?.background_info__barangay__name || "N/A"
-            : "N/A";
-        const barangayCount = [...new Set(validLocations.map(loc => loc.barangay))].length;
-        const avgApprovalRate =
-          fetchedApprovalRates.length > 0
-            ? (
-                fetchedApprovalRates.reduce(
-                  (sum, item) => sum + (item.approval_rate || 0),
-                  0
-                ) / fetchedApprovalRates.length
-              ).toFixed(1)
-            : 0;
+  // Approval Rate
+  const { data: approvalRates = [], isLoading: approvalLoading } = useQuery({
+    queryKey: ["geographic", "approvalRate"],
+    queryFn: () => fetchData("/analytics/geographic/approval-rate/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
 
-        setStats({
-          totalApplicants,
-          topBarangay,
-          barangayCount,
-          avgApprovalRate,
-          inactiveCount: fetchedInactiveApplicants.length,
-        });
+  // Inactive Applicants
+  const { data: inactiveApplicants = [], isLoading: inactiveLoading } = useQuery({
+    queryKey: ["geographic", "inactiveApplicants"],
+    queryFn: () => fetchData("/analytics/geographic/inactive-applicants/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
 
-        initializeHeatmap(validLocations);
-      } catch (err) {
-        console.error("Error fetching geographic data:", err);
-        setError("Failed to load geographic data. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Combine loading states
+  const loading =
+    locationsLoading ||
+    topBarangaysLoading ||
+    barangayTypeLoading ||
+    approvalLoading ||
+    inactiveLoading;
 
-    fetchData();
-  }, []);
+  const validLocations = (locations || []).filter(loc => loc.latitude && loc.longitude);
+
+  const totalApplicants = validLocations.length;
+
+  const topBarangay =
+    Array.isArray(topBarangays) && topBarangays.length > 0
+      ? topBarangays[0]?.background_info__barangay__name || "N/A"
+      : "N/A";
+
+  const barangayCount = [...new Set(validLocations.map(loc => loc.barangay))].length;
+
+  const avgApprovalRate =
+    Array.isArray(approvalRates) && approvalRates.length > 0
+      ? (
+          approvalRates.reduce((sum, item) => sum + (item.approval_rate || 0), 0) /
+          approvalRates.length
+        ).toFixed(1)
+      : 0;
+
+  const stats = {
+    totalApplicants,
+    topBarangay,
+    barangayCount,
+    avgApprovalRate,
+    inactiveCount: inactiveApplicants?.length || 0,
+  };
 
   const initializeHeatmap = locationData => {
     setTimeout(() => {

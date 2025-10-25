@@ -1873,4 +1873,3 @@ def resolve_support_message(request, message_id):
     except SupportMessage.DoesNotExist:
         return Response({"error": "Message not found."}, status=404)
 
-

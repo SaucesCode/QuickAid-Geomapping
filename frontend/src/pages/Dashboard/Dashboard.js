@@ -1,192 +1,61 @@
-import React, { useEffect, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
-import toast from "react-hot-toast";
 import {
-  Users,
-  Clock,
-  TrendingUp,
-  MapPin,
   LayoutDashboard,
+  TrendingUp,
   Activity,
   FileText,
-  PieChart as PieIcon,
-  BarChart as BarIcon,
-  Calendar, // Icon for Today's Applicants
-  BarChart2, // Icon for Weekly Applicants
-  LineChart, // Icon for Monthly Applicants
-  Loader2,
+  Calendar,
+  BarChart2,
+  LineChart,
 } from "lucide-react";
 import {
-  LineChart as RechartsLineChart, // Renamed to avoid conflict with lucide LineChart
+  ResponsiveContainer,
+  LineChart as RechartsLineChart,
   Line,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
-  PieChart,
-  Pie,
 } from "recharts";
+import toast from "react-hot-toast";
 
-// --- Color Mapping to match your visual analytics ---
-const TYPE_COLORS = {
-  Medical: "#10b981", // Green
-  Educational: "#3b82f6", // Blue
-  Burial: "#f59e0b", // Orange/Yellow
-  Livelihood: "#8b5cf6", // Purple
-  // Add other types if necessary
-};
-
-const STATUS_COLORS = {
-  Submitted: "#9ca3af", // Grey
-  "Pending Review": "#fbbf24", // Yellow
-  Approved: "#10b981", // Green
-  Rejected: "#ef4444", // Red
-};
-
-// --- INITIAL STATE FOR CONCURRENT KPI LOADING ---
-const initialKpiStats = {
-  today: {
-    value: "-",
-    loading: true,
-    title: "TODAY'S APPLICANTS",
-    icon: Calendar,
-    iconColor: "#06b6d4",
-    gradientEndColor: "#06b6d4",
-  },
-  weekly: {
-    value: "-",
-    loading: true,
-    title: "WEEKLY APPLICANTS",
-    icon: BarChart2,
-    iconColor: "#8b5cf6",
-    gradientEndColor: "#8b5cf6",
-  },
-  monthly: {
-    value: "-",
-    loading: true,
-    title: "MONTHLY APPLICANTS",
-    icon: LineChart,
-    iconColor: "#3b82f6",
-    gradientEndColor: "#3b82f6",
-  },
-  avgTime: {
-    value: "-",
-    loading: true,
-    title: "AVG. PROCESSING TIME",
-    icon: Clock,
-    iconColor: "#06b6d4",
-    gradientEndColor: "#06b6d4",
-  },
-};
-
-// --- NEW COMPONENT FOR THE IMAGE STATS (MODIFIED TO PULL FROM STATE) ---
 const SimpleStatCard = ({ stat }) => {
   const { title, value, loading, icon: Icon, iconColor, gradientEndColor } = stat;
-
-  // Determine display value
-  const displayValue = loading ? (
-    <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 animate-spin" />
-  ) : value === null || value === undefined ? (
-    "N/A"
-  ) : (
-    value.toLocaleString()
-  );
-
   return (
-    // Base card styling
-    <div className="bg-white rounded-2xl shadow-lg p-5 sm:p-6 border border-gray-100 h-full flex flex-col justify-between overflow-hidden relative">
-      {/* Dynamic Colored Border (left-side) */}
+    <div className="bg-white rounded-2xl shadow-lg p-5 border border-gray-100 h-full flex flex-col justify-between relative overflow-hidden">
       <div
-        className={`absolute top-0 left-0 bottom-0 w-2 rounded-l-2xl`}
+        className="absolute top-0 left-0 bottom-0 w-2 rounded-l-2xl"
         style={{
-          background: `linear-gradient(to bottom, #fff, ${gradientEndColor})`, // White to a color for the soft blend
+          background: `linear-gradient(to bottom, #fff, ${gradientEndColor})`,
           opacity: 0.8,
         }}
       ></div>
-
-      {/* Content */}
-      <div className="flex flex-col items-start space-y-2 relative z-10">
-        <div className="flex items-center justify-between w-full">
-          {/* Title */}
-          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider min-w-0 pr-4">
-            {title}
-          </p>
-          {/* Icon */}
-          <div
-            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0`}
-            style={{
-              backgroundColor: `${iconColor}20`, // Light background for the icon
-            }}
-          >
-            <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: iconColor }} />
-          </div>
-        </div>
-
-        {/* Value (Big Number) */}
-        <p
-          className={`text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mt-2 ${
-            loading ? "h-10" : ""
-          }`}
+      <div className="flex items-center justify-between w-full">
+        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{title}</p>
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          style={{ backgroundColor: `${iconColor}20` }}
         >
-          {displayValue}
-        </p>
+          <Icon className="w-5 h-5" style={{ color: iconColor }} />
+        </div>
       </div>
+      <p className="text-4xl font-bold text-gray-900 mt-2">
+        {loading ? "..." : value ?? "N/A"}
+      </p>
     </div>
   );
 };
 
-const KPISkeleton = () => (
-  <div className="animate-pulse bg-white rounded-2xl shadow-lg p-6 border border-gray-100 h-[130px] w-full">
-    <div className="flex justify-between items-start mb-4">
-      <div className="flex-1">
-        <div className="h-4 bg-gray-200 rounded w-3/5 mb-2"></div>
-        <div className="h-8 bg-gray-300 rounded w-4/5"></div>
-      </div>
-      <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gray-200 rounded-xl flex-shrink-0"></div>
-    </div>
-    <div className="h-1 bg-gray-200 rounded-full"></div>
-  </div>
-);
-
-const ChartSkeleton = () => (
-  <div className="animate-pulse bg-white rounded-3xl shadow-xl p-4 sm:p-8 border border-gray-100 h-[350px] w-full">
-    <div className="h-full bg-gray-200 rounded-xl"></div>
-  </div>
-);
-
-const ListSkeleton = ({ items = 5 }) => (
-  <div className="animate-pulse">
-    <ul className="space-y-3">
-      {[...Array(items)].map((_, i) => (
-        <li
-          key={i}
-          className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
-            <div className="h-4 bg-gray-300 rounded w-24"></div>
-          </div>
-          <div className="h-5 bg-gray-200 rounded w-16"></div>
-        </li>
-      ))}
-    </ul>
-  </div>
-);
-
 const Card = ({ title, icon: Icon, children, gradient = "from-indigo-600 to-blue-700" }) => (
-  <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100 transition-all duration-300 hover:shadow-2xl h-full w-full">
+  <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100 h-full">
     <div className="flex items-center gap-4 mb-6">
       <div
-        className={`w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br ${gradient} rounded-lg flex items-center justify-center shadow-lg flex-shrink-0`}
+        className={`w-10 h-10 bg-gradient-to-br ${gradient} rounded-lg flex items-center justify-center`}
       >
-        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+        <Icon className="w-5 h-5 text-white" />
       </div>
-      <h2 className="font-bold text-lg sm:text-xl text-gray-900 border-l-4 border-blue-500 pl-3 leading-none flex-grow">
+      <h2 className="font-bold text-lg text-gray-900 border-l-4 border-blue-500 pl-3">
         {title}
       </h2>
     </div>
@@ -194,373 +63,201 @@ const Card = ({ title, icon: Icon, children, gradient = "from-indigo-600 to-blue
   </div>
 );
 
-// ------------------------------------
-// --- 2. MAIN DASHBOARD COMPONENT ---
-// ------------------------------------
+const ListSkeleton = ({ items = 5 }) => (
+  <ul className="animate-pulse space-y-3">
+    {[...Array(items)].map((_, i) => (
+      <li
+        key={i}
+        className="flex justify-between p-4 bg-gray-50 rounded-xl border border-gray-200"
+      >
+        <div className="w-24 h-4 bg-gray-200 rounded"></div>
+        <div className="w-16 h-4 bg-gray-200 rounded"></div>
+      </li>
+    ))}
+  </ul>
+);
+
+const ChartSkeleton = () => (
+  <div className="animate-pulse bg-gray-100 h-[300px] rounded-xl"></div>
+);
 
 const Dashboard = () => {
-  // Data States
-  const [summary, setSummary] = useState(null);
-  const [totals, setTotals] = useState(null);
-  const [growth, setGrowth] = useState(null);
-  const [monthlyTrend, setMonthlyTrend] = useState([]);
-  const [staffActivity, setStaffActivity] = useState(null);
-  const [recentApplicants, setRecentApplicants] = useState(null);
+  const fetcher = async url => (await api.get(url)).data;
 
-  // --- MODIFICATION 1: New state for concurrent KPI loading ---
-  const [kpiStats, setKpiStats] = useState(initialKpiStats);
+  const {
+    data: summary,
+    isLoading: summaryLoading,
+    error: summaryErr,
+  } = useQuery({
+    queryKey: ["dashboardSummary"],
+    queryFn: () => fetcher("/analytics/dashboard/summary/"),
+  });
 
-  // Analytics Data States
-  const [typeBreakdown, setTypeBreakdown] = useState([]);
-  const [statusFunnel, setStatusFunnel] = useState([]);
+  const { data: growth, isLoading: growthLoading } = useQuery({
+    queryKey: ["growthRate"],
+    queryFn: () => fetcher("/analytics/dashboard/growth-rate/"),
+  });
 
-  // Use separate loading states for granular control
-  // isKPILoading is now replaced by individual loading states in kpiStats
-  const [isChartLoading, setIsChartLoading] = useState(true);
+  const { data: monthlyTrend, isLoading: trendLoading } = useQuery({
+    queryKey: ["monthlyTrend"],
+    queryFn: () => fetcher("/analytics/dashboard/total-applicants/"),
+  });
 
-  useEffect(() => {
-    document.title = "QuickAid | Dashboard";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  const { data: staffActivity, isLoading: staffLoading } = useQuery({
+    queryKey: ["staffLeaderboard"],
+    queryFn: () => fetcher("/analytics/performance/staff-leaderboard/"),
+  });
 
-  // --- MODIFICATION 2: Function to fetch a single KPI with random delay ---
-  const fetchKpiStat = useCallback(async (key, endpoint, minDelay = 200, maxDelay = 1500) => {
-    try {
-      // 1. Simulate varying network delay for non-sequential loading (Fastest first)
-      const delay = Math.random() * (maxDelay - minDelay) + minDelay;
-      await new Promise(resolve => setTimeout(resolve, delay));
+  const { data: recentApplicants, isLoading: recentLoading } = useQuery({
+    queryKey: ["recentApplicants"],
+    queryFn: () => fetcher("/recent_applicants/"),
+  });
 
-      // 2. Fetch data (This endpoint should ideally return a single value)
-      const res = await api.get(endpoint);
-      const data = res.data;
-
-      let fetchedValue;
-      if (key === "avgTime") {
-        fetchedValue = data.averageProcessingTime
-          ? `${data.averageProcessingTime} mins`
-          : "N/A";
-      } else {
-        // Assuming the response key is named 'count' or similar
-        fetchedValue =
-          data.dailyApplicants ?? data.weeklyApplicants ?? data.monthlyApplicants ?? 0;
-      }
-
-      // 3. Update the state for its specific key immediately upon resolution
-      setKpiStats(prev => ({
-        ...prev,
-        [key]: { ...prev[key], value: fetchedValue, loading: false },
-      }));
-    } catch (err) {
-      console.error(`KPI fetch error for ${key}:`, err);
-      // Fallback on error to 'Error'
-      setKpiStats(prev => ({
-        ...prev,
-        [key]: { ...prev[key], value: "Error", loading: false },
-      }));
-    }
-  }, []);
-
-  // --- MODIFICATION 3: New concurrent fetch function ---
-  const fetchAllKpiStatsConcurrently = useCallback(async () => {
-    // Reset all stats to loading
-    setKpiStats(initialKpiStats);
-
-    // Define all promises to run concurrently
-    const todayPromise = fetchKpiStat("today", "/analytics/dashboard/summary/");
-    const weeklyPromise = fetchKpiStat("weekly", "/analytics/dashboard/summary/");
-    const monthlyPromise = fetchKpiStat("monthly", "/analytics/dashboard/summary/");
-    const avgTimePromise = fetchKpiStat("avgTime", "/analytics/dashboard/summary/");
-
-    // Wait for all promises to settle. The setKpiStats inside fetchKpiStat
-    // will update the UI in the order they resolve (fastest first).
-    await Promise.allSettled([todayPromise, weeklyPromise, monthlyPromise, avgTimePromise]);
-  }, [fetchKpiStat]);
-
-  // Function to fetch the rest of the dashboard data (Slower Loading Content)
-  const fetchContentData = useCallback(async () => {
-    setIsChartLoading(true);
-    try {
-      const [totalsRes, growthRes, monthlyRes, staffRes, recentRes] = await Promise.all([
-        api.get("/analytics/dashboard/total-applicants/"),
-        api.get("/analytics/dashboard/growth-rate/"),
-        api.get("/analytics/trends/monthly/"),
-        api.get("/analytics/performance/staff-leaderboard/"),
-        api.get("/recent_applicants/"),
-      ]);
-
-      setTotals(totalsRes.data || {});
-      setGrowth(growthRes.data || {});
-      setMonthlyTrend(monthlyRes.data || []);
-      setStaffActivity(staffRes.data || []);
-      setRecentApplicants(recentRes.data?.results || recentRes.data || []);
-
-      // NOTE: Setting these to empty array/default to reflect they are not displayed
-      setTypeBreakdown([]);
-      setStatusFunnel([]);
-    } catch (err) {
-      console.error("Dashboard content fetch error:", err);
-      toast.error("Failed to load dashboard data. Check API connections.", {
-        style: { background: "#1e293b", color: "#f1f5f9", border: "1px solid #334155" },
-      });
-    } finally {
-      // Use a slightly longer timeout for chart/list content loading to show the skeleton effect
-      setTimeout(() => setIsChartLoading(false), 800);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchAllKpiStatsConcurrently(); // Fetch KPi stats concurrently for non-sequential loading
-    fetchContentData();
-  }, [fetchAllKpiStatsConcurrently, fetchContentData]);
-
-  const formatDate = dateString => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
+  if (summaryErr)
+    toast.error("Failed to load dashboard data.", {
+      style: { background: "#1e293b", color: "#f1f5f9" },
     });
-  };
 
-  const getTypeStyles = type => {
-    switch (type) {
-      case "Medical":
-        return "bg-green-100 text-green-700";
-      case "Educational":
-        return "bg-blue-100 text-blue-700";
-      case "Burial":
-        return "bg-yellow-100 text-yellow-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
+  // Extract values from monthlyTrend
+  const daily = monthlyTrend?.daily ?? 0;
+  const weekly = monthlyTrend?.weekly ?? 0;
+  const monthly = monthlyTrend?.monthly ?? 0;
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-xl text-sm">
-          {/* Recharts uses 'name' for the category, which is correct for both charts */}
-          <p className="font-semibold text-gray-800">{payload[0].payload.name}</p>
-          <p className="text-blue-600">
-            Total: <span className="font-bold">{payload[0].value.toLocaleString()}</span>
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
+  // Convert growth rate data into chart-friendly array
+  const growthChartData = growth
+    ? [
+        { name: "Previous Month", count: growth.previous_month ?? 0 },
+        { name: "This Month", count: growth.this_month ?? 0 },
+      ]
+    : [];
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 bg-gray-50 min-h-screen">
-      {/* 1. Formal Header (Unchanged) */}
-      <header className="bg-white rounded-3xl shadow-2xl p-4 sm:p-6 border border-gray-100 w-full">
+    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+      <header className="bg-white rounded-3xl shadow-2xl p-6 border border-gray-100">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl flex items-center justify-center shadow-xl flex-shrink-0">
-            <LayoutDashboard className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+          <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl flex items-center justify-center">
+            <LayoutDashboard className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-blue-800">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-blue-800">
               Operational Dashboard
             </h1>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              A high-level overview of key QuickAid metrics and recent activities.
+            <p className="text-sm text-gray-500 mt-1">
+              Overview of QuickAid metrics and recent activities
             </p>
           </div>
         </div>
       </header>
 
-      {/* 2. KPI Cards (Now renders based on kpiStats state) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {/* Card 1: Today's Applicants */}
-        <SimpleStatCard stat={kpiStats.today} />
-
-        {/* Card 2: Weekly Applicants */}
-        <SimpleStatCard stat={kpiStats.weekly} />
-
-        {/* Card 3: Monthly Applicants */}
-        <SimpleStatCard stat={kpiStats.monthly} />
-
-        {/* Card 4: Avg. Processing Time */}
-        <SimpleStatCard stat={kpiStats.avgTime} />
+      {/* KPI Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <SimpleStatCard
+          stat={{
+            title: "Daily Applicants",
+            value: daily,
+            loading: trendLoading,
+            icon: Calendar,
+            iconColor: "#06b6d4",
+            gradientEndColor: "#06b6d4",
+          }}
+        />
+        <SimpleStatCard
+          stat={{
+            title: "Weekly Applicants",
+            value: weekly,
+            loading: trendLoading,
+            icon: BarChart2,
+            iconColor: "#8b5cf6",
+            gradientEndColor: "#8b5cf6",
+          }}
+        />
+        <SimpleStatCard
+          stat={{
+            title: "Monthly Applicants",
+            value: monthly,
+            loading: trendLoading,
+            icon: LineChart,
+            iconColor: "#3b82f6",
+            gradientEndColor: "#3b82f6",
+          }}
+        />
       </div>
 
-      {/* 3. Application Analytics */}
-      <div className="grid grid-cols-1">{/* Empty section for removed charts */}</div>
-
-      {/* 4. Monthly Trend Chart (Uses Chart Skeleton while loading) */}
-      <Card
-        title="Monthly Application Volume"
-        icon={TrendingUp}
-        gradient="from-indigo-600 to-blue-700"
-      >
-        {isChartLoading ? (
+      {/* Growth Chart */}
+      <Card title="Monthly Application Growth" icon={TrendingUp}>
+        {growthLoading ? (
           <ChartSkeleton />
         ) : (
-          <>
-            <p className="text-sm text-gray-500 mb-4">
-              Tracking application submission rates over time.
-            </p>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsLineChart // Use the renamed component
-                  data={monthlyTrend}
-                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                >
-                  <defs>
-                    <linearGradient id="colorGradient" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#2563eb" />
-                      <stop offset="100%" stopColor="#3b82f6" />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
-                  <XAxis
-                    dataKey="month"
-                    stroke="#6b7280"
-                    style={{ fontSize: "11px", fontWeight: "500" }}
-                    padding={{ left: 20, right: 20 }}
-                  />
-                  <YAxis stroke="#6b7280" style={{ fontSize: "11px", fontWeight: "500" }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "white",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "8px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                      padding: "10px",
-                    }}
-                    labelStyle={{ color: "#1f2937", fontWeight: "700" }}
-                    formatter={value => [value.toLocaleString(), "Applications"]}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="count"
-                    stroke="url(#colorGradient)"
-                    strokeWidth={3}
-                    dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 8, fill: "#2563eb", stroke: "#fff", strokeWidth: 3 }}
-                  />
-                </RechartsLineChart>
-              </ResponsiveContainer>
-            </div>
-          </>
+          <ResponsiveContainer width="100%" height={300}>
+            <RechartsLineChart data={growthChartData}>
+              <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
+              <XAxis dataKey="name" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
+              <Tooltip />
+              <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={3} />
+            </RechartsLineChart>
+          </ResponsiveContainer>
         )}
       </Card>
 
-      {/* 5. Staff Activity + Recent Applicants Grid (Uses List Skeleton while loading) */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
-        <div className="lg:col-span-2">
-          <Card
-            title="Staff Activity Leaderboard"
-            icon={Activity}
-            gradient="from-purple-600 to-indigo-700"
-          >
-            {isChartLoading ? ( // Use isChartLoading for this section
-              <ListSkeleton items={5} />
-            ) : staffActivity && staffActivity.length > 0 ? (
-              <ul className="space-y-3">
-                {staffActivity.slice(0, 5).map((s, i) => (
-                  <li
-                    key={i}
-                    className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200 transition-shadow duration-200 hover:shadow-md"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-6 text-center font-bold text-lg text-purple-700 flex-shrink-0">
-                        #{i + 1}
-                      </div>
-                      <span className="font-semibold text-gray-800 truncate">
-                        {s.staff__username}
-                      </span>
-                    </div>
-                    <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-bold shadow-sm flex-shrink-0 whitespace-nowrap">
-                      {s.count} Processed
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-center py-12 bg-gray-100 rounded-lg">
-                <Activity className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                <p className="text-sm text-gray-500 font-medium">
-                  No recent staff activity records.
-                </p>
-              </div>
-            )}
-          </Card>
-        </div>
+      {/* Staff + Recent Applicants */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <Card title="Staff Activity Leaderboard" icon={Activity}>
+          {staffLoading ? (
+            <ListSkeleton />
+          ) : (
+            <ul className="space-y-3">
+              {staffActivity?.slice(0, 5).map((s, i) => (
+                <li
+                  key={i}
+                  className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200"
+                >
+                  <span className="font-semibold text-gray-800">{s.staff__username}</span>
+                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-bold">
+                    {s.count} Processed
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
 
-        <div className="lg:col-span-3">
-          <Card
-            title="Recently Submitted Applications"
-            icon={FileText}
-            gradient="from-green-600 to-teal-700"
-          >
-            {isChartLoading ? ( // Use isChartLoading for this section
-              <ListSkeleton items={5} />
-            ) : (
-              <div className="overflow-x-auto w-full">
-                <table className="w-full text-sm border-collapse table-auto">
-                  <thead>
-                    <tr className="bg-gray-100 border-b border-gray-200">
-                      <th className="p-3 sm:p-4 text-left font-bold text-gray-700 min-w-[130px]">
-                        Applicant Name
-                      </th>
-                      <th className="p-3 sm:p-4 text-center font-bold text-gray-700 min-w-[90px]">
-                        Barangay
-                      </th>
-                      <th className="p-3 sm:p-4 text-center font-bold text-gray-700 min-w-[80px]">
-                        Type
-                      </th>
-                      <th className="p-3 sm:p-4 text-right font-bold text-gray-700">
-                        Timestamp
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(recentApplicants &&
-                      recentApplicants.slice(0, 5).map((a, idx) => (
-                        <tr
-                          key={idx}
-                          className="border-b border-gray-100 transition-colors duration-150 hover:bg-blue-50"
-                        >
-                          <td className="p-3 sm:p-4 font-medium text-gray-800 truncate max-w-[130px]">
-                            {a.background_info?.first_name} {a.background_info?.last_name}
-                          </td>
-                          <td className="p-3 sm:p-4 text-center text-gray-600 truncate max-w-[90px]">
-                            {a.background_info?.barangay}
-                          </td>
-                          <td className="p-3 sm:p-4 text-center">
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap ${getTypeStyles(
-                                a.type_of_assistance
-                              )}`}
-                            >
-                              {a.type_of_assistance}
-                            </span>
-                          </td>
-                          <td className="p-3 sm:p-4 text-right text-gray-500 text-xs">
-                            {formatDate(a.date_filled)}
-                          </td>
-                        </tr>
-                      ))) ||
-                      null}
-                  </tbody>
-                </table>
-                {(!recentApplicants || recentApplicants.length === 0) && (
-                  <div className="text-center py-12 bg-gray-100 rounded-b-xl border-t border-gray-200">
-                    <FileText className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                    <p className="text-sm text-gray-500 font-medium">
-                      No recent applications found.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </Card>
-        </div>
+        <Card title="Recently Submitted Applications" icon={FileText}>
+          {recentLoading ? (
+            <ListSkeleton />
+          ) : (
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-100 border-b border-gray-200">
+                  <th className="p-3 text-left font-bold text-gray-700">Applicant</th>
+                  <th className="p-3 text-center font-bold text-gray-700">Barangay</th>
+                  <th className="p-3 text-center font-bold text-gray-700">Type</th>
+                  <th className="p-3 text-right font-bold text-gray-700">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentApplicants?.slice(0, 5).map((a, i) => (
+                  <tr key={i} className="border-b border-gray-100 hover:bg-blue-50">
+                    <td className="p-3 font-medium text-gray-800">
+                      {a.background_info?.first_name} {a.background_info?.last_name}
+                    </td>
+                    <td className="p-3 text-center text-gray-600">
+                      {a.background_info?.barangay}
+                    </td>
+                    <td className="p-3 text-center text-gray-700">{a.type_of_assistance}</td>
+                    <td className="p-3 text-right text-gray-500 text-xs">
+                      {new Date(a.date_filled).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Card>
       </div>
     </div>
   );
