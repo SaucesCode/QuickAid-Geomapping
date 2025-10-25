@@ -1,29 +1,32 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    PieChart,
-    Pie,
-    Cell,
-    ResponsiveContainer,
-    Area,
-    AreaChart,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  Area,
+  AreaChart,
 } from "recharts";
 import {
-    Users,
-    Heart,
-    Briefcase,
-    DollarSign,
-    TrendingUp,
-    UserCheck,
-    AlertCircle,
-    Loader2,
+  Users,
+  Heart,
+  Briefcase,
+  DollarSign,
+  TrendingUp,
+  UserCheck,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 
 // Fallback skeleton loader component for charts and lists
@@ -442,29 +445,57 @@ const DemographicsEconomics = () => {
             )}
           </div>
         </div>
-    );
 
-    const listSkeleton = (
-        <div className="space-y-2 p-1">
-            {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-4 w-full bg-gray-200 rounded"></div>
-            ))}
+        {/* Age & Age by Gender */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Age Groups */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-800 flex items-center mb-6">
+              <TrendingUp className="mr-2 h-5 w-5 text-green-600" /> Age Group Distribution
+            </h2>
+            {loadingStates.ageGroup ? (
+              <SkeletonLoader height={300} />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={ageGroupData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="age_group" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#06B6D4"
+                    fill="#06B6D4"
+                    fillOpacity={0.6}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          {/* Age by Gender */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-6">Age Groups by Gender</h2>
+            {loadingStates.ageGender ? (
+              <SkeletonLoader height={300} />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={transformedAgeGenderData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="gender" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="Under 18" stackId="a" fill="#FF6B6B" />
+                  <Bar dataKey="18-35" stackId="a" fill="#4ECDC4" />
+                  <Bar dataKey="36-60" stackId="a" fill="#45B7D1" />
+                  <Bar dataKey="Over 60" stackId="a" fill="#96CEB4" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
-    );
-
-    let content;
-    switch (type) {
-        case 'stat':
-            content = statSkeleton;
-            break;
-        case 'list':
-            content = listSkeleton;
-            break;
-        case 'chart':
-        default:
-            content = chartSkeleton;
-            break;
-    }
 
         {/* Economics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -522,9 +553,6 @@ const DemographicsEconomics = () => {
             )}
           </div>
         </div>
-    );
-};
-// ---------------------------------------------
 
         {/* Key Insights Section */}
         <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
@@ -553,8 +581,6 @@ const DemographicsEconomics = () => {
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               )}
             </div>
-        );
-    }
 
             <div className="bg-yellow-50 rounded-lg p-4">
               <h3 className="font-semibold text-yellow-800 mb-2">Economic Profile</h3>
@@ -567,8 +593,11 @@ const DemographicsEconomics = () => {
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               )}
             </div>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default DemographicsEconomics;

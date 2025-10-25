@@ -335,24 +335,21 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                   </label>
                   <div className="relative">
                     <select
-  id="sex"
-  name="sex"
-  value={formData.sex || ""}
-  onChange={handleInputChange}
-  className={`w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
-    errors.sex
-      ? "border-red-400 bg-red-50 focus:border-red-500"
-      : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
-  }`}
-  required
->
-  <option value="" disabled>
-    {T.selectSex}
-  </option>
-  <option value="Male">{T.male}</option>
-  <option value="Female">{T.female}</option>
-</select>
-
+                      id="sex"
+                      name="sex"
+                      value={formData.sex || ""}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
+                        errors.sex
+                          ? "border-red-400 bg-red-50 focus:border-red-500"
+                          : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                      }`}
+                      required
+                    >
+                      <option value="">{T.selectSex}</option>
+                      <option value="Male">{T.male}</option>
+                      <option value="Female">{T.female}</option>
+                    </select>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                       <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -379,27 +376,24 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                   </label>
                   <div className="relative">
                     <select
-  id="civil_status"
-  name="civil_status"
-  value={formData.civil_status || ""}
-  onChange={handleInputChange}
-  className={`w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
-    errors.civil_status
-      ? "border-red-400 bg-red-50 focus:border-red-500"
-      : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
-  }`}
-  required
->
-  <option value="" disabled>
-    {T.selectCivilStatus}
-  </option>
-  <option value="Single">{T.single}</option>
-  <option value="Married">{T.married}</option>
-  <option value="Widowed">{T.widowed}</option>
-  <option value="Separated">{T.separated}</option>
-  <option value="Divorced">{T.divorced}</option>
-</select>
-
+                      id="civil_status"
+                      name="civil_status"
+                      value={formData.civil_status || ""}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
+                        errors.civil_status
+                          ? "border-red-400 bg-red-50 focus:border-red-500"
+                          : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                      }`}
+                      required
+                    >
+                      <option value="">{T.selectCivilStatus}</option>
+                      <option value="Single">{T.single}</option>
+                      <option value="Married">{T.married}</option>
+                      <option value="Widowed">{T.widowed}</option>
+                      <option value="Separated">{T.separated}</option>
+                      <option value="Divorced">{T.divorced}</option>
+                    </select>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                       <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
