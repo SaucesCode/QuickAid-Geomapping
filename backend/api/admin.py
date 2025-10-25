@@ -8,6 +8,7 @@ from .models import (
     StaffActivityLog,
     Approval,
     ApprovalBatch,
+    SupportMessage
 )
 
 #
@@ -139,6 +140,11 @@ class ApprovalBatchAdmin(admin.ModelAdmin):
     search_fields = ("file_name", "uploaded_by__username")
     list_filter = ("uploaded_at",)
     ordering = ("-uploaded_at",)
+    
+class SupportMessageAdmin(admin.ModelAdmin):
+    list_display = ('name', 'email', 'message', 'created_at', 'is_resolved')
+    list_filter = ('is_resolved', 'created_at')
+    search_fields = ('name', 'email', 'message')
 
 
 # Register models
@@ -150,3 +156,5 @@ admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(BackgroundInfo)
 admin.site.register(Approval, ApprovalAdmin)
 admin.site.register(ApprovalBatch, ApprovalBatchAdmin)
+admin.site.register(SupportMessage, SupportMessageAdmin)
+

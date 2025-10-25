@@ -1,4 +1,6 @@
 import { Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import Login from "./pages/auth/Login";
 import SettingsPage from "./pages/auth/SettingsPage";
 
@@ -44,63 +46,68 @@ import eligibility from "./pages/print/CertificateOfEligibility";
 import CertificateOfEligibility from "./pages/print/CertificateOfEligibility";
 import GeneralIntakeSheet from "./pages/print/Intakesheet";
 
+const queryClient = new QueryClient();
+
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/new-applicant" element={<MultiStepForm />} />
-        <Route path="/about-quickaid" element={<AboutQuickaid />} />
-        <Route path="/about-us" element={<AboutUs />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/services/education" element={<EducationalAssistanceProgram />} />
-        <Route path="/services/medical" element={<MedicalAssistanceProgram />} />
-        <Route path="/services/funeral" element={<FuneralAssistanceProgram />} />
-        <Route path="/print" element={<PrintPage />} />
-        <Route path="/print/:id" element={<PrintPagebyID />} />
-        <Route path="/terms" element={<TermsAndConditions />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/staff-qr" element={<StaffQR />} />
-        <Route path="/eligibility" element={<CertificateOfEligibility />} />
-        <Route path="/intakesheet" element={<GeneralIntakeSheet />} />
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen bg-gray-50">
+        <ScrollToTop />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/new-applicant" element={<MultiStepForm />} />
+          <Route path="/about-quickaid" element={<AboutQuickaid />} />
+          <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/services/education" element={<EducationalAssistanceProgram />} />
+          <Route path="/services/medical" element={<MedicalAssistanceProgram />} />
+          <Route path="/services/funeral" element={<FuneralAssistanceProgram />} />
+          <Route path="/print" element={<PrintPage />} />
+          <Route path="/print/:id" element={<PrintPagebyID />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/staff-qr" element={<StaffQR />} />
+          <Route path="/eligibility" element={<CertificateOfEligibility />} />
+          <Route path="/intakesheet" element={<GeneralIntakeSheet />} />
 
-        <Route
-          path="/"
-          element={
-            <PrivateRoute>
-              <Sidebar />
-            </PrivateRoute>
-          }
-        >
           <Route
-            path="dashboard"
+            path="/"
             element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
+              <PrivateRoute>
+                <Sidebar />
+              </PrivateRoute>
             }
-          />
-          <Route path="register-applicant" element={<ApplicantForm />} />
-          <Route path="geomapping" element={<MapComponent />} />
-          <Route path="heatmap" element={<HeatMap />} />
-          <Route path="admin-management" element={<AdminManagement />} />
-          <Route path="analytics">
-            <Route path="geographic" element={<Geographic />} />
-            <Route path="demographics-economics" element={<DemographicsEconomics />} />
-            <Route path="trends" element={<Trends />} />
-            <Route path="performance" element={<Performance />} />
-          </Route>
+          >
+            <Route
+              path="dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="register-applicant" element={<ApplicantForm />} />
+            <Route path="geomapping" element={<MapComponent />} />
+            <Route path="heatmap" element={<HeatMap />} />
+            <Route path="admin-management" element={<AdminManagement />} />
+            <Route path="analytics">
+              <Route path="geographic" element={<Geographic />} />
+              <Route path="demographics-economics" element={<DemographicsEconomics />} />
+              <Route path="trends" element={<Trends />} />
+              <Route path="performance" element={<Performance />} />
+            </Route>
 
-          <Route path="applicants" element={<Applicants />} />
-          <Route path="export-applicants" element={<ExportApplicants />} />
-          <Route path="approved" element={<Approved />} />
-          <Route path="archived-applicants" element={<ArchiveApplicants />} />
-          <Route path="settings" element={<SettingsPage />} />
-        </Route>
-      </Routes>
-    </div>
+            <Route path="applicants" element={<Applicants />} />
+            <Route path="export-applicants" element={<ExportApplicants />} />
+            <Route path="approved" element={<Approved />} />
+            <Route path="archived-applicants" element={<ArchiveApplicants />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+        </Routes>
+      </div>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
 }
 

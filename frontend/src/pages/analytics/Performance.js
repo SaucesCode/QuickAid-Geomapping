@@ -1,10 +1,11 @@
-import React from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../../services/api"; // Assuming the original api service is available
+import { api } from "../../services/api";
 import {
   BarChart,
   Bar,
   LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -14,7 +15,8 @@ import {
   PieChart,
   Pie,
   Cell,
-  // Removed unused LineChart, Line, RadialBarChart, RadialBar
+  RadialBarChart,
+  RadialBar,
 } from "recharts";
 import {
   Clock,
@@ -24,254 +26,186 @@ import {
   Zap,
   Target,
   AlertCircle,
-  // Removed unused TrendingUp, Award, Timer, UserCheck, Calendar, Loader2 - keeping only used ones
+  TrendingUp,
+  Award,
   Timer,
   UserCheck,
   Calendar,
-  Award
+  Loader2,
 } from "lucide-react";
 
-// --- React Query Configuration & Fetchers ---
-
-const performanceKeys = {
-  all: ["performance"],
-  avgTime: () => [...performanceKeys.all, "average-time"],
-  byType: () => [...performanceKeys.all, "by-type"],
-  distribution: () => [...performanceKeys.all, "distribution"],
-  productivity: () => [...performanceKeys.all, "productivity"],
-  leaderboard: () => [...performanceKeys.all, "leaderboard"],
-  activity: () => [...performanceKeys.all, "activity"],
-  heatmap: () => [...performanceKeys.all, "heatmap"],
-};
-
-// Generic fetcher function for reuse
-const performanceFetcher = async (path) => {
-  const { data } = await api.get(`/analytics/performance/${path}`);
-  return data;
-};
-
-// Hook for fetching all data
-const usePerformanceData = () => {
-  // 1️⃣ Avg Processing Time
-  const avgTimeQuery = useQuery({
-    queryKey: performanceKeys.avgTime(),
-    queryFn: () => performanceFetcher("average-processing/"),
-    staleTime: 5 * 60 * 1000, // Data is considered fresh for 5 minutes
-    retry: false, // Don't retry this high-priority metric if it fails
-  });
-
-  // 2️⃣ Processing by Type
-  const byTypeQuery = useQuery({
-    queryKey: performanceKeys.byType(),
-    queryFn: () => performanceFetcher("processing-by-type/"),
-  });
-
-  // 3️⃣ Processing Distribution
-  const distributionQuery = useQuery({
-    queryKey: performanceKeys.distribution(),
-    queryFn: () => performanceFetcher("processing-distribution/"),
-  });
-
-  // 4️⃣ Staff Productivity
-  const productivityQuery = useQuery({
-    queryKey: performanceKeys.productivity(),
-    queryFn: () => performanceFetcher("staff-productivity/"),
-  });
-
-  // 5️⃣ Staff Leaderboard
-  const leaderboardQuery = useQuery({
-    queryKey: performanceKeys.leaderboard(),
-    queryFn: () => performanceFetcher("staff-leaderboard/"),
-  });
-
-  // 6️⃣ Staff Activity
-  const activityQuery = useQuery({
-    queryKey: performanceKeys.activity(),
-    queryFn: () => performanceFetcher("staff-activity/"),
-  });
-
-  // 7️⃣ Staff Heatmap
-  const heatmapQuery = useQuery({
-    queryKey: performanceKeys.heatmap(),
-    queryFn: () => performanceFetcher("staff-heatmap/"),
-  });
-
-  // Combine all results for easier access
-  return {
-    avgTimeQuery,
-    byTypeQuery,
-    distributionQuery,
-    productivityQuery,
-    leaderboardQuery,
-    activityQuery,
-    heatmapQuery,
-  };
-};
-
-// --- Helper Functions (Same as original, moved out of component) ---
-
-const getTimeAgo = (date) => {
-  const now = new Date();
-  const diff = now - date;
-  const minutes = Math.floor(diff / (1000 * 60));
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  if (minutes > 0) return `${minutes}m ago`;
-  return "Just now";
-};
-
-const transformProcessingByType = data => {
-  if (!data) return [];
-  return data.map(item => ({
-    type: item.type,
-    avgMinutes: item.avg_minutes,
-    efficiency:
-      item.avg_minutes < 60
-        ? "Excellent"
-        : item.avg_minutes < 120
-        ? "Good"
-        : "Needs Improvement",
-  }));
-};
-
-const transformStaffProductivity = data => {
-  if (!data) return [];
-  return data
-    .filter(item => item.processed_by__username || item.staff__username)
-    .map(item => ({
-      staff: item.processed_by__username || item.staff__username || "Unknown",
-      count: item.count,
-      productivity: item.count > 50 ? "High" : item.count > 25 ? "Medium" : "Low",
-    }))
-    .slice(0, 10);
-};
-
-const transformStaffLeaderboard = data => {
-  if (!data) return [];
-  return data
-    .filter(item => item.processed_by__username || item.staff__username)
-    .map((item, index) => ({
-      rank: index + 1,
-      staff: item.processed_by__username || item.staff__username || "Unknown",
-      count: item.count,
-      medal: index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`,
-    }))
-    .slice(0, 10);
-};
-
-const transformStaffActivity = data => {
-  if (!data) return [];
-  return data.slice(0, 20).map(item => ({
-    id: item.id,
-    staff: item.staff || "System",
-    action: item.action,
-    timestamp: new Date(item.timestamp).toLocaleString(),
-    timeAgo: getTimeAgo(new Date(item.timestamp)),
-  }));
-};
-
-const transformHeatmapData = data => {
-  if (!data) return [];
-  const hours = Array.from({ length: 24 }, (_, i) => ({
-    hour: i,
-    label: `${i.toString().padStart(2, "0")}:00`,
-    count: 0,
-    intensity: 0,
-  }));
-
-  data.forEach(item => {
-    const hourIndex = item.hour;
-    if (hourIndex >= 0 && hourIndex < 24) {
-      hours[hourIndex].count = item.count;
-    }
-  });
-
-  const maxCount = Math.max(...hours.map(h => h.count));
-  hours.forEach(hour => {
-    hour.intensity = maxCount > 0 ? (hour.count / maxCount) * 100 : 0;
-  });
-
-  return hours;
-};
-
-// Fallback skeleton loader component for charts and lists (kept the same)
-const SkeletonLoader = ({ height = 300, type = 'chart' }) => (
+// Fallback skeleton loader component for charts and lists
+const SkeletonLoader = ({ height = 300, type = "chart" }) => (
   <div
-    className={`animate-pulse bg-gray-100 rounded-lg ${type === 'chart' ? 'p-4' : 'p-3'}`}
+    className={`animate-pulse bg-gray-100 rounded-lg ${type === "chart" ? "p-4" : "p-3"}`}
     style={{ height }}
   >
-    {type === 'chart' && <div className="h-full w-full bg-gray-200 rounded-md"></div>}
-    {type === 'list' && (
+    {type === "chart" && <div className="h-full w-full bg-gray-200 rounded-md"></div>}
+    {type === "list" && (
       <div className="space-y-3">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="h-8 bg-gray-200 rounded"></div>
         ))}
       </div>
     )}
-    {type === 'heatmap' && (
-        <div className="grid grid-cols-6 md:grid-cols-12 lg:grid-cols-24 gap-2">
-            {[...Array(24)].map((_, i) => (
-                <div key={i} className="h-12 bg-gray-200 rounded"></div>
-            ))}
-        </div>
+    {type === "heatmap" && (
+      <div className="grid grid-cols-6 md:grid-cols-12 lg:grid-cols-24 gap-2">
+        {[...Array(24)].map((_, i) => (
+          <div key={i} className="h-12 bg-gray-200 rounded"></div>
+        ))}
+      </div>
     )}
   </div>
 );
 
 const Performance = () => {
-  // Use the custom hook to get all queries
-  const {
-    avgTimeQuery,
-    byTypeQuery,
-    distributionQuery,
-    productivityQuery,
-    leaderboardQuery,
-    activityQuery,
-    heatmapQuery,
-  } = usePerformanceData();
+  const [error, setError] = useState(null);
 
-  // Color palettes (kept the same)
+  const fetchData = async url => {
+    const res = await api.get(url);
+    return res.data;
+  };
+  // Color palettes
   const PERFORMANCE_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
-  // Removed unused HEATMAP_COLORS and LEADERBOARD_COLORS as logic uses local colors
 
-  // Extract data and loading states from React Query hooks
-  const { data: avgProcessingTime, isLoading: loadingAvgTime, isError: errorAvgTime } = avgTimeQuery;
-  const { data: avgProcessingTimeByType, isLoading: loadingType, isError: errorType } = byTypeQuery;
-  const { data: processingDistribution, isLoading: loadingDistribution, isError: errorDistribution } = distributionQuery;
-  const { data: staffProductivity, isLoading: loadingProductivity, isError: errorProductivity } = productivityQuery;
-  const { data: staffLeaderboard, isLoading: loadingLeaderboard, isError: errorLeaderboard } = leaderboardQuery;
-  const { data: staffActivity, isLoading: loadingActivity, isError: errorActivity } = activityQuery;
-  const { data: staffHeatmap, isLoading: loadingHeatmap, isError: errorHeatmap } = heatmapQuery;
+  const { data: avgProcessingTime, isLoading: loadingAvg } = useQuery({
+    queryKey: ["performance", "average-processing"],
+    queryFn: () => fetchData("/analytics/performance/average-processing/"),
+  });
 
-  // Global Error Handling: If *any* query has a hard error (which is now done individually)
-  // For simplicity, we'll check the most critical ones for the main error screen
-  const hasCriticalError = errorAvgTime || errorProductivity || errorLeaderboard;
-  const criticalError = errorAvgTime || errorProductivity || errorLeaderboard; // Use first critical error object
+  const { data: avgProcessingTimeByType = [], isLoading: loadingType } = useQuery({
+    queryKey: ["performance", "processing-by-type"],
+    queryFn: () => fetchData("/analytics/performance/processing-by-type/"),
+  });
 
-  // --- Data Transformations and Stats Calculation (Now run using fetched data) ---
-  
-  const transformedProcessingByType = transformProcessingByType(avgProcessingTimeByType);
-  const transformedStaffProductivity = transformStaffProductivity(staffProductivity);
-  const transformedStaffLeaderboard = transformStaffLeaderboard(staffLeaderboard);
-  const transformedStaffActivity = transformStaffActivity(staffActivity);
-  const transformedHeatmapData = transformHeatmapData(staffHeatmap);
+  const { data: processingDistribution = [], isLoading: loadingDistribution } = useQuery({
+    queryKey: ["performance", "processing-distribution"],
+    queryFn: () => fetchData("/analytics/performance/processing-distribution/"),
+  });
 
+  const { data: staffProductivity = [], isLoading: loadingProductivity } = useQuery({
+    queryKey: ["performance", "staff-productivity"],
+    queryFn: () => fetchData("/analytics/performance/staff-productivity/"),
+  });
+
+  const { data: staffLeaderboard = [], isLoading: loadingLeaderboard } = useQuery({
+    queryKey: ["performance", "staff-leaderboard"],
+    queryFn: () => fetchData("/analytics/performance/staff-leaderboard/"),
+  });
+
+  const { data: staffActivity = [], isLoading: loadingActivity } = useQuery({
+    queryKey: ["performance", "staff-activity"],
+    queryFn: () => fetchData("/analytics/performance/staff-activity/"),
+  });
+
+  const { data: staffHeatmap = [], isLoading: loadingHeatmap } = useQuery({
+    queryKey: ["performance", "staff-heatmap"],
+    queryFn: () => fetchData("/analytics/performance/staff-heatmap/"),
+  });
+
+  // Data transformation functions
+  const transformProcessingByType = data => {
+    return data.map(item => ({
+      type: item.type,
+      avgMinutes: item.avg_minutes,
+      efficiency:
+        item.avg_minutes < 60
+          ? "Excellent"
+          : item.avg_minutes < 120
+          ? "Good"
+          : "Needs Improvement",
+    }));
+  };
+
+  const transformStaffProductivity = data => {
+    return data
+      .filter(item => item.processed_by__username || item.staff__username)
+      .map(item => ({
+        staff: item.processed_by__username || item.staff__username || "Unknown",
+        count: item.count,
+        productivity: item.count > 50 ? "High" : item.count > 25 ? "Medium" : "Low",
+      }))
+      .slice(0, 10);
+  };
+
+  const transformStaffLeaderboard = data => {
+    return data
+      .filter(item => item.processed_by__username || item.staff__username)
+      .map((item, index) => ({
+        rank: index + 1,
+        staff: item.processed_by__username || item.staff__username || "Unknown",
+        count: item.count,
+        medal: index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`,
+      }))
+      .slice(0, 10);
+  };
+
+  const transformStaffActivity = data => {
+    return data.slice(0, 20).map(item => ({
+      id: item.id,
+      staff: item.staff || "System",
+      action: item.action,
+      timestamp: new Date(item.timestamp).toLocaleString(),
+      timeAgo: getTimeAgo(new Date(item.timestamp)),
+    }));
+  };
+
+  const transformHeatmapData = data => {
+    const hours = Array.from({ length: 24 }, (_, i) => ({
+      hour: i,
+      label: `${i.toString().padStart(2, "0")}:00`,
+      count: 0,
+      intensity: 0,
+    }));
+
+    data.forEach(item => {
+      const hourIndex = item.hour;
+      if (hourIndex >= 0 && hourIndex < 24) {
+        hours[hourIndex].count = item.count;
+      }
+    });
+
+    const maxCount = Math.max(...hours.map(h => h.count));
+    hours.forEach(hour => {
+      hour.intensity = maxCount > 0 ? (hour.count / maxCount) * 100 : 0;
+    });
+
+    return hours;
+  };
+
+  const getTimeAgo = date => {
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return "Just now";
+  };
+
+  // Statistics calculations
   const calculateStats = () => {
-    // Note: The transformations implicitly handle the 'not-yet-fetched' state by returning [] if data is null/undefined
-    const processedProductivity = transformedStaffProductivity;
-    const processedLeaderboard = transformedStaffLeaderboard;
+    // Only use the transformed data if it has been fetched (i.e., its loader is false)
+    const processedProductivity = loadingProductivity
+      ? []
+      : transformStaffProductivity(staffProductivity);
+    const processedLeaderboard = loadingLeaderboard
+      ? []
+      : transformStaffLeaderboard(staffLeaderboard);
 
-    const totalStaffProcessed = processedProductivity.reduce((sum, item) => sum + item.count, 0);
+    const totalStaffProcessed = processedProductivity.reduce(
+      (sum, item) => sum + item.count,
+      0
+    );
     const averageProductivity =
       processedProductivity.length > 0
         ? Math.round(totalStaffProcessed / processedProductivity.length)
         : 0;
     const topPerformer = processedLeaderboard[0];
-    // Optional chaining `?.` is crucial here because `avgProcessingTime` might be undefined on first render or during loading
-    const processingEfficiency = avgProcessingTime?.average_processing_time_minutes || 0; 
+    const processingEfficiency = avgProcessingTime?.average_processing_time_minutes || 0;
 
     return {
       totalStaffProcessed,
@@ -280,14 +214,6 @@ const Performance = () => {
       processingEfficiency,
     };
   };
-
-  const stats = calculateStats();
-  
-  // Calculate loading status for StatCards
-  const isAvgProcessingTimeLoaded = !loadingAvgTime && avgProcessingTime !== undefined;
-  const isLeaderboardLoaded = !loadingLeaderboard && staffLeaderboard?.length > 0;
-  const isProductivityLoaded = !loadingProductivity && staffProductivity?.length > 0;
-  const isTotalProcessedLoaded = isProductivityLoaded; 
 
   const StatCard = ({ icon: Icon, title, value, subtitle, color, badge, isLoading }) => (
     <div
@@ -318,7 +244,7 @@ const Performance = () => {
     </div>
   );
 
-  const HeatmapCell = ({ hour, count, intensity }) => {
+  const HeatmapCell = ({ hour, count, intensity, maxCount }) => {
     const getIntensityColor = intensity => {
       if (intensity === 0) return "#F3F4F6";
       if (intensity < 20) return "#FEF3C7";
@@ -338,20 +264,17 @@ const Performance = () => {
       </div>
     );
   };
-    
-  
-  if (hasCriticalError) {
+
+  if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center text-center">
         <div className="bg-white p-8 rounded-2xl shadow-lg border border-red-100 max-w-md w-full mx-4">
           <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 animate-pulse">
             <AlertCircle className="h-8 w-8 text-red-600" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">
-            Error Loading Data
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Error Loading Data</h3>
           <p className="text-gray-600 mb-4">
-            {criticalError.message || "Failed to fetch critical data. Please try again later."}
+            {error.message || "Failed to fetch trends data. Please try again later."}
           </p>
           <button
             onClick={() => window.location.reload()}
@@ -364,6 +287,21 @@ const Performance = () => {
     );
   }
 
+  // Transformations are now run only when needed inside the component or only if data exists
+  const transformedProcessingByType = transformProcessingByType(avgProcessingTimeByType);
+  const transformedStaffProductivity = transformStaffProductivity(staffProductivity);
+  const transformedStaffLeaderboard = transformStaffLeaderboard(staffLeaderboard);
+  const transformedStaffActivity = transformStaffActivity(staffActivity);
+  // Ensure staffHeatmap is not null/undefined before transforming
+  const transformedHeatmapData = staffHeatmap ? transformHeatmapData(staffHeatmap) : [];
+  const stats = calculateStats();
+
+  // Calculate loading status for StatCards
+  const isAvgProcessingTimeLoaded = avgProcessingTime !== null;
+  const isLeaderboardLoaded = !loadingLeaderboard && staffLeaderboard.length > 0; // Check data and loader
+  const isProductivityLoaded = !loadingProductivity && staffProductivity.length > 0; // Check data and loader
+  // Total is derived from productivity data, so it shares the same loading state
+  const isTotalProcessedLoaded = isProductivityLoaded;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -383,15 +321,20 @@ const Performance = () => {
           <StatCard
             icon={Timer}
             title="Avg Processing Time"
-            value={isAvgProcessingTimeLoaded ? `${stats.processingEfficiency.toFixed(1)}min` : '...'}
+            // This is the "highest one" and should load first
+            value={
+              isAvgProcessingTimeLoaded
+                ? `${stats.processingEfficiency.toFixed(1)}min`
+                : "0.0min"
+            }
             subtitle="Per application"
             color="#3B82F6"
-            isLoading={loadingAvgTime}
+            isLoading={!isAvgProcessingTimeLoaded}
           />
           <StatCard
             icon={Users}
             title="Staff Productivity"
-            value={isProductivityLoaded ? stats.averageProductivity : '...'}
+            value={isProductivityLoaded ? stats.averageProductivity : "..."}
             subtitle="Avg applications/staff"
             color="#10B981"
             isLoading={loadingProductivity}
@@ -399,8 +342,10 @@ const Performance = () => {
           <StatCard
             icon={Trophy}
             title="Top Performer"
-            value={isLeaderboardLoaded ? (stats.topPerformer?.staff || "N/A") : '...'}
-            subtitle={isLeaderboardLoaded ? `${stats.topPerformer?.count || 0} applications` : '...'}
+            value={isLeaderboardLoaded ? stats.topPerformer?.staff || "N/A" : "..."}
+            subtitle={
+              isLeaderboardLoaded ? `${stats.topPerformer?.count || 0} applications` : "..."
+            }
             color="#F59E0B"
             badge="🏆"
             isLoading={loadingLeaderboard}
@@ -408,10 +353,10 @@ const Performance = () => {
           <StatCard
             icon={Activity}
             title="Total Processed"
-            value={isTotalProcessedLoaded ? stats.totalStaffProcessed.toLocaleString() : '...'}
+            value={isTotalProcessedLoaded ? stats.totalStaffProcessed.toLocaleString() : "..."}
             subtitle="By all staff"
             color="#8B5CF6"
-            isLoading={loadingProductivity}
+            isLoading={loadingProductivity} // Shares loading state with productivity
           />
         </div>
 
@@ -426,33 +371,39 @@ const Performance = () => {
               </h2>
             </div>
             {loadingType ? (
-                <SkeletonLoader />
+              <SkeletonLoader />
             ) : (
-                <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart
-                    data={transformedProcessingByType}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  data={transformedProcessingByType}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="type" angle={-45} textAnchor="end" height={80} fontSize={12} />
-                    <YAxis />
-                    <Tooltip formatter={value => [`${value} min`, "Processing Time"]} />
-                    <Bar dataKey="avgMinutes" fill="#3B82F6" radius={[4, 4, 0, 0]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="type"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    fontSize={12}
+                  />
+                  <YAxis />
+                  <Tooltip formatter={value => [`${value} min`, "Processing Time"]} />
+                  <Bar dataKey="avgMinutes" fill="#3B82F6" radius={[4, 4, 0, 0]}>
                     {transformedProcessingByType.map((entry, index) => (
-                        <Cell
+                      <Cell
                         key={`cell-${index}`}
                         fill={
-                            entry.avgMinutes < 60
-                              ? "#10B981"
-                              : entry.avgMinutes < 120
-                              ? "#F59E0B"
-                              : "#EF4444"
+                          entry.avgMinutes < 60
+                            ? "#10B981"
+                            : entry.avgMinutes < 120
+                            ? "#F59E0B"
+                            : "#EF4444"
                         }
-                        />
+                      />
                     ))}
-                    </Bar>
+                  </Bar>
                 </BarChart>
-                </ResponsiveContainer>
+              </ResponsiveContainer>
             )}
           </div>
 
@@ -465,30 +416,32 @@ const Performance = () => {
               </h2>
             </div>
             {loadingDistribution ? (
-                <SkeletonLoader />
+              <SkeletonLoader />
             ) : (
-                <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                    <Pie
+                  <Pie
                     data={processingDistribution}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ bucket, percent }) => `${bucket} (${(percent * 100).toFixed(0)}%)`}
+                    label={({ bucket, percent }) =>
+                      `${bucket} (${(percent * 100).toFixed(0)}%)`
+                    }
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="count"
-                    >
+                  >
                     {processingDistribution.map((entry, index) => (
-                        <Cell
+                      <Cell
                         key={`cell-${index}`}
                         fill={PERFORMANCE_COLORS[index % PERFORMANCE_COLORS.length]}
-                        />
+                      />
                     ))}
-                    </Pie>
-                    <Tooltip formatter={value => [value, "Applications"]} />
+                  </Pie>
+                  <Tooltip formatter={value => [value, "Applications"]} />
                 </PieChart>
-                </ResponsiveContainer>
+              </ResponsiveContainer>
             )}
           </div>
         </div>
@@ -504,35 +457,39 @@ const Performance = () => {
               </h2>
             </div>
             {loadingProductivity ? (
-                <SkeletonLoader height={350} />
+              <SkeletonLoader height={350} />
             ) : (
-                <ResponsiveContainer width="100%" height={350}>
+              <ResponsiveContainer width="100%" height={350}>
                 <BarChart
-                    data={transformedStaffProductivity}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                  data={transformedStaffProductivity}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
                     dataKey="staff"
                     angle={-45}
                     textAnchor="end"
                     height={80}
                     fontSize={11}
-                    />
-                    <YAxis />
-                    <Tooltip formatter={value => [value, "Applications Processed"]} />
-                    <Bar dataKey="count" fill="#F59E0B" radius={[4, 4, 0, 0]}>
+                  />
+                  <YAxis />
+                  <Tooltip formatter={value => [value, "Applications Processed"]} />
+                  <Bar dataKey="count" fill="#F59E0B" radius={[4, 4, 0, 0]}>
                     {transformedStaffProductivity.map((entry, index) => (
-                        <Cell
+                      <Cell
                         key={`cell-${index}`}
                         fill={
-                            entry.count > 50 ? "#10B981" : entry.count > 25 ? "#F59E0B" : "#EF4444"
+                          entry.count > 50
+                            ? "#10B981"
+                            : entry.count > 25
+                            ? "#F59E0B"
+                            : "#EF4444"
                         }
-                        />
+                      />
                     ))}
-                    </Bar>
+                  </Bar>
                 </BarChart>
-                </ResponsiveContainer>
+              </ResponsiveContainer>
             )}
           </div>
 
@@ -545,32 +502,32 @@ const Performance = () => {
               </h2>
             </div>
             {loadingLeaderboard ? (
-                <SkeletonLoader height={320} type="list" />
+              <SkeletonLoader height={320} type="list" />
             ) : (
-                <div className="space-y-3 max-h-80 overflow-y-auto">
+              <div className="space-y-3 max-h-80 overflow-y-auto">
                 {transformedStaffLeaderboard.map((staff, index) => (
-                    <div
+                  <div
                     key={staff.staff}
                     className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all hover:shadow-md ${
-                        index < 3
-                            ? "bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200"
-                            : "bg-gray-50 border-gray-200"
+                      index < 3
+                        ? "bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200"
+                        : "bg-gray-50 border-gray-200"
                     }`}
-                    >
+                  >
                     <div className="flex items-center space-x-3">
-                        <div className="text-2xl">{staff.medal}</div>
-                        <div>
+                      <div className="text-2xl">{staff.medal}</div>
+                      <div>
                         <p className="font-semibold text-gray-800">{staff.staff}</p>
                         <p className="text-sm text-gray-600">Rank #{staff.rank}</p>
-                        </div>
+                      </div>
                     </div>
                     <div className="text-right">
-                        <p className="text-2xl font-bold text-gray-800">{staff.count}</p>
-                        <p className="text-xs text-gray-600">applications</p>
+                      <p className="text-2xl font-bold text-gray-800">{staff.count}</p>
+                      <p className="text-xs text-gray-600">applications</p>
                     </div>
-                    </div>
+                  </div>
                 ))}
-                </div>
+              </div>
             )}
           </div>
         </div>
@@ -583,36 +540,37 @@ const Performance = () => {
               Staff Activity Heatmap (Hourly Distribution)
             </h2>
           </div>
-            {loadingHeatmap ? (
-                <SkeletonLoader height={100} type="heatmap" />
-            ) : (
-                <>
-                    <div className="grid grid-cols-6 md:grid-cols-12 lg:grid-cols-24 gap-2">
-                    {transformedHeatmapData.map(hour => (
-                        <HeatmapCell
-                        key={hour.hour}
-                        hour={hour}
-                        count={hour.count}
-                        intensity={hour.intensity}
-                        />
-                    ))}
-                    </div>
-                    <div className="mt-4 flex items-center justify-center space-x-4 text-sm text-gray-600">
-                    <div className="flex items-center space-x-1">
-                        <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                        <span>Low Activity</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                        <div className="w-4 h-4 bg-yellow-400 rounded"></div>
-                        <span>Medium Activity</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                        <div className="w-4 h-4 bg-orange-600 rounded"></div>
-                        <span>High Activity</span>
-                    </div>
-                    </div>
-                </>
-            )}
+          {loadingHeatmap ? (
+            <SkeletonLoader height={100} type="heatmap" />
+          ) : (
+            <>
+              <div className="grid grid-cols-6 md:grid-cols-12 lg:grid-cols-24 gap-2">
+                {transformedHeatmapData.map(hour => (
+                  <HeatmapCell
+                    key={hour.hour}
+                    hour={hour}
+                    count={hour.count}
+                    intensity={hour.intensity}
+                    maxCount={Math.max(...transformedHeatmapData.map(h => h.count))}
+                  />
+                ))}
+              </div>
+              <div className="mt-4 flex items-center justify-center space-x-4 text-sm text-gray-600">
+                <div className="flex items-center space-x-1">
+                  <div className="w-4 h-4 bg-gray-200 rounded"></div>
+                  <span>Low Activity</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <div className="w-4 h-4 bg-yellow-400 rounded"></div>
+                  <span>Medium Activity</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <div className="w-4 h-4 bg-orange-600 rounded"></div>
+                  <span>High Activity</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Recent Staff Activity */}
@@ -623,50 +581,55 @@ const Performance = () => {
               Recent Staff Activity
             </h2>
           </div>
-            {loadingActivity ? (
-                <SkeletonLoader height={320} type="list" />
-            ) : (
-                <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                    <thead>
-                    <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                        Staff Member
-                        </th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Action</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                        Timestamp
-                        </th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Time Ago</th>
+          {loadingActivity ? (
+            <SkeletonLoader height={320} type="list" />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Staff Member
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Action</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Timestamp
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Time Ago
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transformedStaffActivity.map(activity => (
+                    <tr
+                      key={activity.id}
+                      className="border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <td className="py-3 px-4 font-medium text-gray-800">{activity.staff}</td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            activity.action === "CREATE"
+                              ? "bg-green-100 text-green-800"
+                              : activity.action === "UPDATE"
+                              ? "bg-blue-100 text-blue-800"
+                              : activity.action === "LOGIN"
+                              ? "bg-purple-100 text-purple-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {activity.action}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-gray-600 text-sm">{activity.timestamp}</td>
+                      <td className="py-3 px-4 text-gray-500 text-sm">{activity.timeAgo}</td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    {transformedStaffActivity.map(activity => (
-                        <tr key={activity.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4 font-medium text-gray-800">{activity.staff}</td>
-                        <td className="py-3 px-4">
-                            <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                activity.action === "CREATE"
-                                    ? "bg-green-100 text-green-800"
-                                    : activity.action === "UPDATE"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : activity.action === "LOGIN"
-                                    ? "bg-purple-100 text-purple-800"
-                                    : "bg-gray-100 text-gray-800"
-                            }`}
-                            >
-                            {activity.action}
-                            </span>
-                        </td>
-                        <td className="py-3 px-4 text-gray-600 text-sm">{activity.timestamp}</td>
-                        <td className="py-3 px-4 text-gray-500 text-sm">{activity.timeAgo}</td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-                </div>
-            )}
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Performance Summary */}
