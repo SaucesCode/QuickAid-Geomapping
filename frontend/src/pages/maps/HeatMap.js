@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
@@ -13,8 +13,6 @@ import {
   Map as MapIcon,
   Layers,
 } from "lucide-react";
-// Import necessary hook from React Query
-import { useQuery } from "@tanstack/react-query";
 
 // ============= THEME COLORS & CONFIGURATION =============
 
@@ -66,7 +64,7 @@ const HeatLayer = ({ points }) => {
     if (!points.length || !window.L || !window.L.heatLayer) return;
 
     const heatData = points.map((p) => [p.latitude, p.longitude, 0.8]);
-
+    
     // Use the blue-themed gradient
     const heatLayer = window.L.heatLayer(heatData, {
       radius: 30,
@@ -93,83 +91,58 @@ const HeatLayer = ({ points }) => {
   return null;
 };
 
-// ============= ASYNC FETCH FUNCTIONS FOR REACT QUERY =============
-
-const fetchApplicantLocations = async () => {
-  try {
-    const res = await api.get("/applicant-locations/");
-    const valid = res.data.filter(
-      (loc) =>
-        loc.latitude && loc.longitude && districtCities.includes(loc.city)
-    );
-    // Preserve the original component's minimum delay for UX
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return valid;
-  } catch (err) {
-    console.error("Error fetching applicants:", err);
-    throw err; // React Query expects an error to be thrown on failure
-  }
-};
-
-const fetchDistrictGeo = async () => {
-  try {
-    const res = await fetch("/all_cities.geojson");
-    if (!res.ok) throw new Error("Failed to load GeoJSON");
-    return res.json();
-  } catch (err) {
-    console.error("Error loading district geojson:", err);
-    throw err;
-  }
-};
-
-// ============= MAIN COMPONENT =============
-
 const Geographic = () => {
-  // We no longer need the local state for locations, loading, and districtGeo.
-  // We keep them as variables pointing to the query results to satisfy the "don't change any variables" constraint.
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [districtGeo, setDistrictGeo] = useState(null);
 
-  // 1. Fetch Locations using React Query
-  const { data: locationsData = [], isPending: isLoadingLocations } = useQuery({
-    queryKey: ["applicantHeatmapLocations"],
-    queryFn: fetchApplicantLocations,
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
-  });
+  // Fetch Locations
+  useEffect(() => {
+    const fetchLocations = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get("/applicant-locations/");
+        const valid = res.data.filter(
+          (loc) =>
+            loc.latitude && loc.longitude && districtCities.includes(loc.city)
+        );
+        setLocations(valid);
+      } catch (err) {
+        console.error("Error fetching applicants:", err);
+      } finally {
+        // Delay setting loading to false to show the loading screen for a minimum duration
+        setTimeout(() => setLoading(false), 500); 
+      }
+    };
+    fetchLocations();
+  }, []);
 
-  // 2. Fetch GeoJSON using React Query
-  const { data: districtGeoData = null, isPending: isLoadingGeo } = useQuery({
-    queryKey: ["districtGeoBoundary"],
-    queryFn: fetchDistrictGeo,
-    staleTime: Infinity, // GeoJSON is static
-  });
-
-  // Mapped variables to satisfy the constraint:
-  const locations = locationsData;
-  const districtGeo = districtGeoData;
-  const loading = isLoadingLocations || isLoadingGeo;
-  // The original component had: const [loading, setLoading] = useState(true);
-  // We simulate the local state by having a `loading` variable derived from RQ's states.
-
-  // Calculate Top City only when locations change (logic preserved)
-  const topCity = useMemo(() => {
+  // Load district boundary
+  useEffect(() => {
+    fetch("/all_cities.geojson")
+      .then((res) => res.json())
+      .then(setDistrictGeo)
+      .catch((err) => console.error("Error loading district geojson:", err));
+  }, []);
+  
+  // Calculate Top City only when locations change
+  const topCity = React.useMemo(() => {
     const counts = locations.reduce((acc, loc) => {
       acc[loc.city] = (acc[loc.city] || 0) + 1;
       return acc;
     }, {});
     const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
     return top ? top[0] : "N/A";
-  }, [locations]); // Note: React.useMemo is now just useMemo
+  }, [locations]);
 
-  // Calculate Cities Covered only when locations change (logic preserved)
-  const citiesCovered = useMemo(() => {
+  // Calculate Cities Covered only when locations change
+  const citiesCovered = React.useMemo(() => {
     return new Set(locations.map((l) => l.city).filter((c) => c)).size;
-  }, [locations]); // Note: React.useMemo is now just useMemo
-
-
-  // Remove all original `useEffect` hooks that performed fetching (replaced by useQuery).
+  }, [locations]);
 
   return (
     // Responsive Padding and flexible height - removed min-h-screen for better embed compatibility
-    <div className={`w-full ${COLOR_BACKGROUND} p-4 sm:p-6`}>
+    <div className={`w-full ${COLOR_BACKGROUND} p-4 sm:p-6`}> 
       {/* Cleanup Leaflet z-index issues for a cleaner render */}
       <style>{`
         .leaflet-container { z-index: 0 !important; position: relative !important; }
@@ -196,7 +169,7 @@ const Geographic = () => {
 
       {/* KPI Cards: Responsive Grid (1 column -> 2 columns -> 3 columns) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-
+        
         {/* Total Applicants Card - Primary Blue Focus */}
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-5 flex items-center gap-4 border border-blue-100 transition-all hover:shadow-xl hover:scale-[1.01]">
           <div className="p-3 bg-blue-100 rounded-full">
@@ -209,7 +182,7 @@ const Geographic = () => {
             </h2>
           </div>
         </div>
-
+        
         {/* Cities Covered Card - Secondary Accent */}
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-5 flex items-center gap-4 border border-indigo-100 transition-all hover:shadow-xl hover:scale-[1.01]">
           <div className="p-3 bg-indigo-100 rounded-full">
@@ -222,7 +195,7 @@ const Geographic = () => {
             </h2>
           </div>
         </div>
-
+        
         {/* Top City Card - Tertiary Accent */}
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-5 flex items-center gap-4 border border-sky-100 transition-all hover:shadow-xl hover:scale-[1.01]">
           <div className="p-3 bg-sky-100 rounded-full">
@@ -231,7 +204,7 @@ const Geographic = () => {
           <div>
             <p className="text-sm font-medium text-gray-500">Highest Concentration</p>
             {/* Reduced text size for better fit on small cards */}
-            <h2 className="text-lg sm:text-xl font-bold text-sky-800 truncate">
+            <h2 className="text-lg sm:text-xl font-bold text-sky-800 truncate"> 
               {topCity}
             </h2>
           </div>
@@ -244,16 +217,16 @@ const Geographic = () => {
           // Modern, simple blue loading state
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-50">
             <div className="bg-white rounded-2xl p-8 sm:p-10 shadow-xl border border-gray-100 flex flex-col items-center gap-4 sm:gap-6">
-              <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600 animate-spin" />
-              <div className="text-center space-y-1">
-                <h3 className="text-lg sm:text-xl font-bold text-blue-700">
-                  Generating Heatmap
-                </h3>
-                <p className="text-sm text-gray-500 font-medium">
-                  Processing {locations.length} location points...
-                </p>
+                <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600 animate-spin" />
+                <div className="text-center space-y-1">
+                  <h3 className="text-lg sm:text-xl font-bold text-blue-700">
+                    Generating Heatmap
+                  </h3>
+                  <p className="text-sm text-gray-500 font-medium">
+                    Processing {locations.length} location points...
+                  </p>
+                </div>
               </div>
-            </div>
           </div>
         ) : (
           <div className="relative z-0">
@@ -261,7 +234,7 @@ const Geographic = () => {
               center={[13.9, 121.475]}
               zoom={11.4}
               // The height here must match the parent's responsive height classes
-              className="w-full h-[300px] sm:h-[500px] lg:h-[600px] z-0"
+              className="w-full h-[300px] sm:h-[500px] lg:h-[600px] z-0" 
               minZoom={10}
               scrollWheelZoom
               zoomControl
@@ -277,7 +250,7 @@ const Geographic = () => {
                     data={districtGeo}
                     style={{
                       // Clean, blue boundary
-                      color: "#3b82f6",
+                      color: "#3b82f6", 
                       weight: 3,
                       fillOpacity: 0.1,
                       opacity: 0.8
@@ -292,7 +265,7 @@ const Geographic = () => {
           </div>
         )}
       </div>
-
+      
       {/* --- */}
 
       {/* Legend: Updated to match the blue gradient and modern styling */}

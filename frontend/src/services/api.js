@@ -5,7 +5,7 @@ import { jwtDecode } from "jwt-decode";
 export const API_URL = "http://127.0.0.1:8000/api";
 
 export const api = axios.create({
-  baseURL: "http://127.0.0.1:8000/api",
+  baseURL: API_URL,
 });
 
 // ✅ Function to store tokens in localStorage

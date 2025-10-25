@@ -4,15 +4,16 @@ import clsx from "clsx";
 import { useOutletContext } from "react-router-dom";
 
 const EditModal = ({
-  editingApplicant,
+  editingApplicant={editingApplicant},
   closeEditView,
-  handleChange,
+  handleChange={handleChange},
   handleSave,
   setEditingApplicant,
 }) => {
-
   const { isSidebarMinimized } = useOutletContext();
   return (
+    // FIX 1: Overlap Fix (left-0 on mobile, left-[80px] on small screens and up to account for sidebar)
+    // FIX 2: Added inset-y-0 to make sure it covers top/bottom properly
     <div
       className={clsx(
         "fixed inset-y-0 right-0 bg-gradient-to-br from-blue-900/40 via-slate-900/60 to-blue-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 md:p-6 animate-in fade-in duration-200 transition-all",
