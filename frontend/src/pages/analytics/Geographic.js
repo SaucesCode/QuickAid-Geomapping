@@ -33,6 +33,7 @@ import {
   Legend,
 } from "recharts";
 import { api } from "../../services/api";
+import AnalyticsFilter from "../../components/AnalyticsFilter";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -84,50 +85,59 @@ const LoadingMapSkeleton = () => (
 
 const Geographic = () => {
   const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({});
 
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
-  const fetchData = async url => {
-    const res = await api.get(url);
+  const fetchData = async endpoint => {
+    const params = new URLSearchParams();
+
+    if (filters.start) params.append("start_date", filters.start);
+    if (filters.end) params.append("end_date", filters.end);
+    if (filters.type) params.append("type", filters.type); // if you need it
+
+    const query = params.toString() ? `?${params.toString()}` : "";
+    const res = await api.get(`${endpoint}${query}`);
+    console.log(`${endpoint}${query}`);
     return res.data;
   };
 
   // Locations
   const { data: locations = [], isLoading: locationsLoading } = useQuery({
-    queryKey: ["geographic", "locations"],
-    queryFn: () => fetchData("/analytics/geographic/locations/"),
+    queryKey: ["geographic", "locations", filters],
+    queryFn: () => fetchData("/analytics/geographic/locations/", filters),
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
 
   // Top Barangays
   const { data: topBarangays = [], isLoading: topBarangaysLoading } = useQuery({
-    queryKey: ["geographic", "topBarangays"],
-    queryFn: () => fetchData("/analytics/geographic/top-barangays/"),
+    queryKey: ["geographic", "topBarangays", filters],
+    queryFn: () => fetchData("/analytics/geographic/top-barangays/", filters),
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
 
   // Barangay by Type
   const { data: barangayByType = [], isLoading: barangayTypeLoading } = useQuery({
-    queryKey: ["geographic", "barangayByType"],
-    queryFn: () => fetchData("/analytics/geographic/barangay-by-type/"),
+    queryKey: ["geographic", "barangayByType", filters],
+    queryFn: () => fetchData("/analytics/geographic/barangay-by-type/", filters),
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
 
   // Approval Rate
   const { data: approvalRates = [], isLoading: approvalLoading } = useQuery({
-    queryKey: ["geographic", "approvalRate"],
-    queryFn: () => fetchData("/analytics/geographic/approval-rate/"),
+    queryKey: ["geographic", "approvalRate", filters],
+    queryFn: () => fetchData("/analytics/geographic/approval-rate/", filters),
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
 
   // Inactive Applicants
   const { data: inactiveApplicants = [], isLoading: inactiveLoading } = useQuery({
-    queryKey: ["geographic", "inactiveApplicants"],
-    queryFn: () => fetchData("/analytics/geographic/inactive-applicants/"),
+    queryKey: ["geographic", "inactiveApplicants", filters],
+    queryFn: () => fetchData("/analytics/geographic/inactive-applicants/", filters),
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
@@ -300,6 +310,8 @@ const Geographic = () => {
 
       <div className="relative z-10 p-6 space-y-6">
         {HeaderComponent}
+
+        <AnalyticsFilter onFilterChange={setFilters} />
 
         {loading ? (
           <>
