@@ -28,6 +28,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import AnalyticsFilter from "../../components/AnalyticsFilter";
 
 // Fallback skeleton loader component for charts and lists
 const SkeletonLoader = ({ height = 300, type = "chart" }) => {
@@ -75,56 +76,49 @@ const SkeletonLoader = ({ height = 300, type = "chart" }) => {
 
 const DemographicsEconomics = () => {
   const [error, setError] = useState(null);
-  const fetchData = async url => {
-    const res = await api.get(url);
+  const [filters, setFilters] = useState({});
+
+  const fetchData = async endpoint => {
+    const params = new URLSearchParams();
+
+    if (filters.start) params.append("start_date", filters.start);
+    if (filters.end) params.append("end_date", filters.end);
+    if (filters.type) params.append("type", filters.type); // if you need it
+
+    const query = params.toString() ? `?${params.toString()}` : "";
+    const res = await api.get(`${endpoint}${query}`);
+    console.log(`${endpoint}${query}`);
     return res.data;
   };
 
   const { data: genderData = [], isLoading: genderLoading } = useQuery({
-    queryKey: ["demographics", "gender"],
+    queryKey: ["demographics", "gender", filters],
     queryFn: () => fetchData("/analytics/demographics/gender/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
-  // Civil Status
   const { data: civilStatusData = [], isLoading: civilStatusLoading } = useQuery({
-    queryKey: ["demographics", "civil-status"],
+    queryKey: ["demographics", "civil-status", filters],
     queryFn: () => fetchData("/analytics/demographics/civil-status/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
-  // Age Groups
   const { data: ageGroupData = [], isLoading: ageGroupLoading } = useQuery({
-    queryKey: ["demographics", "age-groups"],
+    queryKey: ["demographics", "age-groups", filters],
     queryFn: () => fetchData("/analytics/demographics/age-groups/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
-  // Occupation
   const { data: occupationData = [], isLoading: occupationLoading } = useQuery({
-    queryKey: ["demographics", "occupation"],
+    queryKey: ["demographics", "occupation", filters],
     queryFn: () => fetchData("/analytics/demographics/occupation/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
-  // Age by Gender
   const { data: ageGenderData = [], isLoading: ageGenderLoading } = useQuery({
-    queryKey: ["demographics", "age-gender"],
+    queryKey: ["demographics", "age-gender", filters],
     queryFn: () => fetchData("/analytics/demographics/age-gender/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
-  // Income Distribution
   const { data: incomeDistribution = [], isLoading: incomeLoading } = useQuery({
-    queryKey: ["economics", "income-distribution"],
+    queryKey: ["economics", "income-distribution", filters],
     queryFn: () => fetchData("/analytics/economics/income-distribution/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
   const loadingStates = {
@@ -149,50 +143,6 @@ const DemographicsEconomics = () => {
     "#99CCFF",
     "#FFB366",
   ];
-
-  // Fetch per section
-  // useEffect(() => {
-  //   const fetchSection = async (key, apiCall, setData, transformFn = null) => {
-  //     try {
-  //       const res = await apiCall();
-  //       let data = res.data || [];
-  //       if (transformFn) data = transformFn(data);
-  //       setData(data);
-  //       setLoadingStates(prev => ({ ...prev, [key]: false }));
-  //     } catch (err) {
-  //       console.error(`Error fetching ${key}:`, err);
-  //       // keep loading spinner forever if it fails
-  //     }
-  //   };
-
-  //   // All calls start at once (parallel)
-  //   fetchSection("gender", () => api.get("/analytics/demographics/gender/"), setGenderData);
-  //   fetchSection(
-  //     "civilStatus",
-  //     () => api.get("/analytics/demographics/civil-status/"),
-  //     setCivilStatusData
-  //   );
-  //   fetchSection(
-  //     "ageGroup",
-  //     () => api.get("analytics/demographics/age-groups/"),
-  //     setAgeGroupData
-  //   );
-  //   fetchSection(
-  //     "occupation",
-  //     () => api.get("/analytics/demographics/occupation/"),
-  //     setOccupationData
-  //   );
-  //   fetchSection(
-  //     "ageGender",
-  //     () => api.get("/analytics/demographics/age-gender/"),
-  //     setAgeGenderData
-  //   );
-  //   fetchSection(
-  //     "income",
-  //     () => api.get("/analytics/economics/income-distribution/"),
-  //     setIncomeDistribution
-  //   );
-  // }, []);
 
   // Data transformations
   const transformGenderData = data =>
@@ -337,6 +287,8 @@ const DemographicsEconomics = () => {
             Comprehensive insights into applicant demographics and economic profiles
           </p>
         </div>
+
+        <AnalyticsFilter onFilterChange={setFilters} />
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

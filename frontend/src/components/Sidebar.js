@@ -54,17 +54,17 @@ const Sidebar = () => {
     }
   }, [collapsed]);
 
-  const toggleSection = (section) => {
+  const toggleSection = section => {
     if (collapsed) {
       setCollapsed(false);
       setTimeout(() => {
-        setOpenSections((prev) => ({
+        setOpenSections(prev => ({
           ...prev,
           [section]: !prev[section],
         }));
       }, 200);
     } else {
-      setOpenSections((prev) => {
+      setOpenSections(prev => {
         const newState = {
           applicants: false,
           analytics: false,
@@ -131,7 +131,7 @@ const Sidebar = () => {
 
       localStorage.removeItem("userData");
 
-      toast.custom((t) => <CustomToast t={t} type="logout" />);
+      toast.custom(t => <CustomToast t={t} type="logout" />);
 
       setTimeout(() => {
         navigate("/login");
@@ -163,19 +163,13 @@ const Sidebar = () => {
         {/* Top Section - Burger Icon and New Application Button */}
         <div className="flex-shrink-0 p-3 border-b border-gray-700 flex flex-col gap-3">
           {/* Collapse/Expand Toggle (Burger Icon inside Sidebar) */}
-          <div
-            className={`flex ${collapsed ? "justify-center" : "justify-end"}`}
-          >
+          <div className={`flex ${collapsed ? "justify-center" : "justify-end"}`}>
             <button
               onClick={toggleSidebar}
               className="text-white hover:text-white hover:bg-gray-700 p-2 rounded-full transition-colors hidden md:block"
               title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             >
-              {collapsed ? (
-                <Menu className="w-5 h-5" />
-              ) : (
-                <ChevronLeft className="w-5 h-5" />
-              )}
+              {collapsed ? <Menu className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </button>
           </div>
 
@@ -233,8 +227,8 @@ const Sidebar = () => {
                       `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                         isActive
                           ? "bg-gray-700 text-white font-semibold shadow-inner shadow-gray-900/50"
-                          // Ensured inactive text is pure white
-                          : "text-white hover:bg-gray-700 hover:text-white"
+                          : // Ensured inactive text is pure white
+                            "text-white hover:bg-gray-700 hover:text-white"
                       } ${collapsed ? "justify-center" : ""}`
                     }
                   >
@@ -304,8 +298,8 @@ const Sidebar = () => {
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
-                                // Ensured nested link text is pure white
-                                : "text-white hover:bg-gray-700 hover:text-white"
+                                : // Ensured nested link text is pure white
+                                  "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
@@ -318,8 +312,8 @@ const Sidebar = () => {
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
-                                // Ensured nested link text is pure white
-                                : "text-white hover:bg-gray-700 hover:text-white"
+                                : // Ensured nested link text is pure white
+                                  "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
@@ -384,8 +378,8 @@ const Sidebar = () => {
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
-                                // Ensured nested link text is pure white
-                                : "text-white hover:bg-gray-700 hover:text-white"
+                                : // Ensured nested link text is pure white
+                                  "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
@@ -399,8 +393,8 @@ const Sidebar = () => {
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
-                                // Ensured nested link text is pure white
-                                : "text-white hover:bg-gray-700 hover:text-white"
+                                : // Ensured nested link text is pure white
+                                  "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
@@ -414,8 +408,8 @@ const Sidebar = () => {
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
-                                // Ensured nested link text is pure white
-                                : "text-white hover:bg-gray-700 hover:text-white"
+                                : // Ensured nested link text is pure white
+                                  "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
@@ -429,8 +423,8 @@ const Sidebar = () => {
                             `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
-                                // Ensured nested link text is pure white
-                                : "text-white hover:bg-gray-700 hover:text-white"
+                                : // Ensured nested link text is pure white
+                                  "text-white hover:bg-gray-700 hover:text-white"
                             }`
                           }
                         >
@@ -446,15 +440,15 @@ const Sidebar = () => {
               {/* Applicants Section */}
               <div>
                 {!collapsed && (
-                    <h3
-                      // Ensured this is pure white
-                      className={`text-white font-bold uppercase tracking-wider px-3 mb-2 transition-opacity duration-300 text-xs ${
-                        showContent ? "opacity-100" : "opacity-0"
-                      }`}
-                    >
-                      Management
-                    </h3>
-                  )}
+                  <h3
+                    // Ensured this is pure white
+                    className={`text-white font-bold uppercase tracking-wider px-3 mb-2 transition-opacity duration-300 text-xs ${
+                      showContent ? "opacity-100" : "opacity-0"
+                    }`}
+                  >
+                    Management
+                  </h3>
+                )}
                 <div className="space-y-1">
                   <button
                     onClick={() => toggleSection("applicants")}
@@ -494,8 +488,8 @@ const Sidebar = () => {
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
                               ? "bg-gray-700 text-white font-medium"
-                              // Ensured nested link text is pure white
-                              : "text-white hover:bg-gray-700 hover:text-white"
+                              : // Ensured nested link text is pure white
+                                "text-white hover:bg-gray-700 hover:text-white"
                           }`
                         }
                       >
@@ -509,50 +503,53 @@ const Sidebar = () => {
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
                               ? "bg-gray-700 text-white font-medium"
-                              // Ensured nested link text is pure white
-                              : "text-white hover:bg-gray-700 hover:text-white"
+                              : // Ensured nested link text is pure white
+                                "text-white hover:bg-gray-700 hover:text-white"
                           }`
                         }
                       >
                         <Users className="w-4 h-4" />
                         <span className="text-white">All Applicants</span>
                       </NavLink>
-                      <NavLink
-                        to="/approved"
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
-                            isActive
-                              ? "bg-gray-700 text-white font-medium"
-                              // Ensured nested link text is pure white
-                              : "text-white hover:bg-gray-700 hover:text-white"
-                          }`
-                        }
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        <span className="text-white">Approved</span>
-                      </NavLink>
-                      <NavLink
-                        to="/export-applicants"
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
-                            isActive
-                              ? "bg-gray-700 text-white font-medium"
-                              // Ensured nested link text is pure white
-                              : "text-white hover:bg-gray-700 hover:text-white"
-                          }`
-                        }
-                      >
-                        <BarChart3 className="w-4 h-4" />
-                        <span className="text-white">Export Data</span>
-                      </NavLink>
+                      {user?.is_superuser && (
+                        <>
+                          <NavLink
+                            to="/approved"
+                            className={({ isActive }) =>
+                              `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                                isActive
+                                  ? "bg-gray-700 text-white font-medium"
+                                  : "text-white hover:bg-gray-700 hover:text-white"
+                              }`
+                            }
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="text-white">Approved</span>
+                          </NavLink>
+
+                          <NavLink
+                            to="/export-applicants"
+                            className={({ isActive }) =>
+                              `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                                isActive
+                                  ? "bg-gray-700 text-white font-medium"
+                                  : "text-white hover:bg-gray-700 hover:text-white"
+                              }`
+                            }
+                          >
+                            <BarChart3 className="w-4 h-4" />
+                            <span className="text-white">Export Data</span>
+                          </NavLink>
+                        </>
+                      )}
                       <NavLink
                         to="/archived-applicants"
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                             isActive
                               ? "bg-gray-700 text-white font-medium"
-                              // Ensured nested link text is pure white
-                              : "text-white hover:bg-gray-700 hover:text-white"
+                              : // Ensured nested link text is pure white
+                                "text-white hover:bg-gray-700 hover:text-white"
                           }`
                         }
                       >
@@ -570,8 +567,8 @@ const Sidebar = () => {
                         `flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
                           isActive
                             ? "bg-gray-700 text-white font-semibold shadow-inner shadow-gray-900/50"
-                            // Ensured inactive text is pure white
-                            : "text-white hover:bg-gray-700 hover:text-white"
+                            : // Ensured inactive text is pure white
+                              "text-white hover:bg-gray-700 hover:text-white"
                         } ${collapsed ? "justify-center" : ""}`
                       }
                     >
@@ -602,9 +599,9 @@ const Sidebar = () => {
               >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-semibold">
                   {user
-                    ? (user.first_name
-                        ? user.first_name.charAt(0).toUpperCase()
-                        : user.username?.charAt(0).toUpperCase() || "?")
+                    ? user.first_name
+                      ? user.first_name.charAt(0).toUpperCase()
+                      : user.username?.charAt(0).toUpperCase() || "?"
                     : "?"}
                 </div>
 
@@ -660,7 +657,7 @@ const Sidebar = () => {
       {/* Main Content */}
       <main
         className={`flex-1 transition-all duration-300 ${
-          collapsed ? "md:ml-16" : "md:ml-56" 
+          collapsed ? "md:ml-16" : "md:ml-56"
         } z-30`}
       >
         {/* Header */}
