@@ -28,6 +28,7 @@ import {
   Calendar,
   MapPin, // Added MapPin for main header icon consistency
 } from "lucide-react";
+import AnalyticsFilter from "../../components/AnalyticsFilter";
 
 // --- Consistent Design Constants and Helpers ---
 
@@ -186,6 +187,7 @@ const StatCard = ({ icon: Icon, title, value, subtitle, color, badge, isLoading 
 
 const Performance = () => {
   const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({});
 
   const fetchData = async (url) => {
     try {
@@ -198,39 +200,41 @@ const Performance = () => {
   };
 
   const { data: avgProcessingTime, isLoading: loadingAvg } = useQuery({
-    queryKey: ["performance", "average-processing"],
+    queryKey: ["performance", "average-processing", filters],
     queryFn: () => fetchData("/analytics/performance/average-processing/"),
   });
 
   const { data: avgProcessingTimeByType = [], isLoading: loadingType } = useQuery({
-    queryKey: ["performance", "processing-by-type"],
+    queryKey: ["performance", "processing-by-type", filters],
     queryFn: () => fetchData("/analytics/performance/processing-by-type/"),
   });
 
   const { data: processingDistribution = [], isLoading: loadingDistribution } = useQuery({
-    queryKey: ["performance", "processing-distribution"],
+    queryKey: ["performance", "processing-distribution", filters],
     queryFn: () => fetchData("/analytics/performance/processing-distribution/"),
   });
 
   const { data: staffProductivity = [], isLoading: loadingProductivity } = useQuery({
-    queryKey: ["performance", "staff-productivity"],
+    queryKey: ["performance", "staff-productivity", filters],
     queryFn: () => fetchData("/analytics/performance/staff-productivity/"),
   });
 
   const { data: staffLeaderboard = [], isLoading: loadingLeaderboard } = useQuery({
-    queryKey: ["performance", "staff-leaderboard"],
+    queryKey: ["performance", "staff-leaderboard", filters],
     queryFn: () => fetchData("/analytics/performance/staff-leaderboard/"),
   });
 
   const { data: staffActivity = [], isLoading: loadingActivity } = useQuery({
-    queryKey: ["performance", "staff-activity"],
+    queryKey: ["performance", "staff-activity", filters],
     queryFn: () => fetchData("/analytics/performance/staff-activity/"),
   });
 
   const { data: staffHeatmap = [], isLoading: loadingHeatmap } = useQuery({
-    queryKey: ["performance", "staff-heatmap"],
+    queryKey: ["performance", "staff-heatmap", filters],
     queryFn: () => fetchData("/analytics/performance/staff-heatmap/"),
   });
+
+  const PERFORMANCE_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
   // Data transformation functions
   const transformProcessingByType = (data) => {
@@ -414,6 +418,18 @@ const Performance = () => {
 
       <div className="relative z-10 p-6 max-w-7xl mx-auto space-y-6">
         {HeaderComponent}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            Performance Analytics Dashboard
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Staff productivity, processing efficiency, and operational performance metrics
+          </p>
+        </div>
+        <AnalyticsFilter onFilterChange={setFilters} />
 
         {/* Statistics Cards - Uses the refactored StatCard */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

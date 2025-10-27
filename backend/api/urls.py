@@ -10,7 +10,7 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path('protected/', protected_view, name='protected_view'),
     path('users/update-profile/', update_profile, name='update_profile'),
-    # path('users/change-password/', change_password, name='change_password'),
+    path('users/change-password/', change_password, name='change_password'),
     path('users/me/', get_current_user, name='get_current_user'),
     path('users/staff-activity/', get_staff_activity_logs, name='staff_activity_logs'),
 
@@ -46,8 +46,10 @@ urlpatterns = [
     # =============================================
     path('applicant-locations/', get_applicant_locations, name='applicant-locations'),
     path('update_coordinates/', update_coordinates, name='update_coordinates'),
+    path("locations/cities/", get_cities, name="get-cities"),
+    path("locations/barangays/", get_barangays, name="get-barangays"),
 
-     # ========================
+    # ========================
     # Dashboard
     # ========================
     path("analytics/dashboard/summary/", summary_metrics, name="analytics-dashboard-summary"),

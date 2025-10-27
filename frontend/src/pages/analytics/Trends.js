@@ -30,6 +30,7 @@ import {
   Target,
   Loader2,
 } from "lucide-react";
+import AnalyticsFilter from "../../components/AnalyticsFilter";
 
 // Fallback skeleton loader component for charts and lists
 const SkeletonLoader = ({ height = 300, type = "chart" }) => (
@@ -140,66 +141,62 @@ const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading 
 
 const Trends = () => {
   const [error, setError] = useState(null);
-  const fetchData = async url => {
-    const res = await api.get(url);
+  const [filters, setFilters] = useState({});
+
+  const fetchData = async endpoint => {
+    const params = new URLSearchParams();
+
+    if (filters.start) params.append("start_date", filters.start);
+    if (filters.end) params.append("end_date", filters.end);
+    if (filters.type) params.append("type", filters.type); // if you need it
+
+    const query = params.toString() ? `?${params.toString()}` : "";
+    const res = await api.get(`${endpoint}${query}`);
+    console.log(`${endpoint}${query}`);
     return res.data;
   };
 
   // Montly Trends (No change to logic)
   const { data: monthlyData = [], isLoading: monthlyLoading } = useQuery({
-    queryKey: ["trends", "monthly"],
+    queryKey: ["trends", "monthly", filters],
     queryFn: () => fetchData("/analytics/trends/monthly/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
   // Yearly Trends (No change to logic)
   const { data: yearlyData = [], isLoading: yearlyLoading } = useQuery({
-    queryKey: ["trends", "yearly"],
+    queryKey: ["trends", "yearly", filters],
     queryFn: () => fetchData("/analytics/trends/yearly/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
   // Overtime Trends (No change to logic)
   const { data: overtimeData = [], isLoading: overtimeLoading } = useQuery({
-    queryKey: ["trends", "overtime"],
+    queryKey: ["trends", "overtime", filters],
     queryFn: () => fetchData("/analytics/trends/over-time/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
   // Cumulative Trends (No change to logic)
   const { data: cumulativeData = [], isLoading: cumulativeLoading } = useQuery({
-    queryKey: ["trends", "cumulative"],
+    queryKey: ["trends", "cumulative", filters],
     queryFn: () => fetchData("/analytics/trends/cumulative/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
   // Assistance Type Trends (No change to logic)
   const { data: assistanceTypeData = [], isLoading: assistanceTypeLoading } = useQuery({
-    queryKey: ["trends", "assistanceType"],
+    queryKey: ["trends", "assistanceType", filters],
     queryFn: () => fetchData("/analytics/trends/assistance-type/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
   // Assistance Type over Time Trends (No change to logic)
   const { data: assistanceTypeDataOverTime = [], isLoading: assistanceTypeOverTimeLoading } =
     useQuery({
-      queryKey: ["trends", "assistanceTypeOverTime"],
+      queryKey: ["trends", "assistanceTypeOverTime", filters],
       queryFn: () => fetchData("/analytics/trends/assistance-type-over-time/"),
-      staleTime: 1000 * 60 * 10,
-      refetchOnWindowFocus: false,
     });
 
   // Applicant HeatMap Trends (No change to logic)
   const { data: applicantHeatmap = [], isLoading: applicantHeatmapLoading } = useQuery({
-    queryKey: ["trends", "applicantHeatmap"],
+    queryKey: ["trends", "applicantHeatmap", filters],
     queryFn: () => fetchData("/analytics/trends/applicant-heatmap/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
   });
 
   const loadingStates = {
@@ -376,6 +373,8 @@ const Trends = () => {
       <div className="relative z-10 p-6 space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         {HeaderComponent}
+
+        <AnalyticsFilter onFilterChange={setFilters} />
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

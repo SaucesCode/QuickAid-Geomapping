@@ -21,6 +21,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.timezone import now, timedelta
+from .utils import apply_applicant_filters, apply_approval_filters, get_applicant_history
 
 # Django REST Framework
 from rest_framework import status
@@ -39,7 +40,7 @@ from rest_framework.pagination import LimitOffsetPagination
 # Local
 from .models import (
     Applicant, CustomUser, StaffActivityLog,
-    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch, SupportMessage
+    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch, SupportMessage, City, Barangay
 )
 from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer
 
@@ -149,44 +150,35 @@ def update_profile(request):
 
 # CHANGE PASSWORD
 # Function to change user password
-# @api_view(['PUT'])
-# @permission_classes([IsAuthenticated])
-# def update_staff(request, pk):
-#     try:
-#         user = request.user
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    """
+    🔐 Allows a logged-in user to change their own password.
+    Fields: old_password, new_password
+    """
+    user = request.user
+    old_password = request.data.get("old_password")
+    new_password = request.data.get("new_password")
 
-#         # Only allow admins or superusers to edit staff
-#         if not user.is_superuser:
-#             return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+    if not all([old_password, new_password]):
+        return Response({"error": "Both old and new passwords are required."}, status=400)
 
-#         staff = get_object_or_404(User, pk=pk)
-#         data = request.data
+    if not user.check_password(old_password):
+        return Response({"error": "Old password is incorrect."}, status=400)
 
-#         # Update basic info
-#         for field in ['username', 'first_name', 'last_name', 'email']:
-#             if field in data:
-#                 setattr(staff, field, data[field])
+    user.set_password(new_password)
+    user.save()
 
-#         # ✅ Allow admin to reset password directly if provided
-#         new_password = data.get('password')
-#         if new_password:
-#             staff.set_password(new_password)
+    log_staff_activity(
+        user,
+        "CHANGE_PASSWORD",
+        f"Changed password for {user.username}",
+        request
+    )
 
-#         staff.save()
+    return Response({"message": "Password changed successfully."}, status=200)
 
-#         log_staff_activity(
-#             user,
-#             'UPDATE',
-#             f"Updated staff {staff.username}",
-#             request
-#         )
-
-#         return Response({
-#             "message": f"Staff '{staff.username}' updated successfully"
-#         }, status=status.HTTP_200_OK)
-
-#     except Exception as e:
-#         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # =============================================
 # STAFF MANAGEMENT
@@ -253,10 +245,26 @@ def register_staff(request):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def list_staff(request):
-    staff_users = User.objects.filter(is_staff=True, is_active=True)\
-        .values('id', 'username', 'first_name', 'last_name', 'email', 'last_active')\
-        .order_by('last_active')
+    search = request.GET.get('search', '')
+    is_active = request.GET.get('active', 'true').lower() == 'true'
+    ordering = request.GET.get('ordering', 'last_active')
+
+    staff_users = User.objects.filter(is_staff=True, is_active=is_active)
+
+    if search:
+        staff_users = staff_users.filter(
+            Q(username__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(email__icontains=search)
+        )
+
+    staff_users = staff_users.order_by(ordering).values(
+        'id', 'username', 'first_name', 'last_name', 'email', 'last_active'
+    )
+
     return Response(list(staff_users))
+
 
 # UPDATE STAFF INFO
 # Function to update staff member information
@@ -447,33 +455,21 @@ def submit_applicant(request):
     return Response(ApplicantSerializer(applicant).data, status=201)
 
 
-
 # LIST APPLICANTS
 # Function to get all non-archived applicants
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_applicants(request):
-    """
-    Optimized applicant listing endpoint:
-    - Supports pagination (limit/offset)
-    - Supports search and ordering
-    - Prefetches only necessary related data
-    """
-
-    search = request.GET.get('search', '')
-    ordering = request.GET.get('ordering', '-date_filled')  # default: newest first
-
     paginator = LimitOffsetPagination()
     paginator.default_limit = 50
 
-    # ✅ Optimize: prefetch related objects
     applicants_qs = (
         Applicant.objects.filter(is_archived=False)
         .select_related(
-            'background_info', 
+            'background_info',
             'background_info__barangay',
             'background_info__barangay__city',
-        )\
+        )
         .prefetch_related(
             Prefetch(
                 'background_info__histories',
@@ -485,25 +481,14 @@ def list_applicants(request):
         )
     )
 
-    # ✅ Optional: case-insensitive search filter
-    if search:
-        applicants_qs = applicants_qs.filter(
-            Q(background_info__first_name__icontains=search) |
-            Q(background_info__last_name__icontains=search) |
-            Q(background_info__barangay__name__icontains=search) |
-            Q(background_info__barangay__city__name__icontains=search) |
-            Q(type_of_assistance__icontains=search)
-        )
+    try:
+        applicants_qs = apply_applicant_filters(applicants_qs, request)
+    except ValueError as e:
+        return Response({"error": str(e)}, status=400)
 
-    # ✅ Ordering (e.g., ?ordering=date_filled or ?ordering=-background_info__last_name)
-    if ordering:
-        applicants_qs = applicants_qs.order_by(ordering)
-
-    # ✅ Paginate results
     paginated_queryset = paginator.paginate_queryset(applicants_qs, request)
     serializer = ApplicantSerializer(paginated_queryset, many=True, context={"request": request})
 
-    # ✅ Add preloaded history without extra DB queries
     data = serializer.data
     for idx, applicant in enumerate(paginated_queryset):
         history_data = [
@@ -518,6 +503,8 @@ def list_applicants(request):
         data[idx]["application_history"] = history_data
 
     return paginator.get_paginated_response(data)
+
+
 
     
 
@@ -629,27 +616,38 @@ def upload_approved_list(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def approved_applicants(request):
-    approvals = Approval.objects.select_related(
-        "applicant",
-        "applicant__background_info",
-        "approved_by"
-    ).order_by("-approved_at")
+    approvals = (
+        Approval.objects.select_related(
+            "applicant",
+            "applicant__background_info",
+            "applicant__background_info__barangay",
+            "applicant__background_info__barangay__city",
+            "approved_by",
+        )
+    )
+
+    try:
+        approvals = apply_approval_filters(approvals, request)
+    except ValueError as e:
+        return Response({"error": str(e)}, status=400)
 
     data = [
         {
-            "id": approval.id,
-            "first_name": approval.applicant.background_info.first_name,
-            "last_name": approval.applicant.background_info.last_name,
-            "barangay": approval.applicant.background_info.barangay.name,
-            "municipal": approval.applicant.background_info.barangay.city.name,
-            "type_of_assistance": approval.applicant.type_of_assistance,
-            "amount": approval.notes,  # stored in notes for now
-            "approved_at": approval.approved_at.isoformat(),
-            "approved_by": approval.approved_by.username if approval.approved_by else "System",
+            "id": a.id,
+            "first_name": a.applicant.background_info.first_name,
+            "last_name": a.applicant.background_info.last_name,
+            "barangay": a.applicant.background_info.barangay.name,
+            "municipal": a.applicant.background_info.barangay.city.name,
+            "type_of_assistance": a.applicant.type_of_assistance,
+            "amount": a.notes,  # stored in notes for now
+            "approved_at": a.approved_at.isoformat(),
+            "approved_by": a.approved_by.username if a.approved_by else "System",
         }
-        for approval in approvals
+        for a in approvals
     ]
+
     return Response(data)
+
 
 #APPROVAL BATCHES
 @api_view(['GET'])
@@ -686,27 +684,31 @@ def approvals_for_batch(request, batch_id):
 
     approvals = Approval.objects.filter(batch_id=batch_id).select_related(
         "applicant",
-        "applicant__background_info", 
-        "applicant__background_info__barangay", 
-        "applicant__background_info__barangay__city", 
-        "approved_by"
+        "applicant__background_info",
+        "applicant__background_info__barangay",
+        "applicant__background_info__barangay__city",
+        "approved_by",
     )
 
-    paginated_queryset = paginator.paginate_queryset(approvals, request)
+    try:
+        approvals = apply_approval_filters(approvals, request)
+    except ValueError as e:
+        return Response({"error": str(e)}, status=400)
 
+    paginated_queryset = paginator.paginate_queryset(approvals, request)
     data = [
         {
-            "id": approval.id,
-            "first_name": approval.applicant.background_info.first_name,
-            "last_name": approval.applicant.background_info.last_name,
-            "barangay": approval.applicant.background_info.barangay.name,
-            "municipal": approval.applicant.background_info.barangay.city.name,
-            "type_of_assistance": approval.applicant.type_of_assistance,
-            "amount": approval.notes,
-            "approved_at": approval.approved_at.isoformat(),
-            "approved_by": approval.approved_by.username if approval.approved_by else "System",
+            "id": a.id,
+            "first_name": a.applicant.background_info.first_name,
+            "last_name": a.applicant.background_info.last_name,
+            "barangay": a.applicant.background_info.barangay.name,
+            "municipal": a.applicant.background_info.barangay.city.name,
+            "type_of_assistance": a.applicant.type_of_assistance,
+            "amount": a.notes,
+            "approved_at": a.approved_at.isoformat(),
+            "approved_by": a.approved_by.username if a.approved_by else "System",
         }
-        for approval in paginated_queryset
+        for a in paginated_queryset
     ]
     return paginator.get_paginated_response(data)
 
@@ -861,28 +863,11 @@ def applicant_detail(request, applicant_id):
 
     if request.method == 'GET':
         serializer = ApplicantSerializer(applicant, context={"request": request})
-
-        # Include full history for this applicant’s BackgroundInfo
-        history_qs = (
-            ApplicantHistory.objects
-            .filter(background_info=applicant.background_info)
-            .select_related("applicant")  # avoids query per history row
-            .order_by("-date_applied")
-        )
-
-        history_data = [
-            {
-                "id": h.id,
-                "type_of_assistance": h.type_of_assistance,
-                "applicant_id": h.applicant.id if h.applicant else None,
-                "date": h.date_applied,
-            }
-            for h in history_qs
-        ]
+    
 
 
         response_data = serializer.data
-        response_data["application_history"] = history_data
+        response_data["application_history"] = get_applicant_history(applicant.background_info)
 
         return Response(response_data)
 
@@ -922,20 +907,32 @@ def applicant_detail(request, applicant_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_archived_applicants(request):
-
     paginator = LimitOffsetPagination()
     paginator.default_limit = 50
 
-    applicants = Applicant.objects.filter(is_archived=True)\
+    applicants_qs = (
+        Applicant.objects.filter(is_archived=True)
         .select_related(
             "background_info",
             "background_info__barangay",
-        )\
-        .order_by("-date_filled")
+            "background_info__barangay__city",
+        )
+        .prefetch_related("background_info__histories")
+    )
 
-    paginated_query = paginator.paginate_queryset(applicants, request)
+    try:
+        applicants_qs = apply_applicant_filters(applicants_qs, request)
+    except ValueError as e:
+        return Response({"error": str(e)}, status=400)
+
+    paginated_query = paginator.paginate_queryset(applicants_qs, request)
     serializer = ApplicantSerializer(paginated_query, many=True, context={"request": request})
-    return paginator.get_paginated_response(serializer.data)
+    data = serializer.data
+
+    for idx, applicant in enumerate(paginated_query):
+        data[idx]["application_history"] = get_applicant_history(applicant.background_info)
+
+    return paginator.get_paginated_response(data)
 
 # RESTORE ARCHIVED APPLICANT
 # Function to restore an archived applicant
@@ -1194,6 +1191,27 @@ def repeat_applicants(request):
 # 2. 🌍 GEOGRAPHIC INSIGHTS
 # ======================================================
 
+
+def apply_common_filters(request, queryset):
+    """Apply shared analytics filters: date range, assistance type, city, barangay"""
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+    assistance_type = request.GET.get("type")
+    city = request.GET.get("city")
+    barangay = request.GET.get("barangay")
+
+    if start_date and end_date:
+        queryset = queryset.filter(date_filled__date__range=[start_date, end_date])
+    if assistance_type:
+        queryset = queryset.filter(type_of_assistance__iexact=assistance_type)
+    if city:
+        queryset = queryset.filter(background_info__barangay__city__name__iexact=city)
+    if barangay:
+        queryset = queryset.filter(background_info__barangay__name__iexact=barangay)
+
+    return queryset
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def analytics_applicant_locations(request):
@@ -1202,16 +1220,14 @@ def analytics_applicant_locations(request):
     - Returns lat/lon + address for mapping
     - Filters: type, city, barangay
     """
-    applicants = Applicant.objects.select_related('background_info__barangay__city').exclude(
+    applicants = Applicant.objects.select_related(
+        "background_info",
+        "background_info__barangay",
+        'background_info__barangay__city').exclude(
         latitude__isnull=True, longitude__isnull=True
-    )
+    ).filter(is_archived=False)
 
-    if request.GET.get("type"):
-        applicants = applicants.filter(type_of_assistance=request.GET["type"])
-    if request.GET.get("city"):
-        applicants = applicants.filter(background_info__barangay__city__name=request.GET["city"])
-    if request.GET.get("barangay"):
-        applicants = applicants.filter(background_info__barangay__name=request.GET["barangay"])
+    applicants = apply_common_filters(request, applicants)
 
     data = [{
         "id": app.id,
@@ -1241,10 +1257,7 @@ def top_barangays(request):
         "barangay_info__barangay__city",
     ).filter(is_archived=False)
 
-    if request.GET.get("type"):
-        base_qs = base_qs.filter(type_of_assistance=request.GET["type"])
-    if request.GET.get("start") and request.GET.get("end"):
-        base_qs = base_qs.filter(date_filled__date__range=[request.GET["start"], request.GET["end"]])
+    base_qs = apply_common_filters(request, base_qs)
 
     data = base_qs.values('background_info__barangay__name').annotate(count=Count('id')).order_by('-count')[:10]
     return Response(list(data))
@@ -1262,10 +1275,7 @@ def barangay_by_type(request):
         "background_info__barangay__city"
     )
 
-    start_date = parse_date(request.GET.get("start")) if request.GET.get("start") else None
-    end_date = parse_date(request.GET.get("end")) if request.GET.get("end") else None
-    if start_date and end_date:
-        qs = qs.filter(date_filled__date__range=[start_date, end_date])
+    qs = apply_common_filters(request, qs)
 
     # ✅ Group by barangay and assistance type
     data = (
@@ -1301,7 +1311,9 @@ def approval_rate_by_location(request):
         "barangay": "background_info__barangay__name",
     }
 
-    group_field = valid_groups.get(request.GET.get("group", "city"), "background_info__barangay__city__name")
+    group_field = valid_groups.get(request.GET.get("group", "city"))
+    qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
 
     qs = (
         Applicant.objects
@@ -1335,6 +1347,8 @@ def inactive_applicants(request):
     """
     months = int(request.GET.get("months", 6))
     assistance_type = request.GET.get("assistance_type")
+    city = request.GET.get("city")
+    barangay = request.GET.get("barangay")
     cutoff = now() - timedelta(days=30 * months)
 
     # Annotate latest application date for each person
@@ -1347,6 +1361,10 @@ def inactive_applicants(request):
 
     if assistance_type:
         inactive_qs = inactive_qs.filter(applicant__type_of_assistance__iexact=assistance_type)
+    if city:
+        inactive_qs = inactive_qs.filter(applicant__background_info__barangay__city__name__iexact=city)
+    if barangay:
+        inactive_qs = inactive_qs.filter(applicant__background_info__barangay__name__iexact=barangay)
 
     data = []
     for b in inactive_qs:
@@ -1379,6 +1397,7 @@ def applicants_by_gender(request):
         .values(
             "background_info__sex"
         ).annotate(count=Count("id")).order_by("count")
+    applicants = apply_common_filters(request, applicants)
     
     print(applicants)
     return Response(list(applicants))
@@ -1389,10 +1408,14 @@ def applicants_by_gender(request):
 def applicants_by_civil_status(request):
     """👥 Demographics: Applicants by civil status"""
     applicants = Applicant.objects.filter(is_archived=False)
-    applicants = applicants.values(
-            "background_info__civil_status"
-        ).annotate(count=Count("id")).order_by("count")
-    return Response(list(applicants))
+    applicants = apply_common_filters(request, applicants)
+
+    data = applicants.values("background_info__civil_status")\
+        .annotate(count=Count("id"))\
+        .order_by("background_info__civil_status")
+
+    return Response(list(data))
+
 
 
 @api_view(["GET"])
@@ -1400,15 +1423,16 @@ def applicants_by_civil_status(request):
 def applicants_by_age_group(request):
     """👥 Demographics: Applicants by age groups (0–17, 18–25, … 60+)"""
     today = date.today()
-
     qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
 
     qs = qs.annotate(
         age=ExpressionWrapper(
-            today.year - ExtractYear("background_info__birthday"), 
+            today.year - ExtractYear("background_info__birthday"),
             output_field=IntegerField()
         )
     )
+
     age_groups = {
         "0-17": qs.filter(age__lte=17).count(),
         "18-25": qs.filter(age__gte=18, age__lte=25).count(),
@@ -1419,14 +1443,13 @@ def applicants_by_age_group(request):
     }
 
     data = [
-        {
-            "age_group": g, 
-            "count": c
-        }
-        for g, c in age_groups.items()
-    ]
-
+            {
+                "age_group": group, "count": count
+            } 
+            for group, count in age_groups.items()
+        ]
     return Response(data)
+
 
 
 @api_view(['GET'])
@@ -1437,6 +1460,8 @@ def applicants_by_occupation(request):
         .annotate(count=Count("id"))
         .order_by("-count")
     )
+
+    data = apply_common_filters(request, data)
 
     formatted = [
         {
@@ -1458,6 +1483,7 @@ def applicants_by_age_gender(request):
     """👥 Demographics: Applicants by age × gender cross-tab"""
     today = date.today()
     qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
     qs = qs.annotate(
         age=ExpressionWrapper(
             today.year - ExtractYear("background_info__birthday"), 
@@ -1480,6 +1506,8 @@ def income_distribution(request):
 
     applicants = Applicant.objects.filter(is_archived=False)
     applicants = applicants.exclude(background_info__monthly_income=0)
+
+    applicants = apply_common_filters(request, applicants)
 
     income_ranges = [
         (0, 10000, 'Below 10,000'),
@@ -1516,6 +1544,8 @@ def monthly_trends(request):
     start_date = today.replace(day=1) - relativedelta(months=11)
     qs = Applicant.objects.filter(date_filled__gte=start_date)
 
+    qs = apply_common_filters(request, qs)
+
     data = qs.annotate(
         month=TruncMonth("date_filled")
     ).values("month").annotate(count=Count("id")).order_by("month")
@@ -1529,9 +1559,13 @@ def yearly_trends(request):
     """
     📈 Trends: Applicants by year
     """
-    qs = Applicant.objects.annotate(
+    qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
+    
+    qs = qs.annotate(
         year=ExtractYear("date_filled")
     ).values("year").annotate(count=Count("id")).order_by("year")
+    
     
     return Response(list(qs))
 
@@ -1542,12 +1576,9 @@ def trends_over_time(request):
     """
     📈 Trends: Applicants over time (daily granularity, configurable start/end)
     """
-    start_date = request.GET.get("start_date")
-    end_date = request.GET.get("end_date")
 
-    qs = Applicant.objects.all()
-    if start_date and end_date:
-        qs = qs.filter(date_filled__date__range=[start_date, end_date])
+    qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
 
     data = qs.annotate(day=TruncDate("date_filled")).values("day").annotate(count=Count("id")).order_by("day")
     return Response(list(data))
@@ -1563,6 +1594,8 @@ def cumulative_applicants(request):
         day=TruncDate("date_filled")
     ).values("day").annotate(count=Count("id")).order_by("day")
 
+    qs = apply_common_filters(request, qs)
+
     cumulative = []
     total = 0
     for row in qs:
@@ -1577,7 +1610,11 @@ def assistance_type_trend(request):
     """
     📈 Trends: Distribution of assistance types
     """
-    qs = Applicant.objects.values("type_of_assistance").annotate(count=Count("id")).order_by("-count")
+
+    qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
+
+    qs = qs.values("type_of_assistance").annotate(count=Count("id")).order_by("-count")
     return Response(list(qs))
 
 
@@ -1587,7 +1624,11 @@ def assistance_type_over_time(request):
     """
     📈 Trends: Assistance types over time (monthly stacked)
     """
-    qs = Applicant.objects.annotate(
+
+    qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
+
+    qs = qs.annotate(
         month=TruncMonth("date_filled")
     ).values("month", "type_of_assistance").annotate(count=Count("id")).order_by("month")
 
@@ -1600,6 +1641,9 @@ def approval_trends(request):
     """
     📈 Trends: Approval counts over time (monthly)
     """
+    qs = Applicant.objects.filter(is_archive=False)
+    qs = apply_common_filters(request, qs)
+
     qs = Applicant.objects.filter(approvals__isnull=False).annotate(
         month=TruncMonth("date_filled")
     ).values("month").annotate(count=Count("id")).order_by("month")
@@ -1617,6 +1661,7 @@ def time_to_approval(request):
     qs = qs.annotate(duration=ExpressionWrapper(
         F("approvals__date_approved") - F("date_filled"), output_field=DurationField()
     ))
+    qs = apply_common_filters(request, qs)
 
     avg_time = qs.aggregate(avg=Avg("duration"))["avg"]
     avg_days = round(avg_time.total_seconds() / 86400, 1) if avg_time else 0
@@ -1630,6 +1675,8 @@ def applicant_activity_heatmap(request):
     qs = Applicant.objects.annotate(
         hour=ExtractHour("date_filled")
     ).values("hour").annotate(count=Count("id")).order_by("hour")
+
+    qs = apply_common_filters(request, qs)
 
     results = []
     for i in range(24):
@@ -1656,6 +1703,9 @@ def average_processing_time(request):
     qs = Applicant.objects.exclude(created_at__isnull=True, date_filled__isnull=True).annotate(
         duration=ExpressionWrapper(F("date_filled") - F("created_at"), output_field=DurationField())
     )
+
+    qs = apply_common_filters(request, qs)
+
     avg_time = qs.aggregate(avg=Avg("duration"))["avg"]
     avg_minutes = round(avg_time.total_seconds() / 60, 1) if avg_time else 0
     
@@ -1672,9 +1722,12 @@ def processing_time_by_type(request):
         duration=ExpressionWrapper(F("date_filled") - F("created_at"), output_field=DurationField())
     )
 
+    qs = apply_common_filters(request, qs)
+
     data = qs.values("type_of_assistance").annotate(
         avg_time=Avg("duration")
     ).order_by("type_of_assistance")
+    
 
     results = [
             {
@@ -1696,6 +1749,8 @@ def processing_time_distribution(request):
     qs = Applicant.objects.exclude(created_at__isnull=True, date_filled__isnull=True).annotate(
         duration=ExpressionWrapper(F("date_filled") - F("created_at"), output_field=DurationField())
     )
+
+    qs = apply_common_filters(request, qs)
 
     buckets = {
         "< 1 min": qs.filter(duration__lte=timedelta(minutes=1)).count(),
@@ -1722,7 +1777,11 @@ def staff_productivity(request):
     """
     ⚡ Performance: Applicants processed per staff member
     """
-    qs = Applicant.objects.values("staff__username").annotate(count=Count("id")).order_by("-count")
+
+    qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
+
+    qs = qs.values("staff__username").annotate(count=Count("id")).order_by("-count")
     return Response(list(qs))
 
 
@@ -1732,7 +1791,10 @@ def staff_leaderboard(request):
     """
     ⚡ Performance: Staff ranked by number of processed applications
     """
-    qs = Applicant.objects.values("staff__username").annotate(count=Count("id")).order_by("-count")[:10]
+    qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
+
+    qs = qs.values("staff__username").annotate(count=Count("id")).order_by("-count")[:10]
     return Response(list(qs))
 
 
@@ -1742,10 +1804,13 @@ def staff_activity_logs(request):
     """
     ⚡ Performance: Staff activity logs (timeline of actions)
     """
-    staff_filter = request.GET.get("staff")
-    action_filter = request.GET.get("action")
+
 
     logs = StaffActivityLog.objects.select_related("staff").order_by("-timestamp")
+    logs = apply_common_filters(request, logs, date_field="timestamp")
+
+    staff_filter = request.GET.get("staff")
+    action_filter = request.GET.get("action")
 
     if staff_filter:
         logs = logs.filter(staff__username__icontains=staff_filter)
@@ -1774,9 +1839,19 @@ def staff_activity_heatmap(request):
     """
     ⚡ Performance: Staff activity heatmap (hourly distribution)
     """
-    qs = StaffActivityLog.objects.annotate(
-        hour=ExtractHour("timestamp")
-    ).values("hour").annotate(count=Count("id")).order_by("hour")
+
+    qs = StaffActivityLog.objects.all()
+    qs = apply_common_filters(request, qs, date_field="timestamp")
+
+    staff_filter = request.GET.get("staff")
+    if staff_filter:
+        qs = qs.filter(staff__username__icontains=staff_filter)
+
+    qs = qs.annotate(hour=ExtractHour("timestamp"))\
+           .values("hour")\
+           .annotate(count=Count("id"))\
+           .order_by("hour")
+
     return Response(list(qs))
 
 
@@ -1844,8 +1919,20 @@ def contact_admin(request):
 def list_support_messages(request):
     """
     Admin view for all staff support messages.
+    Optional filters: ?resolved=true&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
     """
     messages = SupportMessage.objects.all().order_by("-created_at")
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+    resolved = request.GET.get("resolved")
+
+    if start_date and end_date:
+        messages = messages.filter(created_at__date__range=[start_date, end_date])
+    if resolved == "true":
+        messages = messages.filter(is_resolved=True)
+    elif resolved == "false":
+        messages = messages.filter(is_resolved=False)
+
     data = [
         {
             "id": m.id,
@@ -1858,6 +1945,7 @@ def list_support_messages(request):
         for m in messages
     ]
     return Response(data)
+
 
 @api_view(["PATCH"])
 @permission_classes([IsAdminUser])
@@ -1873,3 +1961,16 @@ def resolve_support_message(request, message_id):
     except SupportMessage.DoesNotExist:
         return Response({"error": "Message not found."}, status=404)
 
+
+#FOR FILTERS
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_cities(request):
+    cities = City.objects.all().values("id", "name")
+    return Response(list(cities))
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_barangays(request):
+    barangays = Barangay.objects.select_related("city").all().values("id", "name", "city__name")
+    return Response(list(barangays))
