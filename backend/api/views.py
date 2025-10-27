@@ -21,6 +21,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.timezone import now, timedelta
+from .utils import apply_applicant_filters, apply_approval_filters, get_applicant_history
 
 # Django REST Framework
 from rest_framework import status
@@ -244,10 +245,26 @@ def register_staff(request):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def list_staff(request):
-    staff_users = User.objects.filter(is_staff=True, is_active=True)\
-        .values('id', 'username', 'first_name', 'last_name', 'email', 'last_active')\
-        .order_by('last_active')
+    search = request.GET.get('search', '')
+    is_active = request.GET.get('active', 'true').lower() == 'true'
+    ordering = request.GET.get('ordering', 'last_active')
+
+    staff_users = User.objects.filter(is_staff=True, is_active=is_active)
+
+    if search:
+        staff_users = staff_users.filter(
+            Q(username__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(email__icontains=search)
+        )
+
+    staff_users = staff_users.order_by(ordering).values(
+        'id', 'username', 'first_name', 'last_name', 'email', 'last_active'
+    )
+
     return Response(list(staff_users))
+
 
 # UPDATE STAFF INFO
 # Function to update staff member information
@@ -438,33 +455,21 @@ def submit_applicant(request):
     return Response(ApplicantSerializer(applicant).data, status=201)
 
 
-
 # LIST APPLICANTS
 # Function to get all non-archived applicants
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_applicants(request):
-    """
-    Optimized applicant listing endpoint:
-    - Supports pagination (limit/offset)
-    - Supports search and ordering
-    - Prefetches only necessary related data
-    """
-
-    search = request.GET.get('search', '')
-    ordering = request.GET.get('ordering', '-date_filled')  # default: newest first
-
     paginator = LimitOffsetPagination()
     paginator.default_limit = 50
 
-    # ✅ Optimize: prefetch related objects
     applicants_qs = (
         Applicant.objects.filter(is_archived=False)
         .select_related(
-            'background_info', 
+            'background_info',
             'background_info__barangay',
             'background_info__barangay__city',
-        )\
+        )
         .prefetch_related(
             Prefetch(
                 'background_info__histories',
@@ -476,25 +481,14 @@ def list_applicants(request):
         )
     )
 
-    # ✅ Optional: case-insensitive search filter
-    if search:
-        applicants_qs = applicants_qs.filter(
-            Q(background_info__first_name__icontains=search) |
-            Q(background_info__last_name__icontains=search) |
-            Q(background_info__barangay__name__icontains=search) |
-            Q(background_info__barangay__city__name__icontains=search) |
-            Q(type_of_assistance__icontains=search)
-        )
+    try:
+        applicants_qs = apply_applicant_filters(applicants_qs, request)
+    except ValueError as e:
+        return Response({"error": str(e)}, status=400)
 
-    # ✅ Ordering (e.g., ?ordering=date_filled or ?ordering=-background_info__last_name)
-    if ordering:
-        applicants_qs = applicants_qs.order_by(ordering)
-
-    # ✅ Paginate results
     paginated_queryset = paginator.paginate_queryset(applicants_qs, request)
     serializer = ApplicantSerializer(paginated_queryset, many=True, context={"request": request})
 
-    # ✅ Add preloaded history without extra DB queries
     data = serializer.data
     for idx, applicant in enumerate(paginated_queryset):
         history_data = [
@@ -509,6 +503,8 @@ def list_applicants(request):
         data[idx]["application_history"] = history_data
 
     return paginator.get_paginated_response(data)
+
+
 
     
 
@@ -620,27 +616,38 @@ def upload_approved_list(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def approved_applicants(request):
-    approvals = Approval.objects.select_related(
-        "applicant",
-        "applicant__background_info",
-        "approved_by"
-    ).order_by("-approved_at")
+    approvals = (
+        Approval.objects.select_related(
+            "applicant",
+            "applicant__background_info",
+            "applicant__background_info__barangay",
+            "applicant__background_info__barangay__city",
+            "approved_by",
+        )
+    )
+
+    try:
+        approvals = apply_approval_filters(approvals, request)
+    except ValueError as e:
+        return Response({"error": str(e)}, status=400)
 
     data = [
         {
-            "id": approval.id,
-            "first_name": approval.applicant.background_info.first_name,
-            "last_name": approval.applicant.background_info.last_name,
-            "barangay": approval.applicant.background_info.barangay.name,
-            "municipal": approval.applicant.background_info.barangay.city.name,
-            "type_of_assistance": approval.applicant.type_of_assistance,
-            "amount": approval.notes,  # stored in notes for now
-            "approved_at": approval.approved_at.isoformat(),
-            "approved_by": approval.approved_by.username if approval.approved_by else "System",
+            "id": a.id,
+            "first_name": a.applicant.background_info.first_name,
+            "last_name": a.applicant.background_info.last_name,
+            "barangay": a.applicant.background_info.barangay.name,
+            "municipal": a.applicant.background_info.barangay.city.name,
+            "type_of_assistance": a.applicant.type_of_assistance,
+            "amount": a.notes,  # stored in notes for now
+            "approved_at": a.approved_at.isoformat(),
+            "approved_by": a.approved_by.username if a.approved_by else "System",
         }
-        for approval in approvals
+        for a in approvals
     ]
+
     return Response(data)
+
 
 #APPROVAL BATCHES
 @api_view(['GET'])
@@ -677,27 +684,31 @@ def approvals_for_batch(request, batch_id):
 
     approvals = Approval.objects.filter(batch_id=batch_id).select_related(
         "applicant",
-        "applicant__background_info", 
-        "applicant__background_info__barangay", 
-        "applicant__background_info__barangay__city", 
-        "approved_by"
+        "applicant__background_info",
+        "applicant__background_info__barangay",
+        "applicant__background_info__barangay__city",
+        "approved_by",
     )
 
-    paginated_queryset = paginator.paginate_queryset(approvals, request)
+    try:
+        approvals = apply_approval_filters(approvals, request)
+    except ValueError as e:
+        return Response({"error": str(e)}, status=400)
 
+    paginated_queryset = paginator.paginate_queryset(approvals, request)
     data = [
         {
-            "id": approval.id,
-            "first_name": approval.applicant.background_info.first_name,
-            "last_name": approval.applicant.background_info.last_name,
-            "barangay": approval.applicant.background_info.barangay.name,
-            "municipal": approval.applicant.background_info.barangay.city.name,
-            "type_of_assistance": approval.applicant.type_of_assistance,
-            "amount": approval.notes,
-            "approved_at": approval.approved_at.isoformat(),
-            "approved_by": approval.approved_by.username if approval.approved_by else "System",
+            "id": a.id,
+            "first_name": a.applicant.background_info.first_name,
+            "last_name": a.applicant.background_info.last_name,
+            "barangay": a.applicant.background_info.barangay.name,
+            "municipal": a.applicant.background_info.barangay.city.name,
+            "type_of_assistance": a.applicant.type_of_assistance,
+            "amount": a.notes,
+            "approved_at": a.approved_at.isoformat(),
+            "approved_by": a.approved_by.username if a.approved_by else "System",
         }
-        for approval in paginated_queryset
+        for a in paginated_queryset
     ]
     return paginator.get_paginated_response(data)
 
@@ -852,28 +863,11 @@ def applicant_detail(request, applicant_id):
 
     if request.method == 'GET':
         serializer = ApplicantSerializer(applicant, context={"request": request})
-
-        # Include full history for this applicant’s BackgroundInfo
-        history_qs = (
-            ApplicantHistory.objects
-            .filter(background_info=applicant.background_info)
-            .select_related("applicant")  # avoids query per history row
-            .order_by("-date_applied")
-        )
-
-        history_data = [
-            {
-                "id": h.id,
-                "type_of_assistance": h.type_of_assistance,
-                "applicant_id": h.applicant.id if h.applicant else None,
-                "date": h.date_applied,
-            }
-            for h in history_qs
-        ]
+    
 
 
         response_data = serializer.data
-        response_data["application_history"] = history_data
+        response_data["application_history"] = get_applicant_history(applicant.background_info)
 
         return Response(response_data)
 
@@ -913,20 +907,32 @@ def applicant_detail(request, applicant_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_archived_applicants(request):
-
     paginator = LimitOffsetPagination()
     paginator.default_limit = 50
 
-    applicants = Applicant.objects.filter(is_archived=True)\
+    applicants_qs = (
+        Applicant.objects.filter(is_archived=True)
         .select_related(
             "background_info",
             "background_info__barangay",
-        )\
-        .order_by("-date_filled")
+            "background_info__barangay__city",
+        )
+        .prefetch_related("background_info__histories")
+    )
 
-    paginated_query = paginator.paginate_queryset(applicants, request)
+    try:
+        applicants_qs = apply_applicant_filters(applicants_qs, request)
+    except ValueError as e:
+        return Response({"error": str(e)}, status=400)
+
+    paginated_query = paginator.paginate_queryset(applicants_qs, request)
     serializer = ApplicantSerializer(paginated_query, many=True, context={"request": request})
-    return paginator.get_paginated_response(serializer.data)
+    data = serializer.data
+
+    for idx, applicant in enumerate(paginated_query):
+        data[idx]["application_history"] = get_applicant_history(applicant.background_info)
+
+    return paginator.get_paginated_response(data)
 
 # RESTORE ARCHIVED APPLICANT
 # Function to restore an archived applicant
