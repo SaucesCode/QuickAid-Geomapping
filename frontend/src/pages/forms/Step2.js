@@ -346,7 +346,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                       }`}
                       required
                     >
-                      <option value="">{T.selectSex}</option>
+                      <option value=""disabled>{T.selectSex}</option>
                       <option value="Male">{T.male}</option>
                       <option value="Female">{T.female}</option>
                     </select>
@@ -387,7 +387,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                       }`}
                       required
                     >
-                      <option value="">{T.selectCivilStatus}</option>
+                      <option value=""disabled>{T.selectCivilStatus}</option>
                       <option value="Single">{T.single}</option>
                       <option value="Married">{T.married}</option>
                       <option value="Widowed">{T.widowed}</option>

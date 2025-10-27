@@ -27,13 +27,14 @@ import {
   UserCheck,
   AlertCircle,
   Loader2,
+  MapPin, // Added MapPin icon to match Geographic design source
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 
 // Fallback skeleton loader component for charts and lists
 const SkeletonLoader = ({ height = 300, type = "chart" }) => {
   // Styles for different types of skeletons
-  const chartSkeleton = <div className="h-full w-full bg-gray-200 rounded-lg"></div>;
+  const chartSkeleton = <div className="h-full w-full bg-gray-200 rounded-xl"></div>;
 
   const statSkeleton = (
     <div className="space-y-2 p-1">
@@ -65,8 +66,9 @@ const SkeletonLoader = ({ height = 300, type = "chart" }) => {
   }
 
   return (
+    // Updated skeleton class to match the shadows/radii in Geographic.js
     <div
-      className={`animate-pulse bg-gray-100 rounded-xl ${type === "chart" ? "p-4" : "p-3"}`}
+      className={`animate-pulse bg-gray-100 rounded-3xl ${type === "chart" ? "p-4" : "p-3"}`}
       style={{ height: type !== "stat" ? height : "auto" }}
     >
       {content}
@@ -195,28 +197,36 @@ const DemographicsEconomics = () => {
     ) : null;
   };
 
+  // StatCard component updated to match Geographic.js card style
   const StatCard = ({ icon: Icon, title, value, subtitle, color, isLoading }) => (
     <div
-      className="bg-white rounded-xl shadow-lg p-6 border-l-4"
-      style={{ borderLeftColor: color }}
+      // New: Matched card style from Geographic.js: shadows, rounded corners, hover effect
+      className={`group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-gray-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300`}
+      style={{ borderLeftColor: color }} // Kept left border color for distinction
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4 justify-between">
         <div>
-          <p className="text-gray-600 text-sm font-medium">{title}</p>
+          {/* Text sizes and colors adjusted */}
+          <p className="text-sm text-gray-600 font-semibold">{title}</p>
           {isLoading ? (
             <div className="mt-1 space-y-2">
-              <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-8 w-20 bg-gray-300 rounded animate-pulse"></div>
               {subtitle && <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>}
             </div>
           ) : (
             <>
-              <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
+              {/* Title color now uses gradient for premium look */}
+              <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r" style={{backgroundImage: `linear-gradient(to right, ${color}, #6366f1)`}}>
+                {value}
+              </h2>
               {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
             </>
           )}
         </div>
-        <div className="p-3 rounded-full" style={{ backgroundColor: color + "20" }}>
-          <Icon className="h-6 w-6" style={{ color }} />
+        {/* Icon style matched to Geographic.js */}
+        <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
+             style={{ backgroundColor: color, background: `linear-gradient(to bottom right, ${color}90, ${color})` }}>
+          <Icon className="w-7 h-7 text-white" />
         </div>
       </div>
     </div>
@@ -250,6 +260,7 @@ const DemographicsEconomics = () => {
     : "...";
 
   if (error) {
+    // Error screen is already in the Geographic style, no changes needed here.
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-red-50 to-indigo-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -275,23 +286,40 @@ const DemographicsEconomics = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Demographics & Economics Analysis
-          </h1>
-          <p className="text-gray-600 text-lg">
+  // Header component matched to Geographic.js header style
+  const HeaderComponent = (
+    <header className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-8">
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
+          <Users className="w-8 h-8 text-white" />
+        </div>
+        <div>
+          <h1 className="text-4xl font-bold text-gray-800">Demographics & Economics Analysis</h1>
+          <p className="text-gray-600 text-lg mt-1">
             Comprehensive insights into applicant demographics and economic profiles
           </p>
         </div>
+      </div>
+    </header>
+  );
+
+  return (
+    // New: Matched main container style from Geographic.js, including subtle background effects
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 relative">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+            <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+            <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        </div>
+
+      <div className="relative z-10 p-6 space-y-6 max-w-7xl mx-auto">
+        {/* Header */}
+        {HeaderComponent}
 
         <AnalyticsFilter onFilterChange={setFilters} />
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             icon={Users}
             title="Total Applicants"
@@ -301,7 +329,7 @@ const DemographicsEconomics = () => {
                 : totalApplicants
             }
             subtitle="Across all demographics"
-            color="#3B82F6"
+            color="#3B82F6" // Blue
             isLoading={!isGenderLoaded}
           />
           <StatCard
@@ -313,7 +341,7 @@ const DemographicsEconomics = () => {
                 ? dominantGender.count.toLocaleString()
                 : dominantGender.count
             } applications`}
-            color="#EC4899"
+            color="#EC4899" // Pink
             isLoading={!isGenderLoaded}
           />
           <StatCard
@@ -325,7 +353,7 @@ const DemographicsEconomics = () => {
                 ? topOccupation?.count.toLocaleString()
                 : topOccupation?.count || 0
             } applicants`}
-            color="#10B981"
+            color="#10B981" // Emerald
             isLoading={!isOccupationLoaded}
           />
           <StatCard
@@ -335,16 +363,16 @@ const DemographicsEconomics = () => {
               typeof totalIncome === "number" ? totalIncome.toLocaleString() : totalIncome
             }
             subtitle="Total with income data"
-            color="#F59E0B"
+            color="#F59E0B" // Amber
             isLoading={!isIncomeLoaded}
           />
         </div>
 
         {/* Gender & Civil Status */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Gender */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center mb-6">
+          {/* Gender - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center mb-6 border-b pb-3 border-gray-100">
               <Users className="mr-2 h-5 w-5 text-blue-600" /> Gender Distribution
             </h2>
             {loadingStates.gender ? (
@@ -359,39 +387,68 @@ const DemographicsEconomics = () => {
                     outerRadius={100}
                     dataKey="count"
                     nameKey="gender"
+                    stroke="#fff" // Added white stroke for better contrast
                   >
                     {transformedGenderData.map((e, i) => (
                       <Cell key={i} fill={GENDER_COLORS[i % GENDER_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={v => [v, "Count"]} />
+                  {/* Tooltip style matched */}
+                  <Tooltip 
+                     formatter={v => [v, "Count"]}
+                     contentStyle={{
+                        backgroundColor: "white",
+                        border: "2px solid #dbeafe",
+                        borderRadius: "12px",
+                        fontSize: "14px",
+                        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                     }}
+                  />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
             )}
           </div>
 
-          {/* Civil Status */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center mb-6">
+          {/* Civil Status - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center mb-6 border-b pb-3 border-gray-100">
               <Heart className="mr-2 h-5 w-5 text-pink-600" /> Civil Status Distribution
             </h2>
             {loadingStates.civilStatus ? (
               <SkeletonLoader height={300} />
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={transformedCivilStatusData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                <BarChart data={transformedCivilStatusData} margin={{ top: 5, right: 30, left: -10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
                   <XAxis
                     dataKey="status"
                     angle={-45}
                     textAnchor="end"
                     height={80}
                     fontSize={12}
+                    tick={{ fill: "#4b5563" }}
                   />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+                  <YAxis tick={{ fill: "#4b5563" }} />
+                  {/* Tooltip style matched */}
+                  <Tooltip 
+                      contentStyle={{
+                          backgroundColor: "white",
+                          border: "2px solid #dbeafe",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                      }}
+                  />
+                  <Bar dataKey="count" fill="#8B5CF6" radius={[8, 8, 0, 0]}>
+                    <defs>
+                        <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#8B5CF6" />
+                          <stop offset="100%" stopColor="#c084fc" />
+                        </linearGradient>
+                      </defs>
+                      <Bar dataKey="count" fill="url(#purpleGradient)" radius={[8, 8, 0, 0]} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -400,49 +457,76 @@ const DemographicsEconomics = () => {
 
         {/* Age & Age by Gender */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Age Groups */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center mb-6">
+          {/* Age Groups - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center mb-6 border-b pb-3 border-gray-100">
               <TrendingUp className="mr-2 h-5 w-5 text-green-600" /> Age Group Distribution
             </h2>
             {loadingStates.ageGroup ? (
               <SkeletonLoader height={300} />
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={ageGroupData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="age_group" />
-                  <YAxis />
-                  <Tooltip />
+                <AreaChart data={ageGroupData} margin={{ top: 5, right: 30, left: -10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="age_group" tick={{ fill: "#4b5563" }} />
+                  <YAxis tick={{ fill: "#4b5563" }} />
+                  {/* Tooltip style matched */}
+                  <Tooltip 
+                      contentStyle={{
+                          backgroundColor: "white",
+                          border: "2px solid #dbeafe",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                      }}
+                  />
+                  <defs>
+                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#06B6D4" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
                   <Area
                     type="monotone"
                     dataKey="count"
                     stroke="#06B6D4"
-                    fill="#06B6D4"
-                    fillOpacity={0.6}
+                    fill="url(#areaGradient)"
+                    strokeWidth={2}
                   />
                 </AreaChart>
               </ResponsiveContainer>
             )}
           </div>
 
-          {/* Age by Gender */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">Age Groups by Gender</h2>
+          {/* Age by Gender - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center mb-6 border-b pb-3 border-gray-100">
+                <Users className="mr-2 h-5 w-5 text-indigo-600" /> Age Groups by Gender
+            </h2>
             {loadingStates.ageGender ? (
               <SkeletonLoader height={300} />
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={transformedAgeGenderData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="gender" />
-                  <YAxis />
-                  <Tooltip />
+                <BarChart data={transformedAgeGenderData} margin={{ top: 5, right: 30, left: -10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="gender" tick={{ fill: "#4b5563" }} />
+                  <YAxis tick={{ fill: "#4b5563" }} />
+                  {/* Tooltip style matched */}
+                  <Tooltip 
+                      contentStyle={{
+                          backgroundColor: "white",
+                          border: "2px solid #dbeafe",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                      }}
+                  />
                   <Legend />
-                  <Bar dataKey="Under 18" stackId="a" fill="#FF6B6B" />
-                  <Bar dataKey="18-35" stackId="a" fill="#4ECDC4" />
-                  <Bar dataKey="36-60" stackId="a" fill="#45B7D1" />
-                  <Bar dataKey="Over 60" stackId="a" fill="#96CEB4" />
+                  {/* Bars with rounded tops */}
+                  <Bar dataKey="Under 18" stackId="a" fill="#FF6B6B" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="18-35" stackId="a" fill="#4ECDC4" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="36-60" stackId="a" fill="#45B7D1" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Over 60" stackId="a" fill="#96CEB4" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -451,10 +535,10 @@ const DemographicsEconomics = () => {
 
         {/* Economics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Occupations */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center mb-6">
-              <Briefcase className="mr-2 h-5 w-5 text-blue-600" /> Top 10 Occupations
+          {/* Occupations - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center mb-6 border-b pb-3 border-gray-100">
+              <Briefcase className="mr-2 h-5 w-5 text-emerald-600" /> Top 10 Occupations
             </h2>
             {loadingStates.occupation ? (
               <SkeletonLoader height={400} />
@@ -465,37 +549,63 @@ const DemographicsEconomics = () => {
                   layout="vertical"
                   margin={{ top: 20, right: 30, left: 80, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis type="category" dataKey="occupation" width={80} fontSize={11} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#10B981" radius={[0, 4, 4, 0]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis type="number" tick={{ fill: "#4b5563" }} />
+                  <YAxis type="category" dataKey="occupation" width={80} fontSize={11} tick={{ fill: "#4b5563" }} />
+                  {/* Tooltip style matched */}
+                  <Tooltip 
+                      contentStyle={{
+                          backgroundColor: "white",
+                          border: "2px solid #dbeafe",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                      }}
+                  />
+                  <defs>
+                      <linearGradient id="greenGradient" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#10B981" stopOpacity={0.8}/>
+                          <stop offset="100%" stopColor="#059669" stopOpacity={1}/>
+                      </linearGradient>
+                  </defs>
+                  <Bar dataKey="count" fill="url(#greenGradient)" radius={[0, 8, 8, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
 
-          {/* Income */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center mb-6">
+          {/* Income - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center mb-6 border-b pb-3 border-gray-100">
               <DollarSign className="mr-2 h-5 w-5 text-yellow-600" /> Income Distribution
             </h2>
             {loadingStates.income ? (
               <SkeletonLoader height={400} />
             ) : (
               <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={incomeDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                <BarChart data={incomeDistribution} margin={{ top: 5, right: 30, left: -10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
                   <XAxis
                     dataKey="range"
                     angle={-45}
                     textAnchor="end"
                     height={80}
                     fontSize={10}
+                    tick={{ fill: "#4b5563" }}
                   />
-                  <YAxis />
-                  <Tooltip formatter={v => [v, "Applicants"]} />
-                  <Bar dataKey="count" fill="#F59E0B" radius={[4, 4, 0, 0]}>
+                  <YAxis tick={{ fill: "#4b5563" }} />
+                  {/* Tooltip style matched */}
+                  <Tooltip 
+                      formatter={v => [v, "Applicants"]}
+                      contentStyle={{
+                          backgroundColor: "white",
+                          border: "2px solid #dbeafe",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                      }}
+                  />
+                  <Bar dataKey="count" fill="#F59E0B" radius={[8, 8, 0, 0]}>
                     {incomeDistribution.map((e, i) => (
                       <Cell key={i} fill={INCOME_COLORS[i % INCOME_COLORS.length]} />
                     ))}
@@ -506,46 +616,59 @@ const DemographicsEconomics = () => {
           </div>
         </div>
 
-        {/* Key Insights Section */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Key Insights</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800 mb-2">Gender Balance</h3>
-              {isGenderLoaded ? (
-                <p className="text-blue-700 text-sm">
-                  **{dominantGender.gender}** applicants represent the majority with{" "}
-                  {dominantGender.count.toLocaleString()} applications
+        {/* Key Insights Section - Matched to the alert/insight card style */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-3xl p-8 shadow-xl backdrop-blur-xl mt-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                <MapPin className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-blue-900 mb-3">Key Demographics Insights</h3>
+                <p className="text-blue-800 mb-6 leading-relaxed text-base">
+                  A snapshot of the most critical demographic and economic patterns identified in the data.
                 </p>
-              ) : (
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-              )}
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Insight Card 1 */}
+                    <div className="bg-white p-4 rounded-xl border-2 border-blue-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                        <h4 className="font-semibold text-blue-800 mb-2">Gender Balance</h4>
+                        {isGenderLoaded ? (
+                            <p className="text-gray-700 text-sm">
+                            **{dominantGender.gender}** applicants represent the majority with{" "}
+                            {dominantGender.count.toLocaleString()} applications
+                            </p>
+                        ) : (
+                            <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                        )}
+                    </div>
 
-            <div className="bg-green-50 rounded-lg p-4">
-              <h3 className="font-semibold text-green-800 mb-2">Employment Patterns</h3>
-              {isOccupationLoaded ? (
-                <p className="text-green-700 text-sm">
-                  **{topOccupation?.occupation || "Various occupations"}** is the most common
-                  occupation among applicants
-                </p>
-              ) : (
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-              )}
-            </div>
+                    {/* Insight Card 2 */}
+                    <div className="bg-white p-4 rounded-xl border-2 border-green-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                        <h4 className="font-semibold text-green-800 mb-2">Employment Patterns</h4>
+                        {isOccupationLoaded ? (
+                            <p className="text-gray-700 text-sm">
+                            **{topOccupation?.occupation || "Various occupations"}** is the most common
+                            occupation among applicants
+                            </p>
+                        ) : (
+                            <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                        )}
+                    </div>
 
-            <div className="bg-yellow-50 rounded-lg p-4">
-              <h3 className="font-semibold text-yellow-800 mb-2">Economic Profile</h3>
-              {isIncomeLoaded ? (
-                <p className="text-yellow-700 text-sm">
-                  Total of **{totalIncome.toLocaleString()}** applicants provided income data,
-                  showing varied economic backgrounds.
-                </p>
-              ) : (
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-              )}
+                    {/* Insight Card 3 */}
+                    <div className="bg-white p-4 rounded-xl border-2 border-yellow-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                        <h4 className="font-semibold text-yellow-800 mb-2">Economic Profile</h4>
+                        {isIncomeLoaded ? (
+                            <p className="text-gray-700 text-sm">
+                            Total of **{totalIncome.toLocaleString()}** applicants provided income data,
+                            showing varied economic backgrounds.
+                            </p>
+                        ) : (
+                            <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                        )}
+                    </div>
+                </div>
+              </div>
             </div>
-          </div>
         </div>
       </div>
     </div>

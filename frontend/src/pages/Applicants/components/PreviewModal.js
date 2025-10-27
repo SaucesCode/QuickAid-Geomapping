@@ -1,4 +1,6 @@
 import { X } from "lucide-react";
+import { useOutletContext } from "react-router-dom";
+import clsx from "clsx";
 
 const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
   const {
@@ -30,22 +32,72 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
     repBackground.barangay_details?.province_name || ""
   }`;
 
-  // Custom component for a data row to reduce repetition and ensure consistent styling
-  const DataRow = ({ label, value }) => (
-    <div className="flex justify-between py-3 border-b border-blue-50/50 last:border-b-0">
-      <div className="font-semibold text-blue-700 w-1/3 min-w-[120px] pr-2">
-        {label}
-      </div>
-      <div className="text-gray-800 w-2/3 break-words text-right sm:text-left">
-        {value || "N/A"}
-      </div>
-    </div>
-  );
+  // This determines the modal's state (wide/narrow)
+  const { isSidebarMinimized } = useOutletContext();
 
-  // Custom component for a data section/card
+  // --- Start of FINAL FIX Logic ---
+  const DataRow = ({ label, value }) => {
+    const isLongLabel = label === "City/Municipality";
+
+    // Standard width split (1/3 label, 2/3 value)
+    let labelWidthClass = "sm:w-1/3 min-w-[120px]";
+    let valueWidthClass = "sm:w-2/3";
+    let labelWrapClass = "whitespace-nowrap";
+    let valuePositionClass = ""; // Used to push value text away from the label
+    
+    // Use pr-4 for all labels to create consistent spacing.
+    const labelPaddingClass = "pr-4"; 
+    
+    // --- Special handling for the long label: City/Municipality ---
+    if (isLongLabel) {
+      // Use wider split (2/5 label, 3/5 value) for long labels
+      labelWidthClass = "sm:w-2/5 min-w-[120px]";
+      valueWidthClass = "sm:w-3/5";
+
+      // If sidebar is MINIMIZED (Modal is WIDE) -> Show FULL text
+      if (isSidebarMinimized) {
+        labelWrapClass = "whitespace-normal"; 
+        // 🚀 FIX: Add definite left padding to the value in the WIDE state
+        valuePositionClass = "sm:pl-2"; 
+      }
+      
+      // If sidebar is EXPANDED (Modal is NARROW) -> TRUNCATE the label
+      if (!isSidebarMinimized) {
+        labelWrapClass = "truncate";
+        // Add a small left padding to the value in the NARROW state for safety
+        valuePositionClass = "sm:pl-1";
+      }
+    }
+
+    return (
+      <div className="flex flex-col sm:flex-row sm:justify-between py-3 border-b border-blue-100 last:border-b-0">
+        <div
+          className={clsx(
+            "font-medium text-blue-800 w-full mb-1 sm:mb-0", 
+            labelWidthClass,
+            labelWrapClass,
+            labelPaddingClass
+          )}
+        >
+          {label}
+        </div>
+        <div
+          className={clsx(
+            "text-gray-700 w-full break-words text-left font-normal",
+            valueWidthClass,
+            valuePositionClass // Applied conditionally to create space
+          )}
+        >
+          {value || <span className="text-gray-500 italic">N/A</span>}
+        </div>
+      </div>
+    );
+  };
+  // --- End of FINAL FIX Logic ---
+
   const SectionCard = ({ title, children }) => (
-    <div className="bg-white border border-blue-100 rounded-xl shadow-lg p-6">
-      <h3 className="text-xl font-bold text-blue-800 border-b pb-3 mb-4 border-blue-200">
+    <div className="bg-white border border-blue-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6">
+      <h3 className="text-xl font-bold text-blue-900 border-b pb-3 mb-4 border-blue-300/70">
         {title}
       </h3>
       <div className="space-y-1">{children}</div>
@@ -53,79 +105,84 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
   );
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 transition-opacity duration-300">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-hidden flex flex-col transition-transform duration-300 transform scale-100">
-        
+    <div
+      className={clsx(
+        "fixed top-0 bottom-0 right-0 bg-gray-900/70 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-12 transition-all duration-300",
+        {
+          "left-[80px]": isSidebarMinimized, // Modal is WIDE
+          "left-[240px]": !isSidebarMinimized, // Modal is NARROW
+        }
+      )}
+    >
+      <div
+        className={clsx(
+          "bg-white rounded-2xl shadow-2xl w-full overflow-hidden flex flex-col transform transition-all duration-300 max-h-full",
+          {
+            "max-w-7xl": isSidebarMinimized, 
+            "max-w-4xl": !isSidebarMinimized, 
+          }
+        )}
+      >
         {/* Modal Header */}
-        <div className="sticky top-0 bg-blue-600 px-6 py-4 flex items-center justify-between shadow-md z-10">
-          <h2 className="text-3xl font-extrabold text-white">
-            Applicant Details
+        <div className="sticky top-0 bg-blue-800 px-6 py-4 flex items-center justify-between shadow-xl z-10">
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-wide truncate pr-4"> 
+            Applicant Preview
           </h2>
           <button
             onClick={closePreviewView}
-            className="p-2 text-white hover:bg-blue-700 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+            className="p-2 text-white hover:bg-blue-700 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/80 flex-shrink-0"
             aria-label="Close preview"
           >
-            <X className="w-6 h-6" />
+            <X className="w-6 h-6" /> 
           </button>
         </div>
 
-        {/* Modal Body (Scrollable Content) */}
-        <div className="p-6 md:p-8 space-y-8 overflow-y-auto">
-          {/* Main Information: Responsive Grid Layout */}
+        {/* Modal Body */}
+        <div className="p-6 md:p-8 space-y-8 overflow-y-auto bg-blue-50/50">
+          {/* Grid Sections */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            {/* Personal Information */}
+            {/* Personal Info */}
             <SectionCard title="Personal Information">
               <DataRow label="Full Name" value={fullName} />
               <DataRow label="Sex" value={background_info.sex} />
-              <DataRow
-                label="Birthday"
-                value={formatDate(background_info.birthday)}
-              />
-              <DataRow
-                label="Civil Status"
-                value={background_info.civil_status}
-              />
+              <DataRow label="Birthday" value={formatDate(background_info.birthday)} />
+              <DataRow label="Civil Status" value={background_info.civil_status} />
               <DataRow label="Occupation" value={background_info.occupation} />
               <DataRow
-                label="Monthly Income"
+                label="Monthly Income" 
                 value={
                   background_info.monthly_income
-                    ? `₱${parseFloat(
-                        background_info.monthly_income
-                      ).toLocaleString()}`
+                    ? `₱${parseFloat(background_info.monthly_income).toLocaleString()}`
                     : "Not specified"
                 }
               />
             </SectionCard>
 
-            {/* Contact Information */}
+            {/* Contact Info */}
             <SectionCard title="Contact Information">
-              <DataRow
-                label="Street Address"
-                value={background_info.street_address}
-              />
+              <DataRow label="Street Address" value={background_info.street_address} />
               <DataRow label="Barangay" value={background_info.barangay} />
+              
+              {/* This is the fixed line */}
               <DataRow
-                label="City/Municipality"
+                label="City/Municipality" 
                 value={background_info.barangay_details?.city_name}
               />
+              
               <DataRow
                 label="Province"
                 value={background_info.barangay_details?.province_name}
               />
               <DataRow label="Contact Number" value={contact_number} />
-              {/* Padding to keep sections visually aligned if they have different number of rows */}
-              <div className="py-3 hidden lg:block"></div> 
+              <div className="hidden lg:block"></div> 
             </SectionCard>
 
-            {/* Assistance Details */}
+            {/* Assistance Info */}
             <SectionCard title="Assistance Details">
               <DataRow
                 label="Assistance Type"
                 value={
-                  <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 font-medium rounded-full text-sm">
+                  <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 font-semibold rounded-full text-sm">
                     {type_of_assistance || "N/A"}
                   </span>
                 }
@@ -133,44 +190,43 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
               <DataRow label="Applicant Type" value={applicant_type} />
               <DataRow label="Date Filled" value={formatDate(date_filled)} />
               <DataRow
-                label="Valid ID Presented"
+                label="Valid ID Presented" 
                 value={`${valid_id_presented || "N/A"} ${
                   other_valid_id ? ` (${other_valid_id})` : ""
                 }`}
               />
-              {/* Padding for alignment */}
-              <div className="py-3 hidden lg:block"></div>
-              <div className="py-3 hidden lg:block"></div>
+              <div className="hidden lg:block"></div>
+              <div className="hidden lg:block"></div>
             </SectionCard>
           </div>
 
-          {/* Representative Information */}
+          {/* Representative Info */}
           {representative && (
             <SectionCard title="Representative Information">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
                 <DataRow label="Full Name" value={repFullName} />
                 <DataRow label="Relationship" value={repInfo.relationship} />
-                <DataRow label="Address" value={repFullAddress} />
+                <div className="lg:col-span-1 sm:col-span-2">
+                  <DataRow label="Address" value={repFullAddress} />
+                </div>
               </div>
             </SectionCard>
           )}
 
-          {/* Application History Table */}
+          {/* Application History */}
           <section>
-            <h3 className="text-2xl font-bold text-blue-800 mb-4">
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">
               Application History
             </h3>
-            <div className="overflow-x-auto rounded-lg shadow-md border border-blue-200">
+            <div className="overflow-x-auto rounded-xl shadow-lg border border-blue-200">
               <table className="min-w-full text-sm">
-                <thead className="bg-blue-50">
+                <thead className="bg-blue-700 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left w-12 text-blue-700 font-bold">
-                      #
-                    </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold">
+                    <th className="px-4 py-3 text-left w-12 font-semibold rounded-tl-xl">#</th>
+                    <th className="px-4 py-3 text-left font-semibold">
                       Type of Assistance
                     </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold">
+                    <th className="px-4 py-3 text-left font-semibold rounded-tr-xl">
                       Date Applied
                     </th>
                   </tr>
@@ -182,17 +238,13 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                         key={h.id}
                         className={
                           index % 2 === 0
-                            ? "bg-white border-b border-gray-100"
-                            : "bg-blue-50 border-b border-gray-100"
+                            ? "bg-white hover:bg-blue-50/70 transition-colors border-b border-gray-100"
+                            : "bg-blue-50 hover:bg-blue-100/70 transition-colors border-b border-gray-100"
                         }
                       >
                         <td className="px-4 py-3 text-gray-700">{index + 1}</td>
-                        <td className="px-4 py-3 text-gray-700">
-                          {h.type_of_assistance}
-                        </td>
-                        <td className="px-4 py-3 text-gray-700">
-                          {formatDate(h.date)}
-                        </td>
+                        <td className="px-4 py-3 text-gray-700">{h.type_of_assistance}</td>
+                        <td className="px-4 py-3 text-gray-700">{formatDate(h.date)}</td>
                       </tr>
                     ))
                   ) : (
@@ -210,35 +262,30 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
             </div>
           </section>
 
-          {/* Approvals Section */}
+          {/* Approvals */}
           <section>
-            <h3 className="text-2xl font-bold text-blue-800 mb-4">Approvals</h3>
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">Approvals</h3>
             <p className="mb-4 text-lg">
-              <span className="font-bold text-blue-700">Times Approved:</span>{" "}
-              <span className="text-gray-800">
+              <span className="font-semibold text-blue-800">Times Approved:</span>{" "}
+              <span className="text-gray-800 font-bold">
                 {previewApplicant.approval_count || 0}
               </span>
             </p>
-
-            <div className="overflow-x-auto rounded-lg shadow-md border border-blue-200">
+            <div className="overflow-x-auto rounded-xl shadow-lg border border-blue-200">
               <table className="min-w-full text-sm">
-                <thead className="bg-blue-50">
+                <thead className="bg-blue-700 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left w-12 text-blue-700 font-bold">
-                      #
-                    </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
+                    <th className="px-4 py-3 text-left w-12 font-semibold rounded-tl-xl">#</th>
+                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">
                       Approved At
                     </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
+                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">
                       Approved By
                     </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold whitespace-nowrap">
+                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">
                       Batch File
                     </th>
-                    <th className="px-4 py-3 text-left text-blue-700 font-bold">
-                      Notes
-                    </th>
+                    <th className="px-4 py-3 text-left font-semibold rounded-tr-xl">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -249,23 +296,17 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                         key={a.id}
                         className={
                           index % 2 === 0
-                            ? "bg-white border-b border-gray-100"
-                            : "bg-blue-50 border-b border-gray-100"
+                            ? "bg-white hover:bg-blue-50/70 transition-colors border-b border-gray-100"
+                            : "bg-blue-50 hover:bg-blue-100/70 transition-colors border-b border-gray-100"
                         }
                       >
                         <td className="px-4 py-3 text-gray-700">{index + 1}</td>
                         <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
                           {formatDate(a.approved_at)}
                         </td>
-                        <td className="px-4 py-3 text-gray-700">
-                          {a.approved_by || "N/A"}
-                        </td>
-                        <td className="px-4 py-3 text-gray-700">
-                          {a.batch_file || "N/A"}
-                        </td>
-                        <td className="px-4 py-3 text-gray-700">
-                          {a.notes || "—"}
-                        </td>
+                        <td className="px-4 py-3 text-gray-700">{a.approved_by || "N/A"}</td>
+                        <td className="px-4 py-3 text-gray-700">{a.batch_file || "N/A"}</td>
+                        <td className="px-4 py-3 text-gray-700">{a.notes || "—"}</td>
                       </tr>
                     ))
                   ) : (
@@ -285,10 +326,10 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
         </div>
 
         {/* Modal Footer */}
-        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end shadow-inner z-10">
+        <div className="sticky bottom-0 bg-white border-t border-blue-200 px-6 py-4 flex justify-end shadow-inner z-10">
           <button
             onClick={closePreviewView}
-            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-lg transition-colors shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300/50"
           >
             Close
           </button>

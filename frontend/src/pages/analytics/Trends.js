@@ -35,25 +35,107 @@ import AnalyticsFilter from "../../components/AnalyticsFilter";
 // Fallback skeleton loader component for charts and lists
 const SkeletonLoader = ({ height = 300, type = "chart" }) => (
   <div
-    // **FIX HERE: Use h-auto to dynamically size for content and add padding**
-    className={`animate-pulse bg-gray-100 rounded-xl ${type === "chart" ? "p-4" : "p-3"}`}
-    style={{ height: type === "heatmap" ? "180px" : height }} // **Set a fixed height for the heatmap skeleton to reserve space**
+    // Updated to use consistent rounded-3xl style
+    className={`animate-pulse bg-gray-100 rounded-3xl ${
+      type === "chart" ? "p-4" : "p-3"
+    }`}
+    style={{ height: type === "heatmap" ? "180px" : height }} // Set a fixed height for the heatmap skeleton to reserve space
   >
     {type === "chart" && <div className="h-full w-full bg-gray-200 rounded-lg"></div>}
     {type === "heatmap" && (
       // Skeleton grid representing the 24 hours in the heatmap
-      // The fixed height above helps contain this grid
       <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 lg:grid-cols-12 xl:grid-cols-24 gap-3 h-full">
         {[...Array(12)].map(
           (
             _,
             i // Use 12 items to represent rows that will wrap
-          ) => (
-            <div key={i} className="h-10 w-full bg-gray-200 rounded-lg"></div>
-          )
+          ) => <div key={i} className="h-10 w-full bg-gray-200 rounded-lg"></div>
         )}
       </div>
     )}
+  </div>
+);
+
+// Custom Tooltip component with consistent design
+const CustomTooltip = ({ active, payload, label }) =>
+  active && payload && payload.length ? (
+    <div
+      className="bg-white p-3 rounded-lg shadow-lg"
+      style={{
+        backgroundColor: "white",
+        border: "2px solid #dbeafe", // Blue-200 border
+        borderRadius: "12px",
+        fontSize: "14px",
+        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+      }}
+    >
+      <p className="font-medium text-gray-800">{label}</p>
+      {payload.map((entry, index) => (
+        <p key={index} style={{ color: entry.color }} className="text-sm">
+          {entry.name}: {entry.value.toLocaleString()}
+        </p>
+      ))}
+    </div>
+  ) : null;
+
+// StatCard component updated to match Geographic/Demographics card style
+const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading }) => (
+  <div
+    // New: Matched card style: shadows, rounded corners, hover effect
+    className={`group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-gray-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300`}
+    style={{ borderLeftColor: color }} // Kept left border color for distinction
+  >
+    <div className="flex items-center gap-4 justify-between">
+      <div>
+        {/* Text sizes and colors adjusted */}
+        <p className="text-sm text-gray-600 font-semibold">{title}</p>
+        {isLoading ? (
+          <div className="mt-1 space-y-2">
+            <div className="h-8 w-20 bg-gray-300 rounded animate-pulse"></div>
+            {subtitle && <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>}
+          </div>
+        ) : (
+          <>
+            {/* Title color now uses gradient for premium look */}
+            <h2
+              className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r"
+              style={{ backgroundImage: `linear-gradient(to right, ${color}, #6366f1)` }}
+            >
+              {value}
+            </h2>
+            {subtitle && (
+              <div className="flex items-center mt-1">
+                <p className="text-sm text-gray-500">{subtitle}</p>
+                {trend !== undefined && (
+                  <div
+                    className={`ml-2 flex items-center text-xs font-semibold ${
+                      trend >= 0 ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {trend >= 0 ? (
+                      <ArrowUp className="h-3 w-3" />
+                    ) : (
+                      <ArrowDown className="h-3 w-3" />
+                    )}
+                    <span className="ml-1">{Math.abs(trend).toFixed(1)}%</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+      {/* Icon style matched to Geographic/Demographics.js */}
+      <div
+        className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
+        style={{
+          backgroundColor: color,
+          background: `linear-gradient(to bottom right, ${color}90, ${color})`,
+        }}
+      >
+        <Icon className="w-7 h-7 text-white" />
+      </div>
+    </div>
   </div>
 );
 
@@ -74,38 +156,44 @@ const Trends = () => {
     return res.data;
   };
 
-  // Montly Trends
+  // Montly Trends (No change to logic)
   const { data: monthlyData = [], isLoading: monthlyLoading } = useQuery({
     queryKey: ["trends", "monthly", filters],
     queryFn: () => fetchData("/analytics/trends/monthly/"),
   });
 
+  // Yearly Trends (No change to logic)
   const { data: yearlyData = [], isLoading: yearlyLoading } = useQuery({
     queryKey: ["trends", "yearly", filters],
     queryFn: () => fetchData("/analytics/trends/yearly/"),
   });
 
+  // Overtime Trends (No change to logic)
   const { data: overtimeData = [], isLoading: overtimeLoading } = useQuery({
     queryKey: ["trends", "overtime", filters],
     queryFn: () => fetchData("/analytics/trends/over-time/"),
   });
 
+  // Cumulative Trends (No change to logic)
   const { data: cumulativeData = [], isLoading: cumulativeLoading } = useQuery({
     queryKey: ["trends", "cumulative", filters],
     queryFn: () => fetchData("/analytics/trends/cumulative/"),
   });
 
+  // Assistance Type Trends (No change to logic)
   const { data: assistanceTypeData = [], isLoading: assistanceTypeLoading } = useQuery({
     queryKey: ["trends", "assistanceType", filters],
     queryFn: () => fetchData("/analytics/trends/assistance-type/"),
   });
 
+  // Assistance Type over Time Trends (No change to logic)
   const { data: assistanceTypeDataOverTime = [], isLoading: assistanceTypeOverTimeLoading } =
     useQuery({
       queryKey: ["trends", "assistanceTypeOverTime", filters],
       queryFn: () => fetchData("/analytics/trends/assistance-type-over-time/"),
     });
 
+  // Applicant HeatMap Trends (No change to logic)
   const { data: applicantHeatmap = [], isLoading: applicantHeatmapLoading } = useQuery({
     queryKey: ["trends", "applicantHeatmap", filters],
     queryFn: () => fetchData("/analytics/trends/applicant-heatmap/"),
@@ -196,6 +284,7 @@ const Trends = () => {
     return previous > 0 ? ((latest - previous) / previous) * 100 : 0;
   };
 
+  // HeatmapCell updated for consistent shadow/hover
   const HeatmapCell = ({ hour, count, intensity }) => {
     const getIntensityColor = intensity => {
       if (intensity === 0) return "#F3F4F6";
@@ -207,7 +296,7 @@ const Trends = () => {
     };
     return (
       <div
-        className="flex flex-col items-center p-2 rounded-lg border transition-all hover:scale-105"
+        className="flex flex-col items-center p-2 rounded-lg border border-gray-100 transition-all shadow-sm hover:shadow-md hover:scale-[1.02]"
         style={{ backgroundColor: getIntensityColor(intensity) }}
       >
         <span className="text-xs font-medium text-gray-700">{hour.label}</span>
@@ -215,63 +304,6 @@ const Trends = () => {
       </div>
     );
   };
-
-  const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading }) => (
-    <div
-      className="bg-white rounded-xl shadow-lg p-6 border-l-4 relative"
-      style={{ borderLeftColor: color }}
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-600 text-sm font-medium">{title}</p>
-          {isLoading ? (
-            <div className="mt-1 space-y-2">
-              <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse"></div>
-              {subtitle && <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>}
-            </div>
-          ) : (
-            <>
-              <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
-              {subtitle && (
-                <div className="flex items-center mt-1">
-                  <p className="text-sm text-gray-500">{subtitle}</p>
-                  {trend !== undefined && (
-                    <div
-                      className={`ml-2 flex items-center text-xs ${
-                        trend >= 0 ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {trend >= 0 ? (
-                        <ArrowUp className="h-3 w-3" />
-                      ) : (
-                        <ArrowDown className="h-3 w-3" />
-                      )}
-                      <span className="ml-1">{Math.abs(trend).toFixed(1)}%</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-        <div className="p-3 rounded-full" style={{ backgroundColor: color + "20" }}>
-          <Icon className="h-6 w-6" style={{ color }} />
-        </div>
-      </div>
-    </div>
-  );
-
-  const CustomTooltip = ({ active, payload, label }) =>
-    active && payload && payload.length ? (
-      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-        <p className="font-medium text-gray-800">{label}</p>
-        {payload.map((entry, index) => (
-          <p key={index} style={{ color: entry.color }} className="text-sm">
-            {entry.name}: {entry.value.toLocaleString()}
-          </p>
-        ))}
-      </div>
-    ) : null;
 
   // Data transformations
   const transformedMonthlyData = transformMonthlyData(monthlyData);
@@ -312,17 +344,35 @@ const Trends = () => {
       }) || {}
     : { type_of_assistance: "...", count: "..." };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Application Trends Analysis
-          </h1>
-          <p className="text-gray-600 text-lg">
+  // Header component matched to Geographic/Demographics.js header style
+  const HeaderComponent = (
+    <header className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-8">
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
+          <TrendingUp className="w-8 h-8 text-white" />
+        </div>
+        <div>
+          <h1 className="text-4xl font-bold text-gray-800">Application Trends Analysis</h1>
+          <p className="text-gray-600 text-lg mt-1">
             Comprehensive temporal analysis of application patterns and assistance types
           </p>
         </div>
+      </div>
+    </header>
+  );
+
+  return (
+    // New: Matched main container style with gradient and blur effects
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 relative">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+      </div>
+
+      <div className="relative z-10 p-6 space-y-6 max-w-7xl mx-auto">
+        {/* Header */}
+        {HeaderComponent}
 
         <AnalyticsFilter onFilterChange={setFilters} />
 
@@ -377,10 +427,10 @@ const Trends = () => {
 
         {/* Monthly and Yearly Trends */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Monthly Trends */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+          {/* Monthly Trends - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
                 <Calendar className="mr-2 h-5 w-5 text-blue-600" />
                 Monthly Trends (Last 12 Months)
               </h2>
@@ -390,16 +440,21 @@ const Trends = () => {
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={transformedMonthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" fontSize={12} />
-                  <YAxis />
+                  <defs>
+                    <linearGradient id="monthlyGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="month" fontSize={12} tick={{ fill: "#4b5563" }} />
+                  <YAxis tick={{ fill: "#4b5563" }} />
                   <Tooltip content={<CustomTooltip />} />
                   <Area
                     type="monotone"
                     dataKey="count"
                     stroke="#3B82F6"
-                    fill="#3B82F6"
-                    fillOpacity={0.6}
+                    fill="url(#monthlyGradient)"
                     strokeWidth={2}
                   />
                 </AreaChart>
@@ -407,10 +462,10 @@ const Trends = () => {
             )}
           </div>
 
-          {/* Yearly Trends */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+          {/* Yearly Trends - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
                 <BarChart3 className="mr-2 h-5 w-5 text-green-600" />
                 Yearly Application Volume
               </h2>
@@ -420,11 +475,17 @@ const Trends = () => {
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={transformedYearlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis />
+                  <defs>
+                    <linearGradient id="yearlyGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10B981" />
+                      <stop offset="100%" stopColor="#34d399" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="year" tick={{ fill: "#4b5563" }} />
+                  <YAxis tick={{ fill: "#4b5563" }} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="count" fill="#10B981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill="url(#yearlyGradient)" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -433,10 +494,10 @@ const Trends = () => {
 
         {/* Daily Trends and Cumulative Growth */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Daily Trends */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+          {/* Daily Trends - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
                 <Clock className="mr-2 h-5 w-5 text-orange-600" />
                 Daily Application Trends
               </h2>
@@ -446,32 +507,33 @@ const Trends = () => {
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={transformedOvertimeData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
                   <XAxis
                     dataKey="date"
                     fontSize={11}
                     angle={-45}
                     textAnchor="end"
                     height={60}
+                    tick={{ fill: "#4b5563" }}
                   />
-                  <YAxis />
+                  <YAxis tick={{ fill: "#4b5563" }} />
                   <Tooltip content={<CustomTooltip />} />
                   <Line
                     type="monotone"
                     dataKey="count"
                     stroke="#F97316"
-                    strokeWidth={2}
-                    dot={{ fill: "#F97316", strokeWidth: 2, r: 4 }}
+                    strokeWidth={3}
+                    dot={{ fill: "#F97316", stroke: "#fff", strokeWidth: 2, r: 5 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             )}
           </div>
 
-          {/* Cumulative Growth */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+          {/* Cumulative Growth - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
                 <TrendingUp className="mr-2 h-5 w-5 text-purple-600" />
                 Cumulative Growth
               </h2>
@@ -481,22 +543,28 @@ const Trends = () => {
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={transformedCumulativeData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <defs>
+                    <linearGradient id="cumulativeGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
                   <XAxis
                     dataKey="date"
                     fontSize={11}
                     angle={-45}
                     textAnchor="end"
                     height={60}
+                    tick={{ fill: "#4b5563" }}
                   />
-                  <YAxis />
+                  <YAxis tick={{ fill: "#4b5563" }} />
                   <Tooltip content={<CustomTooltip />} />
                   <Area
                     type="monotone"
                     dataKey="cumulative"
                     stroke="#8B5CF6"
-                    fill="#8B5CF6"
-                    fillOpacity={0.3}
+                    fill="url(#cumulativeGradient)"
                     strokeWidth={3}
                   />
                 </AreaChart>
@@ -507,9 +575,10 @@ const Trends = () => {
 
         {/* Assistance Type Distribution */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+          {/* Assistance Type Distribution - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
                 <Target className="mr-2 h-5 w-5 text-blue-600" />
                 Assistance Type Distribution
               </h2>
@@ -528,6 +597,7 @@ const Trends = () => {
                     outerRadius={120}
                     dataKey="count"
                     nameKey="type_of_assistance"
+                    stroke="#fff" // Added stroke for consistent pie chart style
                   >
                     {assistanceTypeData.map((entry, index) => (
                       <Cell
@@ -536,17 +606,20 @@ const Trends = () => {
                       />
                     ))}
                   </Pie>
-                  <Tooltip formatter={value => [value, "Applications"]} />
+                  <Tooltip
+                    formatter={value => [value, "Applications"]}
+                    content={<CustomTooltip />}
+                  />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
             )}
           </div>
 
-          {/* Assistance Over Time */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+          {/* Assistance Over Time - Chart Container Matched */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
                 <BarChart3 className="mr-2 h-5 w-5 text-pink-600" />
                 Assistance Types Over Time
               </h2>
@@ -556,9 +629,9 @@ const Trends = () => {
             ) : (
               <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={transformedAssistanceOverTime}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="month" tick={{ fill: "#4b5563" }} />
+                  <YAxis tick={{ fill: "#4b5563" }} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
                   {Object.keys(transformedAssistanceOverTime[0] || {})
@@ -577,11 +650,11 @@ const Trends = () => {
           </div>
         </div>
 
-        {/* Applicant Activity Heatmap */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center">
-              <AlertCircle className="mr-2 h-5 w-5 text-red-600" />
+        {/* Applicant Activity Heatmap - Chart Container Matched */}
+        <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+          <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center">
+              <Clock className="mr-2 h-5 w-5 text-red-600" />
               Applicant Activity Heatmap (by Hour)
             </h2>
           </div>
@@ -598,58 +671,65 @@ const Trends = () => {
               </div>
             )}
 
-            {/* Color Legend/Key for Heatmap - Ensure it's static below the content */}
-            <div className="mt-4 flex items-center justify-center space-x-4 text-sm text-gray-600 w-full">
+            {/* Color Legend/Key for Heatmap - Enhanced key colors for consistency */}
+            <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-gray-600 w-full">
               <div className="flex items-center space-x-1">
-                <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                <span>Low Activity</span>
+                <div className="w-4 h-4 bg-gray-200 rounded-full border border-gray-300"></div>
+                <span>Low Activity (0)</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-4 h-4 bg-yellow-400 rounded"></div>
+                <div className="w-4 h-4 bg-yellow-400 rounded-full shadow-inner"></div>
                 <span>Medium Activity</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-4 h-4 bg-orange-600 rounded"></div>
-                <span>High Activity</span>
+                <div className="w-4 h-4 bg-orange-700 rounded-full shadow-md"></div>
+                <span>High Activity (Max)</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Trends Summary - This card is correctly placed after the Heatmap card */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Trend Analysis Summary</h2>
+        {/* Trends Summary - Matched to the insight card style */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-3xl p-8 shadow-xl backdrop-blur-xl mt-6">
+          <h2 className="text-2xl font-bold text-blue-900 mb-4 flex items-center">
+            <AlertCircle className="mr-2 h-6 w-6 text-blue-600" />
+            Trend Analysis Summary & Key Insights
+          </h2>
+          <p className="text-blue-800 mb-6 leading-relaxed text-base border-b pb-4 border-blue-200">
+            A snapshot of the most critical temporal and service-related patterns identified in the data.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-blue-50 rounded-lg p-4">
+            <div className="bg-white p-4 rounded-xl border-2 border-blue-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
               <h3 className="font-semibold text-blue-800 mb-2">Growth Pattern</h3>
               {loadingStates.monthly ? (
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (
-                <p className="text-blue-700 text-sm">
-                  {monthlyGrowth >= 0 ? "Positive" : "Negative"} growth trend with{" "}
-                  {Math.abs(monthlyGrowth).toFixed(1)}% change from previous month
+                <p className="text-gray-700 text-sm">
+                  The current application volume shows a{" "}
+                  <span className={`font-bold ${monthlyGrowth >= 0 ? "text-green-600" : "text-red-600"}`}>
+                    {monthlyGrowth >= 0 ? "Positive" : "Negative"} growth trend
+                  </span>{" "}
+                  with **{Math.abs(monthlyGrowth).toFixed(1)}%** change vs. previous month.
                 </p>
               )}
             </div>
-            <div className="bg-green-50 rounded-lg p-4">
+            <div className="bg-white p-4 rounded-xl border-2 border-green-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
               <h3 className="font-semibold text-green-800 mb-2">Peak Activity</h3>
               {loadingStates.monthly ? (
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (
-                <p className="text-green-700 text-sm">
-                  Average of {averageMonthlyApplications} applications per month with seasonal
-                  variations
+                <p className="text-gray-700 text-sm">
+                  The dashboard maintains an average of **{averageMonthlyApplications.toLocaleString()}** applications per month, indicating steady demand.
                 </p>
               )}
             </div>
-            <div className="bg-purple-50 rounded-lg p-4">
+            <div className="bg-white p-4 rounded-xl border-2 border-purple-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
               <h3 className="font-semibold text-purple-800 mb-2">Service Demand</h3>
               {loadingStates.assistanceType ? (
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (
-                <p className="text-purple-700 text-sm">
-                  **{mostPopularAssistance.type_of_assistance}** assistance shows highest
-                  demand with {mostPopularAssistance.count} requests
+                <p className="text-gray-700 text-sm">
+                  The most demanded service is **{mostPopularAssistance.type_of_assistance}** with **{mostPopularAssistance.count}** requests.
                 </p>
               )}
             </div>

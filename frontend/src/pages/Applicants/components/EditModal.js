@@ -4,61 +4,65 @@ import clsx from "clsx";
 import { useOutletContext } from "react-router-dom";
 
 const EditModal = ({
-  editingApplicant={editingApplicant},
+  editingApplicant,
   closeEditView,
-  handleChange={handleChange},
+  handleChange,
   handleSave,
   setEditingApplicant,
 }) => {
+
   const { isSidebarMinimized } = useOutletContext();
   return (
-    // FIX 1: Overlap Fix (left-0 on mobile, left-[80px] on small screens and up to account for sidebar)
-    // FIX 2: Added inset-y-0 to make sure it covers top/bottom properly
+    // Modal Container (Matching PreviewModal's full backdrop, position, and padding)
     <div
       className={clsx(
-        "fixed inset-y-0 right-0 bg-gradient-to-br from-blue-900/40 via-slate-900/60 to-blue-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 md:p-6 animate-in fade-in duration-200 transition-all",
+        "fixed top-0 bottom-0 right-0 bg-gray-900/70 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-12 transition-all duration-300",
         {
-          "left-[80px]": isSidebarMinimized, // when minimized
-          "left-[240px]": !isSidebarMinimized, // when expanded
+          "left-[80px]": isSidebarMinimized, // when minimized (Modal is WIDE)
+          "left-[240px]": !isSidebarMinimized, // when expanded (Modal is NARROW)
         }
       )}
     >
-      {/* FIX 3: Changed max-w-7xl to max-w-5xl for a smaller box */}
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-full max-h-[96vh] flex flex-col transform transition-all">
+      {/* Modal Wrapper (Matching PreviewModal's conditional width and overall appearance) */}
+      <div 
+        className={clsx(
+          "bg-white rounded-2xl shadow-2xl w-full overflow-hidden flex flex-col transform transition-all duration-300 max-h-full",
+          {
+            "max-w-7xl": isSidebarMinimized, // WIDE
+            "max-w-4xl": !isSidebarMinimized, // NARROW
+          }
+        )}
+      >
         
-        {/* Header */}
-        <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 sm:px-6 lg:px-8 py-5 sm:py-6 flex items-center justify-between shadow-lg rounded-t-2xl flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-              <User className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Edit Applicant</h2>
-              <p className="text-xs sm:text-sm text-blue-100 mt-0.5">Update applicant information</p>
-            </div>
-          </div>
+        {/* Header (Matching PreviewModal's sticky blue header) */}
+        <div className="sticky top-0 bg-blue-800 px-6 py-4 flex items-center justify-between shadow-xl z-10 flex-shrink-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-wide truncate pr-4"> 
+            Edit Applicant
+          </h2>
           <button
             onClick={closeEditView}
-            className="group p-2 sm:p-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 hover:rotate-90 transform"
+            // Matching PreviewModal's close button style and size
+            className="p-2 text-white hover:bg-blue-700 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/80 flex-shrink-0"
             aria-label="Close edit modal"
           >
-            <X className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
+            <X className="w-6 h-6" /> 
           </button>
         </div>
         
-        {/* Scrollable Content */}
-        <div className="overflow-y-auto flex-grow">
-          <div className="p-4 sm:p-6 lg:p-8">
+        {/* Scrollable Content Area (Matching PreviewModal's background color) */}
+        <div className="overflow-y-auto flex-grow bg-blue-50/50">
+          <div className="p-6 md:p-8"> {/* Matching PreviewModal's padding */}
             <form id="edit-applicant-form" onSubmit={handleSave} noValidate>
-              <div className="space-y-6 sm:space-y-8">
+              <div className="space-y-8"> {/* Increased spacing to match PreviewModal */}
                 
-                {/* Personal Information */}
-                <section className="group bg-gradient-to-br from-slate-50 to-blue-50/30 border border-blue-100 rounded-xl p-5 sm:p-6 lg:p-7 shadow-sm hover:shadow-md transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-5 sm:mb-6">
+                {/* Personal Information Section (Matching PreviewModal's SectionCard style) */}
+                <section className="bg-white border border-blue-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6">
+                  {/* Title (Matching PreviewModal's SectionCard title style) */}
+                  <div className="flex items-center gap-3 mb-5 sm:mb-6 border-b pb-3 mb-4 border-blue-300/70">
                     <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md">
                       <User className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                    <h3 className="text-xl font-bold text-blue-900">
                       Personal Information
                     </h3>
                   </div>
@@ -69,21 +73,21 @@ const EditModal = ({
                         name: "first_name",
                         type: "text",
                         value: editingApplicant.background_info?.first_name || "",
-                        placeholder: "Juan"
+                        placeholder: "First Name"
                       },
                       {
                         label: "Middle Initial",
                         name: "middle_initial",
                         type: "text",
                         value: editingApplicant.background_info?.middle_initial || "",
-                        placeholder: "D"
+                        placeholder: "Middle Name"
                       },
                       {
                         label: "Last Name",
                         name: "last_name",
                         type: "text",
                         value: editingApplicant.background_info?.last_name || "",
-                        placeholder: "Dela Cruz"
+                        placeholder: "Last Name"
                       },
                     ].map(({ label, name, type, value, placeholder }) => (
                       <div key={name} className="space-y-1.5">
@@ -134,7 +138,7 @@ const EditModal = ({
                         onChange={handleChange}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:border-gray-400"
                       >
-                        <option value="">Select Sex</option>
+                        <option value=""disabled>Select Sex</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                       </select>
@@ -151,7 +155,7 @@ const EditModal = ({
                         onChange={handleChange}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:border-gray-400"
                       >
-                        <option value="">Select Civil Status</option>
+                        <option value=""disabled>Select Civil Status</option>
                         <option value="Single">Single</option>
                         <option value="Married">Married</option>
                         <option value="Widowed">Widowed</option>
@@ -162,13 +166,14 @@ const EditModal = ({
                   </div>
                 </section>
 
-                {/* Contact and Address Information */}
-                <section className="group bg-gradient-to-br from-slate-50 to-blue-50/30 border border-blue-100 rounded-xl p-5 sm:p-6 lg:p-7 shadow-sm hover:shadow-md transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-5 sm:mb-6">
+                {/* Contact and Address Information Section (Matching PreviewModal's SectionCard style) */}
+                <section className="bg-white border border-blue-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6">
+                  {/* Title (Matching PreviewModal's SectionCard title style) */}
+                  <div className="flex items-center gap-3 mb-5 sm:mb-6 border-b pb-3 mb-4 border-blue-300/70">
                     <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md">
                       <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                    <h3 className="text-xl font-bold text-blue-900">
                       Contact Information
                     </h3>
                   </div>
@@ -239,13 +244,14 @@ const EditModal = ({
                   </div>
                 </section>
 
-                {/* Assistance Information */}
-                <section className="group bg-gradient-to-br from-slate-50 to-blue-50/30 border border-blue-100 rounded-xl p-5 sm:p-6 lg:p-7 shadow-sm hover:shadow-md transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-5 sm:mb-6">
+                {/* Assistance Information Section (Matching PreviewModal's SectionCard style) */}
+                <section className="bg-white border border-blue-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6">
+                  {/* Title (Matching PreviewModal's SectionCard title style) */}
+                  <div className="flex items-center gap-3 mb-5 sm:mb-6 border-b pb-3 mb-4 border-blue-300/70">
                     <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md">
                       <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                    <h3 className="text-xl font-bold text-blue-900">
                       Assistance Information
                     </h3>
                   </div>
@@ -261,7 +267,7 @@ const EditModal = ({
                         onChange={handleChange}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:border-gray-400"
                       >
-                        <option value="">Select Type of Assistance</option>
+                        <option value=""disabled>Select Type of Assistance</option>
                         <option value="Medical">Medical</option>
                         <option value="Burial">Burial</option>
                         <option value="Educational">Educational</option>
@@ -278,7 +284,7 @@ const EditModal = ({
                         onChange={handleChange}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:border-gray-400"
                       >
-                        <option value="">Select Valid ID</option>
+                        <option value=""disabled>Select Valid ID</option>
                         <option value="National ID">National ID</option>
                         <option value="Driver's License">Driver's License</option>
                         <option value="Voter's ID">Voter's ID</option>
@@ -312,14 +318,15 @@ const EditModal = ({
                   </div>
                 </section>
 
-                {/* Representative Information */}
+                {/* Representative Information Section (Matching PreviewModal's SectionCard style) */}
                 {editingApplicant.representative && (
-                  <section className="group bg-gradient-to-br from-slate-50 to-blue-50/30 border border-blue-100 rounded-xl p-5 sm:p-6 lg:p-7 shadow-sm hover:shadow-md transition-all duration-300">
-                    <div className="flex items-center gap-3 mb-5 sm:mb-6">
+                  <section className="bg-white border border-blue-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6">
+                    {/* Title (Matching PreviewModal's SectionCard title style) */}
+                    <div className="flex items-center gap-3 mb-5 sm:mb-6 border-b pb-3 mb-4 border-blue-300/70">
                       <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md">
                         <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                       </div>
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                      <h3 className="text-xl font-bold text-blue-900">
                         Representative Information
                       </h3>
                     </div>
@@ -404,7 +411,7 @@ const EditModal = ({
                           onChange={handleChange}
                           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:border-gray-400"
                         >
-                          <option value="">Select Sex</option>
+                          <option value=""disabled>Select Sex</option>
                           <option value="Male">Male</option>
                           <option value="Female">Female</option>
                         </select>
@@ -422,7 +429,7 @@ const EditModal = ({
                           onChange={handleChange}
                           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:border-gray-400"
                         >
-                          <option value="">Select Civil Status</option>
+                          <option value=""disabled>Select Civil Status</option>
                           <option value="Single">Single</option>
                           <option value="Married">Married</option>
                           <option value="Widowed">Widowed</option>
@@ -454,19 +461,20 @@ const EditModal = ({
           </div>
         </div>
         
-        {/* Footer */}
-        <div className="border-t border-gray-200 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end bg-gradient-to-r from-gray-50 to-blue-50/20 rounded-b-2xl flex-shrink-0">
+        {/* Footer (Matching PreviewModal's sticky footer and button styles) */}
+        <div className="sticky bottom-0 bg-white border-t border-blue-200 px-6 py-4 flex justify-end shadow-inner z-10 flex-shrink-0">
           <button
             type="button"
             onClick={closeEditView}
-            className="w-full sm:w-auto px-6 py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-gray-200 shadow-sm"
+            className="w-full sm:w-auto px-6 py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-gray-200 shadow-sm mr-3"
           >
             Cancel
           </button>
           <button
             type="submit"
             form="edit-applicant-form"
-            className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300 transform hover:scale-105"
+            // Matching PreviewModal's blue button style
+            className="w-full sm:w-auto px-6 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-lg transition-colors shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300/50"
           >
             Save Changes
           </button>

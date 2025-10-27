@@ -216,7 +216,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     }`}
                     required
                   >
-                    <option value="">Select assistance type</option>
+                    <option value=""disabled>Select assistance type</option>
                     <option value="Medical">Medical</option>
                     <option value="Burial">Burial</option>
                     <option value="Educational">Educational</option>
@@ -572,7 +572,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           }`}
                           required
                         >
-                          <option value="">Select Sex(Mamili ng Kasarian)</option>
+                          <option value=""disabled>Select Sex(Mamili ng Kasarian)</option>
                           <option value="Male">Male(Lalaki)</option>
                           <option value="Female">Female(Babae)</option>
                         </select>
@@ -613,7 +613,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           }`}
                           required
                         >
-                          <option value="">Select Civil Status(Pumili ng Katayuang Sibil)</option>
+                          <option value=""disabled>Select Civil Status(Pumili ng Katayuang Sibil)</option>
                           <option value="Single">Single(Walang Asawa)</option>
                           <option value="Married">Married(Kasal)</option>
                           <option value="Widowed">Widowed(Balo)</option>
