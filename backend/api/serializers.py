@@ -164,15 +164,23 @@ class ApplicantSerializer(serializers.ModelSerializer):
 
         # --- 3-Month Rule ---
         three_months_ago = timezone.now() - timedelta(days=90)
-        if Applicant.objects.filter(background_info=background_info, date_filled__gte=three_months_ago).exists():
-            last_app = Applicant.objects.filter(background_info=background_info).latest('date_filled')
-            next_eligible = last_app.date_filled + timedelta(days=90)
+
+        # Get the most recent (non-archived) applicant for this person
+        recent_app = (
+            Applicant.objects
+            .filter(background_info=background_info, is_archived=False)
+            .order_by('-date_filled')
+            .first()
+        )
+
+        if recent_app and recent_app.date_filled >= three_months_ago:
+            next_eligible = recent_app.date_filled + timedelta(days=90)
             raise serializers.ValidationError(
-                f"This person last applied on {last_app.date_filled.strftime('%B %d, %Y')}. "
+                f"This person last applied on {recent_app.date_filled.strftime('%B %d, %Y')}. "
                 f"They can only apply once every 3 months. "
                 f"Their next eligible application date is {next_eligible.strftime('%B %d, %Y')}."
             )
-     
+            
 
         # ✅ Get or create the applicant (per person)
         applicant, created = Applicant.objects.get_or_create(
