@@ -8,10 +8,10 @@ import {
   ChevronUp,
   CheckCircle,
   BarChart3,
-  Users,
+  Loader2, // Added for consistent loading UI
 } from "lucide-react";
 
-// --- API Helpers ---
+// --- API Helpers (NO CHANGES) ---
 const fetchBatches = async () => {
   const res = await api.get("/approved/batches/?limit=50");
   return res.data.results;
@@ -24,9 +24,9 @@ const uploadApprovedFile = async file => {
   return res.data;
 };
 
-// --- Child Component: BatchRow ---
+// --- Child Component: BatchRow (REDESIGNED) ---
 const BatchRow = ({ batch, toggleBatch }) => {
-  // 🔹 Fetch approvals per batch (only when expanded)
+  // 🔹 Fetch approvals per batch (only when expanded - NO CHANGES)
   const { data: approvals = [], isLoading } = useQuery({
     queryKey: ["approvals", batch.id],
     queryFn: async () => {
@@ -38,34 +38,36 @@ const BatchRow = ({ batch, toggleBatch }) => {
   });
 
   return (
-    <div className="border border-blue-100 rounded-xl shadow-sm bg-gradient-to-br from-white to-blue-50 hover:shadow-md transition-all">
+    // Card Style: Slight glass-morphism for nested element
+    <div className="bg-white bg-opacity-80 backdrop-blur-md rounded-2xl shadow-md border border-blue-200 hover:shadow-lg transition-all duration-300">
       <button
         onClick={() => toggleBatch(batch.id)}
-        className="w-full flex justify-between items-center p-4 focus:outline-none rounded-t-xl hover:bg-blue-50 transition-all"
+        className="w-full flex justify-between items-center p-5 focus:outline-none rounded-t-2xl hover:bg-blue-50/50 transition-all"
         aria-expanded={batch.expanded ? "true" : "false"}
         aria-controls={`batch-${batch.id}-content`}
       >
         <div className="text-left space-y-1">
-          <h3 className="text-lg font-semibold text-blue-900 truncate">
-            📄 File: {batch.file_name}
+          <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-indigo-500" />
+            File: {batch.file_name}
           </h3>
-          <p className="text-sm text-blue-800">
-            Uploaded by <span className="font-medium">{batch.uploaded_by}</span> on{" "}
+          <p className="text-sm text-gray-500 ml-7">
+            Uploaded by <span className="font-medium text-blue-700">{batch.uploaded_by}</span> on{" "}
             {new Date(batch.uploaded_at).toLocaleString()}
           </p>
-          <p className="text-sm text-blue-700 flex flex-wrap gap-3 mt-1">
-            <span className="flex items-center gap-1">
+          <p className="flex flex-wrap gap-4 mt-2 ml-7">
+            <span className="flex items-center gap-1 text-sm font-medium text-gray-700">
               <BarChart3 className="w-4 h-4 text-blue-600" /> Processed:{" "}
-              {batch.total_processed}
+              <span className="font-bold text-blue-800">{batch.total_processed}</span>
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 text-sm font-medium text-gray-700">
               <CheckCircle className="w-4 h-4 text-green-600" /> Approved:{" "}
-              {batch.total_approved}
+              <span className="font-bold text-green-800">{batch.total_approved}</span>
             </span>
           </p>
         </div>
 
-        <span className="text-blue-700 font-semibold select-none flex items-center">
+        <span className="text-indigo-600 font-semibold select-none flex items-center p-2 rounded-full bg-blue-100/50">
           {batch.expanded ? (
             <ChevronUp className="w-5 h-5" />
           ) : (
@@ -77,39 +79,43 @@ const BatchRow = ({ batch, toggleBatch }) => {
       {batch.expanded && (
         <div
           id={`batch-${batch.id}-content`}
-          className="overflow-x-auto max-h-96 border-t border-blue-100 bg-white rounded-b-xl"
+          className="overflow-x-auto max-h-96 border-t border-blue-200 bg-white rounded-b-2xl"
         >
           {isLoading ? (
-            <p className="p-4 text-blue-600">Loading approvals...</p>
+            <div className="flex justify-center items-center py-6">
+              <Loader2 className="w-5 h-5 animate-spin text-indigo-600 mr-2" />
+              <p className="text-indigo-600 font-medium">Loading approvals...</p>
+            </div>
           ) : (
-            <table className="min-w-full text-sm text-left text-blue-900">
-              <thead className="bg-blue-100 sticky top-0 z-10">
+            <table className="min-w-full text-sm text-left text-gray-800">
+              {/* Table Header Style: Soft blue with text-blue-900 */}
+              <thead className="bg-blue-100/80 sticky top-0 z-10 font-semibold text-blue-800 border-b border-blue-200">
                 <tr>
-                  <th className="px-4 py-2 border-b border-blue-200">Name</th>
-                  <th className="px-4 py-2 border-b border-blue-200">Barangay</th>
-                  <th className="px-4 py-2 border-b border-blue-200">Municipal</th>
-                  <th className="px-4 py-2 border-b border-blue-200">Assistance</th>
-                  <th className="px-4 py-2 border-b border-blue-200">Amount</th>
-                  <th className="px-4 py-2 border-b border-blue-200">Approved By</th>
-                  <th className="px-4 py-2 border-b border-blue-200">Approved At</th>
+                  <th className="px-5 py-3 border-r border-blue-100">Name</th>
+                  <th className="px-5 py-3 border-r border-blue-100">Barangay</th>
+                  <th className="px-5 py-3 border-r border-blue-100">Municipal</th>
+                  <th className="px-5 py-3 border-r border-blue-100">Assistance</th>
+                  <th className="px-5 py-3 border-r border-blue-100">Amount</th>
+                  <th className="px-5 py-3 border-r border-blue-100">Approved By</th>
+                  <th className="px-5 py-3">Approved At</th>
                 </tr>
               </thead>
               <tbody>
                 {approvals.map(app => (
-                  <tr key={app.id} className="hover:bg-blue-50 transition-all duration-150">
-                    <td className="px-4 py-2 border-b border-blue-100">
+                  <tr key={app.id} className="hover:bg-blue-50 transition-all duration-150 border-b border-blue-50 last:border-b-0">
+                    <td className="px-5 py-3 text-gray-900 font-medium whitespace-nowrap">
                       {app.first_name} {app.last_name}
                     </td>
-                    <td className="px-4 py-2 border-b border-blue-100">{app.barangay}</td>
-                    <td className="px-4 py-2 border-b border-blue-100">{app.municipal}</td>
-                    <td className="px-4 py-2 border-b border-blue-100">
-                      {app.type_of_assistance}
+                    <td className="px-5 py-3">{app.barangay}</td>
+                    <td className="px-5 py-3">{app.municipal}</td>
+                    <td className="px-5 py-3">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                        {app.type_of_assistance}
+                      </span>
                     </td>
-                    <td className="px-4 py-2 border-b border-blue-100">{app.amount}</td>
-                    <td className="px-4 py-2 border-b border-blue-100">{app.approved_by}</td>
-                    <td className="px-4 py-2 border-b border-blue-100">
-                      {new Date(app.approved_at).toLocaleString()}
-                    </td>
+                    <td className="px-5 py-3 font-semibold text-green-700">{app.amount}</td>
+                    <td className="px-5 py-3">{app.approved_by}</td>
+                    <td className="px-5 py-3">{new Date(app.approved_at).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -121,12 +127,12 @@ const BatchRow = ({ batch, toggleBatch }) => {
   );
 };
 
-// --- Main Component ---
+// --- Main Component (REDESIGNED) ---
 const Approved = () => {
   const queryClient = useQueryClient();
   const [file, setFile] = useState(null);
 
-  // 🔹 Fetch all batches
+  // 🔹 Fetch all batches (NO CHANGES)
   const {
     data: batches = [],
     isLoading,
@@ -136,7 +142,7 @@ const Approved = () => {
     queryFn: fetchBatches,
   });
 
-  // 🔹 Upload mutation
+  // 🔹 Upload mutation (NO CHANGES)
   const uploadMutation = useMutation({
     mutationFn: uploadApprovedFile,
     onSuccess: () => {
@@ -145,7 +151,7 @@ const Approved = () => {
     },
   });
 
-  // 🔹 Toggle expand/collapse
+  // 🔹 Toggle expand/collapse (NO CHANGES)
   const toggleBatch = batchId => {
     queryClient.setQueryData(["approved-batches"], old =>
       old ? old.map(b => (b.id === batchId ? { ...b, expanded: !b.expanded } : b)) : []
@@ -153,83 +159,114 @@ const Approved = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 p-6 space-y-10">
-      {/* Header */}
-      <div className="max-w-7xl mx-auto flex items-center gap-3">
-        <Users className="w-8 h-8 text-blue-700" />
-        <h1 className="text-3xl font-bold text-blue-900 tracking-tight">
-          Approved Applicants
-        </h1>
+    // Background: Matching the Applicants component
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+      {/* Background Blur Shapes (Copied for consistency) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
       </div>
 
-      {/* Upload Section */}
-      <section className="max-w-7xl mx-auto bg-white border border-blue-200 rounded-2xl shadow-md p-6 hover:shadow-lg transition-all">
-        <div className="flex items-center gap-2 mb-4 border-b border-blue-100 pb-2">
-          <Upload className="w-6 h-6 text-blue-700" />
-          <h2 className="text-xl font-semibold text-blue-800">Upload Approved List</h2>
+      <div className="relative z-10 p-4 sm:p-6 md:p-10 space-y-6">
+        
+        {/* Header Card (New Card Style) */}
+        <div className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+            <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-blue-100/70 border border-blue-200">
+                    <CheckCircle className="w-8 h-8 text-blue-600" />
+                </div>
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
+                    Approved Applicants
+                </h1>
+            </div>
+            <p className="text-gray-500 ml-14">View and manage uploaded lists of approved applicants.</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <input
-            type="file"
-            onChange={e => setFile(e.target.files[0])}
-            className="block w-full sm:w-auto text-gray-700 border border-blue-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <button
-            onClick={() => uploadMutation.mutate(file)}
-            disabled={!file || uploadMutation.isPending}
-            className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
-              file && !uploadMutation.isPending
-                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg"
-                : "bg-gray-300 cursor-not-allowed text-gray-600"
-            }`}
-          >
-            <Upload className="w-5 h-5" />
-            {uploadMutation.isPending ? "Uploading..." : "Upload"}
-          </button>
-        </div>
 
-        {uploadMutation.data && (
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-5 text-blue-900">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-blue-700" />
-              Upload Summary
-            </h3>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600" /> Approved:{" "}
-                {uploadMutation.data.total_approved ?? 0}
-              </li>
-              <li className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-blue-700" /> Total Processed:{" "}
-                {uploadMutation.data.total_processed ?? 0}
-              </li>
-            </ul>
+        {/* Upload Section (New Card Style) */}
+        <section className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+          <div className="flex items-center gap-2 mb-4 border-b border-blue-100 pb-2">
+            <Upload className="w-6 h-6 text-indigo-600" />
+            <h2 className="text-xl font-bold text-gray-800">Upload Approved List</h2>
           </div>
-        )}
-      </section>
 
-      {/* Batches Section */}
-      <section className="max-w-7xl mx-auto bg-white border border-blue-200 rounded-2xl shadow-md p-6 hover:shadow-lg transition-all">
-        <div className="flex items-center gap-2 mb-6 border-b border-blue-100 pb-2">
-          <FileText className="w-6 h-6 text-blue-700" />
-          <h2 className="text-xl font-semibold text-blue-800">Approval Batches</h2>
-        </div>
-
-        {isLoading ? (
-          <p className="text-center text-blue-700 py-10">Loading batches...</p>
-        ) : isError ? (
-          <p className="text-center text-red-600 py-10">Failed to load batches.</p>
-        ) : batches.length === 0 ? (
-          <p className="text-center text-blue-700 py-10 italic">No approval batches found.</p>
-        ) : (
-          <div className="space-y-6">
-            {batches.map(batch => (
-              <BatchRow key={batch.id} batch={batch} toggleBatch={toggleBatch} />
-            ))}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <input
+              type="file"
+              onChange={e => setFile(e.target.files[0])}
+              className="block w-full sm:w-auto text-gray-700 border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-gray-50 text-sm"
+            />
+            <button
+              onClick={() => uploadMutation.mutate(file)}
+              disabled={!file || uploadMutation.isPending}
+              className={`inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md ${
+                file && !uploadMutation.isPending
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-400/50 hover:shadow-lg"
+                  : "bg-gray-300 cursor-not-allowed text-gray-600"
+              }`}
+            >
+              {uploadMutation.isPending ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" /> Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-5 h-5" /> Upload
+                </>
+              )}
+            </button>
           </div>
-        )}
-      </section>
+
+          {uploadMutation.data && (
+            <div className="mt-6 bg-indigo-50 border border-indigo-200 rounded-xl p-5 text-indigo-900">
+              <h3 className="font-bold mb-3 flex items-center gap-2 text-lg">
+                <BarChart3 className="w-5 h-5 text-indigo-700" />
+                Upload Summary
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" /> Approved:{" "}
+                  <span className="font-semibold">{uploadMutation.data.total_approved ?? 0}</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-blue-700" /> Total Processed:{" "}
+                  <span className="font-semibold">{uploadMutation.data.total_processed ?? 0}</span>
+                </li>
+              </ul>
+            </div>
+          )}
+        </section>
+
+        {/* Batches Section (New Card Style) */}
+        <section className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+          <div className="flex items-center gap-2 mb-6 border-b border-blue-100 pb-2">
+            <FileText className="w-6 h-6 text-indigo-600" />
+            <h2 className="text-xl font-bold text-gray-800">Approval Batches History</h2>
+          </div>
+
+          {isLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <Loader2 className="w-6 h-6 animate-spin text-indigo-600 mr-2" />
+              <p className="text-indigo-600 font-medium">Loading approval batches...</p>
+            </div>
+          ) : isError ? (
+            <p className="text-center text-red-600 py-10 font-medium">
+              Failed to load batches. An error occurred while fetching data.
+            </p>
+          ) : batches.length === 0 ? (
+            <p className="text-center text-gray-500 py-10 italic">
+              No approval batches have been uploaded yet.
+            </p>
+          ) : (
+            <div className="space-y-6">
+              {batches.map(batch => (
+                <BatchRow key={batch.id} batch={batch} toggleBatch={toggleBatch} />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 };

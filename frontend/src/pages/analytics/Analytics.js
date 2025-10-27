@@ -21,20 +21,25 @@ import { api } from "../../services/api";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-// Colors for Charts
-const GENDER_COLORS = ["#0088FE", "#FF8042", "#FFBB28"];
-const STATUS_COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#AF19FF", "#0088FE", "#FF1919"];
-const ASSISTANCE_COLORS = ["#4361ee", "#3a0ca3", "#4cc9f0", "#f72585", "#7209b7"];
+// Monochromatic Blue Colors for Charts
+// Shades of blue for a consistent, professional look
+const BLUE_SHADES = {
+  // Primary, Secondary, Tertiary
+  GENDER_COLORS: ["#3b82f6", "#2563eb", "#1d4ed8"],
+  // Lighter to Darker Blues
+  STATUS_COLORS: ["#93c5fd", "#60a5fa", "#3b82f6", "#2563eb", "#1d4ed8", "#1e3a8a"],
+  ASSISTANCE_COLORS: ["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe"],
+};
 
 const Analytics = () => {
-  // State Management
+  // State Management (NO CHANGES)
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [selectedType, setSelectedType] = useState("");
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("descriptive");
 
-  // Analytics Data States
+  // Analytics Data States (NO CHANGES)
   const [genderData, setGenderData] = useState([]);
   const [civilStatusData, setCivilStatusData] = useState([]);
   const [ageGroupData, setAgeGroupData] = useState([]);
@@ -48,7 +53,7 @@ const Analytics = () => {
     highestBarangay: "",
   });
 
-  const formatDate = date => date?.toISOString().split("T")[0] ?? null;
+  const formatDate = date => date?.toISOString().split("T")[0] ?? null; // NO CHANGES
 
   useEffect(() => {
     document.title = "Quickaid | Analytics";
@@ -57,6 +62,7 @@ const Analytics = () => {
     };
   }, []);
 
+  // Data Fetching Logic (NO CHANGES)
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -113,7 +119,7 @@ const Analytics = () => {
     fetchData();
   }, [startDate, endDate, selectedType]);
 
-  // Memoized data for charts
+  // Memoized data for charts (NO CHANGES)
   const genderPieData = useMemo(
     () =>
       genderData.map(item => ({
@@ -137,69 +143,70 @@ const Analytics = () => {
     [ageGroupData]
   );
 
+  // === REDESIGNED JSX BELOW ===
   return (
-    <div className="bg-quickaid-bg min-h-screen p-6 font-sans text-quickaid-text-primary">
+    <div className="bg-blue-50 min-h-screen p-4 sm:p-6 font-sans text-gray-900">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-quickaid-text-primary flex items-center gap-3">
-          <BarChart3 className="w-8 h-8 text-quickaid-accent" />
-          Analytics
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-blue-800 flex items-center gap-3">
+          <BarChart3 className="w-8 h-8 text-blue-600" />
+          Analytics Dashboard
         </h1>
-        <p className="text-quickaid-text-secondary mt-2">Analytics and insights</p>
+        <p className="text-gray-600 mt-2">Comprehensive insights and data visualization.</p>
       </header>
 
-      {/* Tab Navigation */}
-      <div className="tabs tabs-boxed bg-quickaid-surface p-2 rounded-xl mb-6 shadow">
+      {/* Tab Navigation - Responsive using Flex and Tabs-Boxed */}
+      <div className="flex bg-white p-1 rounded-xl shadow-lg border border-blue-100 mb-6 w-full max-w-4xl mx-auto">
         <a
           onClick={() => setActiveTab("descriptive")}
-          className={`tab flex-1 h-12 text-base font-semibold ${
+          className={`flex-1 h-12 text-sm sm:text-base font-semibold text-center cursor-pointer transition-all duration-200 rounded-lg ${
             activeTab === "descriptive"
-              ? "tab-active bg-quickaid-accent text-white"
-              : "hover:bg-gray-100"
+              ? "bg-blue-600 text-white shadow-md"
+              : "text-blue-700 hover:bg-blue-50"
           }`}
         >
-          Descriptive
+          <span className="flex items-center justify-center h-full">Descriptive</span>
         </a>
         <a
           onClick={() => setActiveTab("diagnostic")}
-          className={`tab flex-1 h-12 text-base font-semibold ${
+          className={`flex-1 h-12 text-sm sm:text-base font-semibold text-center cursor-pointer transition-all duration-200 rounded-lg ${
             activeTab === "diagnostic"
-              ? "tab-active bg-quickaid-accent text-white"
-              : "hover:bg-gray-100"
+              ? "bg-blue-600 text-white shadow-md"
+              : "text-blue-700 hover:bg-blue-50"
           }`}
         >
-          Diagnostic
+          <span className="flex items-center justify-center h-full">Diagnostic</span>
         </a>
         <a
           onClick={() => setActiveTab("predictive")}
-          className={`tab flex-1 h-12 text-base font-semibold ${
+          className={`flex-1 h-12 text-sm sm:text-base font-semibold text-center cursor-pointer transition-all duration-200 rounded-lg ${
             activeTab === "predictive"
-              ? "tab-active bg-quickaid-accent text-white"
-              : "hover:bg-gray-100"
+              ? "bg-blue-600 text-white shadow-md"
+              : "text-blue-700 hover:bg-blue-50"
           }`}
         >
-          Predictive
+          <span className="flex items-center justify-center h-full">Predictive</span>
         </a>
         <a
           onClick={() => setActiveTab("prescriptive")}
-          className={`tab flex-1 h-12 text-base font-semibold ${
+          className={`flex-1 h-12 text-sm sm:text-base font-semibold text-center cursor-pointer transition-all duration-200 rounded-lg ${
             activeTab === "prescriptive"
-              ? "tab-active bg-quickaid-accent text-white"
-              : "hover:bg-gray-100"
+              ? "bg-blue-600 text-white shadow-md"
+              : "text-blue-700 hover:bg-blue-50"
           }`}
         >
-          Prescriptive
+          <span className="flex items-center justify-center h-full">Prescriptive</span>
         </a>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-quickaid-surface p-4 rounded-xl shadow mb-6 flex flex-wrap gap-4 items-center">
+      {/* Filter Bar - Responsive flex-wrap */}
+      <div className="bg-white p-4 rounded-xl shadow-lg mb-6 flex flex-wrap gap-4 items-center border border-blue-100">
         <div className="text-sm font-medium text-gray-700">Filter by:</div>
         <DatePicker
           selected={startDate}
           onChange={date => setStartDate(date)}
           placeholderText="Start Date"
           dateFormat="yyyy-MM-dd"
-          className="input input-bordered w-full md:w-auto -z-10 focus:ring-2 focus:ring-quickaid-accent"
+          className="input input-bordered w-full sm:w-auto h-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150"
           isClearable
         />
         <DatePicker
@@ -207,14 +214,14 @@ const Analytics = () => {
           onChange={date => setEndDate(date)}
           placeholderText="End Date"
           dateFormat="yyyy-MM-dd"
-          className="input input-bordered w-full md:w-auto focus:ring-2 focus:ring-quickaid-accent"
+          className="input input-bordered w-full sm:w-auto h-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150"
           minDate={startDate}
           isClearable
         />
         <select
           value={selectedType}
           onChange={e => setSelectedType(e.target.value)}
-          className="select select-bordered w-full md:w-auto focus:ring-2 focus:ring-quickaid-accent"
+          className="select select-bordered w-full sm:w-auto h-10 min-h-0 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150"
         >
           <option value="">All Types</option>
           <option value="Medical">Medical</option>
@@ -224,54 +231,62 @@ const Analytics = () => {
       </div>
 
       {loading ? (
-        <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl text-center">
-          <span className="loading loading-spinner text-quickaid-accent"></span>
-          <div className="mt-2 text-gray-400">Loading analytics data...</div>
+        <div className="bg-white p-6 shadow-xl rounded-2xl text-center border border-blue-100">
+          <span className="loading loading-spinner text-blue-600 w-8 h-8"></span>
+          <div className="mt-2 text-gray-500 font-medium">Loading analytics data...</div>
         </div>
       ) : (
         <div className="space-y-6">
           {/* Descriptive Analytics Tab */}
           {activeTab === "descriptive" && (
             <div className="space-y-6">
-              {/* Summary Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
-                  <div className="text-sm font-semibold text-quickaid-text-secondary">
+              {/* Summary Metrics - Responsive Grid (1 to 4 columns) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Stat Card 1 */}
+                <div className="card bg-white p-6 shadow-xl rounded-2xl border-l-4 border-blue-600 transition hover:shadow-2xl">
+                  <div className="text-sm font-medium text-gray-500">
                     Total Applicants
                   </div>
-                  <div className="text-3xl font-bold text-quickaid-text-primary mt-2">
+                  <div className="text-3xl font-bold text-blue-800 mt-2">
                     {summaryMetrics.totalApplicants}
                   </div>
                 </div>
-                <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
-                  <div className="text-sm font-semibold text-quickaid-text-secondary">
+                {/* Stat Card 2 */}
+                <div className="card bg-white p-6 shadow-xl rounded-2xl border-l-4 border-blue-600 transition hover:shadow-2xl">
+                  <div className="text-sm font-medium text-gray-500">
                     Avg. Form Completion Time
                   </div>
-                  <div className="text-3xl font-bold text-quickaid-text-primary mt-2">
+                  <div className="text-3xl font-bold text-blue-800 mt-2">
                     {summaryMetrics.averageProcessingTime}{" "}
-                    <span className="text-base font-normal">mins</span>
+                    <span className="text-base font-normal text-gray-600">mins</span>
                   </div>
                 </div>
-                <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
-                  <div className="text-sm font-semibold text-quickaid-text-secondary">
+                {/* Stat Card 3 */}
+                <div className="card bg-white p-6 shadow-xl rounded-2xl border-l-4 border-blue-600 transition hover:shadow-2xl">
+                  <div className="text-sm font-medium text-gray-500">
                     Most Common Type
                   </div>
-                  <div className="text-3xl font-bold text-quickaid-text-primary mt-2">
+                  <div className="text-3xl font-bold text-blue-800 mt-2">
                     {summaryMetrics.mostCommonType}
                   </div>
                 </div>
-                <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
-                  <div className="text-sm font-semibold text-quickaid-text-secondary">
+                {/* Stat Card 4 */}
+                <div className="card bg-white p-6 shadow-xl rounded-2xl border-l-4 border-blue-600 transition hover:shadow-2xl">
+                  <div className="text-sm font-medium text-gray-500">
                     Highest Barangay
                   </div>
-                  <div className="text-3xl font-bold text-quickaid-text-primary mt-2">
+                  <div className="text-3xl font-bold text-blue-800 mt-2">
                     {summaryMetrics.highestBarangay}
                   </div>
                 </div>
               </div>
+              
+              {/* Chart Row - Responsive Grid (1 to 3 columns) */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
-                  <h2 className="text-lg font-semibold text-quickaid-text-primary mb-2">
+                
+                {/* Applicants by Gender */}
+                <div className="card bg-white p-6 shadow-xl rounded-2xl border border-blue-100">
+                  <h2 className="text-lg font-semibold text-blue-800 mb-4 border-b pb-2">
                     Applicants by Gender
                   </h2>
                   {genderPieData.length > 0 ? (
@@ -289,7 +304,7 @@ const Analytics = () => {
                           {genderPieData.map((entry, index) => (
                             <Cell
                               key={`cell-gender-${index}`}
-                              fill={GENDER_COLORS[index % GENDER_COLORS.length]}
+                              fill={BLUE_SHADES.GENDER_COLORS[index % BLUE_SHADES.GENDER_COLORS.length]}
                             />
                           ))}
                         </Pie>
@@ -298,12 +313,13 @@ const Analytics = () => {
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="text-center text-gray-400">No gender data available</div>
+                    <div className="h-full flex items-center justify-center text-gray-400">No gender data available</div>
                   )}
                 </div>
 
-                <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
-                  <h2 className="text-lg font-semibold text-quickaid-text-primary mb-2">
+                {/* Applicants by Civil Status */}
+                <div className="card bg-white p-6 shadow-xl rounded-2xl border border-blue-100">
+                  <h2 className="text-lg font-semibold text-blue-800 mb-4 border-b pb-2">
                     Applicants by Civil Status
                   </h2>
                   {civilStatusPieData.length > 0 ? (
@@ -321,7 +337,7 @@ const Analytics = () => {
                           {civilStatusPieData.map((entry, index) => (
                             <Cell
                               key={`cell-status-${index}`}
-                              fill={STATUS_COLORS[index % STATUS_COLORS.length]}
+                              fill={BLUE_SHADES.STATUS_COLORS[index % BLUE_SHADES.STATUS_COLORS.length]}
                             />
                           ))}
                         </Pie>
@@ -330,14 +346,15 @@ const Analytics = () => {
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="text-center text-gray-400">
+                    <div className="h-full flex items-center justify-center text-gray-400">
                       No civil status data available
                     </div>
                   )}
                 </div>
 
-                <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
-                  <h2 className="text-lg font-semibold text-quickaid-text-primary mb-2">
+                {/* Applicants by Age Group */}
+                <div className="card bg-white p-6 shadow-xl rounded-2xl border border-blue-100">
+                  <h2 className="text-lg font-semibold text-blue-800 mb-4 border-b pb-2">
                     Applicants by Age Group
                   </h2>
                   {ageGroupBarData.length > 0 ? (
@@ -346,16 +363,16 @@ const Analytics = () => {
                         data={ageGroupBarData}
                         margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis allowDecimals={false} />
-                        <Tooltip />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e0f2fe" />
+                        <XAxis dataKey="name" stroke="#374151" />
+                        <YAxis allowDecimals={false} stroke="#374151" />
+                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none' }} />
                         <Legend />
-                        <Bar dataKey="count" fill="#fca311" name="Applicants" />
+                        <Bar dataKey="count" fill="#3b82f6" name="Applicants" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="text-center text-gray-400">
+                    <div className="h-full flex items-center justify-center text-gray-400">
                       No age group data available
                     </div>
                   )}
@@ -368,57 +385,63 @@ const Analytics = () => {
           {activeTab === "diagnostic" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
-                  <h2 className="text-lg font-semibold text-quickaid-text-primary mb-2">
+                
+                {/* Monthly Application Trends */}
+                <div className="card bg-white p-6 shadow-xl rounded-2xl border border-blue-100">
+                  <h2 className="text-lg font-semibold text-blue-800 mb-4 border-b pb-2">
                     Monthly Application Trends
                   </h2>
                   {monthlyTrends.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <AreaChart data={monthlyTrends}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e0f2fe" />
+                        <XAxis dataKey="month" stroke="#374151" />
+                        <YAxis stroke="#374151" />
+                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none' }} />
                         <Legend />
                         <Area
                           type="monotone"
                           dataKey="count"
-                          stroke="#4361ee"
-                          fill="#4361ee"
+                          stroke="#2563eb" // Monochromatic Blue Stroke
+                          fill="#2563eb" // Monochromatic Blue Fill
                           fillOpacity={0.2}
                           name="Applications"
                         />
                       </AreaChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="text-center text-gray-400">
+                    <div className="h-full flex items-center justify-center text-gray-400">
                       No monthly trend data available
                     </div>
                   )}
                 </div>
 
-                <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
-                  <h2 className="text-lg font-semibold text-quickaid-text-primary mb-2">
+                {/* Form Completion Time by Type */}
+                <div className="card bg-white p-6 shadow-xl rounded-2xl border border-blue-100">
+                  <h2 className="text-lg font-semibold text-blue-800 mb-4 border-b pb-2">
                     Form Completion Time by Type
                   </h2>
                   {processingTime.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={processingTime}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="type" />
-                        <YAxis />
-                        <Tooltip />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e0f2fe" />
+                        <XAxis dataKey="type" stroke="#374151" />
+                        <YAxis stroke="#374151" />
+                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none' }} />
                         <Legend />
                         <Line
                           type="monotone"
                           dataKey="minutes"
-                          stroke="#f72585"
+                          stroke="#1d4ed8" // Monochromatic Darker Blue Stroke
+                          strokeWidth={2}
+                          dot={{ fill: '#1d4ed8', r: 4 }}
+                          activeDot={{ r: 6 }}
                           name="Completion Time (mins)"
                         />
                       </LineChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="text-center text-gray-400">
+                    <div className="h-full flex items-center justify-center text-gray-400">
                       No processing time data available
                     </div>
                   )}
@@ -429,11 +452,11 @@ const Analytics = () => {
 
           {/* Predictive Analytics Tab */}
           {activeTab === "predictive" && (
-            <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
-              <h2 className="text-lg font-semibold text-quickaid-text-primary mb-2">
+            <div className="card bg-white p-6 shadow-xl rounded-2xl border border-blue-100">
+              <h2 className="text-xl font-semibold text-blue-800 mb-3">
                 Predictive Analytics
               </h2>
-              <p className="text-quickaid-text-secondary">
+              <p className="text-gray-600">
                 This tab could display visualizations and data related to future trends, such
                 as forecasted application volume or predicted needs for specific assistance
                 types. Currently, no predictive data is available.
@@ -443,11 +466,11 @@ const Analytics = () => {
 
           {/* Prescriptive Analytics Tab */}
           {activeTab === "prescriptive" && (
-            <div className="card bg-quickaid-surface p-6 shadow-md rounded-xl">
-              <h2 className="text-lg font-semibold text-quickaid-text-primary mb-2">
+            <div className="card bg-white p-6 shadow-xl rounded-2xl border border-blue-100">
+              <h2 className="text-xl font-semibold text-blue-800 mb-3">
                 Prescriptive Analytics
               </h2>
-              <p className="text-quickaid-text-secondary">
+              <p className="text-gray-600">
                 This tab could provide recommendations based on the analytics data, such as
                 suggesting resource allocation or identifying high-risk areas for outreach.
                 Currently, no prescriptive data is available.
