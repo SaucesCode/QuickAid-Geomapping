@@ -164,15 +164,12 @@ class ApplicantSerializer(serializers.ModelSerializer):
 
         # --- 3-Month Rule ---
         three_months_ago = timezone.now() - timedelta(days=90)
-
-        # Get the most recent (non-archived) applicant for this person
         recent_app = (
             Applicant.objects
             .filter(background_info=background_info, is_archived=False)
             .order_by('-date_filled')
             .first()
         )
-
         if recent_app and recent_app.date_filled >= three_months_ago:
             next_eligible = recent_app.date_filled + timedelta(days=90)
             raise serializers.ValidationError(
