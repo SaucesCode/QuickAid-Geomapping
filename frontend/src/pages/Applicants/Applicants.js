@@ -9,14 +9,22 @@ import Pagination from "../../components/Pagination";
 import PreviewModal from "./components/PreviewModal";
 import EditModal from "./components/EditModal";
 import ArchiveModal from "./components/ArchiveModal";
+import ApplicantsFilter from "./components/ApplicantFilter";
 import toast, { Toaster } from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
-import { Loader2, AlertCircle } from "lucide-react"; // Imported for consistent UI feedback
+import { Loader2, AlertCircle } from "lucide-react";
 
 const Applicants = () => {
-  // --- STATE AND HOOKS (NO CHANGES) ---
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({
+    city: "",
+    barangay: "",
+    type: "",
+    start: "",
+    end: "",
+  });
+
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "ascending" });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -34,9 +42,18 @@ const Applicants = () => {
     };
   }, []);
 
-  // --- DATA FETCHING (NO CHANGES) ---
   const fetchApplicants = async () => {
-    const res = await api.get("/applicants/");
+    const params = new URLSearchParams();
+
+    if (filters.city) params.append("city", filters.city);
+    if (filters.barangay) params.append("barangay", filters.barangay);
+    if (filters.type) params.append("type", filters.type);
+    if (filters.start && filters.end) {
+      params.append("start_date", filters.start);
+      params.append("end_date", filters.end);
+    }
+
+    const res = await api.get(`/applicants/?${params.toString()}`);
     return res.data.results || [];
   };
 
@@ -46,21 +63,29 @@ const Applicants = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["applicants"],
+    queryKey: ["applicants", filters],
     queryFn: fetchApplicants,
     staleTime: 1000 * 60 * 5,
   });
 
   // --- HANDLERS (NO CHANGES) ---
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
 
-    setEditingApplicant((prev) => {
+    setEditingApplicant(prev => {
       const updated = { ...prev };
 
       // For background_info fields
       if (
-        ["first_name", "middle_initial", "last_name", "suffix", "sex", "civil_status", "street_address"].includes(name)
+        [
+          "first_name",
+          "middle_initial",
+          "last_name",
+          "suffix",
+          "sex",
+          "civil_status",
+          "street_address",
+        ].includes(name)
       ) {
         updated.background_info = {
           ...prev.background_info,
@@ -89,7 +114,7 @@ const Applicants = () => {
     });
   };
 
-  const handleSave = async (e) => {
+  const handleSave = async e => {
     e.preventDefault();
     if (!editingApplicant?.id) return;
 
@@ -97,7 +122,6 @@ const Applicants = () => {
       // ✅ Instant feedback for the user
       toast.loading("Saving changes...", { id: "saving" });
 
-      // ✅ Run coordinate update and applicant update in parallel
       const coordPromise = api.post("/update_coordinates/", {
         id: editingApplicant.id,
         background_info: {
@@ -117,14 +141,8 @@ const Applicants = () => {
         latitude: data.latitude,
         longitude: data.longitude,
       };
-
-      // ✅ Fire applicant update but don't block UI
       const savePromise = api.put(`/applicants/${editingApplicant.id}/`, updatedApplicant);
-
-      // ✅ Optimistic update — close modal immediately
       setEditView(false);
-
-      // ✅ Wait for backend quietly
       await savePromise;
 
       toast.success("Applicant updated successfully", { id: "saving" });
@@ -200,13 +218,10 @@ const Applicants = () => {
 
       <Toaster position="top-center" reverseOrder={false} />
       <div className="relative z-10 p-4 sm:p-6 md:p-10 space-y-6">
-        
-        {/* Header/Search Card (Consistent Card Style) */}
+        {/* Header/Search Card (Photocopy: Blured, Rounded-3xl, Shadow-xl, Border) */}
         <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 sm:p-8 border border-blue-200">
-          <ApplicantsHeader 
-            searchTerm={searchTerm} 
-            setSearchTerm={setSearchTerm}
-          />
+          <ApplicantsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
         </div>
 
         {/* Conditional Content Area */}
@@ -246,7 +261,6 @@ const Applicants = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Applicant Table Card (Consistent Card Style) */}
             <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-4 sm:p-6 overflow-x-auto">
               <ApplicantTable
                 currentItems={currentItems}

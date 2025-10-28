@@ -201,12 +201,6 @@ const Sidebar = () => {
               msOverflowStyle: "none",
             }}
           >
-            <style jsx>{`
-              div::-webkit-scrollbar {
-                display: none;
-              }
-            `}</style>
-
             {/* Main Navigation */}
             <div className="space-y-6 py-4">
               {/* Overview Section */}
@@ -642,14 +636,14 @@ const Sidebar = () => {
                     <Settings className="w-4 h-4" /> Settings
                   </button>
                   <button
-  onClick={() => {
-    navigate("/");
-    setProfileMenuOpen(false);
-  }}
-  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
->
-  <Home className="w-4 h-4" /> Home
-</button>
+                    onClick={() => {
+                      navigate("/");
+                      setProfileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-white hover:bg-gray-700 transition-colors"
+                  >
+                    <Home className="w-4 h-4" /> Home
+                  </button>
 
                   <button
                     onClick={handleLogout}

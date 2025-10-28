@@ -1807,7 +1807,7 @@ def staff_activity_logs(request):
 
 
     logs = StaffActivityLog.objects.select_related("staff").order_by("-timestamp")
-    logs = apply_common_filters(request, logs, date_field="timestamp")
+    logs = apply_common_filters(request, logs)
 
     staff_filter = request.GET.get("staff")
     action_filter = request.GET.get("action")
@@ -1841,7 +1841,7 @@ def staff_activity_heatmap(request):
     """
 
     qs = StaffActivityLog.objects.all()
-    qs = apply_common_filters(request, qs, date_field="timestamp")
+    qs = apply_common_filters(request, qs)
 
     staff_filter = request.GET.get("staff")
     if staff_filter:
@@ -1962,15 +1962,31 @@ def resolve_support_message(request, message_id):
         return Response({"error": "Message not found."}, status=404)
 
 
-#FOR FILTERS
-@api_view(["GET"])
+# ✅ Returns only available cities and barangays that have applicants
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_cities(request):
-    cities = City.objects.all().values("id", "name")
-    return Response(list(cities))
+def get_location_filters(request):
+    city_filter = request.GET.get("city")
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_barangays(request):
-    barangays = Barangay.objects.select_related("city").all().values("id", "name", "city__name")
-    return Response(list(barangays))
+    # Start from active (non-archived) applicants
+    applicants = Applicant.objects.select_related(
+        'background_info__barangay__city'
+    ).filter(is_archived=False)
+
+    # ✅ If no city is selected, return all cities that have applicants
+    if not city_filter:
+        cities = (
+            applicants.values_list("background_info__barangay__city__name", flat=True)
+            .distinct()
+            .order_by("background_info__barangay__city__name")
+        )
+        return JsonResponse({"cities": list(cities)}, safe=False)
+
+    # ✅ Otherwise, return barangays only within that city
+    barangays = (
+        applicants.filter(background_info__barangay__city__name=city_filter)
+        .values_list("background_info__barangay__name", flat=True)
+        .distinct()
+        .order_by("background_info__barangay__name")
+    )
+    return JsonResponse({"barangays": list(barangays)}, safe=False)

@@ -98,7 +98,6 @@ const Geographic = () => {
 
     const query = params.toString() ? `?${params.toString()}` : "";
     const res = await api.get(`${endpoint}${query}`);
-    console.log(`${endpoint}${query}`);
     return res.data;
   };
 

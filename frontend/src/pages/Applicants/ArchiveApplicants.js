@@ -20,18 +20,7 @@ import {
 } from "lucide-react";
 import PreviewModal from "./components/PreviewModal";
 import Pagination from "../../components/Pagination";
-
-// --- API Helpers (NO CHANGES) ---
-const fetchArchivedApplicants = async () => {
-  // small delay for UX (optional)
-  await new Promise(resolve => setTimeout(resolve, 500));
-  const res = await api.get("/list-archived-applicants/?limit=50");
-  return res.data.results;
-};
-
-const restoreApplicant = async applicantId => {
-  await api.post(`/restore-applicant/${applicantId}/`);
-};
+import ApplicantsFilter from "./components/ApplicantFilter";
 
 // --- Skeleton Loader (NO CHANGES) ---
 const SkeletonRow = () => (
@@ -63,6 +52,14 @@ const SkeletonRow = () => (
 // --- Main Component ---
 const ArchiveApplicants = () => {
   const queryClient = useQueryClient();
+  const [filters, setFilters] = useState({
+    city: "",
+    barangay: "",
+    type: "",
+    start: "",
+    end: "",
+  });
+
   const [searchTerm, setSearchTerm] = useState("");
   const [previewView, setPreviewView] = useState(false);
   const [previewApplicant, setPreviewApplicant] = useState(null);
@@ -70,17 +67,32 @@ const ArchiveApplicants = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // 🔹 Fetch archived applicants with React Query (NO CHANGES)
   const {
     data: archivedApplicants = [],
     isLoading,
     isError,
-    refetch, // Keeping refetch even though unused, to preserve original logic/structure
   } = useQuery({
-    queryKey: ["archived-applicants"],
-    queryFn: fetchArchivedApplicants,
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    queryKey: ["archived-applicants", filters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+
+      if (filters.city) params.append("city", filters.city);
+      if (filters.barangay) params.append("barangay", filters.barangay);
+      if (filters.type) params.append("type", filters.type);
+      if (filters.start && filters.end) {
+        params.append("start_date", filters.start);
+        params.append("end_date", filters.end);
+      }
+
+      const res = await api.get(`/list-archived-applicants/?${params.toString()}`);
+      return res.data.results || [];
+    },
+    staleTime: 1000 * 60 * 5,
   });
+
+  const restoreApplicant = async applicantId => {
+    await api.post(`/restore-applicant/${applicantId}/`);
+  };
 
   // 🔹 Mutation for restoring applicant (NO CHANGES)
   const restoreMutation = useMutation({
@@ -130,6 +142,7 @@ const ArchiveApplicants = () => {
       (a.background_info?.first_name || "").toLowerCase().includes(keyword) ||
       (a.background_info?.last_name || "").toLowerCase().includes(keyword) ||
       (a.background_info?.barangay || "").toLowerCase().includes(keyword) ||
+      (a.background_info?.city || "").toLowerCase().includes(keyword) ||
       (a.type_of_assistance || "").toLowerCase().includes(keyword)
     );
   });
@@ -171,10 +184,9 @@ const ArchiveApplicants = () => {
         {/* Header (Consistent Card Style) */}
         <div className="mb-6 sm:mb-8">
           <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-6 sm:p-8">
-            <div className="flex items-center gap-4">
-              {/* CONSISTENT ICON CONTAINER: w-16 h-16, gradient, rounded-2xl, shadow-lg */}
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                <Archive className="w-8 h-8 text-white" />
+            <div className="flex items-start gap-4 mb-3">
+              <div className="p-2 rounded-xl bg-blue-100/70 border border-blue-200">
+                <Archive className="w-8 h-8 text-blue-600" />
               </div>
               <div>
                 {/* CONSISTENT HEADLINE FONT */}
@@ -197,7 +209,11 @@ const ArchiveApplicants = () => {
           </div>
         </div>
 
-        {/* Search Bar (Consistent Card Style - NO CHANGES) */}
+        <div className="mb-6">
+          <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
+        </div>
+
+        {/* Search Bar (Consistent Card Style) */}
         <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-4 sm:p-6 mb-6">
           <div className="flex items-center gap-4">
             <div className="relative flex-1 max-w-2xl">
@@ -397,7 +413,8 @@ const ArchiveApplicants = () => {
                 <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />
                   <p className="text-blue-700 text-sm leading-relaxed">
-                    Are you sure you want to restore this applicant? This will move the record back to the active applicants list.
+                    Are you sure you want to restore this applicant? This will move the record
+                    back to the active applicants list.
                   </p>
                 </div>
               </div>
