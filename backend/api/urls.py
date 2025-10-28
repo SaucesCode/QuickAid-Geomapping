@@ -46,8 +46,8 @@ urlpatterns = [
     # =============================================
     path('applicant-locations/', get_applicant_locations, name='applicant-locations'),
     path('update_coordinates/', update_coordinates, name='update_coordinates'),
-    path("locations/cities/", get_cities, name="get-cities"),
-    path("locations/barangays/", get_barangays, name="get-barangays"),
+    path("applicant-locations/filters/", get_location_filters, name="get_location_filters"),
+
 
     # ========================
     # Dashboard

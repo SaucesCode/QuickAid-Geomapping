@@ -36,9 +36,7 @@ import AnalyticsFilter from "../../components/AnalyticsFilter";
 const SkeletonLoader = ({ height = 300, type = "chart" }) => (
   <div
     // Updated to use consistent rounded-3xl style
-    className={`animate-pulse bg-gray-100 rounded-3xl ${
-      type === "chart" ? "p-4" : "p-3"
-    }`}
+    className={`animate-pulse bg-gray-100 rounded-3xl ${type === "chart" ? "p-4" : "p-3"}`}
     style={{ height: type === "heatmap" ? "180px" : height }} // Set a fixed height for the heatmap skeleton to reserve space
   >
     {type === "chart" && <div className="h-full w-full bg-gray-200 rounded-lg"></div>}
@@ -49,7 +47,9 @@ const SkeletonLoader = ({ height = 300, type = "chart" }) => (
           (
             _,
             i // Use 12 items to represent rows that will wrap
-          ) => <div key={i} className="h-10 w-full bg-gray-200 rounded-lg"></div>
+          ) => (
+            <div key={i} className="h-10 w-full bg-gray-200 rounded-lg"></div>
+          )
         )}
       </div>
     )}
@@ -152,7 +152,6 @@ const Trends = () => {
 
     const query = params.toString() ? `?${params.toString()}` : "";
     const res = await api.get(`${endpoint}${query}`);
-    console.log(`${endpoint}${query}`);
     return res.data;
   };
 
@@ -696,7 +695,8 @@ const Trends = () => {
             Trend Analysis Summary & Key Insights
           </h2>
           <p className="text-blue-800 mb-6 leading-relaxed text-base border-b pb-4 border-blue-200">
-            A snapshot of the most critical temporal and service-related patterns identified in the data.
+            A snapshot of the most critical temporal and service-related patterns identified in
+            the data.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white p-4 rounded-xl border-2 border-blue-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
@@ -706,7 +706,11 @@ const Trends = () => {
               ) : (
                 <p className="text-gray-700 text-sm">
                   The current application volume shows a{" "}
-                  <span className={`font-bold ${monthlyGrowth >= 0 ? "text-green-600" : "text-red-600"}`}>
+                  <span
+                    className={`font-bold ${
+                      monthlyGrowth >= 0 ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
                     {monthlyGrowth >= 0 ? "Positive" : "Negative"} growth trend
                   </span>{" "}
                   with **{Math.abs(monthlyGrowth).toFixed(1)}%** change vs. previous month.
@@ -719,7 +723,9 @@ const Trends = () => {
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (
                 <p className="text-gray-700 text-sm">
-                  The dashboard maintains an average of **{averageMonthlyApplications.toLocaleString()}** applications per month, indicating steady demand.
+                  The dashboard maintains an average of **
+                  {averageMonthlyApplications.toLocaleString()}** applications per month,
+                  indicating steady demand.
                 </p>
               )}
             </div>
@@ -729,7 +735,8 @@ const Trends = () => {
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (
                 <p className="text-gray-700 text-sm">
-                  The most demanded service is **{mostPopularAssistance.type_of_assistance}** with **{mostPopularAssistance.count}** requests.
+                  The most demanded service is **{mostPopularAssistance.type_of_assistance}**
+                  with **{mostPopularAssistance.count}** requests.
                 </p>
               )}
             </div>

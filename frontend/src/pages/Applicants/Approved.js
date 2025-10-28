@@ -10,6 +10,8 @@ import {
   BarChart3,
   Loader2, // Added for consistent loading UI
 } from "lucide-react";
+import { formatDate } from "../../utils/FormatDate";
+import ApplicantsFilter from "./components/ApplicantFilter";
 
 // --- API Helpers (NO CHANGES) ---
 const fetchBatches = async () => {
@@ -26,15 +28,31 @@ const uploadApprovedFile = async file => {
 
 // --- Child Component: BatchRow (REDESIGNED) ---
 const BatchRow = ({ batch, toggleBatch }) => {
-  // 🔹 Fetch approvals per batch (only when expanded - NO CHANGES)
+  const [filters, setFilters] = useState({
+    city: "",
+    barangay: "",
+    type: "",
+    start: "",
+    end: "",
+  });
+
   const { data: approvals = [], isLoading } = useQuery({
-    queryKey: ["approvals", batch.id],
+    queryKey: ["approvals", batch.id, filters],
     queryFn: async () => {
-      const res = await api.get(`/approved/batch/${batch.id}/approvals/?limit=100`);
-      return res.data.results;
+      const params = new URLSearchParams();
+      if (filters.city) params.append("city", filters.city);
+      if (filters.barangay) params.append("barangay", filters.barangay);
+      if (filters.type) params.append("type", filters.type);
+      if (filters.start && filters.end) {
+        params.append("start_date", filters.start);
+        params.append("end_date", filters.end);
+      }
+
+      const res = await api.get(`/approved/batch/${batch.id}/approvals/?${params.toString()}`);
+      return res.data.results || [];
     },
-    enabled: batch.expanded, // only runs when expanded
-    staleTime: 1000 * 60 * 5, // cache for 5 mins
+    enabled: batch.expanded,
+    staleTime: 1000 * 60 * 5,
   });
 
   return (
@@ -52,8 +70,8 @@ const BatchRow = ({ batch, toggleBatch }) => {
             File: {batch.file_name}
           </h3>
           <p className="text-sm text-gray-500 ml-7">
-            Uploaded by <span className="font-medium text-blue-700">{batch.uploaded_by}</span> on{" "}
-            {new Date(batch.uploaded_at).toLocaleString()}
+            Uploaded by <span className="font-medium text-blue-700">{batch.uploaded_by}</span>{" "}
+            on {new Date(batch.uploaded_at).toLocaleString()}
           </p>
           <p className="flex flex-wrap gap-4 mt-2 ml-7">
             <span className="flex items-center gap-1 text-sm font-medium text-gray-700">
@@ -81,6 +99,9 @@ const BatchRow = ({ batch, toggleBatch }) => {
           id={`batch-${batch.id}-content`}
           className="overflow-x-auto max-h-96 border-t border-blue-200 bg-white rounded-b-2xl"
         >
+          <div className="p-4 border-b border-blue-100 bg-blue-50/50">
+            <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
+          </div>
           {isLoading ? (
             <div className="flex justify-center items-center py-6">
               <Loader2 className="w-5 h-5 animate-spin text-indigo-600 mr-2" />
@@ -91,20 +112,26 @@ const BatchRow = ({ batch, toggleBatch }) => {
               {/* Table Header Style: Soft blue with text-blue-900 */}
               <thead className="bg-blue-100/80 sticky top-0 z-10 font-semibold text-blue-800 border-b border-blue-200">
                 <tr>
-                  <th className="px-5 py-3 border-r border-blue-100">Name</th>
+                  <th className="px-5 py-3 border-r border-blue-100">Last Name</th>
+                  <th className="px-5 py-3 border-r border-blue-100">First Name</th>
                   <th className="px-5 py-3 border-r border-blue-100">Barangay</th>
                   <th className="px-5 py-3 border-r border-blue-100">Municipal</th>
                   <th className="px-5 py-3 border-r border-blue-100">Assistance</th>
                   <th className="px-5 py-3 border-r border-blue-100">Amount</th>
-                  <th className="px-5 py-3 border-r border-blue-100">Approved By</th>
                   <th className="px-5 py-3">Approved At</th>
                 </tr>
               </thead>
               <tbody>
                 {approvals.map(app => (
-                  <tr key={app.id} className="hover:bg-blue-50 transition-all duration-150 border-b border-blue-50 last:border-b-0">
+                  <tr
+                    key={app.id}
+                    className="hover:bg-blue-50 transition-all duration-150 border-b border-blue-50 last:border-b-0"
+                  >
                     <td className="px-5 py-3 text-gray-900 font-medium whitespace-nowrap">
-                      {app.first_name} {app.last_name}
+                      {app.last_name}
+                    </td>
+                    <td className="px-5 py-3 text-gray-900 font-medium whitespace-nowrap">
+                      {app.first_name}
                     </td>
                     <td className="px-5 py-3">{app.barangay}</td>
                     <td className="px-5 py-3">{app.municipal}</td>
@@ -114,8 +141,7 @@ const BatchRow = ({ batch, toggleBatch }) => {
                       </span>
                     </td>
                     <td className="px-5 py-3 font-semibold text-green-700">{app.amount}</td>
-                    <td className="px-5 py-3">{app.approved_by}</td>
-                    <td className="px-5 py-3">{new Date(app.approved_at).toLocaleString()}</td>
+                    <td className="px-5 py-3">{formatDate(app.approved_at)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -169,20 +195,20 @@ const Approved = () => {
       </div>
 
       <div className="relative z-10 p-4 sm:p-6 md:p-10 space-y-6">
-        
         {/* Header Card (New Card Style) */}
         <div className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
-            <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-blue-100/70 border border-blue-200">
-                    <CheckCircle className="w-8 h-8 text-blue-600" />
-                </div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
-                    Approved Applicants
-                </h1>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-blue-100/70 border border-blue-200">
+              <CheckCircle className="w-8 h-8 text-blue-600" />
             </div>
-            <p className="text-gray-500 ml-14">View and manage uploaded lists of approved applicants.</p>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
+              Approved Applicants
+            </h1>
+          </div>
+          <p className="text-gray-500 ml-14">
+            View and manage uploaded lists of approved applicants.
+          </p>
         </div>
-
 
         {/* Upload Section (New Card Style) */}
         <section className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
@@ -227,11 +253,15 @@ const Approved = () => {
               <ul className="space-y-2 text-sm">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-600" /> Approved:{" "}
-                  <span className="font-semibold">{uploadMutation.data.total_approved ?? 0}</span>
+                  <span className="font-semibold">
+                    {uploadMutation.data.total_approved ?? 0}
+                  </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-blue-700" /> Total Processed:{" "}
-                  <span className="font-semibold">{uploadMutation.data.total_processed ?? 0}</span>
+                  <span className="font-semibold">
+                    {uploadMutation.data.total_processed ?? 0}
+                  </span>
                 </li>
               </ul>
             </div>
