@@ -196,7 +196,7 @@ const Dashboard = () => {
       </div>
 
       {/* Growth Chart - Uses the Card component for consistent styling */}
-      <Card title="Monthly Application Growth" icon={TrendingUp} gradient="from-blue-600 to-cyan-500">
+      <Card title="Monthly Application Growth" icon={TrendingUp} gradient="from-blue-600 to-indigo-600">
         {growthLoading ? (
           <ChartSkeleton />
         ) : (
@@ -229,7 +229,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Staff Leaderboard - Takes 2/5ths of the space on large screens */}
         <div className="lg:col-span-2">
-            <Card title="Staff Activity Leaderboard" icon={Activity} gradient="from-indigo-600 to-purple-600">
+            <Card title="Staff Activity Leaderboard" icon={Activity} gradient="from-indigo-600 to-indigo-600">
             {staffLoading ? (
                 <ListSkeleton />
             ) : (
@@ -254,7 +254,7 @@ const Dashboard = () => {
 
         {/* Recent Applicants - Takes 3/5ths of the space on large screens */}
         <div className="lg:col-span-3">
-            <Card title="Recently Submitted Applications" icon={FileText} gradient="from-teal-500 to-blue-500">
+            <Card title="Recently Submitted Applications" icon={FileText} gradient="from-blue-600 to-indigo-600">
             {recentLoading ? (
                 <ListSkeleton items={5} />
             ) : (

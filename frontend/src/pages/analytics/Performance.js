@@ -418,376 +418,369 @@ const Performance = () => {
 
       <div className="relative z-10 p-6 max-w-7xl mx-auto space-y-6">
         {HeaderComponent}
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Performance Analytics Dashboard
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Staff productivity, processing efficiency, and operational performance metrics
-          </p>
-        </div>
-        <AnalyticsFilter onFilterChange={setFilters} />
+    
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* REMOVED: Duplicate Header Section */}
+          <AnalyticsFilter onFilterChange={setFilters} />
 
-        {/* Statistics Cards - Uses the refactored StatCard */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            icon={Timer}
-            title="Avg Processing Time"
-            value={
-              isAvgProcessingTimeLoaded
-                ? `${stats.processingEfficiency.toFixed(1)}min`
-                : "0.0min"
-            }
-            subtitle="Per application"
-            color={PRIMARY_BLUE}
-            isLoading={!isAvgProcessingTimeLoaded}
-          />
-          <StatCard
-            icon={Users}
-            title="Staff Productivity"
-            value={isProductivityLoaded ? stats.averageProductivity : "..."}
-            subtitle="Avg applications/staff"
-            color={SUCCESS_GREEN}
-            isLoading={loadingProductivity}
-          />
-          <StatCard
-            icon={Trophy}
-            title="Top Performer"
-            value={isLeaderboardLoaded ? stats.topPerformer?.staff || "N/A" : "..."}
-            subtitle={
-              isLeaderboardLoaded ? `${stats.topPerformer?.count || 0} applications` : "..."
-            }
-            color={WARNING_YELLOW}
-            badge="🏆"
-            isLoading={loadingLeaderboard}
-          />
-          <StatCard
-            icon={Activity}
-            title="Total Processed"
-            value={isTotalProcessedLoaded ? stats.totalStaffProcessed.toLocaleString() : "..."}
-            subtitle="By all staff"
-            color={PURPLE}
-            isLoading={loadingProductivity}
-          />
-        </section>
+          {/* Statistics Cards - Uses the refactored StatCard */}
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+              icon={Timer}
+              title="Avg Processing Time"
+              value={
+                isAvgProcessingTimeLoaded
+                  ? `${stats.processingEfficiency.toFixed(1)}min`
+                  : "0.0min"
+              }
+              subtitle="Per application"
+              color={PRIMARY_BLUE}
+              isLoading={!isAvgProcessingTimeLoaded}
+            />
+            <StatCard
+              icon={Users}
+              title="Staff Productivity"
+              value={isProductivityLoaded ? stats.averageProductivity : "..."}
+              subtitle="Avg applications/staff"
+              color={SUCCESS_GREEN}
+              isLoading={loadingProductivity}
+            />
+            <StatCard
+              icon={Trophy}
+              title="Top Performer"
+              value={isLeaderboardLoaded ? stats.topPerformer?.staff || "N/A" : "..."}
+              subtitle={
+                isLeaderboardLoaded ? `${stats.topPerformer?.count || 0} applications` : "..."
+              }
+              color={WARNING_YELLOW}
+              badge="🏆"
+              isLoading={loadingLeaderboard}
+            />
+            <StatCard
+              icon={Activity}
+              title="Total Processed"
+              value={isTotalProcessedLoaded ? stats.totalStaffProcessed.toLocaleString() : "..."}
+              subtitle="By all staff"
+              color={PURPLE}
+              isLoading={loadingProductivity}
+            />
+          </section>
 
-        {/* Processing Performance */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Processing Time by Type */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <Clock className="mr-2 h-5 w-5 text-blue-600" />
-                Processing Time by Assistance Type
-              </h2>
-            </div>
-            {loadingType ? (
-              <SkeletonLoader />
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={transformedProcessingByType}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="type"
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                    fontSize={12}
-                  />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [`${value} min`, "Processing Time"]} />
-                  <Bar dataKey="avgMinutes" radius={[4, 4, 0, 0]}>
-                    {/* Use centralized color logic */}
-                    {transformedProcessingByType.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={getTimeColor(entry.avgMinutes)}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-
-          {/* Processing Distribution */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <Target className="mr-2 h-5 w-5 text-green-600" />
-                Processing Time Distribution
-              </h2>
-            </div>
-            {loadingDistribution ? (
-              <SkeletonLoader />
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={processingDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ bucket, percent }) =>
-                      `${bucket} (${(percent * 100).toFixed(0)}%)`
-                    }
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="count"
+          {/* Processing Performance */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Processing Time by Type */}
+            <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                  <Clock className="mr-2 h-5 w-5 text-blue-600" />
+                  Processing Time by Assistance Type
+                </h2>
+              </div>
+              {loadingType ? (
+                <SkeletonLoader />
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={transformedProcessingByType}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
-                    {/* Use standardized chart colors */}
-                    {processingDistribution.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={CHART_COLORS[index % CHART_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => [value, "Applications"]} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
-
-        {/* Staff Performance */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Staff Productivity */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <Zap className="mr-2 h-5 w-5 text-yellow-600" />
-                Staff Productivity (Applications Processed)
-              </h2>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="type"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      fontSize={12}
+                    />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`${value} min`, "Processing Time"]} />
+                    <Bar dataKey="avgMinutes" radius={[4, 4, 0, 0]}>
+                      {/* Use centralized color logic */}
+                      {transformedProcessingByType.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={getTimeColor(entry.avgMinutes)}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
-            {loadingProductivity ? (
-              <SkeletonLoader height={350} />
-            ) : (
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart
-                  data={transformedStaffProductivity}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="staff"
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                    fontSize={11}
-                  />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [value, "Applications Processed"]} />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                    {/* Use centralized color logic */}
-                    {transformedStaffProductivity.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={getProductivityColor(entry.count)}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+
+            {/* Processing Distribution */}
+            <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                  <Target className="mr-2 h-5 w-5 text-green-600" />
+                  Processing Time Distribution
+                </h2>
+              </div>
+              {loadingDistribution ? (
+                <SkeletonLoader />
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={processingDistribution}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ bucket, percent }) =>
+                        `${bucket} (${(percent * 100).toFixed(0)}%)`
+                      }
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="count"
+                    >
+                      {/* Use standardized chart colors */}
+                      {processingDistribution.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => [value, "Applications"]} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
 
-          {/* Staff Leaderboard */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <Award className="mr-2 h-5 w-5 text-purple-600" />
-                Staff Leaderboard
-              </h2>
-            </div>
-            {loadingLeaderboard ? (
-              <SkeletonLoader height={320} type="list" />
-            ) : (
-              <div className="space-y-3 max-h-80 overflow-y-auto">
-                {transformedStaffLeaderboard.map((staff, index) => (
-                  <div
-                    key={staff.staff}
-                    className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all hover:shadow-md ${
-                      index < 3
-                        ? "bg-gradient-to-r from-yellow-50 to-amber-100 border-amber-300"
-                        : "bg-gray-50 border-gray-200"
-                    }`}
+          {/* Staff Performance */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Staff Productivity */}
+            <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                  <Zap className="mr-2 h-5 w-5 text-yellow-600" />
+                  Staff Productivity (Applications Processed)
+                </h2>
+              </div>
+              {loadingProductivity ? (
+                <SkeletonLoader height={350} />
+              ) : (
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart
+                    data={transformedStaffProductivity}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="text-2xl">{staff.medal}</div>
-                      <div>
-                        <p className="font-semibold text-gray-800">{staff.staff}</p>
-                        <p className="text-sm text-gray-600">Rank #{staff.rank}</p>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="staff"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      fontSize={11}
+                    />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [value, "Applications Processed"]} />
+                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                      {/* Use centralized color logic */}
+                      {transformedStaffProductivity.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={getProductivityColor(entry.count)}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {/* Staff Leaderboard */}
+            <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                  <Award className="mr-2 h-5 w-5 text-purple-600" />
+                  Staff Leaderboard
+                </h2>
+              </div>
+              {loadingLeaderboard ? (
+                <SkeletonLoader height={320} type="list" />
+              ) : (
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {transformedStaffLeaderboard.map((staff, index) => (
+                    <div
+                      key={staff.staff}
+                      className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all hover:shadow-md ${
+                        index < 3
+                          ? "bg-gradient-to-r from-yellow-50 to-amber-100 border-amber-300"
+                          : "bg-gray-50 border-gray-200"
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">{staff.medal}</div>
+                        <div>
+                          <p className="font-semibold text-gray-800">{staff.staff}</p>
+                          <p className="text-sm text-gray-600">Rank #{staff.rank}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-gray-800">{staff.count}</p>
+                        <p className="text-xs text-gray-600">applications</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-800">{staff.count}</p>
-                      <p className="text-xs text-gray-600">applications</p>
-                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Activity Heatmap */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                <Calendar className="mr-2 h-5 w-5 text-orange-600" />
+                Staff Activity Heatmap (Hourly Distribution)
+              </h2>
+            </div>
+            {loadingHeatmap ? (
+              <SkeletonLoader height={100} type="heatmap" />
+            ) : (
+              <>
+                <div className="grid grid-cols-6 md:grid-cols-12 lg:grid-cols-24 gap-2">
+                  {transformedHeatmapData.map((hour) => (
+                    <HeatmapCell
+                      key={hour.hour}
+                      hour={hour}
+                      count={hour.count}
+                      intensity={hour.intensity}
+                    />
+                  ))}
+                </div>
+                <div className="mt-4 flex flex-wrap items-center justify-center space-x-4 text-sm text-gray-600">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 bg-gray-100 rounded border border-gray-200"></div>
+                    <span>No Activity</span>
                   </div>
-                ))}
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 bg-yellow-300 rounded border border-yellow-400"></div>
+                    <span>Low Activity</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 bg-orange-600 rounded border border-orange-700"></div>
+                    <span>Medium Activity</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 bg-red-700 rounded border border-red-800"></div>
+                    <span>High Activity</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Recent Staff Activity */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                <UserCheck className="mr-2 h-5 w-5 text-green-600" />
+                Recent Staff Activity
+              </h2>
+            </div>
+            {loadingActivity ? (
+              <SkeletonLoader height={320} type="list" />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="border-b border-gray-200 bg-gray-50">
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700 rounded-tl-lg">
+                        Staff Member
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Action</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Timestamp
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700 rounded-tr-lg">
+                        Time Ago
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transformedStaffActivity.map((activity) => (
+                      <tr
+                        key={activity.id}
+                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="py-3 px-4 font-medium text-gray-800">
+                          {activity.staff}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              activity.action === "CREATE"
+                                ? "bg-green-100 text-green-800"
+                                : activity.action === "UPDATE"
+                                ? "bg-blue-100 text-blue-800"
+                                : activity.action === "LOGIN"
+                                ? "bg-purple-100 text-purple-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {activity.action}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600 text-sm">
+                          {activity.timestamp}
+                        </td>
+                        <td className="py-3 px-4 text-gray-500 text-sm">
+                          {activity.timeAgo}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
-        </div>
 
-        {/* Activity Heatmap */}
-        <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-orange-600" />
-              Staff Activity Heatmap (Hourly Distribution)
-            </h2>
-          </div>
-          {loadingHeatmap ? (
-            <SkeletonLoader height={100} type="heatmap" />
-          ) : (
-            <>
-              <div className="grid grid-cols-6 md:grid-cols-12 lg:grid-cols-24 gap-2">
-                {transformedHeatmapData.map((hour) => (
-                  <HeatmapCell
-                    key={hour.hour}
-                    hour={hour}
-                    count={hour.count}
-                    intensity={hour.intensity}
-                  />
-                ))}
+          {/* Performance Summary */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Performance Insights</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h3 className="font-semibold text-blue-800 mb-2">Processing Efficiency</h3>
+                <p className="text-blue-700 text-sm">
+                  Average processing time of{" "}
+                  <span className="font-bold">
+                    {stats.processingEfficiency.toFixed(1)} minutes
+                  </span>{" "}
+                  shows
+                  {stats.processingEfficiency < 60
+                    ? " excellent"
+                    : stats.processingEfficiency < 120
+                    ? " good"
+                    : " room for improvement in"}{" "}
+                  efficiency
+                </p>
               </div>
-              <div className="mt-4 flex flex-wrap items-center justify-center space-x-4 text-sm text-gray-600">
-                <div className="flex items-center space-x-1">
-                  <div className="w-4 h-4 bg-gray-100 rounded border border-gray-200"></div>
-                  <span>No Activity</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-4 h-4 bg-yellow-300 rounded border border-yellow-400"></div>
-                  <span>Low Activity</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-4 h-4 bg-orange-600 rounded border border-orange-700"></div>
-                  <span>Medium Activity</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-4 h-4 bg-red-700 rounded border border-red-800"></div>
-                  <span>High Activity</span>
-                </div>
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h3 className="font-semibold text-green-800 mb-2">Staff Performance</h3>
+                <p className="text-green-700 text-sm">
+                  <span className="font-bold">
+                    {stats.topPerformer?.staff || "Top performer"}
+                  </span>{" "}
+                  leads with{" "}
+                  <span className="font-bold">
+                    {stats.topPerformer?.count || 0} processed applications
+                  </span>
+                  , showing strong individual productivity
+                </p>
               </div>
-            </>
-          )}
-        </div>
-
-        {/* Recent Staff Activity */}
-        <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center">
-              <UserCheck className="mr-2 h-5 w-5 text-green-600" />
-              Recent Staff Activity
-            </h2>
-          </div>
-          {loadingActivity ? (
-            <SkeletonLoader height={320} type="list" />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 rounded-tl-lg">
-                      Staff Member
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Action</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Timestamp
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 rounded-tr-lg">
-                      Time Ago
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transformedStaffActivity.map((activity) => (
-                    <tr
-                      key={activity.id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="py-3 px-4 font-medium text-gray-800">
-                        {activity.staff}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            activity.action === "CREATE"
-                              ? "bg-green-100 text-green-800"
-                              : activity.action === "UPDATE"
-                              ? "bg-blue-100 text-blue-800"
-                              : activity.action === "LOGIN"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {activity.action}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-gray-600 text-sm">
-                        {activity.timestamp}
-                      </td>
-                      <td className="py-3 px-4 text-gray-500 text-sm">
-                        {activity.timeAgo}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Performance Summary */}
-        <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Performance Insights</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <h3 className="font-semibold text-blue-800 mb-2">Processing Efficiency</h3>
-              <p className="text-blue-700 text-sm">
-                Average processing time of{" "}
-                <span className="font-bold">
-                  {stats.processingEfficiency.toFixed(1)} minutes
-                </span>{" "}
-                shows
-                {stats.processingEfficiency < 60
-                  ? " excellent"
-                  : stats.processingEfficiency < 120
-                  ? " good"
-                  : " room for improvement in"}{" "}
-                efficiency
-              </p>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-              <h3 className="font-semibold text-green-800 mb-2">Staff Performance</h3>
-              <p className="text-green-700 text-sm">
-                <span className="font-bold">
-                  {stats.topPerformer?.staff || "Top performer"}
-                </span>{" "}
-                leads with{" "}
-                <span className="font-bold">
-                  {stats.topPerformer?.count || 0} processed applications
-                </span>
-                , showing strong individual productivity
-              </p>
-            </div>
-            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-              <h3 className="font-semibold text-purple-800 mb-2">Workload Distribution</h3>
-              <p className="text-purple-700 text-sm">
-                Average productivity of{" "}
-                <span className="font-bold">
-                  {stats.averageProductivity} applications
-                </span>{" "}
-                per staff member indicates balanced workload distribution
-              </p>
+              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <h3 className="font-semibold text-purple-800 mb-2">Workload Distribution</h3>
+                <p className="text-purple-700 text-sm">
+                  Average productivity of{" "}
+                  <span className="font-bold">
+                    {stats.averageProductivity} applications
+                  </span>{" "}
+                  per staff member indicates balanced workload distribution
+                </p>
+              </div>
             </div>
           </div>
         </div>

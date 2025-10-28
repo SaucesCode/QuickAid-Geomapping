@@ -109,7 +109,9 @@ const BatchRow = ({ batch, toggleBatch }) => {
                     <td className="px-5 py-3">{app.barangay}</td>
                     <td className="px-5 py-3">{app.municipal}</td>
                     <td className="px-5 py-3">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                      {/* CONSISTENT CHIP STYLE: Gradient background with rounded-xl and small icon */}
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md">
+                        <FileText className="w-3 h-3" />
                         {app.type_of_assistance}
                       </span>
                     </td>
@@ -170,21 +172,24 @@ const Approved = () => {
 
       <div className="relative z-10 p-4 sm:p-6 md:p-10 space-y-6">
         
-        {/* Header Card (New Card Style) */}
+        {/* Header Card (Consistent Premium Style) */}
         <div className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
-            <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-blue-100/70 border border-blue-200">
-                    <CheckCircle className="w-8 h-8 text-blue-600" />
-                </div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
-                    Approved Applicants
-                </h1>
+          <div className="flex items-center gap-4">
+            {/* CONSISTENT ICON CONTAINER: w-16 h-16, gradient, rounded-2xl, shadow-lg */}
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+              <CheckCircle className="w-8 h-8 text-white" />
             </div>
-            <p className="text-gray-500 ml-14">View and manage uploaded lists of approved applicants.</p>
+            {/* CONSISTENT HEADLINE FONT */}
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
+              Approved Applicants
+            </h1>
+          </div>
+          {/* CONSISTENT SUBTITLE STYLE AND SPACING */}
+          <p className="text-gray-600 text-lg mt-1 ml-0">View and manage uploaded lists of approved applicants.</p>
         </div>
 
 
-        {/* Upload Section (New Card Style) */}
+        {/* Upload Section (New Card Style - NO CHANGES) */}
         <section className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
           <div className="flex items-center gap-2 mb-4 border-b border-blue-100 pb-2">
             <Upload className="w-6 h-6 text-indigo-600" />
@@ -238,7 +243,7 @@ const Approved = () => {
           )}
         </section>
 
-        {/* Batches Section (New Card Style) */}
+        {/* Batches Section (New Card Style - NO CHANGES) */}
         <section className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
           <div className="flex items-center gap-2 mb-6 border-b border-blue-100 pb-2">
             <FileText className="w-6 h-6 text-indigo-600" />

@@ -189,9 +189,9 @@ const Applicants = () => {
 
   // --- REDESIGNED JSX (MATCHING Geographic.js) ---
   return (
-    // Background: Soft gradient and blurred elements (Photocopy)
+    // Background: Soft gradient and blurred elements (Consistent)
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-      {/* Background Blur Shapes (Photocopy) */}
+      {/* Background Blur Shapes (Consistent) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
         <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
@@ -201,7 +201,7 @@ const Applicants = () => {
       <Toaster position="top-center" reverseOrder={false} />
       <div className="relative z-10 p-4 sm:p-6 md:p-10 space-y-6">
         
-        {/* Header/Search Card (Photocopy: Blured, Rounded-3xl, Shadow-xl, Border) */}
+        {/* Header/Search Card (Consistent Card Style) */}
         <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 sm:p-8 border border-blue-200">
           <ApplicantsHeader 
             searchTerm={searchTerm} 
@@ -212,6 +212,7 @@ const Applicants = () => {
         {/* Conditional Content Area */}
         {isLoading ? (
           <div className="flex justify-center items-center min-h-[60vh]">
+            {/* Consistent Loading Card Style */}
             <div className="bg-white rounded-3xl shadow-xl border border-blue-200 p-10 text-center">
               <Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" />
               <p className="text-gray-600 font-semibold">Fetching applicant list...</p>
@@ -227,6 +228,7 @@ const Applicants = () => {
             </div>
           </div>
         ) : filteredApplicants.length === 0 ? (
+          // Consistent Empty State Card Style
           <div className="bg-white rounded-3xl shadow-xl border border-blue-200 p-10 text-center">
             <h3 className="text-2xl font-bold text-gray-800 mb-3">No Applicants Found</h3>
             <p className="text-gray-500 mb-6">
@@ -234,6 +236,7 @@ const Applicants = () => {
                 ? "Your search yielded no results. Try simplifying your query."
                 : "The applicant database is empty. Click below to add the first one."}
             </p>
+            {/* Consistent Primary Gradient Button Style */}
             <button
               onClick={() => navigate("/new-applicant")}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition duration-300 shadow-lg"
@@ -243,7 +246,7 @@ const Applicants = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Applicant Table Card (Photocopy: Blured, Rounded-3xl, Shadow-xl, Border) */}
+            {/* Applicant Table Card (Consistent Card Style) */}
             <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-4 sm:p-6 overflow-x-auto">
               <ApplicantTable
                 currentItems={currentItems}
@@ -263,7 +266,7 @@ const Applicants = () => {
               />
             </div>
 
-            {/* Pagination Card (Photocopy: Blured, Rounded-3xl, Shadow-xl, Border) */}
+            {/* Pagination Card (Consistent Card Style) */}
             <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-4">
               <Pagination
                 currentPage={currentPage}
