@@ -83,12 +83,12 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
         </div>
         <div
           className={clsx(
-            "text-gray-700 w-full break-words text-left font-normal",
+            "text-blue-800 w-full break-words text-left font-normal", // Changed text-gray-700 to text-blue-800
             valueWidthClass,
             valuePositionClass // Applied conditionally to create space
           )}
         >
-          {value || <span className="text-gray-500 italic">N/A</span>}
+          {value || <span className="text-blue-400 italic">N/A</span>} {/* Changed text-gray-500 to text-blue-400 */}
         </div>
       </div>
     );
@@ -107,7 +107,8 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
   return (
     <div
       className={clsx(
-        "fixed top-0 bottom-0 right-0 bg-gray-900/70 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-12 transition-all duration-300",
+        // Changed bg-gray-900/70 to bg-blue-950/70 for monochromatic backdrop
+        "fixed top-0 bottom-0 right-0 bg-blue-950/70 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-12 transition-all duration-300",
         {
           "left-[80px]": isSidebarMinimized, // Modal is WIDE
           "left-[240px]": !isSidebarMinimized, // Modal is NARROW
@@ -242,16 +243,16 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                             : "bg-blue-50 hover:bg-blue-100/70 transition-colors border-b border-gray-100"
                         }
                       >
-                        <td className="px-4 py-3 text-gray-700">{index + 1}</td>
-                        <td className="px-4 py-3 text-gray-700">{h.type_of_assistance}</td>
-                        <td className="px-4 py-3 text-gray-700">{formatDate(h.date)}</td>
+                        <td className="px-4 py-3 text-blue-800">{index + 1}</td> {/* Changed text-gray-700 to text-blue-800 */}
+                        <td className="px-4 py-3 text-blue-800">{h.type_of_assistance}</td> {/* Changed text-gray-700 to text-blue-800 */}
+                        <td className="px-4 py-3 text-blue-800">{formatDate(h.date)}</td> {/* Changed text-gray-700 to text-blue-800 */}
                       </tr>
                     ))
                   ) : (
                     <tr>
                       <td
                         colSpan="3"
-                        className="px-4 py-4 text-center text-gray-500 italic bg-white"
+                        className="px-4 py-4 text-center text-blue-400 italic bg-white" // Changed text-gray-500 to text-blue-400
                       >
                         No history available
                       </td>
@@ -267,7 +268,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
             <h3 className="text-2xl font-bold text-blue-900 mb-4">Approvals</h3>
             <p className="mb-4 text-lg">
               <span className="font-semibold text-blue-800">Times Approved:</span>{" "}
-              <span className="text-gray-800 font-bold">
+              <span className="text-blue-900 font-bold"> {/* Changed text-gray-800 to text-blue-900 */}
                 {previewApplicant.approval_count || 0}
               </span>
             </p>
@@ -300,20 +301,20 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                             : "bg-blue-50 hover:bg-blue-100/70 transition-colors border-b border-gray-100"
                         }
                       >
-                        <td className="px-4 py-3 text-gray-700">{index + 1}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                        <td className="px-4 py-3 text-blue-800">{index + 1}</td> {/* Changed text-gray-700 to text-blue-800 */}
+                        <td className="px-4 py-3 text-blue-800 whitespace-nowrap"> {/* Changed text-gray-700 to text-blue-800 */}
                           {formatDate(a.approved_at)}
                         </td>
-                        <td className="px-4 py-3 text-gray-700">{a.approved_by || "N/A"}</td>
-                        <td className="px-4 py-3 text-gray-700">{a.batch_file || "N/A"}</td>
-                        <td className="px-4 py-3 text-gray-700">{a.notes || "—"}</td>
+                        <td className="px-4 py-3 text-blue-800">{a.approved_by || "N/A"}</td> {/* Changed text-gray-700 to text-blue-800 */}
+                        <td className="px-4 py-3 text-blue-800">{a.batch_file || "N/A"}</td> {/* Changed text-gray-700 to text-blue-800 */}
+                        <td className="px-4 py-3 text-blue-800">{a.notes || "—"}</td> {/* Changed text-gray-700 to text-blue-800 */}
                       </tr>
                     ))
                   ) : (
                     <tr>
                       <td
                         colSpan="5"
-                        className="px-4 py-4 text-center text-gray-500 italic bg-white"
+                        className="px-4 py-4 text-center text-blue-400 italic bg-white" // Changed text-gray-500 to text-blue-400
                       >
                         No approvals found
                       </td>

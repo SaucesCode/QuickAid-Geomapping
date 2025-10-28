@@ -136,7 +136,9 @@ const BatchRow = ({ batch, toggleBatch }) => {
                     <td className="px-5 py-3">{app.barangay}</td>
                     <td className="px-5 py-3">{app.municipal}</td>
                     <td className="px-5 py-3">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                      {/* CONSISTENT CHIP STYLE: Gradient background with rounded-xl and small icon */}
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md">
+                        <FileText className="w-3 h-3" />
                         {app.type_of_assistance}
                       </span>
                     </td>
@@ -268,7 +270,7 @@ const Approved = () => {
           )}
         </section>
 
-        {/* Batches Section (New Card Style) */}
+        {/* Batches Section (New Card Style - NO CHANGES) */}
         <section className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
           <div className="flex items-center gap-2 mb-6 border-b border-blue-100 pb-2">
             <FileText className="w-6 h-6 text-indigo-600" />

@@ -551,19 +551,18 @@ const Performance = () => {
               </ResponsiveContainer>
             )}
           </div>
-        </div>
 
         {/* Staff Performance */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <Zap className="mr-2 h-5 w-5 text-yellow-600" />
-                Staff Productivity (Applications Processed)
+                <Calendar className="mr-2 h-5 w-5 text-orange-600" />
+                Staff Activity Heatmap (Hourly Distribution)
               </h2>
             </div>
-            {loadingProductivity ? (
-              <SkeletonLoader height={350} />
+            {loadingHeatmap ? (
+              <SkeletonLoader height={100} type="heatmap" />
             ) : (
               <ResponsiveContainer width="100%" height={350}>
                 <BarChart
@@ -596,11 +595,11 @@ const Performance = () => {
           <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <Award className="mr-2 h-5 w-5 text-purple-600" />
-                Staff Leaderboard
+                <UserCheck className="mr-2 h-5 w-5 text-green-600" />
+                Recent Staff Activity
               </h2>
             </div>
-            {loadingLeaderboard ? (
+            {loadingActivity ? (
               <SkeletonLoader height={320} type="list" />
             ) : (
               <div className="space-y-3 max-h-80 overflow-y-auto">
@@ -630,7 +629,6 @@ const Performance = () => {
               </div>
             )}
           </div>
-        </div>
 
         {/* Heatmap */}
         <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
@@ -654,23 +652,28 @@ const Performance = () => {
                   />
                 ))}
               </div>
-              <div className="mt-4 flex flex-wrap items-center justify-center space-x-4 text-sm text-gray-600">
-                <div className="flex items-center space-x-1">
-                  <div className="w-4 h-4 bg-gray-100 rounded border border-gray-200"></div>
-                  <span>No Activity</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-4 h-4 bg-yellow-300 rounded border border-yellow-400"></div>
-                  <span>Low Activity</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-4 h-4 bg-orange-600 rounded border border-orange-700"></div>
-                  <span>Medium Activity</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-4 h-4 bg-red-700 rounded border border-red-800"></div>
-                  <span>High Activity</span>
-                </div>
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h3 className="font-semibold text-green-800 mb-2">Staff Performance</h3>
+                <p className="text-green-700 text-sm">
+                  <span className="font-bold">
+                    {stats.topPerformer?.staff || "Top performer"}
+                  </span>{" "}
+                  leads with{" "}
+                  <span className="font-bold">
+                    {stats.topPerformer?.count || 0} processed applications
+                  </span>
+                  , showing strong individual productivity
+                </p>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <h3 className="font-semibold text-purple-800 mb-2">Workload Distribution</h3>
+                <p className="text-purple-700 text-sm">
+                  Average productivity of{" "}
+                  <span className="font-bold">
+                    {stats.averageProductivity} applications
+                  </span>{" "}
+                  per staff member indicates balanced workload distribution
+                </p>
               </div>
             </>
           )}
