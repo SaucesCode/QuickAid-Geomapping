@@ -412,7 +412,7 @@ const MapComponent = () => {
                 {/* Changed gradient to monochromatic blue */}
                 <div className="bg-gradient-to-br from-blue-700 to-blue-900 rounded-xl p-4 text-white mb-4 shadow-lg">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold opacity-90">Total Locations</p>
+                    <p className="text-sm text-white font-semibold opacity-90">Total Locations</p>
                     <p className="text-3xl text-white font-bold">{validLocations.length}</p>
                   </div>
                 </div>

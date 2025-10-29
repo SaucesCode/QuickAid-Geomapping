@@ -125,7 +125,6 @@ const ApplicantForm = () => {
                     Applicant Registry
                   </h1>
                   <p className="text-gray-600 text-lg mt-1 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-blue-500" />
                     Input and manage assistance applicants
                   </p>
                 </div>

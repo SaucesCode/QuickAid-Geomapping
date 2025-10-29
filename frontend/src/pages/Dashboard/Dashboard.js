@@ -269,25 +269,51 @@ const Dashboard = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {recentApplicants?.slice(0, 5).map((a, i) => (
-                        <tr key={i} className="border-b border-gray-100 transition-colors duration-200 hover:bg-blue-50/50">
-                            <td className="p-4 font-semibold text-gray-800">
-                            {a.background_info?.first_name} {a.background_info?.last_name}
-                            </td>
-                            <td className="p-4 text-center text-gray-600 hidden sm:table-cell">
-                            {a.background_info?.barangay}
-                            </td>
-                            <td className="p-4 text-center text-blue-700 font-medium hidden md:table-cell">{a.type_of_assistance}</td>
-                            <td className="p-4 text-right text-gray-500 text-xs font-medium">
-                            {new Date(a.date_filled).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                            })}
-                            </td>
-                        </tr>
-                        ))}
-                    </tbody>
+  {recentApplicants?.slice(0, 5).map((a, i) => {
+    let typeClasses = "text-gray-700 bg-gray-100"; // default
+
+    // Conditional color styling based on assistance type
+    const type = a.type_of_assistance?.toLowerCase() || "";
+
+    if (type.includes("medical")) {
+      typeClasses = "text-blue-700 bg-blue-100"; // 🩺 Medical - Blue
+    } else if (type.includes("educational")) {
+      typeClasses = "text-green-700 bg-green-100"; // 🎓 Educational - Green
+    } else if (type.includes("burial")) {
+      typeClasses = "text-yellow-800 bg-yellow-200"; // ⚰️ Burial - Light Yellow
+    }
+
+    return (
+      <tr
+        key={i}
+        className="border-b border-gray-100 transition-colors duration-200 hover:bg-blue-50/50"
+      >
+        <td className="p-4 font-semibold text-gray-800">
+          {a.background_info?.first_name} {a.background_info?.last_name}
+        </td>
+        <td className="p-4 text-center text-gray-600 hidden sm:table-cell">
+          {a.background_info?.barangay}
+        </td>
+        {/* Type of assistance with color badge */}
+        <td className="p-4 text-center hidden md:table-cell">
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${typeClasses}`}
+          >
+            {a.type_of_assistance}
+          </span>
+        </td>
+        <td className="p-4 text-right text-gray-500 text-xs font-medium">
+          {new Date(a.date_filled).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
+
                     </table>
                 </div>
             )}

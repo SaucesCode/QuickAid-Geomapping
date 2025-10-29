@@ -185,20 +185,18 @@ const ArchiveApplicants = () => {
         <div className="mb-6 sm:mb-8">
           <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-6 sm:p-8">
             <div className="flex items-start gap-4 mb-3">
-              <div className="p-2 rounded-xl bg-blue-100/70 border border-blue-200">
-                <Archive className="w-8 h-8 text-blue-600" />
-              </div>
-              <div>
-                {/* CONSISTENT HEADLINE FONT */}
-                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
-                  Archived Applicants
-                </h1>
-                {/* CONSISTENT SUBTITLE STYLE */}
-                <p className="text-gray-600 text-lg mt-1">
-                  Manage and restore past applicant records
-                </p>
-              </div>
-            </div>
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                                <Archive className="w-8 h-8 text-white" />
+                              </div>
+                              <div className="space-y-1">
+                                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
+                                  Archived Applicants
+                                </h1>
+                                <p className="text-gray-600 text-lg mt-1 flex items-center gap-2">
+                                  Manage and restore archived applicant records
+                                </p>
+                              </div>
+                            </div>
 
             <div className="flex items-center gap-3 mt-4 sm:mt-6">
               <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-blue-100/70 text-blue-700 rounded-full border border-blue-200 text-sm font-semibold">

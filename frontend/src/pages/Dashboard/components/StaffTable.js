@@ -61,15 +61,20 @@ const StaffTable = ({ theme, onEdit }) => {
   };
 
   return (
-    <div className={`bg-${theme.surface} shadow-xl rounded-2xl p-6 border border-gray-100`}>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className={`text-2xl font-semibold text-${theme.textPrimary}`}>Staff Members</h2>
-        <span
-          className={`text-sm font-medium text-${theme.textSecondary} px-3 py-1 bg-${theme.primaryLight} rounded-full`}
-        >
-          {staffList.length} total
-        </span>
-      </div>
+    <div className={`bg-${theme.surface} shadow-lg rounded-2xl p-6 border border-gray-200`}>
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center gap-3">
+      <Users className="w-10 h-10 text-white bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-xl shadow-md" />
+      <h2 className="text-2xl font-bold text-gray-800">Staff Members</h2>
+    </div>
+
+    <span
+      className={`text-sm font-medium text-${theme.textSecondary} px-3 py-1 bg-${theme.primaryLight} rounded-full`}
+    >
+      {staffList.length} total
+    </span>
+  </div>
+
 
       {isLoading ? (
         <div className="flex justify-center items-center h-48">

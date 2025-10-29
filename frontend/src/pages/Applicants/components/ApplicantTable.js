@@ -116,12 +116,22 @@ const ApplicantTable = ({
                     {applicant.background_info?.barangay_details?.city_name}
                   </td>
                   <td className="px-6 py-4">
-                    <span 
-                      // Assistance Chip: Light blue background, dark blue text
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                    >
-                      {applicant.type_of_assistance}
-                    </span>
+                    <span
+  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+    ${
+      applicant.type_of_assistance === "Medical"
+        ? "bg-blue-100 text-blue-800"
+        : applicant.type_of_assistance === "Educational"
+        ? "bg-green-100 text-green-800"
+        : applicant.type_of_assistance === "Burial"
+        ? "bg-yellow-100 text-yellow-800"
+        : "bg-gray-100 text-gray-800"
+    }
+  `}
+>
+  {applicant.type_of_assistance}
+</span>
+
                   </td>
                   <td className="px-6 py-4 text-gray-600">
                     {formatDate(applicant.date_filled)}
