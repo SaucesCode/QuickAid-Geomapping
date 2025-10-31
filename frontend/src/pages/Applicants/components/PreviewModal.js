@@ -181,13 +181,25 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
             {/* Assistance Info */}
             <SectionCard title="Assistance Details">
               <DataRow
-                label="Assistance Type"
-                value={
-                  <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 font-semibold rounded-full text-sm">
-                    {type_of_assistance || "N/A"}
-                  </span>
-                }
-              />
+  label="Assistance Type"
+  value={
+    <span
+      className={`inline-block px-3 py-1 rounded-full text-sm font-semibold shadow-sm
+        ${
+          type_of_assistance?.toLowerCase() === "educational"
+            ? "bg-green-100 text-green-800"
+            : type_of_assistance?.toLowerCase() === "medical"
+            ? "bg-blue-100 text-blue-800"
+            : type_of_assistance?.toLowerCase() === "burial"
+            ? "bg-yellow-100 text-yellow-800"
+            : "bg-gray-100 text-gray-800"
+        }`}
+    >
+      {type_of_assistance || "N/A"}
+    </span>
+  }
+/>
+
               <DataRow label="Applicant Type" value={applicant_type} />
               <DataRow label="Date Filled" value={formatDate(date_filled)} />
               <DataRow

@@ -27,38 +27,75 @@ import {
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 
 // --- Consistent Design Constants and Helpers ---
-const PRIMARY_BLUE = "#3B82F6";
+const BLUE_DARK = "#1D4ED8"; // Primary Blue for highlights
+const BLUE_MEDIUM = "#3B82F6"; // Medium Blue
+const BLUE_LIGHT = "#93C5FD"; // Light Blue
+const DANGER_RED = "#EF4444"; // For poor performance/critical points
 const SUCCESS_GREEN = "#10B981";
-const WARNING_YELLOW = "#F59E0B";
-const DANGER_RED = "#EF4444";
-const PURPLE = "#8B5CF6";
+const WARNING_YELLOW = "#FACC15"; // Keep green for success/good status in StatCards
 
+// **NEW COLOR CONSTANTS FOR DIVERSE CHART VISUALS**
+const TEAL = "#14B8A6";       // Tailwind teal-500
+const PURPLE = "#8B5CF6";     // Tailwind violet-500
+const ORANGE = "#F97316";     // Tailwind orange-500
+const GRAY_OUT = "#E5E7EB";   // Tailwind gray-200 (for 0% values)
+const BURIAL_YELLOW = "#FDE68A"; // Tailwind yellow-300 for Burial type
+
+// **MAPPING FOR ASSISTANCE TYPE (Bar Chart) - Not critical for Pie Chart fix, but good practice**
+const EDUCATION_GREEN = SUCCESS_GREEN;
+const MEDICALS_BLUE = BLUE_MEDIUM;
+
+
+// **FIXED COLOR LOGIC:** Update CHART_COLORS for Distribution Pie Chart
+// This directly maps colors to the data index (0, 1, 2, 3, 4) in the pie chart
 const CHART_COLORS = [
-  PRIMARY_BLUE,
-  SUCCESS_GREEN,
-  WARNING_YELLOW,
-  DANGER_RED,
-  PURPLE,
+    TEAL,               // Index 0 (40% in image) -> Teal
+    PURPLE,             // Index 1 (40% in image) -> Purple
+    GRAY_OUT,           // Index 2 (0% in image) -> Gray
+    ORANGE,             // Index 3 (20% in image) -> Orange
+    GRAY_OUT,           // Index 4 (0% in image) -> Gray
+    BLUE_DARK,
+    DANGER_RED,
 ];
 
-// Removed: getGradientColors (not used outside StatCard), DANGER_RED from CHART_COLORS (as not used in pie/bar charts below)
 
+// **LOGIC CHANGE:** Now uses Blue for good, Yellow for warning (default), and Red for poor.
+// Used for Processing Time by Assistance Type (Bar Chart)
 const getTimeColor = (minutes) => {
-  if (minutes < 60) return SUCCESS_GREEN;
-  if (minutes < 120) return WARNING_YELLOW;
-  return DANGER_RED;
+  if (minutes < 60) return BLUE_MEDIUM; // Good is now Blue
+  if (minutes < 120) return WARNING_YELLOW; // Warning is Yellow
+  return DANGER_RED; // Poor is Red
 };
 
+// **LOGIC CHANGE:** Now uses Blue for high, Yellow for medium (default), and Red for low.
+// Used for Staff Productivity (Bar Chart)
 const getProductivityColor = (count) => {
-  if (count > 50) return SUCCESS_GREEN;
-  if (count > 25) return WARNING_YELLOW;
-  return DANGER_RED;
+  if (count > 50) return BLUE_MEDIUM; // High is now Blue
+  if (count > 25) return WARNING_YELLOW; // Medium is Yellow
+  return DANGER_RED; // Low is Red
 };
 
-// Removed: getIntensityClass (only used in HeatmapCell which is removed)
+// **NEW HELPER FUNCTION for Pie Chart Color based on Category Type/Bucket**
+// This is used for the legend/tooltip if the data uses names like "0-30" instead of indices
+const getTypeColor = (type) => {
+    const normalizedType = (type || "").toUpperCase();
+    
+    // Logic to handle potential named buckets (e.g., "0-30")
+    if (normalizedType.includes("0-30")) return TEAL;
+    if (normalizedType.includes("31-60")) return PURPLE;
+    if (normalizedType.includes("61-120")) return ORANGE;
+    if (normalizedType.includes(">120")) return DANGER_RED;
 
-// --- UI Components ---
-// Removed: SkeletonLoader (only contains logic for types "list", "heatmap" which are removed, and "chart" which is a generic fallback but can be simplified)
+    // Logic to handle assistance types (e.g., "Medical") - secondary use case for this function
+    if (normalizedType.includes("EDUCATIONAL")) return EDUCATION_GREEN;
+    if (normalizedType.includes("MEDICAL")) return MEDICALS_BLUE;
+    if (normalizedType.includes("BURIAL")) return BURIAL_YELLOW;
+    
+    // Final Fallback
+    return BLUE_DARK;
+};
+
+// --- UI Components (StatCard is kept the same as no new color constant was provided for WARNING_YELLOW) ---
 const MinimalChartLoader = ({ height = 300 }) => (
   <div
     className={`animate-pulse bg-gray-100 rounded-xl p-4`}
@@ -67,8 +104,6 @@ const MinimalChartLoader = ({ height = 300 }) => (
     <div className="h-full w-full bg-gray-200 rounded-lg"></div>
   </div>
 );
-
-// Removed: HeatmapCell (heatmap is removed)
 
 const StatCard = ({
   icon: Icon,
@@ -84,8 +119,9 @@ const StatCard = ({
   let borderClass = "border-gray-200";
   let textClass = "from-gray-600 to-gray-700";
 
+  // **LOGIC CHANGE:** Mapped StatCard colors to new scheme
   switch (color) {
-    case PRIMARY_BLUE:
+    case BLUE_MEDIUM: // Primary Blue
       gradientClass = "from-blue-500 to-blue-700";
       borderClass = "border-blue-200";
       textClass = "from-blue-600 to-indigo-700";
@@ -95,15 +131,16 @@ const StatCard = ({
       borderClass = "border-green-200";
       textClass = "from-green-600 to-green-700";
       break;
+    // NOTE: WARING_YELLOW is still used here for the Trophy card
     case WARNING_YELLOW:
       gradientClass = "from-yellow-500 to-orange-500";
       borderClass = "border-yellow-200";
       textClass = "from-orange-600 to-yellow-700";
       break;
-    case PURPLE:
-      gradientClass = "from-purple-500 to-purple-700";
-      borderClass = "border-purple-200";
-      textClass = "from-purple-600 to-purple-700";
+    case BLUE_DARK: // Used PURPLE slot, now uses darker blue
+      gradientClass = "from-indigo-500 to-indigo-700";
+      borderClass = "border-indigo-200";
+      textClass = "from-indigo-600 to-indigo-700";
       break;
     default:
       break;
@@ -248,7 +285,8 @@ const Performance = () => {
         rank: index + 1,
         staff: item.processed_by__username || item.staff__username || "Unknown",
         count: item.count ?? 0,
-        medal: index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`,
+        medal:
+          index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`,
       }))
       .slice(0, 10);
   };
@@ -349,7 +387,6 @@ const Performance = () => {
           <div className="absolute top-20 left-20 w-72 h-72 bg-red-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
         </div>
         <div className="relative z-10 bg-white p-10 rounded-3xl shadow-2xl border border-red-200 max-w-md w-full mx-4">
-          {/* Replaced AlertCircle with imported one */}
           {/* <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl mx-auto mb-6 shadow-lg">
             <AlertCircle className="h-10 w-10 text-white" />
           </div> */}
@@ -428,8 +465,6 @@ const Performance = () => {
       <div className="relative z-10 p-6 max-w-7xl mx-auto space-y-6">
         {HeaderComponent}
 
-        {/* Removed redundant "Filters" heading */}
-
         {/* Filters component */}
         <AnalyticsFilter onFilterChange={setFilters} />
 
@@ -444,15 +479,14 @@ const Performance = () => {
                 : "—"
             }
             subtitle="Per application"
-            color={PRIMARY_BLUE}
+            color={BLUE_MEDIUM} // Use Blue
             isLoading={!isAvgProcessingTimeLoaded}
           />
           <StatCard
             icon={Users}
             title="Staff Productivity"
             value={isProductivityLoaded ? stats.averageProductivity : "—"}
-            subtitle="Avg applications/staff"
-            color={SUCCESS_GREEN}
+            color={SUCCESS_GREEN} // Keep Green for this positive metric
             isLoading={loadingProductivity}
           />
           <StatCard
@@ -464,7 +498,7 @@ const Performance = () => {
                 ? `${stats.topPerformer?.count || 0} applications`
                 : ""
             }
-            color={WARNING_YELLOW}
+            color={WARNING_YELLOW} // Keep Yellow/Gold for Trophy
             badge="🏆"
             isLoading={loadingLeaderboard}
           />
@@ -477,7 +511,7 @@ const Performance = () => {
                 : "—"
             }
             subtitle="By all staff"
-            color={PURPLE}
+            color={BLUE_DARK} // Use Darker Blue
             isLoading={loadingProductivity}
           />
         </section>
@@ -510,12 +544,24 @@ const Performance = () => {
                   <YAxis />
                   <Tooltip formatter={(value) => [`${value} min`, "Processing Time"]} />
                   <Bar dataKey="avgMinutes" radius={[4, 4, 0, 0]}>
-                    {transformedProcessingByType.map((entry, index) => (
-                      <Cell
-                        key={`type-cell-${index}-${entry.type}`}
-                        fill={getTimeColor(entry.avgMinutes)}
-                      />
-                    ))}
+                    {transformedProcessingByType.map((entry, index) => {
+                      let fillColor = "#94a3b8"; // default (gray)
+
+                      if (entry.type.toLowerCase().includes("educational")) {
+                        fillColor = EDUCATION_GREEN; // green
+                      } else if (entry.type.toLowerCase().includes("medical")) {
+                        fillColor = MEDICALS_BLUE; // blue
+                      } else if (entry.type.toLowerCase().includes("burial")) {
+                        fillColor = BURIAL_YELLOW; // yellow
+                      }
+
+                      return (
+                        <Cell
+                          key={`type-cell-${index}-${entry.type}`}
+                          fill={fillColor}
+                        />
+                      );
+                    })}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -539,8 +585,9 @@ const Performance = () => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name ?? ""} (${(percent * 100).toFixed(0)}%)`
+                    // Changed label to use 'bucket' which seems to hold the time range index (0, 1, etc.)
+                    label={({ bucket, percent }) =>
+                      `${bucket ?? ""} (${(percent * 100).toFixed(0)}%)`
                     }
                     outerRadius={100}
                     dataKey="count"
@@ -548,6 +595,7 @@ const Performance = () => {
                     {processingDistribution.map((entry, index) => (
                       <Cell
                         key={`dist-cell-${index}-${entry.bucket ?? index}`}
+                        // **FIXED COLOR IMPLEMENTATION:** Use the predefined CHART_COLORS based on index
                         fill={CHART_COLORS[index % CHART_COLORS.length]}
                       />
                     ))}
@@ -591,6 +639,7 @@ const Performance = () => {
                     {transformedStaffProductivity.map((entry, index) => (
                       <Cell
                         key={`prod-cell-${index}-${entry.staff}`}
+                        // **LOGIC CHANGE:** Uses getProductivityColor (now maps High to Blue)
                         fill={getProductivityColor(entry.count)}
                       />
                     ))}
@@ -645,9 +694,6 @@ const Performance = () => {
           </div>
         </div>
 
-        {/* Removed: Heatmap component (including its logic and insights) */}
-        {/* Removed: Duplicated Recent Staff Activity component (retained the table version) */}
-
         {/* Recent Activity Table (kept the table version) */}
         <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-6">
@@ -699,7 +745,7 @@ const Performance = () => {
                               : activity.action === "UPDATE"
                               ? "bg-blue-100 text-blue-800"
                               : activity.action === "LOGIN"
-                              ? "bg-purple-100 text-purple-800"
+                              ? "bg-indigo-100 text-indigo-800" // **COLOR CHANGE:** Login is now indigo/purple
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
@@ -726,6 +772,7 @@ const Performance = () => {
             Performance Insights
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* **COLOR CHANGE:** Insights now consistently use Blue/Green/Indigo hues */}
             <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
               <h3 className="font-semibold text-blue-800 mb-2">
                 Processing Efficiency
@@ -759,12 +806,12 @@ const Performance = () => {
                 , showing strong productivity.
               </p>
             </div>
-            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-              <h3 className="font-semibold text-purple-800 mb-2">
+            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+              <h3 className="font-semibold text-indigo-800 mb-2">
                 Workload Distribution
               </h3>
-              <p className="text-purple-700 text-sm">
-                Average productivity of{" "}
+              <p className="text-indigo-700 text-sm">
+                Average productivity of {" "}
                 <span className="font-bold">{stats.averageProductivity}</span>{" "}
                 applications per staff member indicates workload balance.
               </p>
