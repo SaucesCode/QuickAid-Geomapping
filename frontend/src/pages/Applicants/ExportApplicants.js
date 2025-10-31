@@ -57,18 +57,24 @@ const ExportApplicants = () => {
   return (
     // Consistent Card Style: Glass-morphism effect
     <div className="p-6 sm:p-8 bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 max-w-4xl mx-auto">
-      {/* Header (Consistent Icon Wrapper) */}
-      <div className="flex items-center gap-4 pb-4 border-b border-blue-100 mb-6">
-        <div className="p-2 rounded-xl bg-blue-100/70 border border-blue-200">
-          <BarChart3 className="w-8 h-8 text-blue-600" />
-        </div>
-        <div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
-            Data Export Tool
-          </h2>
-          <p className="text-sm text-gray-500">
-            Filter and generate applicants data for analysis.
+      
+      {/* Header (Consistent Premium Style) */}
+      <div className="pb-4 border-b border-blue-100 mb-6">
+        <div className="flex items-center gap-4">
+          {/* CONSISTENT ICON CONTAINER: w-16 h-16, gradient, rounded-2xl, shadow-lg */}
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+            {/* CONSISTENT ICON SIZE AND COLOR */}
+            <BarChart3 className="w-8 h-8 text-white" />
+          </div>
+          
+          <div className="space-y-1">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
+              Data Export Tool
+            </h1>
+            <p className="text-gray-600 text-lg mt-1 flex items-center gap-2">
+            Manage and review applicant information
           </p>
+          </div>
         </div>
       </div>
 
@@ -85,7 +91,7 @@ const ExportApplicants = () => {
               onChange={e => setStartDate(e.target.value)}
               // Consistent Input Styling
               className="w-full border-2 border-gray-200 rounded-xl pl-10 pr-3 py-3 text-gray-800 placeholder-gray-400
-                         focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 outline-none shadow-sm bg-gray-50 text-sm"
+                         focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 outline-none shadow-sm bg-gray-50 text-sm"
             />
           </div>
         </div>
@@ -101,7 +107,7 @@ const ExportApplicants = () => {
               onChange={e => setEndDate(e.target.value)}
               // Consistent Input Styling
               className="w-full border-2 border-gray-200 rounded-xl pl-10 pr-3 py-3 text-gray-800 placeholder-gray-400
-                         focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 outline-none shadow-sm bg-gray-50 text-sm"
+                         focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 outline-none shadow-sm bg-gray-50 text-sm"
             />
           </div>
         </div>
@@ -115,7 +121,7 @@ const ExportApplicants = () => {
               onChange={e => setAssistanceType(e.target.value)}
               // Consistent Select Styling
               className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-800 bg-gray-50 shadow-sm
-                         focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 outline-none appearance-none pr-10 text-sm"
+                         focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 outline-none appearance-none pr-10 text-sm"
             >
               <option value="">All Types</option>
               <option value="Medical">Medical</option>
@@ -136,7 +142,7 @@ const ExportApplicants = () => {
           onClick={handleExport}
           disabled={exportMutation.isPending}
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 shadow-md transform 
-            ${
+            ${
               exportMutation.isPending
                 ? "bg-gray-400 cursor-not-allowed shadow-none"
                 : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-400/50 hover:shadow-lg hover:scale-[1.02]"

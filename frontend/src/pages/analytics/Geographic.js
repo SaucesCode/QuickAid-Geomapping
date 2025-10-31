@@ -87,7 +87,15 @@ const Geographic = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
 
+  // Original colors for the Pie Chart remain: blue, green, yellow, red, purple
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+  
+  // Custom colors for the Stacked Bar Chart
+  const ASSISTANCE_COLORS = {
+    Educational: "#10b981", // Green
+    Medical: "#3b82f6",     // Blue
+    Burial: "#f59e0b",      // Light Yellow/Orange (Amber)
+  };
 
   const fetchData = async endpoint => {
     const params = new URLSearchParams();
@@ -349,18 +357,23 @@ const Geographic = () => {
               </div>
 
               <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-emerald-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                    <Building2 className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 font-semibold">Top Barangay</p>
-                    <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-emerald-700">
-                      {stats.topBarangay}
-                    </h2>
-                  </div>
-                </div>
-              </div>
+    <div className="flex items-center gap-3">
+        {/* Icon container: flex-shrink-0 ensures the icon's size is fixed */}
+        <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
+            <Building2 className="w-7 h-7 text-white" />
+        </div>
+        
+        {/* Text container: Added min-w-0 to allow the container to shrink gracefully in the flex layout */}
+        <div className="min-w-0"> 
+            <p className="text-sm text-gray-600 font-semibold">Top Barangay</p>
+            
+            {/* H2: break-words allows "Silanganan" to break (Sila... nganan) when space is tight. */}
+            <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-emerald-700 break-words"> 
+                {stats.topBarangay}
+            </h2>
+        </div>
+    </div>
+</div>
 
               <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-purple-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center gap-3">
@@ -591,35 +604,44 @@ const Geographic = () => {
                           boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
                         }}
                       />
+                      {/* --- COLOR CHANGE IMPLEMENTATION START --- */}
                       <Bar
                         dataKey="Medical"
                         stackId="a"
-                        fill="#ef4444"
+                        fill={ASSISTANCE_COLORS.Medical} // Blue
                         radius={[4, 4, 0, 0]}
                       />
                       <Bar
                         dataKey="Educational"
                         stackId="a"
-                        fill="#3b82f6"
+                        fill={ASSISTANCE_COLORS.Educational} // Green
                         radius={[4, 4, 0, 0]}
                       />
-                      <Bar dataKey="Burial" stackId="a" fill="#f97316" radius={[4, 4, 0, 0]} />
+                      <Bar
+                        dataKey="Burial"
+                        stackId="a"
+                        fill={ASSISTANCE_COLORS.Burial} // Light Yellow/Orange (Amber)
+                        radius={[4, 4, 0, 0]}
+                      />
+                      {/* --- COLOR CHANGE IMPLEMENTATION END --- */}
                     </BarChart>
                   </ResponsiveContainer>
 
-                  <div className="flex justify-center gap-8 mt-6">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-red-50 rounded-lg border border-red-200">
-                      <div className="w-4 h-4 bg-red-500 rounded-md shadow-sm"></div>
-                      <span className="text-sm font-semibold text-gray-700">Medical</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="w-4 h-4 bg-blue-500 rounded-md shadow-sm"></div>
+                  <div className="flex justify-center flex-wrap gap-8 mt-6">
+                    {/* --- LEGEND UPDATE START --- */}
+                    <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg border border-green-200">
+                      <div className="w-4 h-4 rounded-md shadow-sm" style={{ backgroundColor: ASSISTANCE_COLORS.Educational }}></div>
                       <span className="text-sm font-semibold text-gray-700">Educational</span>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-lg border border-orange-200">
-                      <div className="w-4 h-4 bg-orange-500 rounded-md shadow-sm"></div>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="w-4 h-4 rounded-md shadow-sm" style={{ backgroundColor: ASSISTANCE_COLORS.Medical }}></div>
+                      <span className="text-sm font-semibold text-gray-700">Medical</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 rounded-lg border border-amber-200">
+                      <div className="w-4 h-4 rounded-md shadow-sm" style={{ backgroundColor: ASSISTANCE_COLORS.Burial }}></div>
                       <span className="text-sm font-semibold text-gray-700">Burial</span>
                     </div>
+                    {/* --- LEGEND UPDATE END --- */}
                   </div>
                 </>
               ) : (

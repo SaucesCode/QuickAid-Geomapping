@@ -164,23 +164,6 @@ const ArchiveApplicants = () => {
     });
   };
 
-  // 🔹 Badge Class Helper (NO CHANGES, though no longer used in render)
-  const getAssistanceBadgeClass = type => {
-    const lower = (type || "").toLowerCase();
-    switch (lower) {
-      case "educational":
-        return "bg-blue-100 text-blue-700";
-      case "medical":
-        return "bg-green-100 text-green-700";
-      case "burial":
-        return "bg-amber-100 text-amber-700";
-      case "financial":
-        return "bg-indigo-100 text-indigo-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
   useEffect(() => {
     document.title = "Quickaid | Archive Applicants";
     return () => {
@@ -202,18 +185,18 @@ const ArchiveApplicants = () => {
         <div className="mb-6 sm:mb-8">
           <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-6 sm:p-8">
             <div className="flex items-start gap-4 mb-3">
-              <div className="p-2 rounded-xl bg-blue-100/70 border border-blue-200">
-                <Archive className="w-8 h-8 text-blue-600" />
-              </div>
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
-                  Archived Applicants
-                </h1>
-                <p className="text-gray-500 text-sm sm:text-lg mt-1 font-medium">
-                  Manage and restore past applicant records
-                </p>
-              </div>
-            </div>
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                                <Archive className="w-8 h-8 text-white" />
+                              </div>
+                              <div className="space-y-1">
+                                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
+                                  Archived Applicants
+                                </h1>
+                                <p className="text-gray-600 text-lg mt-1 flex items-center gap-2">
+                                  Manage and restore archived applicant records
+                                </p>
+                              </div>
+                            </div>
 
             <div className="flex items-center gap-3 mt-4 sm:mt-6">
               <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-blue-100/70 text-blue-700 rounded-full border border-blue-200 text-sm font-semibold">
@@ -320,7 +303,7 @@ const ArchiveApplicants = () => {
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <span
-                          // MODIFIED for consistency: using gradient from ApplicantForm.js
+                          // CONSISTENT GRADIENT CHIP STYLE
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md"
                         >
                           <FileText className="w-3 h-3" />
@@ -346,13 +329,13 @@ const ArchiveApplicants = () => {
                           <button
                             onClick={() => openRestoreModal(applicant.id)}
                             disabled={restoreMutation.isPending}
-                            // Consistent Primary Gradient Button Style (NO CHANGE from last iteration)
+                            // Consistent Primary Gradient Button Style
                             className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-white rounded-xl transition-all duration-300 shadow-md transform 
-                                ${
-                                  restoreMutation.isPending
-                                    ? "bg-gray-400 cursor-not-allowed shadow-none"
-                                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-400/50 hover:shadow-lg hover:scale-[1.02]"
-                                }`}
+                                ${
+                              restoreMutation.isPending
+                                ? "bg-gray-400 cursor-not-allowed shadow-none"
+                                : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-400/50 hover:shadow-lg hover:scale-[1.02]"
+                            }`}
                           >
                             <RotateCcw className="w-4 h-4" />
                             Restore
@@ -417,8 +400,8 @@ const ArchiveApplicants = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-blue-200 overflow-hidden">
               <div className="flex items-center gap-4 p-5 border-b border-blue-100 bg-blue-50">
-                {/* MODIFIED: Use consistent gradient for modal icon */}
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
+                {/* MODIFIED: Use consistent gradient for modal icon (from-blue-600 to-indigo-700) */}
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-lg">
                   <RotateCcw className="w-5 h-5 text-white" />
                 </div>
                 <h2 className="text-xl font-bold text-blue-900">Confirm Restore</h2>
@@ -446,7 +429,7 @@ const ArchiveApplicants = () => {
                   disabled={restoreMutation.isPending}
                   // Consistent Primary Gradient Button Style (NO CHANGE)
                   className={`inline-flex items-center gap-2 px-5 py-2 font-bold text-white rounded-xl shadow-md transition-all duration-300 transform disabled:opacity-50 disabled:shadow-none
-                    ${
+                    ${
                       restoreMutation.isPending
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-400/50 hover:shadow-lg hover:scale-[1.02]"

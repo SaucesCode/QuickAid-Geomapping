@@ -15,10 +15,12 @@ const ApplicantTable = ({
     <div className="bg-white rounded-xl shadow-md overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-100 border-b">
+          {/* Table Header: Light Blue Monochromatic Background */}
+          <thead className="bg-blue-100 border-b">
             <tr>
               <th
-                className="text-left px-6 py-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors"
+                // Header text: Dark blue. Hover: Brighter blue background
+                className="text-left px-6 py-4 font-semibold text-blue-700 cursor-pointer hover:bg-blue-200 transition-colors"
                 onClick={() => handleSort("background_info.first_name")}
               >
                 <div className="flex items-center gap-2">
@@ -32,7 +34,7 @@ const ApplicantTable = ({
                 </div>
               </th>
               <th
-                className="text-left px-6 py-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors"
+                className="text-left px-6 py-4 font-semibold text-blue-700 cursor-pointer hover:bg-blue-200 transition-colors"
                 onClick={() => handleSort("background_info.barangay")}
               >
                 <div className="flex items-center gap-2">
@@ -46,7 +48,7 @@ const ApplicantTable = ({
                 </div>
               </th>
               <th
-                className="text-left px-6 py-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors"
+                className="text-left px-6 py-4 font-semibold text-blue-700 cursor-pointer hover:bg-blue-200 transition-colors"
                 onClick={() => handleSort("background_info.barangay_details.city_name")}
               >
                 <div className="flex items-center gap-2">
@@ -61,7 +63,7 @@ const ApplicantTable = ({
                 </div>
               </th>
               <th
-                className="text-left px-6 py-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors"
+                className="text-left px-6 py-4 font-semibold text-blue-700 cursor-pointer hover:bg-blue-200 transition-colors"
                 onClick={() => handleSort("type_of_assistance")}
               >
                 <div className="flex items-center gap-2">
@@ -75,7 +77,7 @@ const ApplicantTable = ({
                 </div>
               </th>
               <th
-                className="text-left px-6 py-4 font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors"
+                className="text-left px-6 py-4 font-semibold text-blue-700 cursor-pointer hover:bg-blue-200 transition-colors"
                 onClick={() => handleSort("date_filled")}
               >
                 <div className="flex items-center gap-2">
@@ -88,7 +90,7 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
-              <th className="text-left px-6 py-4 font-semibold text-gray-700">
+              <th className="text-left px-6 py-4 font-semibold text-blue-700">
                 Actions
               </th>
             </tr>
@@ -96,9 +98,11 @@ const ApplicantTable = ({
           <tbody className="divide-y divide-gray-200">
             {currentItems.length > 0 ? (
               currentItems.map((applicant, id) => (
-                <tr key={id} className="hover:bg-gray-50 transition-colors">
+                // Row Hover: Very light blue
+                <tr key={id} className="hover:bg-blue-50 transition-colors">
                   <td
-                    className="px-6 py-4 text-teal-600 hover:text-teal-700 cursor-pointer font-medium"
+                    // Primary Link Text: Blue, Blue hover
+                    className="px-6 py-4 text-blue-600 hover:text-blue-700 cursor-pointer font-medium"
                     onClick={() => openPreviewView(applicant)}
                   >
                     {`${applicant.background_info?.first_name || ""} ${
@@ -112,9 +116,22 @@ const ApplicantTable = ({
                     {applicant.background_info?.barangay_details?.city_name}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      {applicant.type_of_assistance}
-                    </span>
+                    <span
+  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+    ${
+      applicant.type_of_assistance === "Medical"
+        ? "bg-blue-100 text-blue-800"
+        : applicant.type_of_assistance === "Educational"
+        ? "bg-green-100 text-green-800"
+        : applicant.type_of_assistance === "Burial"
+        ? "bg-yellow-100 text-yellow-800"
+        : "bg-gray-100 text-gray-800"
+    }
+  `}
+>
+  {applicant.type_of_assistance}
+</span>
+
                   </td>
                   <td className="px-6 py-4 text-gray-600">
                     {formatDate(applicant.date_filled)}
@@ -123,28 +140,32 @@ const ApplicantTable = ({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => openPreviewView(applicant)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                        // Action buttons: Dark blue text, light blue hover
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-700 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors"
                       >
                         <Eye className="w-4 h-4" />
                         View
                       </button>
                       <button
                         onClick={() => openEditView(applicant)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-teal-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        // Edit: Blue accent
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       >
                         <Edit className="w-4 h-4" />
                         Edit
                       </button>
                       <button
                         onClick={() => openArchiveModal(applicant.id)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-red-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        // Archive: Indigo accent (still a cool color for monochromatic family)
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-700 hover:text-indigo-600 hover:bg-blue-50 rounded-lg transition-colors"
                       >
                         <Archive className="w-4 h-4" />
                         Archive
                       </button>
                       <button
                         onClick={() => goPrintPage(applicant)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        // Print: Standard blue accent
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       >
                         <Printer className="w-4 h-4" />
                         Print
@@ -157,11 +178,12 @@ const ApplicantTable = ({
               <tr>
                 <td colSpan="6" className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center">
-                    <Archive className="w-12 h-12 text-gray-300 mb-4" />
-                    <p className="text-gray-500 text-lg font-medium">
+                    {/* Empty State Icon: Light blue */}
+                    <Archive className="w-12 h-12 text-blue-300 mb-4" />
+                    <p className="text-blue-600 text-lg font-medium">
                       No applicants found
                     </p>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-blue-400 text-sm">
                       Try adjusting your search terms
                     </p>
                   </div>

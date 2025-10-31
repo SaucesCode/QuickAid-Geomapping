@@ -21,14 +21,32 @@ import { api } from "../../services/api";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-// Monochromatic Blue Colors for Charts
-// Shades of blue for a consistent, professional look
-const BLUE_SHADES = {
-  // Primary, Secondary, Tertiary
-  GENDER_COLORS: ["#3b82f6", "#2563eb", "#1d4ed8"],
-  // Lighter to Darker Blues
-  STATUS_COLORS: ["#93c5fd", "#60a5fa", "#3b82f6", "#2563eb", "#1d4ed8", "#1e3a8a"],
-  ASSISTANCE_COLORS: ["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe"],
+// Monochromatic Blue Theme Colors with Specific Overrides
+const CHART_COLORS = {
+  // Monochromatic Blue Shades for demographic charts (Gender, Status)
+  GENDER_COLORS: ["#3b82f6", "#2563eb", "#1d4ed8"], // Blue shades
+  STATUS_COLORS: [
+    "#93c5fd",
+    "#60a5fa",
+    "#3b82f6",
+    "#2563eb",
+    "#1d4ed8",
+    "#1e3a8a",
+  ], // Lighter to Darker Blues
+  
+  // Custom Assistance Colors as requested for consistency across the application
+  ASSISTANCE_COLORS_MAP: {
+    Medical: "#2563eb", // Primary Blue
+    Educational: "#10b981", // Specific Green
+    Burial: "#facc15", // Specific Light Yellow
+  },
+  
+  // Primary color for single-data charts
+  PRIMARY_BLUE: "#3b82f6",
+  SECONDARY_BLUE: "#2563eb",
+  DARK_BLUE: "#1d4ed8",
+  GRID_STROKE: "#e0f2fe", // Light blue grid
+  AXIS_STROKE: "#374151", // Dark gray for legibility
 };
 
 const Analytics = () => {
@@ -53,7 +71,7 @@ const Analytics = () => {
     highestBarangay: "",
   });
 
-  const formatDate = date => date?.toISOString().split("T")[0] ?? null; // NO CHANGES
+  const formatDate = (date) => date?.toISOString().split("T")[0] ?? null; // NO CHANGES
 
   useEffect(() => {
     document.title = "Quickaid | Analytics";
@@ -122,7 +140,7 @@ const Analytics = () => {
   // Memoized data for charts (NO CHANGES)
   const genderPieData = useMemo(
     () =>
-      genderData.map(item => ({
+      genderData.map((item) => ({
         name: item.background_info__sex || "Unknown",
         value: item.count,
       })),
@@ -131,7 +149,7 @@ const Analytics = () => {
 
   const civilStatusPieData = useMemo(
     () =>
-      civilStatusData.map(item => ({
+      civilStatusData.map((item) => ({
         name: item.background_info__civil_status || "Unknown",
         value: item.count,
       })),
@@ -139,7 +157,7 @@ const Analytics = () => {
   );
 
   const ageGroupBarData = useMemo(
-    () => ageGroupData.map(item => ({ name: item.age_group, count: item.count })),
+    () => ageGroupData.map((item) => ({ name: item.age_group, count: item.count })),
     [ageGroupData]
   );
 
@@ -151,10 +169,12 @@ const Analytics = () => {
           <BarChart3 className="w-8 h-8 text-blue-600" />
           Analytics Dashboard
         </h1>
-        <p className="text-gray-600 mt-2">Comprehensive insights and data visualization.</p>
+        <p className="text-gray-600 mt-2">
+          Comprehensive insights and data visualization.
+        </p>
       </header>
 
-      {/* Tab Navigation - Responsive using Flex and Tabs-Boxed */}
+      {/* Tab Navigation - Blue Monochromatic Style */}
       <div className="flex bg-white p-1 rounded-xl shadow-lg border border-blue-100 mb-6 w-full max-w-4xl mx-auto">
         <a
           onClick={() => setActiveTab("descriptive")}
@@ -164,7 +184,9 @@ const Analytics = () => {
               : "text-blue-700 hover:bg-blue-50"
           }`}
         >
-          <span className="flex items-center justify-center h-full">Descriptive</span>
+          <span className="flex items-center justify-center h-full">
+            Descriptive
+          </span>
         </a>
         <a
           onClick={() => setActiveTab("diagnostic")}
@@ -174,7 +196,9 @@ const Analytics = () => {
               : "text-blue-700 hover:bg-blue-50"
           }`}
         >
-          <span className="flex items-center justify-center h-full">Diagnostic</span>
+          <span className="flex items-center justify-center h-full">
+            Diagnostic
+          </span>
         </a>
         <a
           onClick={() => setActiveTab("predictive")}
@@ -184,7 +208,9 @@ const Analytics = () => {
               : "text-blue-700 hover:bg-blue-50"
           }`}
         >
-          <span className="flex items-center justify-center h-full">Predictive</span>
+          <span className="flex items-center justify-center h-full">
+            Predictive
+          </span>
         </a>
         <a
           onClick={() => setActiveTab("prescriptive")}
@@ -194,16 +220,18 @@ const Analytics = () => {
               : "text-blue-700 hover:bg-blue-50"
           }`}
         >
-          <span className="flex items-center justify-center h-full">Prescriptive</span>
+          <span className="flex items-center justify-center h-full">
+            Prescriptive
+          </span>
         </a>
       </div>
 
-      {/* Filter Bar - Responsive flex-wrap */}
+      {/* Filter Bar - Blue Monochromatic Style */}
       <div className="bg-white p-4 rounded-xl shadow-lg mb-6 flex flex-wrap gap-4 items-center border border-blue-100">
         <div className="text-sm font-medium text-gray-700">Filter by:</div>
         <DatePicker
           selected={startDate}
-          onChange={date => setStartDate(date)}
+          onChange={(date) => setStartDate(date)}
           placeholderText="Start Date"
           dateFormat="yyyy-MM-dd"
           className="input input-bordered w-full sm:w-auto h-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150"
@@ -211,7 +239,7 @@ const Analytics = () => {
         />
         <DatePicker
           selected={endDate}
-          onChange={date => setEndDate(date)}
+          onChange={(date) => setEndDate(date)}
           placeholderText="End Date"
           dateFormat="yyyy-MM-dd"
           className="input input-bordered w-full sm:w-auto h-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150"
@@ -220,7 +248,7 @@ const Analytics = () => {
         />
         <select
           value={selectedType}
-          onChange={e => setSelectedType(e.target.value)}
+          onChange={(e) => setSelectedType(e.target.value)}
           className="select select-bordered w-full sm:w-auto h-10 min-h-0 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150"
         >
           <option value="">All Types</option>
@@ -233,14 +261,16 @@ const Analytics = () => {
       {loading ? (
         <div className="bg-white p-6 shadow-xl rounded-2xl text-center border border-blue-100">
           <span className="loading loading-spinner text-blue-600 w-8 h-8"></span>
-          <div className="mt-2 text-gray-500 font-medium">Loading analytics data...</div>
+          <div className="mt-2 text-gray-500 font-medium">
+            Loading analytics data...
+          </div>
         </div>
       ) : (
         <div className="space-y-6">
           {/* Descriptive Analytics Tab */}
           {activeTab === "descriptive" && (
             <div className="space-y-6">
-              {/* Summary Metrics - Responsive Grid (1 to 4 columns) */}
+              {/* Summary Metrics - Blue Monochromatic Style */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Stat Card 1 */}
                 <div className="card bg-white p-6 shadow-xl rounded-2xl border-l-4 border-blue-600 transition hover:shadow-2xl">
@@ -258,7 +288,9 @@ const Analytics = () => {
                   </div>
                   <div className="text-3xl font-bold text-blue-800 mt-2">
                     {summaryMetrics.averageProcessingTime}{" "}
-                    <span className="text-base font-normal text-gray-600">mins</span>
+                    <span className="text-base font-normal text-gray-600">
+                      mins
+                    </span>
                   </div>
                 </div>
                 {/* Stat Card 3 */}
@@ -280,10 +312,9 @@ const Analytics = () => {
                   </div>
                 </div>
               </div>
-              
-              {/* Chart Row - Responsive Grid (1 to 3 columns) */}
+
+              {/* Chart Row - Blue Monochromatic Style */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
                 {/* Applicants by Gender */}
                 <div className="card bg-white p-6 shadow-xl rounded-2xl border border-blue-100">
                   <h2 className="text-lg font-semibold text-blue-800 mb-4 border-b pb-2">
@@ -304,7 +335,11 @@ const Analytics = () => {
                           {genderPieData.map((entry, index) => (
                             <Cell
                               key={`cell-gender-${index}`}
-                              fill={BLUE_SHADES.GENDER_COLORS[index % BLUE_SHADES.GENDER_COLORS.length]}
+                              fill={
+                                CHART_COLORS.GENDER_COLORS[
+                                  index % CHART_COLORS.GENDER_COLORS.length
+                                ]
+                              }
                             />
                           ))}
                         </Pie>
@@ -313,7 +348,9 @@ const Analytics = () => {
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="h-full flex items-center justify-center text-gray-400">No gender data available</div>
+                    <div className="h-full flex items-center justify-center text-gray-400">
+                      No gender data available
+                    </div>
                   )}
                 </div>
 
@@ -337,7 +374,11 @@ const Analytics = () => {
                           {civilStatusPieData.map((entry, index) => (
                             <Cell
                               key={`cell-status-${index}`}
-                              fill={BLUE_SHADES.STATUS_COLORS[index % BLUE_SHADES.STATUS_COLORS.length]}
+                              fill={
+                                CHART_COLORS.STATUS_COLORS[
+                                  index % CHART_COLORS.STATUS_COLORS.length
+                                ]
+                              }
                             />
                           ))}
                         </Pie>
@@ -363,12 +404,25 @@ const Analytics = () => {
                         data={ageGroupBarData}
                         margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e0f2fe" />
-                        <XAxis dataKey="name" stroke="#374151" />
-                        <YAxis allowDecimals={false} stroke="#374151" />
-                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none' }} />
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke={CHART_COLORS.GRID_STROKE}
+                        />
+                        <XAxis dataKey="name" stroke={CHART_COLORS.AXIS_STROKE} />
+                        <YAxis
+                          allowDecimals={false}
+                          stroke={CHART_COLORS.AXIS_STROKE}
+                        />
+                        <Tooltip
+                          contentStyle={{ borderRadius: "8px", border: "none" }}
+                        />
                         <Legend />
-                        <Bar dataKey="count" fill="#3b82f6" name="Applicants" radius={[4, 4, 0, 0]} />
+                        <Bar
+                          dataKey="count"
+                          fill={CHART_COLORS.PRIMARY_BLUE}
+                          name="Applicants"
+                          radius={[4, 4, 0, 0]}
+                        />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
@@ -385,7 +439,6 @@ const Analytics = () => {
           {activeTab === "diagnostic" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
                 {/* Monthly Application Trends */}
                 <div className="card bg-white p-6 shadow-xl rounded-2xl border border-blue-100">
                   <h2 className="text-lg font-semibold text-blue-800 mb-4 border-b pb-2">
@@ -394,16 +447,21 @@ const Analytics = () => {
                   {monthlyTrends.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <AreaChart data={monthlyTrends}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e0f2fe" />
-                        <XAxis dataKey="month" stroke="#374151" />
-                        <YAxis stroke="#374151" />
-                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none' }} />
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke={CHART_COLORS.GRID_STROKE}
+                        />
+                        <XAxis dataKey="month" stroke={CHART_COLORS.AXIS_STROKE} />
+                        <YAxis stroke={CHART_COLORS.AXIS_STROKE} />
+                        <Tooltip
+                          contentStyle={{ borderRadius: "8px", border: "none" }}
+                        />
                         <Legend />
                         <Area
                           type="monotone"
                           dataKey="count"
-                          stroke="#2563eb" // Monochromatic Blue Stroke
-                          fill="#2563eb" // Monochromatic Blue Fill
+                          stroke={CHART_COLORS.SECONDARY_BLUE} // Monochromatic Blue Stroke
+                          fill={CHART_COLORS.SECONDARY_BLUE} // Monochromatic Blue Fill
                           fillOpacity={0.2}
                           name="Applications"
                         />
@@ -424,17 +482,22 @@ const Analytics = () => {
                   {processingTime.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={processingTime}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e0f2fe" />
-                        <XAxis dataKey="type" stroke="#374151" />
-                        <YAxis stroke="#374151" />
-                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none' }} />
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke={CHART_COLORS.GRID_STROKE}
+                        />
+                        <XAxis dataKey="type" stroke={CHART_COLORS.AXIS_STROKE} />
+                        <YAxis stroke={CHART_COLORS.AXIS_STROKE} />
+                        <Tooltip
+                          contentStyle={{ borderRadius: "8px", border: "none" }}
+                        />
                         <Legend />
                         <Line
                           type="monotone"
                           dataKey="minutes"
-                          stroke="#1d4ed8" // Monochromatic Darker Blue Stroke
+                          stroke={CHART_COLORS.DARK_BLUE} // Monochromatic Darker Blue Stroke
                           strokeWidth={2}
-                          dot={{ fill: '#1d4ed8', r: 4 }}
+                          dot={{ fill: CHART_COLORS.DARK_BLUE, r: 4 }}
                           activeDot={{ r: 6 }}
                           name="Completion Time (mins)"
                         />
@@ -457,9 +520,10 @@ const Analytics = () => {
                 Predictive Analytics
               </h2>
               <p className="text-gray-600">
-                This tab could display visualizations and data related to future trends, such
-                as forecasted application volume or predicted needs for specific assistance
-                types. Currently, no predictive data is available.
+                This tab could display visualizations and data related to future
+                trends, such as forecasted application volume or predicted needs
+                for specific assistance types. Currently, no predictive data is
+                available.
               </p>
             </div>
           )}
@@ -471,9 +535,10 @@ const Analytics = () => {
                 Prescriptive Analytics
               </h2>
               <p className="text-gray-600">
-                This tab could provide recommendations based on the analytics data, such as
-                suggesting resource allocation or identifying high-risk areas for outreach.
-                Currently, no prescriptive data is available.
+                This tab could provide recommendations based on the analytics
+                data, such as suggesting resource allocation or identifying
+                high-risk areas for outreach. Currently, no prescriptive data is
+                available.
               </p>
             </div>
           )}

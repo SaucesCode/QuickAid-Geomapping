@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, MapPin, Phone, ChevronDown,Sparkles, ArrowRight, Users,FileText,CheckCircle, TrendingUp, Heart, Calendar } from "lucide-react";
+import { Clock,
+  MapPin,
+  Phone,
+  ChevronDown,
+  Sparkles,
+  ArrowRight,
+  Users,
+  FileText,
+  CheckCircle,
+  ClipboardList, Search, ThumbsUp, Heart, ArrowDown, TrendingUp,Calendar,MessageSquareText,
+FileCheck,
+  Banknote,
+ } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
 import aics from "../../assets/AICS-OFFICIAL.png";
@@ -8,6 +20,8 @@ import FinpayFeatures from "./AICSfile";
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 import HowToApply from "./How2apply";
 import { Link } from "react-router-dom";
+import Carousel from "./Carousel";
+import bgImage from "../../assets/JPA09392.JPG";
 
 
 
@@ -80,41 +94,41 @@ const faqs = [
   {
     question: "How do I get started on the AICS Program?",
     answer:
-      "Visit our website, download the AF-AICS form, fill it out with required documents. We'll review your application within 5 business days.",
+    "Visit our website, download the AF-AICS form, fill it out with required documents. We'll review your application within 5 business days.",
   },
 ];
 
-const steps = [
-    {
-      icon: FileText,
-      title: "Prepare Requirements",
-      description: "Bring a valid government ID and supporting documents (medical, burial, education, or crisis-related).",
-      color: "from-blue-500 to-cyan-500",
-      bgColor: "bg-blue-50",
-      iconBg: "bg-gradient-to-br from-blue-500 to-cyan-500"
-    },
-    {
-      icon: Users,
-      title: "Visit DSWD Office",
-      description: "Go to the nearest DSWD Field Office or satellite center and line up for assessment.",
-      color: "from-violet-500 to-blue-500",
-      bgColor: "bg-violet-50",
-      iconBg: "bg-gradient-to-br from-violet-500 to-blue-500"
-    },
-    {
-      icon: CheckCircle,
-      title: "Get Approved",
-      description: "A social worker will review your documents. Once approved, assistance will be released immediately.",
-      color: "from-emerald-500 to-teal-500",
-      bgColor: "bg-emerald-50",
-      iconBg: "bg-gradient-to-br from-emerald-500 to-teal-500"
-    }
-  ];
+const stepsData = [
+  {
+    title: "Initial Assessment",
+    description: "Your journey starts with a quick review of your situation and initial documentation.",
+    icon: FileText,
+  },
+  {
+    title: "Document Submission",
+    description: "Submit and verify all mandatory documents, including IDs and proof of indigency.",
+    icon: FileCheck,
+  },
+  {
+    title: "Evaluation & Interview",
+    description: "A DSWD social worker conducts an interview and final assessment of your application.",
+    icon: Users,
+  },
+  {
+    title: "Release of Aid",
+    description: "The approved cash assistance or Guarantee Letter is immediately disbursed to you.",
+    icon: Banknote,
+  },
+];
   
 
 
 const LandingPage = () => {
   const [openFaq, setOpenFaq] = useState(null);
+
+  const toggleFaq = (index) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
 
   const [scrollY, setScrollY] = useState(0);
 
@@ -128,78 +142,82 @@ const LandingPage = () => {
     <div className="font-sans min-h-screen">
       {/* Sticky Navbar */}
       <Navbar />
+      
       {/* Hero Section */}
-      <section
-        id="home"
-        className="pt-48 pb-20 bg-gradient-to-br from-blue-50 via-white to-indigo-50"
+<section
+  id="home"
+  style={{
+    backgroundImage: `url(${bgImage})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  }}
+  className="relative pt-48 pb-20"
+>
+  {/* Optional gradient overlay for readability */}
+  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-white/10 to-indigo-50/20"></div>
+
+
+  <div className="relative z-10 max-w-7xl mx-auto px-4">
+    <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <motion.div
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
       >
-        <div className="max-w-7xl mx-auto px-4">
-          {/* Logos Section removed as requested */}
+        <h1 className="text-4xl lg:text-6xl font-bold text-white leading-tight mb-6">
+  <span className="text-4xl lg:text-6xl text-blue-400">Assistance</span> to Individuals in{" "}
+  <span className="text-4xl lg:text-6xl text-blue-400">Crisis</span> Situation
+</h1>
 
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-                <span className="text-blue-600 text-4xl lg:text-6xl">Assistance</span> to
-                Individuals in{" "}
-                <span className="text-blue-600 text-4xl lg:text-6xl">Crisis</span> Situation
-              </h1>
 
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                AICS is a DSWD program providing medical, burial, transport, education, food,
-                and financial aid to individuals or families in crisis situations.
-              </p>
-              
+        <p className="text-xl text-blue-200 mb-8 leading-relaxed">
+          AICS is a DSWD program providing medical, burial, transport, education, food,
+          and financial aid to individuals or families in crisis situations.
+        </p>
 
-              
-
-              {/* Stats Section */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mt-6 max-w-4xl mx-auto">
+        {/* Stats Section */}
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mt-6 max-w-4xl mx-auto">
   {/* Families Helped */}
-  <div className="flex flex-col items-center">
-    <Users className="w-6 h-6 text-blue-600 mb-1" />
-    <h3 className="text-sm font-medium text-gray-800">25,000+ Families Helped</h3>
+  <div className="flex flex-col items-center bg-white/20 backdrop-blur-sm p-3 w-48 h-15 rounded-lg shadow-md hover:shadow-lg transition duration-300 mx-auto">
+    <Users className="w-6 h-6 text-blue-200 mb-1" />
+    <h3 className="text-sm font-semibold text-white text-center">
+      25,000+ Families Helped
+    </h3>
   </div>
 
   {/* 24/7 Emergency Support */}
-  <div className="flex flex-col items-center">
-    <Clock className="w-6 h-6 text-teal-600 mb-1" />
-    <h3 className="text-sm font-medium text-gray-800">24/7 Emergency Support</h3>
-  </div>
-
-  {/* Nationwide Coverage */}
-  <div className="flex flex-col items-center">
-    <MapPin className="w-6 h-6 text-green-600 mb-1" />
-    <h3 className="text-sm font-medium text-gray-800">Nationwide Coverage</h3>
+  <div className="flex flex-col items-center bg-white/20 backdrop-blur-sm p-3 w-48 h-15 rounded-lg shadow-md hover:shadow-lg transition duration-300 mx-auto">
+    <Clock className="w-6 h-6 text-blue-200 mb-1" />
+    <h3 className="text-sm font-semibold text-white text-center">
+      24/7 Emergency Support
+    </h3>
   </div>
 </div>
-            </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="relative"
-            >
-              <img
-                src={aics}
-                alt="AICS Services"
-                className="relative z-10 w-auto mx-auto"
-                style={{ width: 320 }}
-              />
-            </motion.div>
-          </div>
-        </div>
-      </section>
+      </motion.div>
 
+      <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+        className="relative"
+      >
+        <img
+          src={aics}
+          alt="AICS Services"
+          className="relative z-10 w-auto mx-auto"
+          style={{ width: 320 }}
+        />
+      </motion.div>
+    </div>
+  </div>
+</section>
                  {/* Program Objective Section */}
 <section className="py-24 bg-gradient-to-r from-blue-50 via-white to-blue-50">
-  <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+  <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
     
-    {/* Left Visual (Image or Illustration) */}
+    {/* Left Visual (Carousel) */}
     <motion.div
       initial={{ opacity: 0, x: -40 }}
       whileInView={{ opacity: 1, x: 0 }}
@@ -207,11 +225,9 @@ const LandingPage = () => {
       transition={{ duration: 0.8 }}
       className="flex justify-center md:justify-start"
     >
-      <img
-        src={aics}
-        alt="Program Objective Illustration"
-        className="w-72 lg:w-96 object-contain drop-shadow-lg"
-      />
+      <div className="w-full h-[300px] md:h-[340px] lg:h-[380px] overflow-hidden shadow-xl">
+        <Carousel />
+      </div>
     </motion.div>
 
     {/* Right Content */}
@@ -222,9 +238,10 @@ const LandingPage = () => {
       transition={{ duration: 0.8, delay: 0.1 }}
       className="text-left"
     >
+       
       <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-snug mb-6">
         PROGRAM'S{" "}
-        <span className="font-bold text-4xl bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+        <span className="font-bold text-4xl lg:text-5xl bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
           OBJECTIVE
         </span>
       </h2>
@@ -265,7 +282,11 @@ const LandingPage = () => {
 
 
       {/* Services Section */}
-<section id="services" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+<section id="services" className="py-24 bg-gradient-to-b from-blue-100 via-blue-200/100 to-white relative overflow-hidden">
+  {/* Background decorative elements */}
+  <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10"></div>
+  <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl -z-10"></div>
+  <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-300/20 rounded-full blur-3xl -z-10"></div>
   
   <div className="max-w-7xl mx-auto px-4">
     <motion.div
@@ -273,26 +294,27 @@ const LandingPage = () => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8 }}
-      className="mb-20"
+      className="mb-16 text-center"
     >
-      <div className="inline-block px-4 py-2 bg-blue-100 rounded-full mb-4">
-        <span className="text-blue-600 font-semibold text-sm uppercase tracking-wider">
+      <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-full mb-6">
+        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
+        <span className="text-blue-700 font-semibold text-sm uppercase tracking-wider">
           What We Offer
         </span>
       </div>
-      <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+      <h2 className="text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
         Our{" "}
-        <span className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
+        <span className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 bg-clip-text text-transparent">
           Services
         </span>
       </h2>
-      <p className="text-xl text-gray-600 max-w-2xl leading-relaxed">
+      <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
         We provide comprehensive assistance programs designed to help individuals and
         families overcome crisis situations.
       </p>
     </motion.div>
 
-    <div className="grid md:grid-cols-3 gap-6">
+    <div className="grid md:grid-cols-3 gap-8">
 
       {/* Educational Assistance */}
       <Link to="/services/education">
@@ -301,25 +323,34 @@ const LandingPage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          whileHover={{ y: -8 }}
-          className="cursor-pointer group relative bg-white p-8 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 overflow-hidden"
+          whileHover={{ y: -12 }}
+          className="cursor-pointer group relative bg-white p-10 rounded-2xl shadow-sm border border-slate-200/60 hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-500 overflow-hidden h-full"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 via-blue-50/0 to-blue-50/0 group-hover:from-blue-50/50 group-hover:via-blue-50/30 group-hover:to-transparent transition-all duration-500"></div>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-2xl transition-all duration-500 group-hover:scale-150 group-hover:bg-blue-500/10"></div>
 
-          <div className="relative flex items-start justify-between">
-            <div className="flex-1 pr-4">
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
-                Educational Assistance
-              </h3>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                Support for tuition and school supplies
-              </p>
-              <div className="w-12 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transform origin-left transition-transform duration-500 group-hover:scale-x-150"></div>
+          <div className="relative">
+            <div className="mb-6 inline-flex p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/25 transform transition-all duration-500 group-hover:scale-110 group-hover:shadow-blue-500/40">
+              <FaBookOpen className="text-3xl text-white" />
             </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 flex-shrink-0">
-              <FaBookOpen className="text-2xl" />
+            
+            <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors duration-300">
+              Educational Assistance
+            </h3>
+            
+            <p className="text-slate-600 leading-relaxed mb-6">
+              Support for tuition and school supplies
+            </p>
+            
+            <div className="flex items-center text-blue-600 font-semibold group-hover:gap-2 transition-all duration-300">
+              <span className="text-sm">Learn more</span>
+              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </div>
           </div>
+
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
         </motion.div>
       </Link>
 
@@ -330,25 +361,34 @@ const LandingPage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          whileHover={{ y: -8 }}
-          className="cursor-pointer group relative bg-white p-8 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 overflow-hidden"
+          whileHover={{ y: -12 }}
+          className="cursor-pointer group relative bg-white p-10 rounded-2xl shadow-sm border border-slate-200/60 hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-500 overflow-hidden h-full"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/10 to-blue-600/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 via-blue-50/0 to-blue-50/0 group-hover:from-blue-50/50 group-hover:via-blue-50/30 group-hover:to-transparent transition-all duration-500"></div>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-blue-600/5 rounded-full blur-2xl transition-all duration-500 group-hover:scale-150 group-hover:bg-blue-600/10"></div>
 
-          <div className="relative flex items-start justify-between">
-            <div className="flex-1 pr-4">
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-green-600 transition-colors duration-300">
-                Medical Assistance
-              </h3>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                Healthcare and medical expenses coverage
-              </p>
-              <div className="w-12 h-1 bg-gradient-to-r from-green-500 to-blue-600 rounded-full transform origin-left transition-transform duration-500 group-hover:scale-x-150"></div>
+          <div className="relative">
+            <div className="mb-6 inline-flex p-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg shadow-blue-600/25 transform transition-all duration-500 group-hover:scale-110 group-hover:shadow-blue-600/40">
+              <FaUserMd className="text-3xl text-white" />
             </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 flex-shrink-0">
-              <FaUserMd className="text-2xl" />
+            
+            <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors duration-300">
+              Medical Assistance
+            </h3>
+            
+            <p className="text-slate-600 leading-relaxed mb-6">
+              Healthcare and medical expenses coverage
+            </p>
+            
+            <div className="flex items-center text-blue-600 font-semibold group-hover:gap-2 transition-all duration-300">
+              <span className="text-sm">Learn more</span>
+              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </div>
           </div>
+
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
         </motion.div>
       </Link>
 
@@ -359,25 +399,34 @@ const LandingPage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          whileHover={{ y: -8 }}
-          className="cursor-pointer group relative bg-white p-8 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 overflow-hidden"
+          whileHover={{ y: -12 }}
+          className="cursor-pointer group relative bg-white p-10 rounded-2xl shadow-sm border border-slate-200/60 hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-500 overflow-hidden h-full"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-pink-600/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 via-blue-50/0 to-blue-50/0 group-hover:from-blue-50/50 group-hover:via-blue-50/30 group-hover:to-transparent transition-all duration-500"></div>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-blue-700/5 rounded-full blur-2xl transition-all duration-500 group-hover:scale-150 group-hover:bg-blue-700/10"></div>
 
-          <div className="relative flex items-start justify-between">
-            <div className="flex-1 pr-4">
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
-                Burial Assistance
-              </h3>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                Funeral and burial service support
-              </p>
-              <div className="w-12 h-1 bg-gradient-to-r from-blue-500 to-pink-600 rounded-full transform origin-left transition-transform duration-500 group-hover:scale-x-150"></div>
+          <div className="relative">
+            <div className="mb-6 inline-flex p-4 bg-gradient-to-br from-blue-700 to-blue-800 rounded-xl shadow-lg shadow-blue-700/25 transform transition-all duration-500 group-hover:scale-110 group-hover:shadow-blue-700/40">
+              <FaCross className="text-3xl text-white" />
             </div>
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-pink-600 rounded-2xl flex items-center justify-center text-white shadow-lg transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 flex-shrink-0">
-              <FaCross className="text-2xl" />
+            
+            <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors duration-300">
+              Burial Assistance
+            </h3>
+            
+            <p className="text-slate-600 leading-relaxed mb-6">
+              Funeral and burial service support
+            </p>
+            
+            <div className="flex items-center text-blue-600 font-semibold group-hover:gap-2 transition-all duration-300">
+              <span className="text-sm">Learn more</span>
+              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </div>
           </div>
+
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
         </motion.div>
       </Link>
 
@@ -387,15 +436,15 @@ const LandingPage = () => {
 
 
      {/* Who We Serve Section */}
-<section className="py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white relative overflow-hidden">
+<section className="py-24 bg-gradient-to-br from-slate-100 via-blue-200 to-white text-slate-900 relative overflow-hidden">
   {/* Decorative background elements */}
-  <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"></div>
-  <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-900/30 rounded-full blur-3xl"></div>
+  <div className="absolute top-0 left-0 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl"></div>
+  <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-300/20 rounded-full blur-3xl"></div>
   <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full">
-    <div className="absolute top-20 right-20 w-2 h-2 bg-white/40 rounded-full animate-pulse"></div>
-    <div className="absolute top-40 right-40 w-1 h-1 bg-white/30 rounded-full animate-pulse delay-75"></div>
-    <div className="absolute bottom-20 left-20 w-2 h-2 bg-white/40 rounded-full animate-pulse delay-150"></div>
-    <div className="absolute bottom-40 left-40 w-1 h-1 bg-white/30 rounded-full animate-pulse"></div>
+    <div className="absolute top-20 right-20 w-2 h-2 bg-blue-400/40 rounded-full animate-pulse"></div>
+    <div className="absolute top-40 right-40 w-1 h-1 bg-blue-400/30 rounded-full animate-pulse delay-75"></div>
+    <div className="absolute bottom-20 left-20 w-2 h-2 bg-blue-400/40 rounded-full animate-pulse delay-150"></div>
+    <div className="absolute bottom-40 left-40 w-1 h-1 bg-blue-400/30 rounded-full animate-pulse"></div>
   </div>
 
   <div className="max-w-7xl mx-auto px-4 relative z-10">
@@ -404,16 +453,17 @@ const LandingPage = () => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8 }}
-      className="mb-20 flex flex-col items-center text-center"
+      className="mb-16 flex flex-col items-center text-center"
     >
       <motion.div 
         initial={{ scale: 0.8, opacity: 0 }}
         whileInView={{ scale: 1, opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="inline-block px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-4"
+        className="inline-flex items-center px-4 py-2 bg-blue-50 backdrop-blur-sm border border-blue-200 rounded-full mb-6"
       >
-        <span className="text-white font-semibold text-sm uppercase tracking-wider">Our Community</span>
+        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
+        <span className="text-blue-700 font-semibold text-sm uppercase tracking-wider">Our Community</span>
       </motion.div>
       <motion.h2 
         initial={{ opacity: 0, y: 20 }}
@@ -422,50 +472,50 @@ const LandingPage = () => {
         transition={{ duration: 0.6, delay: 0.2 }}
         className="text-5xl lg:text-6xl font-bold mb-6 leading-tight"
       >
-        Who We <span className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-200 via-white to-blue-200 bg-clip-text text-transparent animate-pulse">Serve</span>
+        Who We <span className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 bg-clip-text text-transparent animate-pulse">Serve</span>
       </motion.h2>
       <motion.p 
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8, delay: 0.4 }}
-        className="text-xl text-blue-100 max-w-2xl leading-relaxed"
+        className="text-xl text-slate-600 max-w-3xl leading-relaxed"
       >
         Our application management system is designed to assist a diverse range of
         beneficiaries in need of support.
       </motion.p>
     </motion.div>
 
-    <div className="grid md:grid-cols-3 gap-6">
+    <div className="grid md:grid-cols-3 gap-8">
       {/* Students */}
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        whileHover={{ y: -8 }}
-        className="group relative bg-white/10 backdrop-blur-lg p-8 rounded-3xl border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-500 overflow-hidden"
+        whileHover={{ y: -12 }}
+        className="group relative bg-white/80 backdrop-blur-lg p-10 rounded-2xl border border-slate-200 hover:bg-white hover:border-blue-300 hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-500 overflow-hidden"
       >
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+        <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-2xl transition-all duration-500 group-hover:scale-150 group-hover:bg-blue-500/10"></div>
         
         <div className="relative flex flex-col items-center text-center">
           <motion.div 
             whileHover={{ rotate: 360 }}
             transition={{ duration: 0.6 }}
-            className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-blue-300/30 to-white/30 backdrop-blur-sm rounded-2xl shadow-lg transform transition-all duration-500 group-hover:scale-110 mb-6"
+            className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/25 transform transition-all duration-500 group-hover:scale-110 group-hover:shadow-blue-400/40 mb-6"
           >
             <FaUserGraduate className="text-3xl text-white" />
           </motion.div>
-          <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-200 transition-colors duration-300">
-            <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent group-hover:from-blue-200 group-hover:to-white transition-all duration-300">
+          <h3 className="text-2xl font-bold mb-4 text-slate-900 group-hover:text-blue-600 transition-colors duration-300">
+            <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-blue-700 transition-all duration-300">
               Students
             </span>
           </h3>
-          <p className="text-blue-100 leading-relaxed mb-4 group-hover:text-white transition-colors duration-300">
+          <p className="text-slate-600 leading-relaxed mb-6 group-hover:text-slate-700 transition-colors duration-300">
             Individuals who are currently enrolled in educational institutions and
             require financial assistance for their studies.
           </p>
-          <div className="w-12 h-1 bg-gradient-to-r from-blue-300 via-white to-blue-300 rounded-full transform transition-transform duration-500 group-hover:scale-x-150 shadow-lg shadow-white/50"></div>
+          <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent rounded-full transform transition-all duration-500 group-hover:w-24 group-hover:via-blue-600"></div>
         </div>
       </motion.div>
 
@@ -475,29 +525,29 @@ const LandingPage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.4 }}
-        whileHover={{ y: -8 }}
-        className="group relative bg-white/10 backdrop-blur-lg p-8 rounded-3xl border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-500 overflow-hidden"
+        whileHover={{ y: -12 }}
+        className="group relative bg-white/80 backdrop-blur-lg p-10 rounded-2xl border border-slate-200 hover:bg-white hover:border-blue-300 hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-500 overflow-hidden"
       >
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+        <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-2xl transition-all duration-500 group-hover:scale-150 group-hover:bg-blue-500/10"></div>
         
         <div className="relative flex flex-col items-center text-center">
           <motion.div 
             whileHover={{ rotate: 360 }}
             transition={{ duration: 0.6 }}
-            className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-blue-300/30 to-white/30 backdrop-blur-sm rounded-2xl shadow-lg transform transition-all duration-500 group-hover:scale-110 mb-6"
+            className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg shadow-blue-600/25 transform transition-all duration-500 group-hover:scale-110 group-hover:shadow-blue-500/40 mb-6"
           >
             <FaUserInjured className="text-3xl text-white" />
           </motion.div>
-          <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-200 transition-colors duration-300">
-            <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent group-hover:from-blue-200 group-hover:to-white transition-all duration-300">
+          <h3 className="text-2xl font-bold mb-4 text-slate-900 group-hover:text-blue-600 transition-colors duration-300">
+            <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-blue-700 transition-all duration-300">
               Patients
             </span>
           </h3>
-          <p className="text-blue-100 leading-relaxed mb-4 group-hover:text-white transition-colors duration-300">
+          <p className="text-slate-600 leading-relaxed mb-6 group-hover:text-slate-700 transition-colors duration-300">
             Individuals who are currently undergoing medical treatment and need
             financial support.
           </p>
-          <div className="w-12 h-1 bg-gradient-to-r from-blue-300 via-white to-blue-300 rounded-full transform transition-transform duration-500 group-hover:scale-x-150 shadow-lg shadow-white/50"></div>
+          <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full transform transition-all duration-500 group-hover:w-24 group-hover:via-blue-300"></div>
         </div>
       </motion.div>
 
@@ -507,413 +557,192 @@ const LandingPage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.6 }}
-        whileHover={{ y: -8 }}
-        className="group relative bg-white/10 backdrop-blur-lg p-8 rounded-3xl border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-500 overflow-hidden"
+        whileHover={{ y: -12 }}
+        className="group relative bg-white/80 backdrop-blur-lg p-10 rounded-2xl border border-slate-200 hover:bg-white hover:border-blue-300 hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-500 overflow-hidden"
       >
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl transition-all duration-500 group-hover:scale-150"></div>
+        <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-2xl transition-all duration-500 group-hover:scale-150 group-hover:bg-blue-500/10"></div>
         
         <div className="relative flex flex-col items-center text-center">
           <motion.div 
             whileHover={{ rotate: 360 }}
             transition={{ duration: 0.6 }}
-            className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-blue-300/30 to-white/30 backdrop-blur-sm rounded-2xl shadow-lg transform transition-all duration-500 group-hover:scale-110 mb-6"
+            className="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-blue-700 to-blue-800 rounded-xl shadow-lg shadow-blue-700/25 transform transition-all duration-500 group-hover:scale-110 group-hover:shadow-blue-600/40 mb-6"
           >
             <FaCross className="text-3xl text-white" />
           </motion.div>
-          <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-200 transition-colors duration-300">
-            <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent group-hover:from-blue-200 group-hover:to-white transition-all duration-300">
+          <h3 className="text-2xl font-bold mb-4 text-slate-900 group-hover:text-blue-600 transition-colors duration-300">
+            <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-blue-700 transition-all duration-300">
               Burial Services
             </span>
           </h3>
-          <p className="text-blue-100 leading-relaxed mb-4 group-hover:text-white transition-colors duration-300">
+          <p className="text-slate-600 leading-relaxed mb-6 group-hover:text-slate-700 transition-colors duration-300">
             Individuals who require assistance with burial or funeral services for
             their loved ones.
           </p>
-          <div className="w-12 h-1 bg-gradient-to-r from-blue-300 via-white to-blue-300 rounded-full transform transition-transform duration-500 group-hover:scale-x-150 shadow-lg shadow-white/50"></div>
+          <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent rounded-full transform transition-all duration-500 group-hover:w-24 group-hover:via-blue-300"></div>
         </div>
       </motion.div>
     </div>
   </div>
 </section>
+
 <section>
   <HowToApply />
 
 </section>
-            <section className="relative min-h-screen py-24 px-6 overflow-hidden bg-gradient-to-br from-blue-900 via-blue-900 to-blue-900">
-      {/* Animated Background */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-        <div className="absolute top-1/2 right-1/3 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-3000"></div>
-      </div>
+           <section className="relative py-24 px-6 overflow-hidden bg-gradient-to-b from-slate-800 to-slate-900">
 
-      {/* Grid Pattern Overlay */}
-      <div className="absolute inset-0 bg-grid-white opacity-5"></div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Section Title with Enhanced Animation */}
-        <div className="text-center mb-20">
-          
-          
-          <h2 className="text-5xl lg:text-6xl font-bold font-black text-white mb-6 leading-tight">
-            How to Apply for
-            <br />
-            <span className="bg-gradient-to-r text-5xl lg:text-6xl font-bold from-blue-400 via-blue-400 to-white-400 bg-clip-text text-transparent animate-gradient">
-              AICS Program
-            </span>
-          </h2>
-          
-          <p className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-            Your journey to assistance starts here. Follow our streamlined process designed with you in mind.
-          </p>
-        </div>
-
-        {/* Steps Container with 3D Effect */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 perspective-1000">
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            return (
-              <div
-                key={index}
-                className="group relative transform-gpu"
-                style={{ animationDelay: `${index * 150}ms` }}
-              >
-                {/* Glow Effect */}
-                <div 
-                  className="absolute inset-0 rounded-3xl blur-2xl opacity-0 group-hover:opacity-75 transition-opacity duration-500"
-                  style={{ 
-                    background: `radial-gradient(circle at center, ${step.glowColor}, transparent 70%)`
-                  }}
-                ></div>
-
-                {/* Main Card */}
-                <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl hover:shadow-[0_20px_80px_rgba(0,0,0,0.3)] transition-all duration-500 transform hover:scale-105 hover:-rotate-1">
-                  {/* Shimmer Effect */}
-                  <div className="absolute inset-0 rounded-3xl overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent shimmer"></div>
-                  </div>
-
-                  {/* Step Number - Floating Badge */}
-                  <div className="absolute -top-6 -left-6 w-16 h-16 bg-gradient-to-br from-white via-gray-100 to-gray-200 rounded-2xl flex items-center justify-center shadow-2xl transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 border-4 border-slate-900">
-                    <span className="text-slate-900 font-black text-2xl">{index + 1}</span>
-                  </div>
-                  
-                  {/* Icon with Gradient Background */}
-                  <div className="relative mb-8 mt-4">
-                    <div className={`w-20 h-20 bg-gradient-to-br ${step.gradient} rounded-2xl flex items-center justify-center shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 mx-auto`}>
-                      <Icon className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={2.5} />
-                    </div>
-                    {/* Orbiting Ring */}
-                    <div className="absolute inset-0 rounded-2xl border-2 border-dashed border-white/30 group-hover:animate-spin-slow"></div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="relative z-10">
-                    <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-300 group-hover:bg-clip-text transition-all duration-300">
-                      {step.title}
-                    </h3>
-                    <p className="text-gray-300 leading-relaxed text-base">
-                      {step.description}
-                    </p>
-
-                    {/* Decorative Line */}
-                    <div className={`mt-6 h-1 ${step.accentColor} rounded-full transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500`}></div>
-                  </div>
-
-                  {/* Corner Accent */}
-                  <div className={`absolute bottom-4 right-4 w-12 h-12 bg-gradient-to-br ${step.gradient} rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500`}></div>
-                </div>
-
-                {/* Connecting Arrow for Desktop */}
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:flex absolute top-1/2 -right-3 transform -translate-y-1/2 z-20">
-                    <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-xl">
-                      <ArrowRight className="w-6 h-6 text-white animate-pulse" />
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Enhanced CTA Section */}
-        <div className="mt-20 text-center">
-          
-          
-          
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes blob {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(40px, -60px) scale(1.15); }
-          66% { transform: translate(-30px, 30px) scale(0.9); }
-        }
-        
-        @keyframes gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        
-        .animate-blob {
-          animation: blob 8s infinite;
-        }
-        
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        
-        .animation-delay-3000 {
-          animation-delay: 3s;
-        }
-        
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 3s ease infinite;
-        }
-        
-        .shimmer {
-          animation: shimmer 3s infinite;
-        }
-        
-        .animate-spin-slow {
-          animation: spin-slow 8s linear infinite;
-        }
-        
-        .bg-grid-white {
-          background-image: 
-            linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-          background-size: 50px 50px;
-        }
-        
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-      `}</style>
-    </section>
-
-      <section>
-  <FinpayFeatures />
-</section>
-
-
-            <section className="relative min-h-screen flex items-center justify-center py-20 px-4 overflow-hidden bg-slate-950">
-      {/* Animated Blue Mesh Gradient Background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-slate-950 to-blue-900"></div>
-        <div 
-          className="absolute top-0 left-0 w-full h-full opacity-40"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.4) 0%, transparent 50%),
-                             radial-gradient(circle at 80% 80%, rgba(96, 165, 250, 0.3) 0%, transparent 50%),
-                             radial-gradient(circle at 40% 20%, rgba(147, 197, 253, 0.3) 0%, transparent 50%)`,
-            transform: `translateY(${scrollY * 0.3}px)`
-          }}
-        ></div>
-        
-        {/* Grid Overlay */}
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-                           linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)`,
-          backgroundSize: '100px 100px'
-        }}></div>
-      </div>
-
-      <div className="max-w-7xl mx-auto relative z-10 w-full">
-        {/* Header Section */}
-        <div className="mb-32 text-center">
-          <div className="inline-flex items-center gap-3 px-6 py-3 bg-blue-500/10 backdrop-blur-2xl rounded-full mb-10 border border-blue-400/30 shadow-2xl shadow-blue-500/20">
-            <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
-            <p className="text-blue-400 text-xs font-bold tracking-[0.2em] uppercase">
-              Our Mission
-            </p>
-            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping"></div>
-          </div>
-          
-          <h2 className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-black mb-10 leading-[0.9] tracking-tight">
-            <span className="text-5xl lg:text-6xl block text-white mb-4">We help those</span>
-            <span className="block relative inline-block">
-              <span className="text-5xl lg:text-6xl relative z-10 bg-gradient-to-r from-blue-300 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                who seek help
-              </span>
-              <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-blue-500 via-blue-400 to-cyan-500 opacity-50 animate-pulse"></div>
-            </span>
-          </h2>
-          
-          <p className="text-blue-200/70 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-light">
-            Thousands of individuals and families in crisis have received 
-            assistance, relief, and hope through AICS.
-          </p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-          {/* Stat 1 */}
-          <div className="group relative">
-            {/* Glow Effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-3xl blur-2xl opacity-0 group-hover:opacity-75 transition-all duration-1000"></div>
-            
-            <div className="relative bg-gradient-to-br from-blue-950/90 to-blue-900/90 backdrop-blur-xl rounded-3xl p-12 border border-blue-500/20 hover:border-blue-400/50 transition-all duration-500 overflow-hidden">
-              {/* Corner Accent */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-500/20 to-transparent rounded-bl-full"></div>
-              
-              {/* Icon */}
-              <div className="relative mb-8">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-2xl shadow-blue-500/50 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
-                  <TrendingUp className="w-10 h-10 text-white" strokeWidth={2.5} />
-                </div>
-              </div>
-              
-              {/* Content */}
-              <div className="relative space-y-4">
-                <div className="text-8xl font-black bg-gradient-to-br from-blue-300 to-blue-400 bg-clip-text text-transparent leading-none">
-                  50K+
-                </div>
-                <p className="text-blue-200 text-xl font-semibold tracking-wide">Beneficiaries served</p>
-                
-                {/* Progress Bar */}
-                <div className="h-1.5 bg-blue-900/50 rounded-full overflow-hidden mt-6">
-                  <div className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full w-0 group-hover:w-full transition-all duration-1000 shadow-lg shadow-blue-500/50"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stat 2 - Featured */}
-          <div className="group relative lg:-translate-y-8">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 via-blue-500 to-cyan-500 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition-all duration-1000 animate-pulse"></div>
-            
-            <div className="relative bg-gradient-to-br from-blue-900 to-blue-800 backdrop-blur-xl rounded-3xl p-12 border-2 border-blue-400/50 hover:border-blue-300 transition-all duration-500 overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/30 to-transparent rounded-bl-full"></div>
-              
-              <div className="relative mb-8">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl shadow-2xl shadow-blue-400/60 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
-                  <Heart className="w-10 h-10 text-white" strokeWidth={2.5} fill="white" />
-                </div>
-              </div>
-              
-              <div className="relative space-y-4">
-                <div className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-200 to-cyan-300 pb-2">
-                  ₱120M+
-                </div>
-                <p className="text-blue-100 text-xl font-semibold tracking-wide">Financial aid released</p>
-                
-                <div className="h-1.5 bg-blue-900/50 rounded-full overflow-hidden mt-6">
-                  <div className="h-full bg-gradient-to-r from-blue-300 to-cyan-400 rounded-full w-0 group-hover:w-full transition-all duration-1000 shadow-lg shadow-blue-400/50"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stat 3 */}
-          <div className="group relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-3xl blur-2xl opacity-0 group-hover:opacity-75 transition-all duration-1000"></div>
-            
-            <div className="relative bg-gradient-to-br from-blue-950/90 to-blue-900/90 backdrop-blur-xl rounded-3xl p-12 border border-blue-500/20 hover:border-blue-400/50 transition-all duration-500 overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-transparent rounded-bl-full"></div>
-              
-              <div className="relative mb-8">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-2xl shadow-blue-500/50 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
-                  <Calendar className="w-10 h-10 text-white" strokeWidth={2.5} />
-                </div>
-              </div>
-              
-              <div className="relative space-y-4">
-                <div className="text-8xl font-black bg-gradient-to-br from-blue-300 to-cyan-400 bg-clip-text text-transparent leading-none">
-                  15+
-                </div>
-                <p className="text-blue-200 text-xl font-semibold tracking-wide">Years of service</p>
-                
-                <div className="h-1.5 bg-blue-900/50 rounded-full overflow-hidden mt-6">
-                  <div className="h-full bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full w-0 group-hover:w-full transition-all duration-1000 shadow-lg shadow-blue-500/50"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
       
+      <div className="max-w-7xl mx-auto relative z-10">
 
+        {/* --- Dark Background Container --- */}
+        {/* This container mimics the dark card in the image, holding the title and feature cards */}
+        <div className="bg-blue-800 text-white rounded-2xl shadow-2xl p-10 md:p-16">
 
-      {/* FAQ Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Frequently Asked{" "}
-              <span className="text-blue-600 text-4xl lg:text-5xl">Questions</span>
+          {/* Section Title (Centered and White) */}
+          <div className="text-center mb-16">
+            <h2 className="text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
+              AICS Application Overview
             </h2>
-            <p className="text-xl text-gray-600">
-              Find answers to common questions about the AICS program and application process.
+            <p className="text-gray-300 text-lg max-w-4xl mx-auto leading-relaxed">
+              Your journey to assistance starts here. Follow our streamlined process designed with you in mind.
             </p>
-          </motion.div>
+          </div>
 
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
+          {/* --- Horizontal Feature/Steps Grid --- */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+            {stepsData.map((step, index) => (
+              <div 
+                key={index} 
+                // White Card Style matching the image snippet
+                className="bg-white text-gray-800 rounded-xl shadow-xl p-6 text-center h-full flex flex-col items-center justify-start transition duration-300 transform hover:shadow-2xl"
+              >
+                {/* Icon Circle (Blue Theme) */}
+                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 text-blue-600 mb-4 border border-blue-200">
+                  <step.icon className="w-6 h-6" />
+                </div>
+                
+                {/* Title */}
+                <h3 className="text-xl font-bold mb-2 text-slate-800">
+                  {step.title}
+                </h3>
+                
+                {/* Description */}
+                <p className="text-gray-600 text-sm flex-grow">
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* --- End Dark Background Container --- */}
+
+
+        {/* CTA Section - Moved outside the dark container for emphasis/contrast */}
+        <div className="mt-20 text-center">
+          <a 
+            href="/staff-qr"
+            className="inline-flex items-center justify-center px-10 py-4 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-blue-6300 hover:bg-blue-400 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-50"
+          >
+            Access Online Application Portal
+            <ArrowRight className="ml-3 -mr-1 w-5 h-5" />
+          </a>
+        </div>
+      </div>
+    </section>
+
+
+            
+
+
+      <section className="py-24 bg-gray-50/50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* --- */}
+        {/* Header Section */}
+        {/* --- */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <div className="inline-flex items-center space-x-2 bg-blue-100/50 text-blue-700 text-sm font-medium px-4 py-2 rounded-full mb-4 border border-blue-200">
+            <MessageSquareText className="w-4 h-4" />
+            <span>Common Questions</span>
+          </div>
+          <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
+            Need <span className="text-5xl lg:text-6xl text-blue-600">Answers</span>?
+          </h2>
+          <p className="text-xl text-slate-600 max-w-3xl leading-relaxed">
+            Find immediate answers to common questions about the AICS program and application process below.
+          </p>
+        </motion.div>
+
+        {/* --- */}
+        {/* FAQ List */}
+        {/* --- */}
+        <div className="space-y-5">
+          {faqs.map((faq, index) => {
+            const isOpen = openFaq === index;
+
+            return (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
+                // Modern card design: strong shadow, rounded corners, clean border
+                className={`bg-white rounded-xl shadow-lg transition-all duration-300 ${
+                  isOpen ? "ring-2 ring-blue-500 shadow-xl" : "shadow-md hover:shadow-lg"
+                }`}
               >
                 <button
-                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                  className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
+                  onClick={() => toggleFaq(index)}
+                  className="w-full p-6 text-left flex items-start justify-between transition-colors duration-200"
                 >
-                  <h3 className="text-lg font-semibold text-gray-900">{faq.question}</h3>
-                  <motion.div
-                    animate={{ rotate: openFaq === index ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
+                  {/* Question: Bolder text when active */}
+                  <h3
+                    className={`text-lg font-semibold pr-4 transition-colors duration-200 ${
+                      isOpen ? "text-blue-700" : "text-gray-900"
+                    }`}
                   >
-                    <ChevronDown className="w-5 h-5 text-gray-500" />
+                    {faq.question}
+                  </h3>
+                  {/* Chevron Icon: Brighter blue when active */}
+                  <motion.div
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex-shrink-0"
+                  >
+                    <ChevronDown className={`w-6 h-6 transition-colors duration-200 ${isOpen ? "text-blue-600" : "text-gray-400"}`} />
                   </motion.div>
                 </button>
+
                 <AnimatePresence>
-                  {openFaq === index && (
+                  {isOpen && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="border-t border-gray-100"
+                      transition={{ duration: 0.4, ease: "easeInOut" }}
+                      // Answer content: clear, bordered, padded area
+                      className="border-t border-blue-50"
                     >
-                      <p className="p-6 text-gray-600 leading-relaxed">{faq.answer}</p>
+                      <p className="p-6 pt-4 text-gray-700 leading-relaxed bg-blue-50/30 rounded-b-xl">
+                        {faq.answer}
+                      </p>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </motion.div>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      </section>
-            
+      </div>
+    </section>            
                   
 
 

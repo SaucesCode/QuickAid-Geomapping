@@ -32,12 +32,10 @@ const createColoredIcon = color =>
     className: "custom-marker",
     html: `
       <svg xmlns="http://www.w3.org/2000/svg" width="44" height="64" viewBox="0 0 24 24">
-        <!-- Outer pin -->
         <path
           d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
           fill="${color}"
         />
-        <!-- Inner white circle -->
         <circle cx="12" cy="9" r="3" fill="white" />
       </svg>
     `,
@@ -53,9 +51,9 @@ const defaultCenter = [13.938, 121.508];
 
 // Colors (UNCHANGED as per request)
 const assistanceColors = {
-  Medical: "#10b981",
+  Medical: "blue",
   Burial: "#fef08a",
-  Educational: "#3b82f6",
+  Educational: "green",
 };
 
 const assistanceTypes = ["Medical", "Burial", "Educational"];
@@ -181,7 +179,7 @@ const MapComponent = () => {
 
       // Create the GeoJSON layer
       const layer = L.geoJSON(cityGeoData, {
-        style: { color: "#60a5fa", weight: 3, fillOpacity: 0.15 },
+        style: { color: "#3b82f6", weight: 3, fillOpacity: 0.15 },
       }).addTo(map);
 
       // Fit map bounds
@@ -212,8 +210,8 @@ const MapComponent = () => {
   }, [validLocations, cityFilter]);
 
   return (
-    // Main container is responsive and full-height, but without min-h-screen for flexibility
-    <div className="relative w-full h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
+    // Updated background to a softer monochromatic blue gradient
+    <div className="relative w-full h-full bg-gradient-to-br from-blue-50 via-blue-50 to-blue-100 overflow-hidden"> 
       <style>{`
         .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
@@ -268,7 +266,8 @@ const MapComponent = () => {
                     <Popup>
                       <div className="p-2">
                         <h3 className="font-semibold text-blue-700 mb-1">{loc.full_name}</h3>
-                        <p className="text-sm text-gray-600 mb-2">{loc.address}</p>
+                        {/* Changed text-gray-600 to text-blue-600 for monochromatic theme */}
+                        <p className="text-sm text-blue-600 mb-2">{loc.address}</p> 
                         <span
                           className="inline-block px-2 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
                           style={{ backgroundColor: getColor(loc.type_of_assistance) }}
@@ -299,7 +298,8 @@ const MapComponent = () => {
           <div className="absolute top-4 right-4 z-50 w-full max-w-sm">
             <div className="flex justify-end mb-2">
               <button
-                className="px-3 py-1 text-xs font-semibold bg-white rounded-full shadow hover:bg-gray-100 transition-all duration-200"
+                // Updated toggle button for blue theme
+                className="px-3 py-1 text-xs font-semibold bg-white rounded-full shadow border border-blue-200 text-blue-700 hover:bg-blue-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onClick={togglePanel}
               >
                 {panelOpen ? "Hide Filters" : "Show Filters"}
@@ -307,15 +307,18 @@ const MapComponent = () => {
             </div>
 
             <div
-              className={`bg-white rounded-2xl shadow-xl p-4 overflow-hidden transition-all duration-300 ${
-                panelOpen ? "max-h-[calc(100vh-3rem)] opacity-100" : "max-h-0 opacity-0 p-0"
+              // Added border for a professional look
+              className={`bg-white rounded-2xl shadow-xl border border-blue-300 overflow-hidden transition-all duration-300 ${
+                panelOpen ? "p-6 max-h-[calc(100vh-3rem)] opacity-100" : "max-h-0 opacity-0 p-0"
               }`}
             >
               {/* Filters */}
-              <div className="space-y-3 text-sm">
+              <div className="space-y-4 text-sm">
+                
                 {/* Type Filter */}
                 <select
-                  className="w-full px-3 py-2 bg-blue-50 border-2 border-blue-200 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  // Monochromatic blue theme for input
+                  className="w-full px-4 py-2.5 bg-white border border-blue-300 rounded-lg text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
                   onChange={e => setTypeFilter(e.target.value)}
                   value={typeFilter}
                 >
@@ -329,7 +332,8 @@ const MapComponent = () => {
 
                 {/* City Filter */}
                 <select
-                  className="w-full px-3 py-2 bg-indigo-50 border-2 border-indigo-200 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
+                  // Monochromatic blue theme for input
+                  className="w-full px-4 py-2.5 bg-white border border-blue-300 rounded-lg text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
                   onChange={e => setCityFilter(e.target.value)}
                   value={cityFilter}
                 >
@@ -340,10 +344,12 @@ const MapComponent = () => {
                     </option>
                   ))}
                 </select>
+                
                 {/* Barangay Filter */}
                 {cityFilter && (
                   <select
-                    className="w-full px-3 py-2 bg-green-50 border-2 border-green-200 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                    // Monochromatic blue theme for input
+                    className="w-full px-4 py-2.5 bg-white border border-blue-300 rounded-lg text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
                     onChange={e => setBarangayFilter(e.target.value)}
                     value={barangayFilter}
                   >
@@ -358,7 +364,8 @@ const MapComponent = () => {
 
                 {/* Reset Button */}
                 <button
-                  className="w-full px-3 py-2 bg-gray-100 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-200"
+                  // Updated reset button for blue theme
+                  className="w-full px-3 py-2 bg-blue-50 text-blue-800 rounded-lg font-semibold hover:bg-blue-100/70 transition-all duration-200 border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onClick={resetFilters}
                 >
                   Reset Filters
@@ -367,27 +374,30 @@ const MapComponent = () => {
 
               {/* Active Filters Tags */}
               {(typeFilter || cityFilter || barangayFilter) && (
-                <div className="flex flex-wrap gap-2 mt-3">
+                <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-blue-100">
                   {typeFilter && (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold flex items-center gap-1.5">
+                    // Blue monochromatic tag design
+                    <span className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-sm">
                       Type: {typeFilter}
-                      <button onClick={() => setTypeFilter("")}>
+                      <button onClick={() => setTypeFilter("")} className="hover:text-blue-900">
                         <X className="w-3 h-3" />
                       </button>
                     </span>
                   )}
                   {cityFilter && (
-                    <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold flex items-center gap-1.5">
+                    // Blue monochromatic tag design (slightly different shade for distinction)
+                    <span className="px-2.5 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-sm">
                       City: {cityFilter}
-                      <button onClick={() => setCityFilter("")}>
+                      <button onClick={() => setCityFilter("")} className="hover:text-blue-900">
                         <X className="w-3 h-3" />
                       </button>
                     </span>
                   )}
                   {barangayFilter && (
-                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold flex items-center gap-1.5">
+                    // Blue monochromatic tag design (another shade for distinction)
+                    <span className="px-2.5 py-1 bg-blue-300 text-blue-900 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-sm">
                       Brgy: {barangayFilter}
-                      <button onClick={() => setBarangayFilter("")}>
+                      <button onClick={() => setBarangayFilter("")} className="hover:text-blue-900">
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -396,12 +406,14 @@ const MapComponent = () => {
               )}
 
               {/* Overview Section */}
-              <div className="mt-4 text-sm">
+              <div className="mt-6 text-sm">
+                
                 {/* Total Locations */}
-                <div className="bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-700 rounded-xl p-3 text-white mb-3 shadow">
+                {/* Changed gradient to monochromatic blue */}
+                <div className="bg-gradient-to-br from-blue-700 to-blue-900 rounded-xl p-4 text-white mb-4 shadow-lg">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold opacity-90">Total Locations</p>
-                    <p className="text-2xl font-bold">{validLocations.length}</p>
+                    <p className="text-sm text-white font-semibold opacity-90">Total Locations</p>
+                    <p className="text-3xl text-white font-bold">{validLocations.length}</p>
                   </div>
                 </div>
 
@@ -410,16 +422,18 @@ const MapComponent = () => {
                   {Object.entries(assistanceColors).map(([type, color]) => (
                     <div
                       key={type}
-                      className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-100"
+                      // Updated neutral classes to monochromatic blue
+                      className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200 shadow-sm" 
                     >
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-3 h-3 rounded-full"
+                          className="w-3 h-3 rounded-full shadow-md"
                           style={{ backgroundColor: color }}
                         />
-                        <span className="text-gray-800 text-sm">{type}</span>
+                        <span className="text-blue-800 text-sm font-medium">{type}</span> {/* Changed text-gray-800 to text-blue-800 */}
                       </div>
-                      <span className="text-gray-900 text-sm font-bold">
+                      {/* Changed text-gray-900 to text-blue-900 */}
+                      <span className="text-blue-900 text-lg font-bold">
                         {stats[type] || 0}
                       </span>
                     </div>

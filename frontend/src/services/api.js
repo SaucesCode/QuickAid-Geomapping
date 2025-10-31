@@ -8,72 +8,14 @@ export const api = axios.create({
   baseURL: API_URL,
 });
 
-// ✅ Function to store tokens in localStorage
+// ✅ Store tokens
 const storeTokens = (access, refresh) => {
   localStorage.setItem("accessToken", access);
   localStorage.setItem("refreshToken", refresh);
 };
 
-// ✅ Function to refresh the access token
-export const refreshAccessToken = async () => {
-  const refreshToken = localStorage.getItem("refreshToken");
-
-  if (!refreshToken) return null; // No refresh token available
-
-  try {
-    const response = await api.post(`/token/refresh/`, { refresh: refreshToken });
-
-    if (response.status === 200) {
-      const { access } = response.data;
-      storeTokens(access, refreshToken); // ✅ Store new access token
-      return access;
-    }
-  } catch (error) {
-    console.error("Token refresh failed", error);
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    return null;
-  }
-};
-
-// ✅ Axios request interceptor to auto-refresh token
-api.interceptors.request.use(
-  async config => {
-    let accessToken = localStorage.getItem("accessToken");
-
-    if (!accessToken) {
-      accessToken = await refreshAccessToken();
-    }
-
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-
-    return config;
-  },
-  error => Promise.reject(error)
-);
-
-export const loginStaff = async (username, password) => {
-  try {
-    const response = await api.post(`/token/`, { username, password });
-
-    if (response.status === 200) {
-      const { access, refresh, staff_info: user } = response.data;
-
-      storeTokens(access, refresh);
-
-      localStorage.setItem("userData", JSON.stringify(user));
-
-      return response.data;
-    }
-  } catch (error) {
-    console.error("Login Error:", error.response?.data);
-    throw new Error("Login failed");
-  }
-};
-
-const isTokenExpired = token => {
+// ✅ Decode and check expiration
+const isTokenExpired = (token) => {
   try {
     const { exp } = jwtDecode(token);
     return Date.now() >= exp * 1000;
@@ -82,27 +24,120 @@ const isTokenExpired = token => {
   }
 };
 
-export const checkTokenValidity = () => {
-  const token = localStorage.getItem("accessToken");
-
-  if (!token || isTokenExpired(token)) {
-    logoutUser();
-  }
-};
-
+// ✅ Logout user cleanly
 export const logoutUser = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("userData");
 };
 
-// ✅ Register Applicant Function
-export const submitApplicant = async data => {
+// ✅ Refresh token function
+export const refreshAccessToken = async () => {
+  const refreshToken = localStorage.getItem("refreshToken");
+
+  if (!refreshToken) return null;
+
+  try {
+    const response = await axios.post(`${API_URL}/token/refresh/`, {
+      refresh: refreshToken,
+    });
+
+    if (response.status === 200) {
+      const { access } = response.data;
+      storeTokens(access, refreshToken);
+      return access;
+    }
+  } catch (error) {
+    console.error("🔒 Token refresh failed:", error.response?.data || error);
+    logoutUser();
+    return null;
+  }
+};
+
+// ✅ Axios request interceptor
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+function subscribeTokenRefresh(cb) {
+  refreshSubscribers.push(cb);
+}
+
+function onRefreshed(token) {
+  refreshSubscribers.map((cb) => cb(token));
+  refreshSubscribers = [];
+}
+
+api.interceptors.request.use(
+  async (config) => {
+    let accessToken = localStorage.getItem("accessToken");
+
+    // 🔹 Refresh if expired
+    if (accessToken && isTokenExpired(accessToken)) {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        accessToken = await refreshAccessToken();
+        isRefreshing = false;
+        onRefreshed(accessToken);
+      } else {
+        // Wait until refresh finishes
+        accessToken = await new Promise((resolve) => {
+          subscribeTokenRefresh(resolve);
+        });
+      }
+    }
+
+    // 🔹 Attach token to headers
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// ✅ Response interceptor (handle global 401)
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      console.warn("🚫 Unauthorized request, redirecting to login...");
+      logoutUser();
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
+// ✅ Login
+export const loginStaff = async (username, password) => {
+  try {
+    const response = await api.post(`/token/`, { username, password });
+
+    if (response.status === 200) {
+      const { access, refresh, staff_info: user } = response.data;
+      storeTokens(access, refresh);
+      localStorage.setItem("userData", JSON.stringify(user));
+      return response.data;
+    }
+  } catch (error) {
+    console.error("Login Error:", error.response?.data);
+    throw new Error("Login failed");
+  }
+};
+
+// ✅ Check token validity (optional auto-logout)
+export const checkTokenValidity = () => {
+  const token = localStorage.getItem("accessToken");
+  if (!token || isTokenExpired(token)) logoutUser();
+};
+
+// ✅ Submit Applicant
+export const submitApplicant = async (data) => {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const staffRefCode = urlParams.get("staff_ref_code");
 
-    // Prepare background_info block
     const background_info = {
       first_name: data.first_name,
       middle_initial: data.middle_initial,
@@ -129,7 +164,6 @@ export const submitApplicant = async data => {
       created_at: data.created_at,
     };
 
-    // Add representative data if needed
     if (data.applicant_type === "Representative") {
       payload.representative = {
         relationship: data.rep_relationship,
@@ -149,18 +183,7 @@ export const submitApplicant = async data => {
       };
     }
 
-    if (staffRefCode) {
-      payload.staff_ref_code = staffRefCode;
-    }
-
-    let headers = { "Content-Type": "application/json" };
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await api.post(`/submit-applicant/`, payload, { headers });
-
+    const response = await api.post(`/submit-applicant/`, payload);
     return response.data;
   } catch (error) {
     console.error("Submission Error:", error.response?.data);

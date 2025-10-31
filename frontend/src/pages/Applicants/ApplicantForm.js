@@ -7,9 +7,8 @@ import {
   Building2,
   Calendar,
   FileText,
-  Sparkles,
   UserPlus,
-  Loader2, // Added Loader2 for consistent loading UI
+  Loader2,
 } from "lucide-react";
 import { api } from "../../services/api";
 import { useQuery } from "@tanstack/react-query";
@@ -28,7 +27,7 @@ const ApplicantForm = () => {
     };
   }, []);
 
-  // ✅ Fetch applicants using React Query (NO CHANGES)
+  // ✅ Fetch applicants using React Query
   const {
     data: applicants = [],
     isLoading,
@@ -50,7 +49,7 @@ const ApplicantForm = () => {
       }),
   });
 
-  // 🔍 Filter results with useMemo for performance (NO CHANGES)
+  // 🔍 Filter results with useMemo for performance
   const filteredApplicants = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return applicants;
@@ -71,12 +70,12 @@ const ApplicantForm = () => {
     });
   }, [applicants, searchTerm]);
 
-  // Updated EmptyState component with consistent design
+  // Updated EmptyState component (omitted for brevity)
   const EmptyState = () => (
-    <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden p-6">
+    <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden p-6">
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="mb-6 p-6 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full shadow-lg">
-          <FileText className="w-16 h-16 text-blue-500" />
+        <div className="mb-6 w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
+          <FileText className="w-10 h-10 text-white" />
         </div>
         <h3 className="text-2xl font-bold mb-3 text-gray-800">
           {isError ? "Error Loading Data" : "No Applicants Found"}
@@ -100,9 +99,8 @@ const ApplicantForm = () => {
   );
 
   return (
-    // Background: Matching the Applicants component
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-      {/* Background Blur Shapes (Copied for consistency) */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 relative overflow-hidden">
+      {/* Background Blur Shapes (omitted for brevity) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
         <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
@@ -111,22 +109,21 @@ const ApplicantForm = () => {
 
       <div className="relative z-10 p-4 sm:p-6 md:p-10">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header Card (New Card Style) */}
-          <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+          {/* Header Card (omitted for brevity) */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-8">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-blue-100/70 border border-blue-200">
-                    <UserPlus className="w-8 h-8 text-blue-600" />
-                  </div>
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <UserPlus className="w-8 h-8 text-white" />
+                </div>
+                <div className="space-y-1">
                   <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
                     Applicant Registry
                   </h1>
+                  <p className="text-gray-600 text-lg mt-1 flex items-center gap-2">
+                    Input and manage assistance applicants
+                  </p>
                 </div>
-                <p className="text-gray-500 ml-14 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-blue-500" />
-                  Input and manage assistance applicants
-                </p>
               </div>
 
               <button
@@ -139,8 +136,8 @@ const ApplicantForm = () => {
             </div>
           </div>
 
-          {/* Search + Stats Card (New Card Style) */}
-          <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
+          {/* Search + Stats Card (omitted for brevity) */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
             <div className="p-6 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-6">
               <div className="flex-1 relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
@@ -153,109 +150,148 @@ const ApplicantForm = () => {
                 />
               </div>
 
-              <div className="flex items-center gap-3 bg-gradient-to-r from-blue-100/50 to-indigo-100/50 px-6 py-3.5 rounded-xl border-2 border-blue-200">
-                <div className="p-2 rounded-full bg-blue-500/10">
-                  <Users className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-800">
-                    {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-blue-500" /> : applicants.length.toLocaleString()}
+              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-3 lg:p-4 border border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 w-full lg:w-auto flex-shrink-0" style={{ borderLeftColor: "#3B82F6" }}>
+                  <div className="flex items-center gap-4 justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600 font-semibold">Total Applicants</p>
+                      {isLoading ? (
+                        <div className="mt-1 space-y-2">
+                          <div className="h-8 w-20 bg-gray-300 rounded animate-pulse"></div>
+                          <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>
+                        </div>
+                      ) : (
+                        <>
+                          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r" style={{backgroundImage: `linear-gradient(to right, #3B82F6, #6366f1)`}}>
+                            {applicants.length.toLocaleString()}
+                          </h2>
+                          <p className="text-sm text-gray-500 mt-1">Total in registry</p>
+                        </>
+                      )}
+                    </div>
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
+                        style={{ backgroundColor: "#3B82F6", background: `linear-gradient(to bottom right, #3B82F690, #3B82F6)` }}>
+                      <Users className="w-6 h-6 text-white" />
+                    </div>
                   </div>
-                  <div className="text-xs font-medium text-blue-700">Total Applicants</div>
-                </div>
               </div>
             </div>
           </div>
 
           {/* Table or Loading/Empty */}
           {isLoading ? (
-            <div className="flex justify-center items-center py-24 bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200">
+            <div className="flex justify-center items-center py-24 bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200">
               <Loader2 className="w-8 h-8 animate-spin text-blue-600 mr-3" />
               <span className="text-blue-700 font-semibold">Loading Applicant Data...</span>
             </div>
           ) : isError || !filteredApplicants.length ? (
             <EmptyState />
           ) : (
-            <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-blue-100">
-                  <thead>
-                    {/* Table Header: Using gradient background for visual weight */}
-                    <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
-                      <th className="px-6 py-4 text-left">#</th>
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4" />
-                          Full Name
-                        </div>
-                      </th>
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          Barangay
-                        </div>
-                      </th>
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4" />
-                          City
-                        </div>
-                      </th>
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4" />
-                          Assistance Type
-                        </div>
-                      </th>
-                      <th className="px-6 py-4 text-left">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          Date Filled
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-blue-100">
-                    {filteredApplicants.map((a, i) => (
-                      <tr
-                        key={a.id || i}
-                        className="hover:bg-blue-50/50 transition-all duration-150 group cursor-pointer"
-                        // Optional: Navigate to detail page on click
-                        onClick={() => navigate(`/applicants/${a.id}`)}
-                      >
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-500">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
-                            {filteredApplicants.length - i}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-800 whitespace-nowrap">
-                          {a.background_info?.first_name} {a.background_info?.last_name}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-700 flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-blue-400" />
-                          {a.background_info?.barangay}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-700 flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-blue-400" />
-                          {a.background_info?.barangay_details?.city_name}
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          {/* Assistance Type Chip: Using gradient background */}
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md">
-                            <FileText className="w-3 h-3" />
-                            {a.type_of_assistance}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-700 flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-blue-400" />
-                          {formatDate(a.created_at)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
+  <div className="overflow-x-auto">
+    <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
+      <thead>
+        <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
+          <th className="px-6 py-4 text-left w-12 align-middle">
+            <div className="flex items-center justify-center">#</div>
+          </th>
+          <th className="px-6 py-4 text-left w-1/4 align-middle">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Full Name
             </div>
+          </th>
+          <th className="px-6 py-4 text-left w-1/6 align-middle">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Barangay
+            </div>
+          </th>
+          <th className="px-6 py-4 text-left w-1/6 align-middle">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4" />
+              City
+            </div>
+          </th>
+          <th className="px-6 py-4 text-left w-1/6 align-middle">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Assistance Type
+            </div>
+          </th>
+          <th className="px-6 py-4 text-left w-[120px] align-middle">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Date Filled
+            </div>
+          </th>
+        </tr>
+      </thead>
+
+      <tbody className="divide-y divide-blue-100 text-gray-800">
+        {filteredApplicants.map((a, i) => (
+          <tr
+            key={a.id || i}
+            className="hover:bg-blue-50/50 transition-all duration-150 group cursor-pointer"
+            onClick={() => navigate(`/applicants/${a.id}`)}
+          >
+            <td className="px-6 py-4 align-middle">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors font-semibold text-gray-600">
+                {filteredApplicants.length - i}
+              </div>
+            </td>
+
+            <td className="px-6 py-4 align-middle font-semibold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
+              {a.background_info?.first_name} {a.background_info?.last_name}
+            </td>
+
+            <td className="px-6 py-4 align-middle text-gray-700">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                <span className="truncate">{a.background_info?.barangay}</span>
+              </div>
+            </td>
+
+            <td className="px-6 py-4 align-middle text-gray-700">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                <span className="truncate">
+                  {a.background_info?.barangay_details?.city_name || "N/A"}
+                </span>
+              </div>
+            </td>
+
+            <td className="px-6 py-4 align-middle">
+  <div className="flex items-center gap-1.5">
+    <span
+      className={`inline-flex px-3 py-1.5 rounded-xl text-xs font-semibold shadow-md
+        ${
+          a.type_of_assistance?.toLowerCase() === "educational"
+            ? "bg-green-100 text-green-800"
+            : a.type_of_assistance?.toLowerCase() === "medical"
+            ? "bg-blue-100 text-blue-800"
+            : a.type_of_assistance?.toLowerCase() === "burial"
+            ? "bg-yellow-100 text-yellow-800"
+            : "bg-gray-100 text-gray-800"
+        }`}
+    >
+      {a.type_of_assistance || "N/A"}
+    </span>
+  </div>
+</td>
+
+
+            <td className="px-6 py-4 align-middle text-gray-700">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                <span className="truncate">{formatDate(a.created_at)}</span>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
           )}
         </div>
       </div>

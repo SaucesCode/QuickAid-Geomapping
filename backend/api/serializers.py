@@ -63,14 +63,19 @@ class BackgroundInfoSerializer(serializers.ModelSerializer):
         validators = []
 
     def validate_barangay(self, value):
-        print(f"Validating barangay PSGC code: {value}")
+        print(f"Validating barangay: {value}")
         try:
-            barangay_obj = Barangay.objects.get(psgc_code=value)
+            barangay_obj = (
+                Barangay.objects.filter(psgc_code=value).first() or
+                Barangay.objects.filter(name__iexact=value).first()
+            )
+            if not barangay_obj:
+                raise Barangay.DoesNotExist
             print(f"Barangay found: {barangay_obj.name}")
             return barangay_obj
         except Barangay.DoesNotExist:
-            print("Barangay PSGC code not found!")
-            raise serializers.ValidationError("Invalid Barangay PSGC code.")
+            print("Barangay not found!")
+            raise serializers.ValidationError("Invalid Barangay code or name.")
 
     def create(self, validated_data):
         barangay = validated_data.pop("barangay")

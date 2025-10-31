@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import {
-  Heart,
-  Stethoscope,
-  ClipboardList,
+  Heart, // Main Hero Icon
+  Stethoscope, // Medical Consultation / General medical
+  ClipboardList, // Records / Laboratory
   Users,
-  Hospital,
-  Pill,
-  Bandage,
+  Hospital, // Hospital / Facilities
+  Pill, // Medicines
+  Bandage, // (Not explicitly used, but available)
   FileText,
   ListChecks,
   Gift,
   IdCard,
+  ArrowLeft,
   Home,
   Wallet,
   FileCheck,
@@ -18,6 +19,7 @@ import {
   FileSignature,
   CheckCircle,
   Banknote,
+  
 } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
@@ -30,14 +32,14 @@ const MedicalAssistance = () => {
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50 pt-32">
-        {/* Hero Section */}
+        {/* Hero Section - Blue Theme */}
         <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16 relative overflow-hidden">
-          <Heart className="absolute right-12 top-12 w-40 h-40 text-white opacity-10" />
+          <Stethoscope className="absolute right-12 top-12 w-40 h-40 text-white opacity-10" />
 
           <div className="max-w-6xl mx-auto px-6 relative z-10">
             <div className="flex flex-col md:flex-row items-center gap-10">
               <div className="flex-1">
-                <h1 className="text-4xl md:text-5xl text-blue-100 font-extrabold mb-4">
+                <h1 className="text-4xl md:text-5xl text-blue-100 font-bold mb-4">
                   Medical Assistance Program
                 </h1>
                 <p className="text-lg text-blue-100 max-w-xl">
@@ -145,8 +147,8 @@ const MedicalAssistance = () => {
               {activeTab === "application" && (
                 <div>
                   <h2 className="text-2xl font-bold text-blue-700 mb-8">
-      Application Process
-    </h2>
+                    Application Process
+                  </h2>
                   <div className="relative">
                     {/* Vertical Line */}
                     <div className="absolute left-6 top-0 h-full w-1 bg-gray-200"></div>
@@ -280,13 +282,14 @@ const MedicalAssistance = () => {
 
         {/* Back Button */}
         <div className="max-w-6xl mx-auto px-6 py-12 text-center">
-          <Link
-            to="/services"
-            className="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md font-semibold transition-colors"
-          >
-            ← Back to Services
-          </Link>
-        </div>
+                  <Link
+                    to="/services"
+                    className="inline-flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 py-3 rounded-full font-semibold transition-colors"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    Back to Services
+                  </Link>
+                </div>
 
         <Footer />
       </div>
