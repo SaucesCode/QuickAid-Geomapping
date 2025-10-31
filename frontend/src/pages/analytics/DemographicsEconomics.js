@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../../services/api";
+import { api } from "../../services/api"; // This is the actual imported API service
 import {
   BarChart,
   Bar,
@@ -27,9 +27,43 @@ import {
   UserCheck,
   AlertCircle,
   Loader2,
-  MapPin, // Added MapPin icon to match Geographic design source
+  MapPin,
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
+
+
+
+const COLOR_SINGLE = "#3B82F6";  // Single: Blue
+const COLOR_MARRIED = "#EF4444"; // Married: Red
+const COLOR_DIVORCED = "#F59E0B"; // Divorced: Yellow (using Amber-500)
+const COLOR_WIDOWED = "#1F2937"; // Widowed: Black (using Gray-800)
+const COLOR_SEPARATED = "#9CA3AF"; // Separated: Gray (used for any other divprced/separated status)
+
+// --- COLOR HELPER FUNCTIONS (PRESERVED) ---
+const COLOR_MALE = "#3B82F6";   // Blue
+const COLOR_FEMALE = "#EC4899"; // Pink
+
+const getGenderColor = (gender) => {
+  if (!gender) return "#808080";
+  const normalized = gender.toString().trim().toLowerCase();
+  if (normalized === "male") return COLOR_MALE;
+  if (normalized === "female") return COLOR_FEMALE;
+  return "#808080";
+};
+
+
+
+const getCivilStatusColor = (status) => {
+    const norm = (status || "").toLowerCase();
+    if (norm.includes("married")) return COLOR_MARRIED;
+    if (norm.includes("single")) return COLOR_SINGLE;
+    if (norm.includes("divorced")) return COLOR_DIVORCED;
+    if (norm.includes("widowed")) return COLOR_WIDOWED;
+    // Assuming 'divprced' maps to 'Separated' status or similar for the gray color
+    if (norm.includes("separated") || norm.includes("divprced")) return COLOR_SEPARATED;
+    return "#6B7280"; // Default/Fallback Gray
+};
+
 
 // Fallback skeleton loader component for charts and lists
 const SkeletonLoader = ({ height = 300, type = "chart" }) => {
@@ -57,16 +91,12 @@ const SkeletonLoader = ({ height = 300, type = "chart" }) => {
       content = statSkeleton;
       break;
     case "list":
-      content = listSkeleton;
-      break;
-    case "chart":
     default:
       content = chartSkeleton;
       break;
   }
 
   return (
-    // Updated skeleton class to match the shadows/radii in Geographic.js
     <div
       className={`animate-pulse bg-gray-100 rounded-3xl ${type === "chart" ? "p-4" : "p-3"}`}
       style={{ height: type !== "stat" ? height : "auto" }}
@@ -76,19 +106,71 @@ const SkeletonLoader = ({ height = 300, type = "chart" }) => {
   );
 };
 
+// **FIXED STATCARD COMPONENT: ADDED 'title' ATTRIBUTE FOR HOVER TOOLTIP**
+const StatCard = ({ icon: Icon, title, value, subtitle, color, isLoading, iconAlignment = 'inner' }) => {
+  return (
+    <div
+      className={`group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-gray-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300`}
+      style={{ borderLeftColor: color }}
+    >
+      <div className="flex items-center gap-4 justify-between">
+        <div className="flex-1 min-w-0"> 
+          
+          <p className="text-sm text-gray-600 font-semibold">{title}</p>
+          
+          {isLoading ? (
+            <div className="mt-1 space-y-2">
+              <div className="h-8 w-20 bg-gray-300 rounded animate-pulse"></div>
+              {subtitle && <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>}
+            </div>
+          ) : (
+            <>
+              {/* Added title={String(value)} to show full text on hover */}
+              <h2
+                className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r truncate overflow-hidden whitespace-nowrap"
+                style={{ backgroundImage: `linear-gradient(to right, ${color}, #6366f1)` }}
+                title={String(value)} 
+              >
+                {value}
+              </h2>
+              {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+            </>
+          )}
+        </div>
+        {/* Icon container: Uses flex-shrink-0 to maintain its size */}
+        <div
+          className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-md flex-shrink-0 group-hover:scale-110 transition-transform`}
+          style={{
+            backgroundColor: color,
+            background: `linear-gradient(to bottom right, ${color}90, ${color})`,
+            zIndex: 10,
+          }}
+        >
+          <Icon className="w-7 h-7 text-white" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 const DemographicsEconomics = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
+
+  // **MOCK DATA REMOVED** - Component now relies exclusively on the imported 'api' service.
 
   const fetchData = async endpoint => {
     const params = new URLSearchParams();
 
     if (filters.start) params.append("start_date", filters.start);
     if (filters.end) params.append("end_date", filters.end);
-    if (filters.type) params.append("type", filters.type); // if you need it
+    if (filters.type) params.append("type", filters.type); 
 
     const query = params.toString() ? `?${params.toString()}` : "";
-    const res = await api.get(`${endpoint}${query}`);
+    
+    // **LOGIC MODIFIED**: Directly use the imported 'api' to fetch data.
+    const res = await api.get(`${endpoint}${query}`); 
     return res.data;
   };
 
@@ -131,9 +213,7 @@ const DemographicsEconomics = () => {
     income: incomeLoading,
   };
 
-  // Color palettes
-  const GENDER_COLORS = ["#3B82F6", "#EC4899", "#10B981", "#F59E0B"];
-  const CIVIL_STATUS_COLORS = ["#8B5CF6", "#06B6D4", "#84CC16", "#F97316", "#EF4444"];
+  // Color palettes (Only generic ones remain here)
   const AGE_COLORS = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD"];
   const INCOME_COLORS = [
     "#FF9999",
@@ -145,7 +225,7 @@ const DemographicsEconomics = () => {
     "#FFB366",
   ];
 
-  // Data transformations
+  // Data transformations (NO LOGIC CHANGE)
   const transformGenderData = data =>
     data.map(item => ({
       gender: item.background_info__sex || item.sex || "Unknown",
@@ -191,53 +271,11 @@ const DemographicsEconomics = () => {
         fontSize="12"
         fontWeight="bold"
       >
-        {`${(percent * 100).toFixed(0)}%`}
+        `${(percent * 100).toFixed(0)}%`
       </text>
     ) : null;
   };
 
-  // StatCard component updated to match Geographic.js card style
-  const StatCard = ({ icon: Icon, title, value, subtitle, color, isLoading }) => (
-    <div
-      // New: Matched card style from Geographic.js: shadows, rounded corners, hover effect
-      className={`group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-gray-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300`}
-      style={{ borderLeftColor: color }} // Kept left border color for distinction
-    >
-      <div className="flex items-center gap-4 justify-between">
-        <div>
-          {/* Text sizes and colors adjusted */}
-          <p className="text-sm text-gray-600 font-semibold">{title}</p>
-          {isLoading ? (
-            <div className="mt-1 space-y-2">
-              <div className="h-8 w-20 bg-gray-300 rounded animate-pulse"></div>
-              {subtitle && <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>}
-            </div>
-          ) : (
-            <>
-              {/* Title color now uses gradient for premium look */}
-              <h2
-                className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r"
-                style={{ backgroundImage: `linear-gradient(to right, ${color}, #6366f1)` }}
-              >
-                {value}
-              </h2>
-              {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
-            </>
-          )}
-        </div>
-        {/* Icon style matched to Geographic.js */}
-        <div
-          className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
-          style={{
-            backgroundColor: color,
-            background: `linear-gradient(to bottom right, ${color}90, ${color})`,
-          }}
-        >
-          <Icon className="w-7 h-7 text-white" />
-        </div>
-      </div>
-    </div>
-  );
 
   const transformedGenderData = transformGenderData(genderData);
   const transformedCivilStatusData = transformCivilStatusData(civilStatusData);
@@ -267,7 +305,6 @@ const DemographicsEconomics = () => {
     : "...";
 
   if (error) {
-    // Error screen is already in the Geographic style, no changes needed here.
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-red-50 to-indigo-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -327,55 +364,48 @@ const DemographicsEconomics = () => {
 
         <AnalyticsFilter onFilterChange={setFilters} />
 
-        {/* Stats */}
+        {/* --- STATS SECTION (Icons Fixed to be Inside and Non-Overlapping) --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             icon={Users}
             title="Total Applicants"
-            value={
-              typeof totalApplicants === "number"
-                ? totalApplicants.toLocaleString()
-                : totalApplicants
-            }
+            value={typeof totalApplicants === "number" ? totalApplicants.toLocaleString() : totalApplicants}
             subtitle="Across all demographics"
-            color="#3B82F6" // Blue
+            color="#3B82F6" 
             isLoading={!isGenderLoaded}
+            iconAlignment="inner" // Consistent inside alignment
           />
           <StatCard
             icon={UserCheck}
             title="Dominant Gender"
             value={dominantGender.gender || "N/A"}
-            subtitle={`${
-              typeof dominantGender.count === "number"
-                ? dominantGender.count.toLocaleString()
-                : dominantGender.count
-            } applications`}
-            color="#EC4899" // Pink
+            subtitle={`${typeof dominantGender.count === "number" ? dominantGender.count.toLocaleString() : dominantGender.count} applications`}
+            // Use helper for color
+            color={getGenderColor(dominantGender.gender)} 
             isLoading={!isGenderLoaded}
+            iconAlignment="inner" // Consistent inside alignment
           />
+          {/* Top Occupation now has long text truncated and a tooltip on hover */}
           <StatCard
-            icon={Briefcase}
+            icon={Briefcase} 
             title="Top Occupation"
             value={topOccupation?.occupation || "N/A"}
-            subtitle={`${
-              typeof topOccupation?.count === "number"
-                ? topOccupation?.count.toLocaleString()
-                : topOccupation?.count || 0
-            } applicants`}
-            color="#10B981" // Emerald
+            subtitle={`${typeof topOccupation?.count === "number" ? topOccupation?.count.toLocaleString() : topOccupation?.count || 0} applicants`}
+            color="#10B981" 
             isLoading={!isOccupationLoaded}
+            iconAlignment="inner" 
           />
           <StatCard
             icon={DollarSign}
             title="Income Profiles"
-            value={
-              typeof totalIncome === "number" ? totalIncome.toLocaleString() : totalIncome
-            }
+            value={typeof totalIncome === "number" ? totalIncome.toLocaleString() : totalIncome}
             subtitle="Total with income data"
-            color="#F59E0B" // Amber
+            color="#F59E0B" 
             isLoading={!isIncomeLoaded}
+            iconAlignment="inner" // Consistent inside alignment
           />
         </div>
+
 
         {/* Gender & Civil Status */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -390,18 +420,24 @@ const DemographicsEconomics = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={transformedGenderData}
-                    labelLine={false}
-                    label={renderCustomLabel}
-                    outerRadius={100}
-                    dataKey="count"
-                    nameKey="gender"
-                    stroke="#fff" // Added white stroke for better contrast
-                  >
-                    {transformedGenderData.map((e, i) => (
-                      <Cell key={i} fill={GENDER_COLORS[i % GENDER_COLORS.length]} />
-                    ))}
-                  </Pie>
+  data={transformedGenderData}
+  cx="50%"
+  cy="50%"
+  labelLine={false}
+  label={renderCustomLabel}
+  outerRadius={100}
+  dataKey="count"
+  nameKey="gender"
+  stroke="#fff"
+>
+  {transformedGenderData.map((entry, index) => (
+    <Cell
+      key={`cell-${index}`}
+      fill={getGenderColor(entry.gender)} // ✅ this line
+    />
+  ))}
+</Pie>
+
                   {/* Tooltip style matched */}
                   <Tooltip
                     formatter={v => [v, "Count"]}
@@ -452,14 +488,11 @@ const DemographicsEconomics = () => {
                       boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
                     }}
                   />
-                  <Bar dataKey="count" fill="#8B5CF6" radius={[8, 8, 0, 0]}>
-                    <defs>
-                      <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#8B5CF6" />
-                        <stop offset="100%" stopColor="#c084fc" />
-                      </linearGradient>
-                    </defs>
-                    <Bar dataKey="count" fill="url(#purpleGradient)" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+                    {/* **CIVIL STATUS COLORS VIA HELPER FUNCTION** */}
+                    {transformedCivilStatusData.map((entry, i) => (
+                      <Cell key={`status-cell-${i}`} fill={getCivilStatusColor(entry.status)} />
+                    ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -540,10 +573,10 @@ const DemographicsEconomics = () => {
                     }}
                   />
                   <Legend />
-                  {/* Bars with rounded tops */}
+                  {/* *** Stacked Bars - Using the new gender colors for the main age groups *** */}
                   <Bar dataKey="Under 18" stackId="a" fill="#FF6B6B" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="18-35" stackId="a" fill="#4ECDC4" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="36-60" stackId="a" fill="#45B7D1" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="18-35" stackId="a" fill={COLOR_MALE} radius={[4, 4, 0, 0]} /> 
+                  <Bar dataKey="36-60" stackId="a" fill={COLOR_FEMALE} radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Over 60" stackId="a" fill="#96CEB4" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -663,7 +696,7 @@ const DemographicsEconomics = () => {
                   <h4 className="font-semibold text-blue-800 mb-2">Gender Balance</h4>
                   {isGenderLoaded ? (
                     <p className="text-gray-700 text-sm">
-                      **{dominantGender.gender}** applicants represent the majority with{" "}
+                      {dominantGender.gender} applicants represent the majority with{" "}
                       {dominantGender.count.toLocaleString()} applications
                     </p>
                   ) : (
@@ -676,7 +709,7 @@ const DemographicsEconomics = () => {
                   <h4 className="font-semibold text-green-800 mb-2">Employment Patterns</h4>
                   {isOccupationLoaded ? (
                     <p className="text-gray-700 text-sm">
-                      **{topOccupation?.occupation || "Various occupations"}** is the most
+                      {topOccupation?.occupation || "Various occupations"} is the most
                       common occupation among applicants
                     </p>
                   ) : (
@@ -689,7 +722,7 @@ const DemographicsEconomics = () => {
                   <h4 className="font-semibold text-yellow-800 mb-2">Economic Profile</h4>
                   {isIncomeLoaded ? (
                     <p className="text-gray-700 text-sm">
-                      Total of **{totalIncome.toLocaleString()}** applicants provided income
+                      Total of {totalIncome.toLocaleString()} applicants provided income
                       data, showing varied economic backgrounds.
                     </p>
                   ) : (

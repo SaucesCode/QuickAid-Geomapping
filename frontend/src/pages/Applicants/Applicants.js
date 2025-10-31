@@ -205,7 +205,7 @@ const Applicants = () => {
   const currentItems = sortedApplicants.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(sortedApplicants.length / itemsPerPage);
 
-  // --- REDESIGNED JSX (MATCHING Geographic.js) ---
+  // --- REDESIGNED JSX (Filter moved to a separate card) ---
   return (
     // Background: Soft gradient and blurred elements (Consistent)
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
@@ -218,9 +218,15 @@ const Applicants = () => {
 
       <Toaster position="top-center" reverseOrder={false} />
       <div className="relative z-10 p-4 sm:p-6 md:p-10 space-y-6">
-        {/* Header/Search Card (Photocopy: Blured, Rounded-3xl, Shadow-xl, Border) */}
+        
+        {/* === 1. Header/Search Card === */}
         <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 sm:p-8 border border-blue-200">
           <ApplicantsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
+        
+        {/* === 2. Filter Card (New separate box, only wraps the component now) === */}
+        <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 sm:p-8 border border-blue-200">
+          {/* Removed the temporary H2 and border-b since the ApplicantsFilter component includes its own header/icon. */}
           <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
         </div>
 

@@ -1,101 +1,104 @@
 import React from "react";
-import { ClipboardList, Search, ThumbsUp, Heart } from "lucide-react";
+import { ClipboardList, Search, ThumbsUp, Heart, ArrowRight } from "lucide-react";
 
 export default function HowToApply() {
+  const steps = [
+    {
+      icon: ClipboardList,
+      title: "1. Submit Application",
+      description: "Fill out the online form or visit your nearest DSWD office to submit the required documents.",
+    },
+    {
+      icon: Search,
+      title: "2. Review & Validation",
+      description: "Your application will be reviewed within 24–48 hours for eligibility and assessment.",
+    },
+    {
+      icon: ThumbsUp,
+      title: "3. Assistance Granted",
+      description: "Once approved, financial or material assistance will be released immediately.",
+    },
+    {
+      icon: Heart,
+      title: "4. Support Received",
+      description: "Beneficiaries receive assistance plus follow-up support if needed.",
+    },
+  ];
+
+  const timeline = [
+    { time: "0–2 hrs", label: "Application Processing" },
+    { time: "24–48 hrs", label: "Review & Validation" },
+    { time: "1–3 days", label: "Assistance Deployment" },
+    { time: "Ongoing", label: "Follow-up Support" },
+  ];
+
   return (
-    <section className="bg-gray-50 py-16 px-6">
+    // Crisp white background for a professional look
+    <section className="bg-white py-24 px-6 sm:py-32">
       <div className="max-w-6xl mx-auto text-center">
-        {/* Section Title */}
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-          How it Works
+        
+        {/* Section Title: Strong, authoritative blue text */}
+        <h2 className="text-5xl lg:text-6x font-bold text-blue-900 mb-4 tracking-tight">
+          Our Simple <span className="text-5xl lg:text-6x text-blue-600">Process</span>
         </h2>
-        <p className="text-gray-600 max-w-3xl mx-auto mb-12">
-          Our streamlined four-step process ensures you get the help you need quickly and efficiently
+        
+        {/* Subtitle: Muted, high-contrast text */}
+        <p className="text-lg text-gray-500 max-w-4xl mx-auto mb-20 leading-relaxed">
+          Our streamlined four-step process ensures you get the help you need quickly and efficiently.
         </p>
 
-        {/* Steps */}
-        <div className="grid md:grid-cols-4 gap-10 mb-16">
-          {/* Step 1 */}
-          <div className="text-center">
-            <div className="flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 mx-auto mb-4">
-              <ClipboardList className="w-10 h-10 text-blue-600" />
+        {/* Steps: Modern, elevated cards with number badges */}
+        <div className="grid md:grid-cols-4 gap-8 mb-28">
+          {steps.map((step, index) => (
+            <div 
+              key={index}
+              // Card design: subtle shadow, rounded corners, clean hover effect
+              className="relative text-center p-8 bg-white border border-blue-50/50 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.01] group"
+            >
+              {/* Step Number Badge: Monochromatic blue circle for visual hierarchy */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-md">
+                <span className="text-white font-bold text-sm">{index + 1}</span>
+              </div>
+              
+              {/* Icon Container: Primary blue icon on a slightly lighter blue background */}
+              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 mx-auto mt-2 mb-6">
+                <step.icon className="w-7 h-7 text-blue-600" />
+              </div>
+              
+              {/* Title: Dark, readable blue heading */}
+              <h3 className="text-xl font-semibold text-blue-800 mb-3">
+                {step.title.substring(3)} {/* Remove the number from the title since we have the badge */}
+              </h3>
+              
+              {/* Description: Clean gray text for readability */}
+              <p className="text-gray-500 text-sm leading-relaxed">
+                {step.description}
+              </p>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              1. Submit Application
-            </h3>
-            <p className="text-gray-600">
-              Fill out the online form or visit your nearest DSWD office to
-              submit the required documents.
-            </p>
-          </div>
-
-          {/* Step 2 */}
-          <div className="text-center">
-            <div className="flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mx-auto mb-4">
-              <Search className="w-10 h-10 text-green-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              2. Review & Validation
-            </h3>
-            <p className="text-gray-600">
-              Your application will be reviewed within 24–48 hours for
-              eligibility and assessment.
-            </p>
-          </div>
-
-          {/* Step 3 */}
-          <div className="text-center">
-            <div className="flex items-center justify-center w-20 h-20 rounded-full bg-yellow-100 mx-auto mb-4">
-              <ThumbsUp className="w-10 h-10 text-yellow-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              3. Assistance Granted
-            </h3>
-            <p className="text-gray-600">
-              Once approved, financial or material assistance will be released
-              immediately.
-            </p>
-          </div>
-
-          {/* Step 4 */}
-          <div className="text-center">
-            <div className="flex items-center justify-center w-20 h-20 rounded-full bg-purple-100 mx-auto mb-4">
-              <Heart className="w-10 h-10 text-purple-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              4. Support Received
-            </h3>
-            <p className="text-gray-600">
-              Beneficiaries receive assistance plus follow-up support if needed.
-            </p>
-          </div>
+          ))}
         </div>
 
-        {/* Timeline */}
-        <div className="bg-white shadow-lg rounded-2xl p-8">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-8">
-            Typical Timeline
+        {/* Timeline: Dark blue, high-contrast, professional block */}
+        <div className="bg-blue-800 text-white rounded-xl p-8 lg:p-12 shadow-2xl">
+          <h3 className="text-2xl font-bold text-white mb-10 border-b border-blue-600 pb-5">
+            Expected Timeline 
           </h3>
-          <div className="flex flex-col md:flex-row justify-around items-center gap-6 md:gap-0">
-            <div className="text-center">
-              <p className="text-blue-600 font-bold text-xl">0–2 hrs</p>
-              <p className="text-gray-600">Application Processing</p>
-            </div>
-            <span className="text-gray-400 text-2xl">→</span>
-            <div className="text-center">
-              <p className="text-green-600 font-bold text-xl">24–48 hrs</p>
-              <p className="text-gray-600">Review & Validation</p>
-            </div>
-            <span className="text-gray-400 text-2xl">→</span>
-            <div className="text-center">
-              <p className="text-yellow-600 font-bold text-xl">1–3 days</p>
-              <p className="text-gray-600">Assistance Deployment</p>
-            </div>
-            <span className="text-gray-400 text-2xl">→</span>
-            <div className="text-center">
-              <p className="text-purple-600 font-bold text-xl">Ongoing</p>
-              <p className="text-gray-600">Follow-up Support</p>
-            </div>
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-6 md:gap-4 lg:gap-10">
+            
+            {timeline.map((item, index) => (
+              <React.Fragment key={index}>
+                {/* Timeline Item */}
+                <div className="text-center flex-1 py-2">
+                  <p className="text-blue-200 font-bold text-3xl mb-2">{item.time}</p>
+                  <p className="text-blue-300 text-sm font-semibold uppercase tracking-wider">{item.label}</p>
+                </div>
+                
+                {/* Arrow Divider: Bright blue arrow for visual separation (hidden on small screens) */}
+                {index < timeline.length - 1 && (
+                  <ArrowRight className="text-blue-500 w-6 h-6 hidden md:block flex-none" />
+                )}
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </div>

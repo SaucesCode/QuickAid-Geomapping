@@ -79,16 +79,16 @@ const CustomTooltip = ({ active, payload, label }) =>
   ) : null;
 
 // StatCard component updated to match Geographic/Demographics card style
+// StatCard component — updated to NOT call getAssistanceColor
 const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading }) => (
   <div
-    // New: Matched card style: shadows, rounded corners, hover effect
     className={`group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-gray-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300`}
-    style={{ borderLeftColor: color }} // Kept left border color for distinction
+    style={{ borderLeftColor: color }}
   >
     <div className="flex items-center gap-4 justify-between">
       <div>
-        {/* Text sizes and colors adjusted */}
         <p className="text-sm text-gray-600 font-semibold">{title}</p>
+
         {isLoading ? (
           <div className="mt-1 space-y-2">
             <div className="h-8 w-20 bg-gray-300 rounded animate-pulse"></div>
@@ -96,27 +96,38 @@ const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading 
           </div>
         ) : (
           <>
-            {/* Title color now uses gradient for premium look */}
-            <h2
-              className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r"
-              style={{ backgroundImage: `linear-gradient(to right, ${color}, #6366f1)` }}
-            >
-              {value}
-            </h2>
+            {/* If this is the Top Assistance card, show solid color text using `color` prop.
+                Otherwise keep the gradient look. */}
+            {title === "Top Assistance" ? (
+              <h2 className="text-3xl font-bold" style={{ color: color }}>
+                {value}
+              </h2>
+            ) : (
+              <h2
+                className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r"
+                style={{ backgroundImage: `linear-gradient(to right, ${color}, #6366f1)` }}
+              >
+                {value}
+              </h2>
+            )}
+
             {subtitle && (
               <div className="flex items-center mt-1">
-                <p className="text-sm text-gray-500">{subtitle}</p>
+                {/* Optional: color subtitle for Top Assistance, otherwise gray */}
+                <p
+                  className="text-sm"
+                  style={{ color: title === "Top Assistance" ? color : "#6B7280" }}
+                >
+                  {subtitle}
+                </p>
+
                 {trend !== undefined && (
                   <div
                     className={`ml-2 flex items-center text-xs font-semibold ${
                       trend >= 0 ? "text-green-600" : "text-red-600"
                     }`}
                   >
-                    {trend >= 0 ? (
-                      <ArrowUp className="h-3 w-3" />
-                    ) : (
-                      <ArrowDown className="h-3 w-3" />
-                    )}
+                    {trend >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
                     <span className="ml-1">{Math.abs(trend).toFixed(1)}%</span>
                   </div>
                 )}
@@ -125,7 +136,7 @@ const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading 
           </>
         )}
       </div>
-      {/* Icon style matched to Geographic/Demographics.js */}
+
       <div
         className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
         style={{
@@ -155,48 +166,93 @@ const Trends = () => {
     return res.data;
   };
 
-  // Montly Trends (No change to logic)
+  // --- START MODIFICATIONS ---
+
+  // 1. Define the Assistance Type Color Mapping
+  // Colors: Educational-Green, Medical-Blue, Burial-Light Yellow.
+  // Other colors are kept for general analytics. Red added as secondary.
+  const ASSISTANCE_COLOR_MAP = {
+    educational: "#10B981", // Green-600
+    medical: "#3B82F6",    // Blue-600
+    burial: "#FCD34D",     // Yellow-400 (light yellow/gold)
+    // Add other colors for any non-mapped types or use default.
+    other: "#EF4444",      // Red-600 (as requested for secondary analytics/other)
+    default: "#8B5CF6",    // Purple (fallback)
+  };
+
+  // Helper function to get the correct color, normalizing the key
+  const getAssistanceColor = (type) => {
+    const key = type ? type.toLowerCase() : '';
+    if (key.includes('educational')) return ASSISTANCE_COLOR_MAP.educational;
+    if (key.includes('medical')) return ASSISTANCE_COLOR_MAP.medical;
+    if (key.includes('burial')) return ASSISTANCE_COLOR_MAP.burial;
+    // Fallback for types not explicitly listed in the map
+    // We'll cycle through the explicit map values plus 'other' and 'default'
+    const definedColors = Object.values(ASSISTANCE_COLOR_MAP);
+    // Find the current type's index in the data array to apply a consistent color if it's not a primary type.
+    // This part is complex without knowing all assistance types, so we'll just use the default set of colors for non-primary keys.
+    return ASSISTANCE_COLOR_MAP[key] || ASSISTANCE_COLOR_MAP.default;
+  };
+
+  // Instead of a fixed array, we'll collect the unique types from the data and assign colors.
+  const [colorMap, setColorMap] = useState({});
+
+  // Fetch Logic (No change to logic)
   const { data: monthlyData = [], isLoading: monthlyLoading } = useQuery({
     queryKey: ["trends", "monthly", filters],
     queryFn: () => fetchData("/analytics/trends/monthly/"),
   });
-
-  // Yearly Trends (No change to logic)
   const { data: yearlyData = [], isLoading: yearlyLoading } = useQuery({
     queryKey: ["trends", "yearly", filters],
     queryFn: () => fetchData("/analytics/trends/yearly/"),
   });
-
-  // Overtime Trends (No change to logic)
   const { data: overtimeData = [], isLoading: overtimeLoading } = useQuery({
     queryKey: ["trends", "overtime", filters],
     queryFn: () => fetchData("/analytics/trends/over-time/"),
   });
-
-  // Cumulative Trends (No change to logic)
   const { data: cumulativeData = [], isLoading: cumulativeLoading } = useQuery({
     queryKey: ["trends", "cumulative", filters],
     queryFn: () => fetchData("/analytics/trends/cumulative/"),
   });
-
-  // Assistance Type Trends (No change to logic)
   const { data: assistanceTypeData = [], isLoading: assistanceTypeLoading } = useQuery({
     queryKey: ["trends", "assistanceType", filters],
     queryFn: () => fetchData("/analytics/trends/assistance-type/"),
   });
-
-  // Assistance Type over Time Trends (No change to logic)
   const { data: assistanceTypeDataOverTime = [], isLoading: assistanceTypeOverTimeLoading } =
     useQuery({
       queryKey: ["trends", "assistanceTypeOverTime", filters],
       queryFn: () => fetchData("/analytics/trends/assistance-type-over-time/"),
     });
-
-  // Applicant HeatMap Trends (No change to logic)
   const { data: applicantHeatmap = [], isLoading: applicantHeatmapLoading } = useQuery({
     queryKey: ["trends", "applicantHeatmap", filters],
     queryFn: () => fetchData("/analytics/trends/applicant-heatmap/"),
   });
+
+  // 2. Map colors dynamically after data fetch for BarChart/Legend
+  useEffect(() => {
+    if (assistanceTypeData.length > 0) {
+      // Collect all unique assistance types
+      const uniqueTypes = [...new Set(assistanceTypeData.map(item => item.type_of_assistance))];
+
+      // Use the explicit map, and cycle through the fallback colors for any extra types
+      const fallbackColors = ["#8B5CF6", "#F59E0B", "#EF4444", "#3B82F6"]; // A custom cycle array
+      let fallbackIndex = 0;
+      const newColorMap = {};
+
+      uniqueTypes.forEach(type => {
+        const primaryColor = getAssistanceColor(type);
+        if (primaryColor === ASSISTANCE_COLOR_MAP.default) {
+          // If it's a default, assign a color from the cycle array
+          newColorMap[type] = fallbackColors[fallbackIndex % fallbackColors.length];
+          fallbackIndex++;
+        } else {
+          // Assign the specific color
+          newColorMap[type] = primaryColor;
+        }
+      });
+      setColorMap(newColorMap);
+    }
+  }, [assistanceTypeData]);
 
   const loadingStates = {
     monthly: monthlyLoading,
@@ -208,7 +264,7 @@ const Trends = () => {
     applicantHeatmap: applicantHeatmapLoading,
   };
 
-  const ASSISTANCE_COLORS = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6"];
+  // **ASSISTANCE_COLORS is replaced by colorMap in usage below**
 
   const transformMonthlyData = data =>
     data.map(item => ({
@@ -283,15 +339,16 @@ const Trends = () => {
     return previous > 0 ? ((latest - previous) / previous) * 100 : 0;
   };
 
-  // HeatmapCell updated for consistent shadow/hover
+  // 3. HeatmapCell color update (changed default colors to blue monochromatic with red)
   const HeatmapCell = ({ hour, count, intensity }) => {
     const getIntensityColor = intensity => {
-      if (intensity === 0) return "#F3F4F6";
-      if (intensity < 20) return "#FEF3C7";
-      if (intensity < 40) return "#FCD34D";
-      if (intensity < 60) return "#F59E0B";
-      if (intensity < 80) return "#D97706";
-      return "#92400E";
+      // Monochromatic Blue with Red (for highest)
+      if (intensity === 0) return "#F3F4F6"; // Gray-100 (No Activity)
+      if (intensity < 20) return "#E0F2FE"; // Blue-50
+      if (intensity < 40) return "#93C5FD"; // Blue-300
+      if (intensity < 60) return "#3B82F6"; // Blue-600
+      if (intensity < 80) return "#1D4ED8"; // Blue-800
+      return "#B91C1C"; // Red-700 (Highest Activity - the 'red too' part)
     };
     return (
       <div
@@ -303,6 +360,8 @@ const Trends = () => {
       </div>
     );
   };
+
+  // --- END MODIFICATIONS ---
 
   // Data transformations
   const transformedMonthlyData = transformMonthlyData(monthlyData);
@@ -419,7 +478,7 @@ const Trends = () => {
             title="Top Assistance"
             value={mostPopularAssistance.type_of_assistance}
             subtitle={`${mostPopularAssistance.count} applications`}
-            color="#8B5CF6"
+            color={getAssistanceColor(mostPopularAssistance.type_of_assistance) || "#8B5CF6"} // Use the new color mapping
             isLoading={!isAssistanceTypeLoaded}
           />
         </div>
@@ -440,6 +499,7 @@ const Trends = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={transformedMonthlyData}>
                   <defs>
+                    {/* Primary Blue for Monochromatic Analytics */}
                     <linearGradient id="monthlyGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
                       <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
@@ -475,9 +535,10 @@ const Trends = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={transformedYearlyData}>
                   <defs>
+                    {/* Secondary Monochromatic Blue for Analytics */}
                     <linearGradient id="yearlyGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10B981" />
-                      <stop offset="100%" stopColor="#34d399" />
+                      <stop offset="0%" stopColor="#1e40af" /> 
+                      <stop offset="100%" stopColor="#3b82f6" /> 
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
@@ -520,9 +581,9 @@ const Trends = () => {
                   <Line
                     type="monotone"
                     dataKey="count"
-                    stroke="#F97316"
+                    stroke="#EF4444" // Red for Monochromatic + Red
                     strokeWidth={3}
-                    dot={{ fill: "#F97316", stroke: "#fff", strokeWidth: 2, r: 5 }}
+                    dot={{ fill: "#EF4444", stroke: "#fff", strokeWidth: 2, r: 5 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -543,9 +604,10 @@ const Trends = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={transformedCumulativeData}>
                   <defs>
+                    {/* Purple/Indigo Monochromatic for Analytics */}
                     <linearGradient id="cumulativeGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1} />
+                      <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#6366F1" stopOpacity={0.1} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
@@ -562,7 +624,7 @@ const Trends = () => {
                   <Area
                     type="monotone"
                     dataKey="cumulative"
-                    stroke="#8B5CF6"
+                    stroke="#6366F1" // Indigo-500
                     fill="url(#cumulativeGradient)"
                     strokeWidth={3}
                   />
@@ -601,7 +663,8 @@ const Trends = () => {
                     {assistanceTypeData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={ASSISTANCE_COLORS[index % ASSISTANCE_COLORS.length]}
+                        // Use the colorMap for specific, consistent colors
+                        fill={colorMap[entry.type_of_assistance]}
                       />
                     ))}
                   </Pie>
@@ -639,7 +702,8 @@ const Trends = () => {
                       <Bar
                         key={key}
                         dataKey={key}
-                        fill={ASSISTANCE_COLORS[index % ASSISTANCE_COLORS.length]}
+                        // Use the colorMap for specific, consistent colors
+                        fill={colorMap[key]}
                         radius={[4, 4, 0, 0]}
                       />
                     ))}
@@ -677,11 +741,11 @@ const Trends = () => {
                 <span>Low Activity (0)</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-4 h-4 bg-yellow-400 rounded-full shadow-inner"></div>
+                <div className="w-4 h-4 bg-blue-300 rounded-full shadow-inner"></div>
                 <span>Medium Activity</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-4 h-4 bg-orange-700 rounded-full shadow-md"></div>
+                <div className="w-4 h-4 bg-red-700 rounded-full shadow-md"></div>
                 <span>High Activity (Max)</span>
               </div>
             </div>
@@ -713,7 +777,7 @@ const Trends = () => {
                   >
                     {monthlyGrowth >= 0 ? "Positive" : "Negative"} growth trend
                   </span>{" "}
-                  with **{Math.abs(monthlyGrowth).toFixed(1)}%** change vs. previous month.
+                  with {Math.abs(monthlyGrowth).toFixed(1)}% change vs. previous month.
                 </p>
               )}
             </div>
@@ -723,8 +787,8 @@ const Trends = () => {
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (
                 <p className="text-gray-700 text-sm">
-                  The dashboard maintains an average of **
-                  {averageMonthlyApplications.toLocaleString()}** applications per month,
+                  The dashboard maintains an average of 
+                  {averageMonthlyApplications.toLocaleString()} applications per month,
                   indicating steady demand.
                 </p>
               )}
@@ -735,8 +799,8 @@ const Trends = () => {
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (
                 <p className="text-gray-700 text-sm">
-                  The most demanded service is **{mostPopularAssistance.type_of_assistance}**
-                  with **{mostPopularAssistance.count}** requests.
+                  The most demanded service is {mostPopularAssistance.type_of_assistance}
+                  with {mostPopularAssistance.count} requests.
                 </p>
               )}
             </div>

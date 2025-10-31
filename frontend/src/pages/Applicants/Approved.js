@@ -200,16 +200,18 @@ const Approved = () => {
         {/* Header Card (New Card Style) */}
         <div className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-100/70 border border-blue-200">
-              <CheckCircle className="w-8 h-8 text-blue-600" />
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
-              Approved Applicants
-            </h1>
-          </div>
-          <p className="text-gray-500 ml-14">
-            View and manage uploaded lists of approved applicants.
-          </p>
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  <CheckCircle className="w-8 h-8 text-white" />
+                </div>
+                <div className="space-y-1">
+                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
+                    Approved Applicants
+                  </h1>
+                  <p className="text-gray-600 text-lg mt-1">
+                    Upload and manage approved applicant batches
+                  </p>
+                </div>
+              </div>
         </div>
 
         {/* Upload Section (New Card Style) */}

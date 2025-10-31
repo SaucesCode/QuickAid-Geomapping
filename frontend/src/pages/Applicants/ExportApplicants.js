@@ -67,16 +67,15 @@ const ExportApplicants = () => {
             <BarChart3 className="w-8 h-8 text-white" />
           </div>
           
-          {/* Consistent Headline Styling */}
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
-            Data Export Tool
-          </h2>
+          <div className="space-y-1">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
+              Data Export Tool
+            </h1>
+            <p className="text-gray-600 text-lg mt-1 flex items-center gap-2">
+            Manage and review applicant information
+          </p>
+          </div>
         </div>
-        
-        {/* Consistent Subtitle Styling */}
-        <p className="text-gray-600 text-lg mt-1">
-          Filter and generate applicants data for analysis.
-        </p>
       </div>
 
       {/* Filters */}
