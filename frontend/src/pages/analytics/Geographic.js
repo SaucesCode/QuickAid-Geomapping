@@ -94,7 +94,7 @@ const Geographic = () => {
   const ASSISTANCE_COLORS = {
     Educational: "#10b981", // Green
     Medical: "#3b82f6",     // Blue
-    Burial: "#f59e0b",      // Light Yellow/Orange (Amber)
+    Burial: "#FDE68A",      // Light Yellow/Orange (Amber)
   };
 
   const fetchData = async endpoint => {

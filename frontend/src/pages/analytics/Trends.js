@@ -174,7 +174,7 @@ const Trends = () => {
   const ASSISTANCE_COLOR_MAP = {
     educational: "#10B981", // Green-600
     medical: "#3B82F6",    // Blue-600
-    burial: "#FCD34D",     // Yellow-400 (light yellow/gold)
+    burial: "#FDE68A",     // Yellow-400 (light yellow/gold)
     // Add other colors for any non-mapped types or use default.
     other: "#EF4444",      // Red-600 (as requested for secondary analytics/other)
     default: "#8B5CF6",    // Purple (fallback)

@@ -10,7 +10,6 @@ import {
   Check,
   AlertCircle,
   FileText,
-  Sparkles,
   History,
   Loader2,
   Users, // ADDED for table row
@@ -22,9 +21,12 @@ import PreviewModal from "./components/PreviewModal";
 import Pagination from "../../components/Pagination";
 import ApplicantsFilter from "./components/ApplicantFilter";
 
-// --- Skeleton Loader (NO CHANGES) ---
+// --- Skeleton Loader (UPDATED TO INCLUDE # COLUMN) ---
 const SkeletonRow = () => (
   <tr className="border-b border-gray-100 animate-pulse">
+    <td className="px-3 py-4">
+      <div className="h-4 bg-gray-200 rounded w-6 mx-auto"></div>
+    </td>
     <td className="px-6 py-4">
       <div className="h-4 bg-gray-200 rounded w-40 sm:w-56"></div>
     </td>
@@ -186,17 +188,17 @@ const ArchiveApplicants = () => {
           <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-6 sm:p-8">
             <div className="flex items-start gap-4 mb-3">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                                <Archive className="w-8 h-8 text-white" />
-                              </div>
-                              <div className="space-y-1">
-                                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
-                                  Archived Applicants
-                                </h1>
-                                <p className="text-gray-600 text-lg mt-1 flex items-center gap-2">
-                                  Manage and restore archived applicant records
-                                </p>
-                              </div>
-                            </div>
+                <Archive className="w-8 h-8 text-white" />
+              </div>
+              <div className="space-y-1">
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
+                  Archived Applicants
+                </h1>
+                <p className="text-gray-600 text-lg mt-1 flex items-center gap-2">
+                  Manage and restore archived applicant records
+                </p>
+              </div>
+            </div>
 
             <div className="flex items-center gap-3 mt-4 sm:mt-6">
               <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-blue-100/70 text-blue-700 rounded-full border border-blue-200 text-sm font-semibold">
@@ -236,92 +238,142 @@ const ArchiveApplicants = () => {
           </div>
         </div>
 
-        {/* Table (Consistent Card Style) */}
+        {/* Table (Copied styling from ApplicantForm.js) */}
         <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  {[
-                    "Name",
-                    "Barangay",
-                    "City/Municipality",
-                    "Assistance",
-                    "Date Filled",
-                    "Actions",
-                  ].map((header, i) => (
-                    <th
-                      key={i}
-                      className="text-left px-6 py-3 font-semibold text-blue-700 uppercase text-xs tracking-wider"
-                    >
-                      {header}
-                    </th>
-                  ))}
+            {/* MODIFIED: Table and Header styles to match ApplicantForm.js, including # column */}
+            <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
+              <thead>
+                <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
+                  {/* ADDED # COLUMN */}
+                  <th className="px-3 py-4 text-center w-[50px] align-middle">#</th>
+                  
+                  <th className="px-6 py-4 text-left w-[20%] align-middle">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Full Name
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left w-[15%] align-middle">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      Barangay
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left w-[15%] align-middle">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4" />
+                      City/Municipality
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left w-[15%] align-middle">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Assistance
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left w-[120px] align-middle">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Date Filled
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left w-auto align-middle">Actions</th>
                 </tr>
               </thead>
 
-              <tbody className="bg-white divide-y divide-gray-100">
+              <tbody className="divide-y divide-blue-100 text-gray-800">
                 {isLoading ? (
                   Array.from({ length: itemsPerPage }).map((_, index) => (
                     <SkeletonRow key={index} />
                   ))
                 ) : isError ? (
                   <tr>
-                    <td colSpan="6" className="px-6 py-10 text-center text-red-500">
+                    <td colSpan="7" className="px-6 py-10 text-center text-red-500">
                       Failed to load archived applicants.
                     </td>
                   </tr>
                 ) : currentItems.length > 0 ? (
-                  currentItems.map(applicant => (
+                  currentItems.map((applicant, index) => (
                     <tr
                       key={applicant.id}
-                      className="hover:bg-blue-50 transition-colors group"
+                      className="hover:bg-blue-50/50 transition-all duration-150 group cursor-pointer"
                     >
+                      {/* ADDED # CELL */}
+                      <td className="px-3 py-4 text-center font-medium text-gray-500 align-middle">
+                        {indexOfFirstItem + index + 1}
+                      </td>
+
+                      {/* Name */}
                       <td
-                        // MODIFIED for consistency: added flex and icon
-                        className="px-6 py-4 text-gray-800 font-semibold cursor-pointer hover:text-indigo-600 transition-colors flex items-center gap-2"
                         onClick={() => openPreviewView(applicant)}
+                        className="px-6 py-4 font-semibold text-gray-900 cursor-pointer hover:text-indigo-600 whitespace-nowrap overflow-hidden text-ellipsis align-middle"
                       >
-                        <Users className="w-4 h-4 text-blue-400" />
                         {`${applicant.background_info?.first_name || ""} ${
                           applicant.background_info?.last_name || ""
                         }`}
                       </td>
-                      <td
-                        // MODIFIED for consistency: added flex, icon, and text size/color
-                        className="px-6 py-4 text-sm text-gray-700 flex items-center gap-2"
-                      >
-                        <MapPin className="w-4 h-4 text-blue-400" />
-                        {applicant.background_info?.barangay}
+
+                      {/* Barangay */}
+                      <td className="px-6 py-4 text-gray-700 whitespace-nowrap align-middle">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate">{applicant.background_info?.barangay || "—"}</span>
+                        </div>
                       </td>
-                      <td
-                        // MODIFIED for consistency: added flex, icon, and text size/color
-                        className="px-6 py-4 text-sm text-gray-700 flex items-center gap-2"
-                      >
-                        <Building2 className="w-4 h-4 text-blue-400" />
-                        {applicant.background_info?.barangay_details?.city_name}
+
+                      {/* City/Municipality */}
+                      <td className="px-6 py-4 text-gray-700 whitespace-nowrap align-middle">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate">{applicant.background_info?.barangay_details?.city_name || "—"}</span>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        <span
-                          // CONSISTENT GRADIENT CHIP STYLE
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md"
-                        >
-                          <FileText className="w-3 h-3" />
-                          {applicant.type_of_assistance}
-                        </span>
+
+                      {/* Assistance - Pill Styling */}
+                      <td className="px-6 py-4 align-middle">
+                        {(() => {
+                          const type = applicant.type_of_assistance?.toLowerCase();
+
+                          let bgClass = "";
+                          let textColor = "";
+
+                          if (type === "educational") {
+                            bgClass = "bg-green-100";
+                            textColor = "text-green-700";
+                          } else if (type === "burial") {
+                            bgClass = "bg-yellow-100";
+                            textColor = "text-yellow-800";
+                          } else if (type === "medical") {
+                            bgClass = "bg-blue-100";
+                            textColor = "text-blue-700";
+                          } else {
+                            bgClass = "bg-gray-100";
+                            textColor = "text-gray-700";
+                          }
+
+                          return (
+                            <span
+                              className={`inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold shadow-md ${bgClass} ${textColor}`}
+                            >
+                              <FileText className="w-4 h-4" />
+                              {applicant.type_of_assistance}
+                            </span>
+                          );
+                        })()}
                       </td>
-                      <td
-                        // MODIFIED for consistency: added flex, icon, and text size/color
-                        className="px-6 py-4 text-sm text-gray-700 flex items-center gap-2"
-                      >
-                        <Calendar className="w-4 h-4 text-blue-400" />
-                        {formatPreviewDate(applicant.date_filled)}
+
+                      {/* Date Filled */}
+                      <td className="px-6 py-4 text-gray-700 whitespace-nowrap align-middle">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate">{formatPreviewDate(applicant.date_filled)}</span>
+                        </div>
                       </td>
-                      <td className="px-6 py-4">
+
+                      {/* Actions */}
+                      <td className="px-6 py-4 whitespace-nowrap align-middle">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => openPreviewView(applicant)}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-indigo-600 bg-white hover:bg-indigo-50 rounded-xl transition-all border border-indigo-300 shadow-sm"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-indigo-600 bg-white hover:bg-indigo-50 rounded-lg border border-indigo-300 transition-all"
                           >
                             <Eye className="w-4 h-4" />
                             View
@@ -329,43 +381,29 @@ const ArchiveApplicants = () => {
                           <button
                             onClick={() => openRestoreModal(applicant.id)}
                             disabled={restoreMutation.isPending}
-                            // Consistent Primary Gradient Button Style
-                            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-white rounded-xl transition-all duration-300 shadow-md transform 
-                                ${
-                              restoreMutation.isPending
-                                ? "bg-gray-400 cursor-not-allowed shadow-none"
-                                : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-400/50 hover:shadow-lg hover:scale-[1.02]"
-                            }`}
+                            className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white rounded-lg transition-all duration-200 shadow
+                              ${
+                                restoreMutation.isPending
+                                  ? "bg-gray-400 cursor-not-allowed"
+                                  : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                              }`}
                           >
                             <RotateCcw className="w-4 h-4" />
                             Restore
                           </button>
                         </div>
                       </td>
-                    </tr>
+                    </tr >
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-24 text-center bg-gray-50">
-                      <div className="flex flex-col items-center">
-                        <Archive className="w-16 h-16 text-blue-400 mb-4" />
-                        <h3 className="text-2xl font-bold text-blue-800 mb-2">
-                          No archived applicants found
-                        </h3>
-                        <p className="text-blue-600 text-base mb-4 max-w-md">
-                          {searchTerm
-                            ? "Try adjusting your search terms or check active applicants."
-                            : "There are no archived records yet."}
-                        </p>
-                        <div className="flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full border border-blue-200 text-sm font-semibold text-blue-700">
-                          <Sparkles className="w-4 h-4 text-blue-600" />
-                          <span>A fresh start!</span>
-                        </div>
-                      </div>
+                    <td colSpan="7" className="px-6 py-20 text-center text-blue-700 bg-blue-50">
+                      No archived applicants found.
                     </td>
                   </tr>
                 )}
               </tbody>
+
             </table>
           </div>
 
