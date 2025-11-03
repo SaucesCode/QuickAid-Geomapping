@@ -35,9 +35,15 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
   // This determines the modal's state (wide/narrow)
   const { isSidebarMinimized } = useOutletContext();
 
-  // --- Start of FINAL FIX Logic ---
+  // --- Start of FIX Logic ---
   const DataRow = ({ label, value }) => {
-    const isLongLabel = label === "City/Municipality";
+    // ADDED: 'Contact Number' and 'Valid ID Presented' to the long label list
+    const longLabels = [
+      "City/Municipality",
+      "Contact Number",
+      "Valid ID Presented"
+    ];
+    const isLongLabel = longLabels.includes(label);
 
     // Standard width split (1/3 label, 2/3 value)
     let labelWidthClass = "sm:w-1/3 min-w-[120px]";
@@ -48,7 +54,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
     // Use pr-4 for all labels to create consistent spacing.
     const labelPaddingClass = "pr-4"; 
     
-    // --- Special handling for the long label: City/Municipality ---
+    // --- Special handling for long labels ---
     if (isLongLabel) {
       // Use wider split (2/5 label, 3/5 value) for long labels
       labelWidthClass = "sm:w-2/5 min-w-[120px]";
@@ -57,7 +63,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
       // If sidebar is MINIMIZED (Modal is WIDE) -> Show FULL text
       if (isSidebarMinimized) {
         labelWrapClass = "whitespace-normal"; 
-        // 🚀 FIX: Add definite left padding to the value in the WIDE state
+        // Add definite left padding to the value in the WIDE state
         valuePositionClass = "sm:pl-2"; 
       }
       
@@ -93,7 +99,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
       </div>
     );
   };
-  // --- End of FINAL FIX Logic ---
+  // --- End of FIX Logic ---
 
   const SectionCard = ({ title, children }) => (
     <div className="bg-white border border-blue-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6">
@@ -119,14 +125,14 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
         className={clsx(
           "bg-white rounded-2xl shadow-2xl w-full overflow-hidden flex flex-col transform transition-all duration-300 max-h-full",
           {
-            "max-w-7xl": isSidebarMinimized, 
-            "max-w-4xl": !isSidebarMinimized, 
+            "max-w-7xl": isSidebarMinimized,
+            "max-w-4xl": !isSidebarMinimized,
           }
         )}
       >
         {/* Modal Header */}
         <div className="sticky top-0 bg-blue-800 px-6 py-4 flex items-center justify-between shadow-xl z-10">
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-wide truncate pr-4"> 
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-wide truncate pr-4">
             Applicant Preview
           </h2>
           <button
@@ -134,7 +140,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
             className="p-2 text-white hover:bg-blue-700 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/80 flex-shrink-0"
             aria-label="Close preview"
           >
-            <X className="w-6 h-6" /> 
+            <X className="w-6 h-6" />
           </button>
         </div>
 
@@ -150,7 +156,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
               <DataRow label="Civil Status" value={background_info.civil_status} />
               <DataRow label="Occupation" value={background_info.occupation} />
               <DataRow
-                label="Monthly Income" 
+                label="Monthly Income"
                 value={
                   background_info.monthly_income
                     ? `₱${parseFloat(background_info.monthly_income).toLocaleString()}`
@@ -166,7 +172,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
               
               {/* This is the fixed line */}
               <DataRow
-                label="City/Municipality" 
+                label="City/Municipality"
                 value={background_info.barangay_details?.city_name}
               />
               
@@ -174,36 +180,38 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                 label="Province"
                 value={background_info.barangay_details?.province_name}
               />
+              {/* This now uses the responsive long-label styling */}
               <DataRow label="Contact Number" value={contact_number} />
-              <div className="hidden lg:block"></div> 
+              <div className="hidden lg:block"></div>
             </SectionCard>
 
             {/* Assistance Info */}
             <SectionCard title="Assistance Details">
               <DataRow
-  label="Assistance Type"
-  value={
-    <span
-      className={`inline-block px-3 py-1 rounded-full text-sm font-semibold shadow-sm
-        ${
-          type_of_assistance?.toLowerCase() === "educational"
-            ? "bg-green-100 text-green-800"
-            : type_of_assistance?.toLowerCase() === "medical"
-            ? "bg-blue-100 text-blue-800"
-            : type_of_assistance?.toLowerCase() === "burial"
-            ? "bg-yellow-100 text-yellow-800"
-            : "bg-gray-100 text-gray-800"
-        }`}
-    >
-      {type_of_assistance || "N/A"}
-    </span>
-  }
-/>
+                label="Assistance Type"
+                value={
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-sm font-semibold shadow-sm
+                      ${
+                        type_of_assistance?.toLowerCase() === "educational"
+                          ? "bg-green-100 text-green-800"
+                          : type_of_assistance?.toLowerCase() === "medical"
+                          ? "bg-blue-100 text-blue-800"
+                          : type_of_assistance?.toLowerCase() === "burial"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                  >
+                    {type_of_assistance || "N/A"}
+                  </span>
+                }
+              />
 
               <DataRow label="Applicant Type" value={applicant_type} />
               <DataRow label="Date Filled" value={formatDate(date_filled)} />
+              {/* This now uses the responsive long-label styling */}
               <DataRow
-                label="Valid ID Presented" 
+                label="Valid ID Presented"
                 value={`${valid_id_presented || "N/A"} ${
                   other_valid_id ? ` (${other_valid_id})` : ""
                 }`}

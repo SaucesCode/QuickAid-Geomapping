@@ -613,9 +613,8 @@ const AboutUs = () => {
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-white mb-2">Address</h3>
                   <p className="text-blue-100 text-sm leading-relaxed">
-                    DSWD Central Office<br />
-                    Batasan Hills<br />
-                    Quezon City, Philippines
+                    104 P. Gomez St.<br />
+                    Lucena City, Philippines
                   </p>
                 </div>
               </div>

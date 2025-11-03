@@ -64,7 +64,7 @@ const MedicalAssistance = () => {
               </div>
               <div className="bg-white text-blue-800 rounded-xl shadow-lg p-6 text-center">
                 <Gift className="w-10 h-10 mx-auto mb-3 text-blue-600" />
-                <h3 className="text-2xl font-bold">Nationwide</h3>
+                <h3 className="text-2xl font-bold">2nd District</h3>
                 <p className="text-gray-600">Coverage</p>
               </div>
             </div>

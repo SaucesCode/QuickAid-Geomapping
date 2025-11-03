@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDate } from "../../utils/FormatDate";
 import toast from "react-hot-toast";
 
+
 const ApplicantForm = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
@@ -192,7 +193,7 @@ const ApplicantForm = () => {
       <thead>
         <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
           <th className="px-6 py-4 text-left w-12 align-middle">
-            <div className="flex items-center justify-center">#</div>
+            <div className="flex items-center justify-center">No.</div>
           </th>
           <th className="px-6 py-4 text-left w-1/4 align-middle">
             <div className="flex items-center gap-2">

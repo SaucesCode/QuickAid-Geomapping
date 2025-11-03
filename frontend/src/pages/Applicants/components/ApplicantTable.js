@@ -35,7 +35,7 @@ const ApplicantTable = ({
             <tr>
               {/* 1. ADDED # COLUMN HEADER with style from ApplicantForm.js */}
               <th className="px-6 py-4 text-left w-[50px] align-middle">
-                <div className="flex items-center justify-center">#</div>
+                <div className="flex items-center justify-center">NO.</div>
               </th>
 
               <th

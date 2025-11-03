@@ -50,9 +50,9 @@ const Footer = () => {
             <h3 className="text-lg font-bold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/aics-accomplishment" className="text-gray-400 hover:text-white transition-colors duration-200">
+                {/* <Link to="/aics-accomplishment" className="text-gray-400 hover:text-white transition-colors duration-200">
                   AICS Accomplishment
-                </Link>
+                </Link> */}
               </li>
               <li>
                 <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors duration-200">
@@ -93,7 +93,7 @@ const Footer = () => {
         </div>
 
         {/* Social Media */}
-        <div className="border-t border-gray-800 pt-8 flex justify-center">
+        {/* <div className="border-t border-gray-800 pt-8 flex justify-center">
           <div className="flex space-x-6 text-gray-400">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-white">
               <Facebook className="w-6 h-6" />
@@ -108,7 +108,7 @@ const Footer = () => {
               <Linkedin className="w-6 h-6" />
             </a>
           </div>
-        </div>
+        </div> */}
 
         {/* Copyright */}
         <div className="border-t border-gray-800 pt-6 mt-6 text-center text-gray-400 text-sm">

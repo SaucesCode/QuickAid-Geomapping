@@ -246,7 +246,7 @@ const ArchiveApplicants = () => {
               <thead>
                 <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
                   {/* ADDED # COLUMN */}
-                  <th className="px-3 py-4 text-center w-[50px] align-middle">#</th>
+                  <th className="px-3 py-4 text-center w-[50px] align-middle">No.</th>
                   
                   <th className="px-6 py-4 text-left w-[20%] align-middle">
                     <div className="flex items-center gap-2">
@@ -354,7 +354,7 @@ const ArchiveApplicants = () => {
                             <span
                               className={`inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold shadow-md ${bgClass} ${textColor}`}
                             >
-                              <FileText className="w-4 h-4" />
+                              
                               {applicant.type_of_assistance}
                             </span>
                           );

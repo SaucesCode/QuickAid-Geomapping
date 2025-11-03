@@ -186,12 +186,9 @@ const Trends = () => {
     if (key.includes('educational')) return ASSISTANCE_COLOR_MAP.educational;
     if (key.includes('medical')) return ASSISTANCE_COLOR_MAP.medical;
     if (key.includes('burial')) return ASSISTANCE_COLOR_MAP.burial;
-    // Fallback for types not explicitly listed in the map
-    // We'll cycle through the explicit map values plus 'other' and 'default'
+    
     const definedColors = Object.values(ASSISTANCE_COLOR_MAP);
-    // Find the current type's index in the data array to apply a consistent color if it's not a primary type.
-    // This part is complex without knowing all assistance types, so we'll just use the default set of colors for non-primary keys.
-    return ASSISTANCE_COLOR_MAP[key] || ASSISTANCE_COLOR_MAP.default;
+        return ASSISTANCE_COLOR_MAP[key] || ASSISTANCE_COLOR_MAP.default;
   };
 
   // Instead of a fixed array, we'll collect the unique types from the data and assign colors.
@@ -799,8 +796,8 @@ const Trends = () => {
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (
                 <p className="text-gray-700 text-sm">
-                  The most demanded service is {mostPopularAssistance.type_of_assistance}
-                  with {mostPopularAssistance.count} requests.
+                  The most demanded service is {mostPopularAssistance.type_of_assistance}{" "}
+                  with{" "}{mostPopularAssistance.count} requests.
                 </p>
               )}
             </div>
