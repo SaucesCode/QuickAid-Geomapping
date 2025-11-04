@@ -118,7 +118,7 @@ const Sidebar = () => {
       "/export-applicants": "Export Data",
       "/analytics/geographic": "Geographic Analytics",
       "/analytics/demographics-economics": "Demographics & Economics",
-      "/analytics/trends": "Trends & Forecasting",
+      "/analytics/trends": "Application Trends Analysis",
       "/analytics/performance": "Performance Insights",
       "/admin-management": "Admin Management",
       "/settings": "Settings",
@@ -409,7 +409,7 @@ const Sidebar = () => {
                           }
                         >
                           <TrendingUp className="w-4 h-4" />
-                          <span className="text-white">Trends & Forecasting</span>
+                          <span className="text-white">Trends Analysis</span>
                         </NavLink>
 
                         <NavLink

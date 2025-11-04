@@ -211,7 +211,7 @@ export default function FuneralAssistanceProgram() {
               </div>
               <div className="bg-white text-slate-800 rounded-xl shadow-xl p-6 text-center border-t-4 border-blue-500">
                 <Home className="w-10 h-10 mx-auto mb-3 text-blue-600" />
-                <h3 className="text-2xl font-semibold">Nationwide</h3>
+                <h3 className="text-2xl font-semibold">2nd District</h3>
                 <p className="text-slate-600">Coverage</p>
               </div>
             </div>

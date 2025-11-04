@@ -33,14 +33,14 @@ import AnalyticsFilter from "../../components/AnalyticsFilter";
 
 
 
-const COLOR_SINGLE = "#3B82F6";  // Single: Blue
+const COLOR_SINGLE = "#3B82F6";  // Single: Blue
 const COLOR_MARRIED = "#EF4444"; // Married: Red
 const COLOR_DIVORCED = "#F59E0B"; // Divorced: Yellow (using Amber-500)
 const COLOR_WIDOWED = "#1F2937"; // Widowed: Black (using Gray-800)
 const COLOR_SEPARATED = "#9CA3AF"; // Separated: Gray (used for any other divprced/separated status)
 
 // --- COLOR HELPER FUNCTIONS (PRESERVED) ---
-const COLOR_MALE = "#3B82F6";   // Blue
+const COLOR_MALE = "#3B82F6";   // Blue
 const COLOR_FEMALE = "#EC4899"; // Pink
 
 const getGenderColor = (gender) => {
@@ -74,14 +74,6 @@ const SkeletonLoader = ({ height = 300, type = "chart" }) => {
     <div className="space-y-2 p-1">
       <div className="h-6 w-3/4 bg-gray-200 rounded"></div>
       <div className="h-4 w-1/2 bg-gray-200 rounded"></div>
-    </div>
-  );
-
-  const listSkeleton = (
-    <div className="space-y-2 p-1">
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="h-4 w-full bg-gray-200 rounded"></div>
-      ))}
     </div>
   );
 
@@ -214,7 +206,6 @@ const DemographicsEconomics = () => {
   };
 
   // Color palettes (Only generic ones remain here)
-  const AGE_COLORS = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD"];
   const INCOME_COLORS = [
     "#FF9999",
     "#66B2FF",
@@ -271,7 +262,7 @@ const DemographicsEconomics = () => {
         fontSize="12"
         fontWeight="bold"
       >
-        `${(percent * 100).toFixed(0)}%`
+        {`${(percent * 100).toFixed(0)}%`}
       </text>
     ) : null;
   };
@@ -420,23 +411,23 @@ const DemographicsEconomics = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-  data={transformedGenderData}
-  cx="50%"
-  cy="50%"
-  labelLine={false}
-  label={renderCustomLabel}
-  outerRadius={100}
-  dataKey="count"
-  nameKey="gender"
-  stroke="#fff"
->
-  {transformedGenderData.map((entry, index) => (
-    <Cell
-      key={`cell-${index}`}
-      fill={getGenderColor(entry.gender)} // ✅ this line
-    />
-  ))}
-</Pie>
+                    data={transformedGenderData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={renderCustomLabel}
+                    outerRadius={100}
+                    dataKey="count"
+                    nameKey="gender"
+                    stroke="#fff"
+                  >
+                    {transformedGenderData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={getGenderColor(entry.gender)} // ✅ this line
+                      />
+                    ))}
+                  </Pie>
 
                   {/* Tooltip style matched */}
                   <Tooltip

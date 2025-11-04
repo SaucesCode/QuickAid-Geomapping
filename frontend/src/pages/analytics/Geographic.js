@@ -34,6 +34,8 @@ import {
 } from "recharts";
 import { api } from "../../services/api";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
+import { useNavigate } from "react-router-dom";
+
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -83,9 +85,12 @@ const LoadingMapSkeleton = () => (
   </div>
 );
 
+
+
 const Geographic = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
+  const navigate = useNavigate();
 
   // Original colors for the Pie Chart remain: blue, green, yellow, red, purple
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
@@ -94,7 +99,7 @@ const Geographic = () => {
   const ASSISTANCE_COLORS = {
     Educational: "#10b981", // Green
     Medical: "#3b82f6",     // Blue
-    Burial: "#f59e0b",      // Light Yellow/Orange (Amber)
+    Burial: "#FDE68A",      // Light Yellow/Orange (Amber)
   };
 
   const fetchData = async endpoint => {
@@ -298,11 +303,15 @@ const Geographic = () => {
             </p>
           </div>
         </div>
-        <button className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
-          <Map className="w-5 h-5" />
-          <span className="text-white">View Full Heatmap</span>
-          <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </button>
+        <button
+  onClick={() => navigate("/heatmap")}
+  className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+>
+  <Map className="w-5 h-5" />
+  <span className="text-white">View Full Heatmap</span>
+  <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+</button>
+
       </div>
     </header>
   );
