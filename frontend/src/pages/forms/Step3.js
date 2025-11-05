@@ -395,7 +395,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
     htmlFor="rep_middle_name"
     className="block text-sm font-semibold text-gray-700 mb-2"
   >
-    Middle Name(Gitnang Pangalan)<span className="text-red-500">*</span>
+    Middle Name (Gitnang Pangalan)
   </label>
   <input
     type="text"
@@ -411,9 +411,10 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
       });
     }}
     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
-    placeholder="Enter full middle name"
+    placeholder="Enter full middle name (optional)"
   />
 </div>
+
 
 
                     {/* Representative Suffix */}

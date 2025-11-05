@@ -317,6 +317,7 @@ const ArchiveApplicants = () => {
                       {/* Barangay */}
                       <td className="px-6 py-4 text-gray-700 whitespace-nowrap align-middle">
                         <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
                           <span className="truncate">{applicant.background_info?.barangay || "—"}</span>
                         </div>
                       </td>
@@ -324,12 +325,14 @@ const ArchiveApplicants = () => {
                       {/* City/Municipality */}
                       <td className="px-6 py-4 text-gray-700 whitespace-nowrap align-middle">
                         <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
                           <span className="truncate">{applicant.background_info?.barangay_details?.city_name || "—"}</span>
                         </div>
                       </td>
 
                       {/* Assistance - Pill Styling */}
                       <td className="px-6 py-4 align-middle">
+                        
                         {(() => {
                           const type = applicant.type_of_assistance?.toLowerCase();
 
@@ -351,6 +354,7 @@ const ArchiveApplicants = () => {
                           }
 
                           return (
+                            
                             <span
                               className={`inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold shadow-md ${bgClass} ${textColor}`}
                             >
@@ -364,6 +368,7 @@ const ArchiveApplicants = () => {
                       {/* Date Filled */}
                       <td className="px-6 py-4 text-gray-700 whitespace-nowrap align-middle">
                         <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
                           <span className="truncate">{formatPreviewDate(applicant.date_filled)}</span>
                         </div>
                       </td>

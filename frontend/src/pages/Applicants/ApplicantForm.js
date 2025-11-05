@@ -15,11 +15,16 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "../../utils/FormatDate";
 import toast from "react-hot-toast";
+import Pagination from "../../components/Pagination";
 
 
 const ApplicantForm = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+
+  // ➕ State for Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Default items per page
 
   useEffect(() => {
     document.title = "QuickAid | Applicant Form";
@@ -70,6 +75,35 @@ const ApplicantForm = () => {
       );
     });
   }, [applicants, searchTerm]);
+
+  // ➕ Pagination Logic
+  const totalItems = filteredApplicants.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // Get the applicants for the current page
+  const currentApplicants = useMemo(() => {
+    return filteredApplicants.slice(indexOfFirstItem, indexOfLastItem);
+  }, [filteredApplicants, indexOfFirstItem, indexOfLastItem]);
+
+  // Handler for changing page
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
+  // Handler for changing items per page
+  const handleItemsPerPageChange = (event) => {
+    setItemsPerPage(Number(event.target.value));
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+  
+  // 💡 Reset page to 1 whenever the search term or applicant list changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, applicants]); 
 
   // Updated EmptyState component (omitted for brevity)
   const EmptyState = () => (
@@ -229,7 +263,8 @@ const ApplicantForm = () => {
       </thead>
 
       <tbody className="divide-y divide-blue-100 text-gray-800">
-        {filteredApplicants.map((a, i) => (
+        {/* Changed from filteredApplicants to currentApplicants for pagination */}
+        {currentApplicants.map((a, i) => (
           <tr
             key={a.id || i}
             className="hover:bg-blue-50/50 transition-all duration-150 group cursor-pointer"
@@ -237,7 +272,8 @@ const ApplicantForm = () => {
           >
             <td className="px-6 py-4 align-middle">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors font-semibold text-gray-600">
-                {filteredApplicants.length - i}
+                {/* 💡 Adjust index calculation for current page */}
+                {totalItems - (indexOfFirstItem + i)}
               </div>
             </td>
 
@@ -292,6 +328,17 @@ const ApplicantForm = () => {
       </tbody>
     </table>
   </div>
+  {/* ➕ Added Pagination Component at the bottom */}
+  <Pagination
+    currentPage={currentPage}
+    totalPages={totalPages}
+    handlePageChange={handlePageChange}
+    itemsPerPage={itemsPerPage}
+    handleItemsPerPageChange={handleItemsPerPageChange}
+    totalItems={totalItems}
+    indexOfFirstItem={indexOfFirstItem}
+    indexOfLastItem={indexOfLastItem}
+  />
 </div>
           )}
         </div>
