@@ -12,6 +12,8 @@ import { Clock,
   ClipboardList, Search, ThumbsUp, Heart, ArrowDown, TrendingUp,Calendar,MessageSquareText,
 FileCheck,
   Banknote,
+  Shield,
+  Award,
  } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
@@ -100,25 +102,25 @@ const faqs = [
 
 const stepsData = [
   {
-    title: "Initial Assessment",
-    description: "Your journey starts with a quick review of your situation and initial documentation.",
     icon: FileText,
+    title: "Application Submission",
+    description: "Submit your comprehensive application through our secure digital infrastructure with encrypted data transmission and multi-factor authentication protocols."
   },
   {
-    title: "Document Submission",
-    description: "Submit and verify all mandatory documents, including IDs and proof of indigency.",
     icon: FileCheck,
+    title: "Document Verification",
+    description: "Our dedicated compliance officers conduct rigorous document authentication and eligibility assessment in accordance with regulatory standards."
   },
   {
-    title: "Evaluation & Interview",
-    description: "A DSWD social worker conducts an interview and final assessment of your application.",
-    icon: Users,
+    icon: Clock,
+    title: "Processing & Assessment",
+    description: "Applications undergo systematic review and evaluation by our specialized team, with transparent status tracking and regular progress updates."
   },
   {
-    title: "Release of Aid",
-    description: "The approved cash assistance or Guarantee Letter is immediately disbursed to you.",
-    icon: Banknote,
-  },
+    icon: CheckCircle,
+    title: "Approval & Distribution",
+    description: "Approved applicants receive official notification and benefits are distributed through our secure and audited disbursement system."
+  }
 ];
   
 
@@ -590,71 +592,131 @@ const LandingPage = () => {
   <HowToApply />
 
 </section>
-           <section className="relative py-24 px-6 overflow-hidden bg-gradient-to-b from-slate-800 to-slate-900">
-
-      
-      <div className="max-w-7xl mx-auto relative z-10">
-
-        {/* --- Dark Background Container --- */}
-        {/* This container mimics the dark card in the image, holding the title and feature cards */}
-        <div className="bg-blue-800 text-white rounded-2xl shadow-2xl p-10 md:p-16">
-
-          {/* Section Title (Centered and White) */}
-          <div className="text-center mb-16">
-            <h2 className="text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
-              AICS Application Overview
-            </h2>
-            <p className="text-gray-300 text-lg max-w-4xl mx-auto leading-relaxed">
-              Your journey to assistance starts here. Follow our streamlined process designed with you in mind.
-            </p>
+<section className="relative py-32 px-6 bg-gradient-to-b from-slate-50 to-white">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header Section */}
+        <div className="text-center mb-24">
+          <div className="inline-flex items-center px-4 py-1.5 bg-blue-50 border border-blue-100 text-blue-700 rounded-full text-xs font-semibold tracking-wider uppercase mb-8 letter-spacing-wide">
+            <Shield className="w-3.5 h-3.5 mr-2" />
+            Standardized Process
           </div>
+          <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6 tracking-tight leading-tight">
+            Application Process Framework
+          </h2>
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="w-16 h-px bg-slate-300"></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+            <div className="w-16 h-px bg-slate-300"></div>
+          </div>
+          <p className="text-slate-600 text-lg max-w-3xl mx-auto leading-relaxed font-light">
+            Our methodical four-phase approach ensures comprehensive evaluation, 
+            regulatory compliance, and efficient processing of all assistance applications.
+          </p>
+        </div>
 
-          {/* --- Horizontal Feature/Steps Grid --- */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+        {/* Steps Grid - Premium Layout */}
+        <div className="relative mb-24">
+          {/* Background Timeline */}
+          <div className="hidden lg:block absolute top-20 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {stepsData.map((step, index) => (
               <div 
-                key={index} 
-                // White Card Style matching the image snippet
-                className="bg-white text-gray-800 rounded-xl shadow-xl p-6 text-center h-full flex flex-col items-center justify-start transition duration-300 transform hover:shadow-2xl"
+                key={index}
+                className="relative group"
               >
-                {/* Icon Circle (Blue Theme) */}
-                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 text-blue-600 mb-4 border border-blue-200">
-                  <step.icon className="w-6 h-6" />
+                {/* Card */}
+                <div className="relative bg-white border border-slate-200 hover:border-slate-300 transition-all duration-500 h-full flex flex-col overflow-hidden">
+                  
+                  {/* Top Accent Line */}
+                  <div className="h-1 bg-gradient-to-r from-blue-600 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+                  
+                  <div className="p-8">
+                    {/* Step Indicator */}
+                    <div className="flex items-start justify-between mb-8">
+                      <div className="flex-shrink-0">
+                        <div className="text-xs font-semibold text-slate-400 tracking-widest uppercase mb-3">
+                          Phase {index + 1}
+                        </div>
+                        <div className="text-6xl font-bold text-slate-100 leading-none">
+                          {String(index + 1).padStart(2, '0')}
+                        </div>
+                      </div>
+                      <div className="w-14 h-14 bg-slate-50 border border-slate-200 flex items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 transition-all duration-300">
+                        <step.icon className="w-6 h-6 text-slate-400 group-hover:text-white transition-colors" />
+                      </div>
+                    </div>
+                    
+                    {/* Content */}
+                    <h3 className="text-xl font-bold text-slate-900 mb-4 leading-tight">
+                      {step.title}
+                    </h3>
+                    <p className="text-slate-600 text-sm leading-relaxed font-light">
+                      {step.description}
+                    </p>
+                  </div>
                 </div>
-                
-                {/* Title */}
-                <h3 className="text-xl font-bold mb-2 text-slate-800">
-                  {step.title}
-                </h3>
-                
-                {/* Description */}
-                <p className="text-gray-600 text-sm flex-grow">
-                  {step.description}
-                </p>
               </div>
             ))}
           </div>
         </div>
-        {/* --- End Dark Background Container --- */}
 
-
-        {/* CTA Section - Moved outside the dark container for emphasis/contrast */}
-        <div className="mt-20 text-center">
-          <a 
-            href="/staff-qr"
-            className="inline-flex items-center justify-center px-10 py-4 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-blue-6300 hover:bg-blue-400 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-50"
-          >
-            Access Online Application Portal
-            <ArrowRight className="ml-3 -mr-1 w-5 h-5" />
-          </a>
+        {/* Trust Indicators */}
+        <div className="bg-slate-900 rounded-none p-16 mb-24">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+            <div className="text-center border-r border-slate-700 last:border-r-0">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-800 border border-slate-700 mb-6">
+                <Users className="w-8 h-8 text-slate-400" />
+              </div>
+              <div className="text-4xl font-bold text-white mb-2 tracking-tight">15-30</div>
+              <div className="text-slate-400 text-sm uppercase tracking-wider font-medium">Business Days</div>
+            </div>
+            <div className="text-center border-r border-slate-700 last:border-r-0">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-800 border border-slate-700 mb-6">
+                <Shield className="w-8 h-8 text-slate-400" />
+              </div>
+              <div className="text-4xl font-bold text-white mb-2 tracking-tight">100%</div>
+              <div className="text-slate-400 text-sm uppercase tracking-wider font-medium">Secure Platform</div>
+            </div>
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-800 border border-slate-700 mb-6">
+                <Award className="w-8 h-8 text-slate-400" />
+              </div>
+              <div className="text-4xl font-bold text-white mb-2 tracking-tight">24/7</div>
+              <div className="text-slate-400 text-sm uppercase tracking-wider font-medium">Portal Access</div>
+            </div>
+          </div>
         </div>
+
+        {/* CTA Section - Executive Style */}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white border-2 border-slate-200 p-12 text-center">
+            <h3 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">
+              Initiate Your Application
+            </h3>
+            <p className="text-slate-600 text-base mb-10 max-w-2xl mx-auto leading-relaxed font-light">
+              Access our enterprise-grade application portal with end-to-end encryption, 
+              comprehensive guidance, and dedicated support throughout the entire process.
+            </p>
+            <a 
+              href="/staff-qr"
+              className="inline-flex items-center justify-center px-12 py-4 bg-slate-900 text-white text-sm font-semibold tracking-wider uppercase hover:bg-slate-800 transition-all duration-300 border-2 border-slate-900 hover:border-slate-800"
+            >
+              Access Portal
+              <ArrowRight className="ml-3 w-4 h-4" />
+            </a>
+            <div className="mt-8 pt-8 border-t border-slate-200">
+              <p className="text-slate-500 text-xs uppercase tracking-wider font-medium">
+                ISO 27001 Certified • AES-256 Encryption • GDPR Compliant
+              </p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
-
-
-            
-
-
+      {/* FAQ Section */}
       <section className="py-24 bg-gray-50/50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 

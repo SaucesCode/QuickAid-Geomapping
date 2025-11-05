@@ -29,6 +29,8 @@ import {
   ArrowDown,
   Target,
   Loader2,
+  FileText,
+  
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 
@@ -63,7 +65,7 @@ const CustomTooltip = ({ active, payload, label }) =>
       className="bg-white p-3 rounded-lg shadow-lg"
       style={{
         backgroundColor: "white",
-        border: "2px solid #dbeafe", // Blue-200 border
+        border: "2px solid #dbeafe", // Blue-200 border (KEPT for tooltip only, as it's separate from main box)
         borderRadius: "12px",
         fontSize: "14px",
         boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
@@ -78,12 +80,11 @@ const CustomTooltip = ({ active, payload, label }) =>
     </div>
   ) : null;
 
-// StatCard component updated to match Geographic/Demographics card style
-// StatCard component — updated to NOT call getAssistanceColor
+// StatCard component - MODIFIED: Blue border removed, shadow retained for definition.
 const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading }) => (
   <div
-    className={`group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-gray-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300`}
-    style={{ borderLeftColor: color }}
+    // BORDER REMOVED: Removed border-2 border-blue-400
+    className={`group bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300`}
   >
     <div className="flex items-center gap-4 justify-between">
       <div>
@@ -96,16 +97,16 @@ const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading 
           </div>
         ) : (
           <>
-            {/* If this is the Top Assistance card, show solid color text using `color` prop.
-                Otherwise keep the gradient look. */}
+            {/* Preserves specific colors for Medical/Educational/Burial */}
             {title === "Top Assistance" ? (
               <h2 className="text-3xl font-bold" style={{ color: color }}>
                 {value}
               </h2>
             ) : (
+              // Consistent blue gradient for non-assistance text
               <h2
                 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r"
-                style={{ backgroundImage: `linear-gradient(to right, ${color}, #6366f1)` }}
+                style={{ backgroundImage: `linear-gradient(to right, #3B82F6, #1D4ED8)` }}
               >
                 {value}
               </h2>
@@ -113,7 +114,7 @@ const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading 
 
             {subtitle && (
               <div className="flex items-center mt-1">
-                {/* Optional: color subtitle for Top Assistance, otherwise gray */}
+                {/* Preserves specific colors for Medical/Educational/Burial subtitle */}
                 <p
                   className="text-sm"
                   style={{ color: title === "Top Assistance" ? color : "#6B7280" }}
@@ -138,10 +139,11 @@ const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading 
       </div>
 
       <div
+        // Consistent blue gradient for the icon background for all stat cards
         className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
         style={{
-          backgroundColor: color,
-          background: `linear-gradient(to bottom right, ${color}90, ${color})`,
+          backgroundColor: "#3B82F6",
+          background: `linear-gradient(to bottom right, #3B82F6, #1D4ED8)`,
         }}
       >
         <Icon className="w-7 h-7 text-white" />
@@ -166,11 +168,9 @@ const Trends = () => {
     return res.data;
   };
 
-  // --- START MODIFICATIONS ---
+  // --- Core logic (colors for Medical, Educational, Burial, Heatmap) KEPT UNCHANGED ---
 
-  // 1. Define the Assistance Type Color Mapping
-  // Colors: Educational-Green, Medical-Blue, Burial-Light Yellow.
-  // Other colors are kept for general analytics. Red added as secondary.
+  // 1. Define the Assistance Type Color Mapping - KEPT UNCHANGED
   const ASSISTANCE_COLOR_MAP = {
     educational: "#10B981", // Green-600
     medical: "#3B82F6",    // Blue-600
@@ -180,7 +180,7 @@ const Trends = () => {
     default: "#8B5CF6",    // Purple (fallback)
   };
 
-  // Helper function to get the correct color, normalizing the key
+  // Helper function to get the correct color, normalizing the key - KEPT UNCHANGED
   const getAssistanceColor = (type) => {
     const key = type ? type.toLowerCase() : '';
     if (key.includes('educational')) return ASSISTANCE_COLOR_MAP.educational;
@@ -225,7 +225,7 @@ const Trends = () => {
     queryFn: () => fetchData("/analytics/trends/applicant-heatmap/"),
   });
 
-  // 2. Map colors dynamically after data fetch for BarChart/Legend
+  // 2. Map colors dynamically after data fetch for BarChart/Legend - KEPT UNCHANGED
   useEffect(() => {
     if (assistanceTypeData.length > 0) {
       // Collect all unique assistance types
@@ -261,7 +261,7 @@ const Trends = () => {
     applicantHeatmap: applicantHeatmapLoading,
   };
 
-  // **ASSISTANCE_COLORS is replaced by colorMap in usage below**
+  // Data transformations... (omitted for brevity)
 
   const transformMonthlyData = data =>
     data.map(item => ({
@@ -336,10 +336,10 @@ const Trends = () => {
     return previous > 0 ? ((latest - previous) / previous) * 100 : 0;
   };
 
-  // 3. HeatmapCell color update (changed default colors to blue monochromatic with red)
+  // 3. HeatmapCell color update - KEPT UNCHANGED
   const HeatmapCell = ({ hour, count, intensity }) => {
     const getIntensityColor = intensity => {
-      // Monochromatic Blue with Red (for highest)
+      // Monochromatic Blue with Red (for highest) - KEPT UNCHANGED
       if (intensity === 0) return "#F3F4F6"; // Gray-100 (No Activity)
       if (intensity < 20) return "#E0F2FE"; // Blue-50
       if (intensity < 40) return "#93C5FD"; // Blue-300
@@ -358,7 +358,7 @@ const Trends = () => {
     );
   };
 
-  // --- END MODIFICATIONS ---
+  // --- END Core logic preservation ---
 
   // Data transformations
   const transformedMonthlyData = transformMonthlyData(monthlyData);
@@ -399,9 +399,9 @@ const Trends = () => {
       }) || {}
     : { type_of_assistance: "...", count: "..." };
 
-  // Header component matched to Geographic/Demographics.js header style
+  // Header component - BORDER REMOVED
   const HeaderComponent = (
-    <header className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-8">
+    <header className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-8">
       <div className="flex items-center gap-4">
         <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
           <TrendingUp className="w-8 h-8 text-white" />
@@ -417,7 +417,7 @@ const Trends = () => {
   );
 
   return (
-    // New: Matched main container style with gradient and blur effects
+    // Main Container
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
@@ -431,10 +431,10 @@ const Trends = () => {
 
         <AnalyticsFilter onFilterChange={setFilters} />
 
-        {/* Statistics Cards */}
+        {/* Statistics Cards - BORDER REMOVED in StatCard component above */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
-            icon={Activity}
+            icon={FileText}
             title="Total Applications"
             value={
               typeof totalApplications === "number"
@@ -475,15 +475,16 @@ const Trends = () => {
             title="Top Assistance"
             value={mostPopularAssistance.type_of_assistance}
             subtitle={`${mostPopularAssistance.count} applications`}
-            color={getAssistanceColor(mostPopularAssistance.type_of_assistance) || "#8B5CF6"} // Use the new color mapping
+            // KEPT UNCHANGED: Uses the logic to preserve Educational/Medical/Burial colors
+            color={getAssistanceColor(mostPopularAssistance.type_of_assistance) || "#8B5CF6"} 
             isLoading={!isAssistanceTypeLoaded}
           />
         </div>
 
         {/* Monthly and Yearly Trends */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Monthly Trends - Chart Container Matched */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+          {/* Monthly Trends - BORDER REMOVED */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6">
             <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
               <h2 className="text-xl font-bold text-gray-900 flex items-center">
                 <Calendar className="mr-2 h-5 w-5 text-blue-600" />
@@ -518,11 +519,11 @@ const Trends = () => {
             )}
           </div>
 
-          {/* Yearly Trends - Chart Container Matched */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+          {/* Yearly Trends - BORDER REMOVED */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6">
             <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
               <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                <BarChart3 className="mr-2 h-5 w-5 text-green-600" />
+                <BarChart3 className="mr-2 h-5 w-5 text-blue-600" />
                 Yearly Application Volume
               </h2>
             </div>
@@ -551,11 +552,11 @@ const Trends = () => {
 
         {/* Daily Trends and Cumulative Growth */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Daily Trends - Chart Container Matched */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+          {/* Daily Trends - BORDER REMOVED */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6">
             <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
               <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                <Clock className="mr-2 h-5 w-5 text-orange-600" />
+                <Clock className="mr-2 h-5 w-5 text-blue-600" />
                 Daily Application Trends
               </h2>
             </div>
@@ -587,11 +588,11 @@ const Trends = () => {
             )}
           </div>
 
-          {/* Cumulative Growth - Chart Container Matched */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+          {/* Cumulative Growth - BORDER REMOVED */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6">
             <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
               <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                <TrendingUp className="mr-2 h-5 w-5 text-purple-600" />
+                <TrendingUp className="mr-2 h-5 w-5 text-blue-600" />
                 Cumulative Growth
               </h2>
             </div>
@@ -633,8 +634,8 @@ const Trends = () => {
 
         {/* Assistance Type Distribution */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Assistance Type Distribution - Chart Container Matched */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+          {/* Assistance Type Distribution - BORDER REMOVED */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6">
             <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
               <h2 className="text-xl font-bold text-gray-900 flex items-center">
                 <Target className="mr-2 h-5 w-5 text-blue-600" />
@@ -660,7 +661,7 @@ const Trends = () => {
                     {assistanceTypeData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        // Use the colorMap for specific, consistent colors
+                        // KEPT UNCHANGED: Use the colorMap to preserve specific colors
                         fill={colorMap[entry.type_of_assistance]}
                       />
                     ))}
@@ -675,11 +676,11 @@ const Trends = () => {
             )}
           </div>
 
-          {/* Assistance Over Time - Chart Container Matched */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+          {/* Assistance Over Time - BORDER REMOVED */}
+          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6">
             <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
               <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                <BarChart3 className="mr-2 h-5 w-5 text-pink-600" />
+                <BarChart3 className="mr-2 h-5 w-5 text-blue-600" />
                 Assistance Types Over Time
               </h2>
             </div>
@@ -699,7 +700,7 @@ const Trends = () => {
                       <Bar
                         key={key}
                         dataKey={key}
-                        // Use the colorMap for specific, consistent colors
+                        // KEPT UNCHANGED: Use the colorMap to preserve specific colors
                         fill={colorMap[key]}
                         radius={[4, 4, 0, 0]}
                       />
@@ -710,35 +711,36 @@ const Trends = () => {
           </div>
         </div>
 
-        {/* Applicant Activity Heatmap - Chart Container Matched */}
-        <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
+        {/* Applicant Activity Heatmap - BORDER REMOVED. Logic/colors KEPT UNCHANGED */}
+        <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6">
           <div className="flex items-center justify-between mb-6 border-b pb-3 border-gray-100">
+            {/* KEPT UNCHANGED: Heatmap header color is specific (red/blue) */}
             <h2 className="text-xl font-bold text-gray-900 flex items-center">
               <Clock className="mr-2 h-5 w-5 text-red-600" />
               Applicant Activity Heatmap (by Hour)
             </h2>
           </div>
-          {/* Ensure this block defines a clear vertical space */}
           <div className="relative">
             {loadingStates.applicantHeatmap ? (
-              <SkeletonLoader height={180} type="heatmap" /> // Adjusted height is crucial here
+              <SkeletonLoader height={180} type="heatmap" /> 
             ) : (
               // Increased grid columns for better layout of 24 hours
               <div className="grid grid-cols-6 sm:grid-cols-12 xl:grid-cols-24 gap-2">
                 {transformedApplicantHeatmap.map((hour, index) => (
+                  // KEPT UNCHANGED: HeatmapCell logic for color is preserved
                   <HeatmapCell key={index} {...hour} />
                 ))}
               </div>
             )}
 
-            {/* Color Legend/Key for Heatmap - Enhanced key colors for consistency */}
+            {/* Color Legend/Key for Heatmap - Key colors match preserved HeatmapCell logic */}
             <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-gray-600 w-full">
               <div className="flex items-center space-x-1">
                 <div className="w-4 h-4 bg-gray-200 rounded-full border border-gray-300"></div>
                 <span>Low Activity (0)</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-4 h-4 bg-blue-300 rounded-full shadow-inner"></div>
+                <div className="w-4 h-4 bg-blue-600 rounded-full shadow-inner"></div>
                 <span>Medium Activity</span>
               </div>
               <div className="flex items-center space-x-1">
@@ -749,8 +751,8 @@ const Trends = () => {
           </div>
         </div>
 
-        {/* Trends Summary - Matched to the insight card style */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-3xl p-8 shadow-xl backdrop-blur-xl mt-6">
+        {/* Trends Summary - OUTER BORDER REMOVED */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 shadow-xl backdrop-blur-xl mt-6">
           <h2 className="text-2xl font-bold text-blue-900 mb-4 flex items-center">
             <AlertCircle className="mr-2 h-6 w-6 text-blue-600" />
             Trend Analysis Summary & Key Insights
@@ -760,7 +762,8 @@ const Trends = () => {
             the data.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-4 rounded-xl border-2 border-blue-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+            {/* Inner Summary Cards - BORDER REMOVED */}
+            <div className="bg-white p-4 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
               <h3 className="font-semibold text-blue-800 mb-2">Growth Pattern</h3>
               {loadingStates.monthly ? (
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
@@ -778,8 +781,9 @@ const Trends = () => {
                 </p>
               )}
             </div>
-            <div className="bg-white p-4 rounded-xl border-2 border-green-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-              <h3 className="font-semibold text-green-800 mb-2">Peak Activity</h3>
+            {/* Inner Summary Cards - BORDER REMOVED */}
+            <div className="bg-white p-4 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+              <h3 className="font-semibold text-blue-800 mb-2">Peak Activity</h3>
               {loadingStates.monthly ? (
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (
@@ -790,8 +794,9 @@ const Trends = () => {
                 </p>
               )}
             </div>
-            <div className="bg-white p-4 rounded-xl border-2 border-purple-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-              <h3 className="font-semibold text-purple-800 mb-2">Service Demand</h3>
+            {/* Inner Summary Cards - BORDER REMOVED */}
+            <div className="bg-white p-4 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+              <h3 className="font-semibold text-blue-800 mb-2">Service Demand</h3>
               {loadingStates.assistanceType ? (
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (

@@ -27,7 +27,8 @@ const ApplicantTable = ({
 }) => {
   return (
     // Outer Card Style copied from ApplicantForm.js table container
-    <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
+    <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-t-3xl rounded-b-none shadow-xl border border-blue-200 overflow-hidden">
+
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
           {/* Table Header: Gradient Background with White Text */}

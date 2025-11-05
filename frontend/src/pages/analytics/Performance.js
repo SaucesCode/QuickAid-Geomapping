@@ -486,7 +486,7 @@ const Performance = () => {
             icon={Users}
             title="Staff Productivity"
             value={isProductivityLoaded ? stats.averageProductivity : "—"}
-            color={SUCCESS_GREEN} // Keep Green for this positive metric
+            color={BLUE_MEDIUM} // Keep Green for this positive metric
             isLoading={loadingProductivity}
           />
           <StatCard
@@ -498,7 +498,7 @@ const Performance = () => {
                 ? `${stats.topPerformer?.count || 0} applications`
                 : ""
             }
-            color={WARNING_YELLOW} // Keep Yellow/Gold for Trophy
+            color={BLUE_MEDIUM} // Keep Yellow/Gold for Trophy
             badge="🏆"
             isLoading={loadingLeaderboard}
           />
@@ -511,7 +511,7 @@ const Performance = () => {
                 : "—"
             }
             subtitle="By all staff"
-            color={BLUE_DARK} // Use Darker Blue
+            color={BLUE_MEDIUM} // Use Darker Blue
             isLoading={loadingProductivity}
           />
         </section>

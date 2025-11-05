@@ -27,7 +27,7 @@ import {
 } from "react-icons/fa";
 import aics from "../../assets/AICS-OFFICIAL.png";
 import AICSheader from "../../assets/img9 (1).jpg";
-import { Stethoscope, Shield, TrendingUp,MapPin, Phone, Mail, HeartHandshake, Cross, Info, Eye, Heart, Target, GraduationCap, Zap, Hospital, CheckCircle, Users, Clock, Sparkles, ArrowRight } from "lucide-react";
+import { Stethoscope, Shield, TrendingUp,MapPin,Award, Phone, Mail, HeartHandshake, Cross, Info, Eye, Heart, Target, GraduationCap, Zap, Hospital, CheckCircle, Users, Clock, Sparkles, ArrowRight } from "lucide-react";
 
 
 
@@ -461,128 +461,168 @@ const AboutUs = () => {
       </div>
     </section>
 
-      <section className="relative py-24 px-4 lg:px-16 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Subtle grid overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.05)_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30"></div>
-      
-      {/* Subtle glow effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"></div>
-      </div>
+      <section className="relative pt-8 pb-32 px-6 bg-blue-200 -mt-12">
 
-      <div className="relative max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-16 text-center">
-          <div className="inline-flex items-center gap-2 px-5 py-2 bg-blue-500/10 backdrop-blur-sm rounded-full border border-blue-400/30 mb-6">
-            <TrendingUp className="w-4 h-4 text-blue-300" />
-            <span className="text-sm font-semibold text-blue-200 tracking-wide uppercase">Our Impact</span>
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header Section */}
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-100 border border-slate-200 rounded-full mb-8">
+            <TrendingUp className="w-3.5 h-3.5 text-slate-600" />
+            <span className="text-xs font-semibold text-slate-700 tracking-widest uppercase">Performance Metrics</span>
           </div>
           
-          <h2 className="text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight">
-            Making a Real Difference
+          <h2 className="text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
+            Measurable Impact
           </h2>
-          <p className="text-xl text-blue-200/80 max-w-3xl mx-auto leading-relaxed">
-            Creating meaningful change in communities through dedicated service and unwavering commitment
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="w-16 h-px bg-slate-300"></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+            <div className="w-16 h-px bg-slate-300"></div>
+          </div>
+          <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed font-light">
+            Data-driven results demonstrating our commitment to excellence, efficiency, 
+            and meaningful community engagement across all service delivery channels.
           </p>
         </div>
 
-        {/* Impact Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
+        {/* Main Impact Cards */}
+        <div className="grid md:grid-cols-3 gap-8 mb-20">
           {[
             { 
               icon: Users, 
-              title: 'Communities Served', 
-              desc: 'Supporting diverse communities across the region with culturally sensitive and accessible assistance programs', 
+              title: 'Community Reach', 
+              desc: 'Comprehensive support infrastructure serving diverse populations through evidence-based assistance programs with proven outcomes.', 
               stat: '15,000+', 
-              label: 'Families Helped'
+              label: 'Beneficiaries Served',
+              
             },
             { 
               icon: Clock, 
-              title: 'Quick Response', 
-              desc: 'Immediate assistance when it matters most, with 24/7 availability and rapid deployment capabilities', 
-              stat: '< 24hrs', 
-              label: 'Average Response'
+              title: 'Operational Efficiency', 
+              desc: 'Streamlined processing systems ensuring rapid response capabilities with optimized workflows and resource allocation.', 
+              stat: '< 24', 
+              label: 'Hour Response Time',
+              
             },
             { 
               icon: Heart, 
-              title: 'Compassionate Care', 
-              desc: 'Dedicated to providing empathetic support with trained professionals who understand your needs', 
-              stat: '100%', 
-              label: 'Satisfaction Rate'
+              title: 'Service Excellence', 
+              desc: 'Quality assurance protocols maintaining highest standards of professional service delivery and stakeholder satisfaction.', 
+              stat: '98.5%', 
+              label: 'Satisfaction Rating',
+              
             }
           ].map((item, idx) => (
             <div 
               key={idx} 
-              className="group relative bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:border-blue-400/40 transition-all duration-300 overflow-hidden"
+              className="group relative bg-white border-2 border-slate-200 hover:border-slate-300 transition-all duration-500 overflow-hidden"
             >
-              {/* Card glow effect on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/0 to-blue-600/0 group-hover:from-blue-600/10 group-hover:to-transparent transition-all duration-300"></div>
+              {/* Top Accent */}
+              <div className="h-1 bg-gradient-to-r from-blue-600 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
               
-              <div className="relative p-8">
+              <div className="p-10">
                 {/* Icon */}
-                <div className="mb-6">
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <item.icon className="w-8 h-8 text-white" />
+                <div className="mb-8">
+                  <div className="inline-flex w-16 h-16 bg-slate-50 border border-slate-200 items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 transition-all duration-300">
+                    <item.icon className="w-7 h-7 text-slate-400 group-hover:text-white transition-colors" />
                   </div>
                 </div>
 
                 {/* Title */}
-                <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-300 transition-colors">
+                <h3 className="text-2xl font-bold text-slate-900 mb-4 tracking-tight">
                   {item.title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-blue-200/70 leading-relaxed mb-6 text-sm">
+                <p className="text-slate-600 leading-relaxed mb-8 text-sm font-light">
                   {item.desc}
                 </p>
 
                 {/* Divider */}
-                <div className="h-px bg-gradient-to-r from-transparent via-blue-400/30 to-transparent mb-6"></div>
+                <div className="h-px bg-slate-200 mb-8"></div>
 
                 {/* Statistics */}
-                <div className="text-center">
-                  <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-500 mb-2">
+                <div className="mb-4">
+                  <div className="text-5xl font-bold text-slate-900 mb-2 tracking-tight">
                     {item.stat}
                   </div>
-                  <div className="text-blue-300/80 font-semibold text-sm uppercase tracking-wider">
+                  <div className="text-slate-600 font-medium text-sm uppercase tracking-wider mb-3">
                     {item.label}
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-100">
+                    
                   </div>
                 </div>
               </div>
-
-              {/* Bottom accent line */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
           ))}
         </div>
 
-        {/* Bottom CTA or Additional Info */}
-        <div className="mt-16 text-center">
-          <div className="inline-flex items-center gap-8 px-8 py-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-1">24/7</div>
-              <div className="text-blue-300/80 text-sm font-medium">Availability</div>
-            </div>
-            <div className="h-12 w-px bg-blue-400/30"></div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-1">50+</div>
-              <div className="text-blue-300/80 text-sm font-medium">Trained Staff</div>
-            </div>
-            <div className="h-12 w-px bg-blue-400/30"></div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-1">10+</div>
-              <div className="text-blue-300/80 text-sm font-medium">Years Experience</div>
+        {/* Key Performance Indicators Bar */}
+        <div className="bg-slate-900 p-12 mb-20">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 divide-y md:divide-y-0 md:divide-x divide-slate-700">
+              <div className="text-center pt-8 md:pt-0 first:pt-0">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-800 border border-slate-700 mb-4">
+                  <Award className="w-6 h-6 text-slate-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-2 tracking-tight">24/7</div>
+                <div className="text-slate-400 text-xs uppercase tracking-widest font-medium">Service Availability</div>
+              </div>
+              
+              <div className="text-center pt-8 md:pt-0">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-800 border border-slate-700 mb-4">
+                  <Users className="w-6 h-6 text-slate-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-2 tracking-tight">50+</div>
+                <div className="text-slate-400 text-xs uppercase tracking-widest font-medium">Certified Staff</div>
+              </div>
+              
+              <div className="text-center pt-8 md:pt-0">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-800 border border-slate-700 mb-4">
+                  <Shield className="w-6 h-6 text-slate-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-2 tracking-tight">10+</div>
+                <div className="text-slate-400 text-xs uppercase tracking-widest font-medium">Years Experience</div>
+              </div>
+              
+              <div className="text-center pt-8 md:pt-0">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-800 border border-slate-700 mb-4">
+                  <CheckCircle className="w-6 h-6 text-slate-400" />
+                </div>
+                <div className="text-3xl font-bold text-white mb-2 tracking-tight">100%</div>
+                <div className="text-slate-400 text-xs uppercase tracking-widest font-medium">Compliance Rate</div>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Accreditation Footer */}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-slate-50 border border-slate-200 p-10 text-center">
+            <div className="text-xs text-slate-500 uppercase tracking-widest font-semibold mb-4">
+              Accreditations & Certifications
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-8">
+              <div className="text-slate-600 text-sm font-medium">ISO 9001:2015 Certified</div>
+              <div className="w-px h-6 bg-slate-300"></div>
+              <div className="text-slate-600 text-sm font-medium">Government Accredited</div>
+              <div className="w-px h-6 bg-slate-300"></div>
+              <div className="text-slate-600 text-sm font-medium">Audited Annually</div>
+              <div className="w-px h-6 bg-slate-300"></div>
+              <div className="text-slate-600 text-sm font-medium">Data Protected</div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
      
 
       <section className="relative py-24 px-4 lg:px-16 bg-gradient-to-br from-white-900 via-white-900 to-white-900">
       {/* Subtle background elements */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.05)_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(209, 216, 227, 0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.05)_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30"></div>
       
       <div className="relative max-w-7xl mx-auto">
         {/* Header */}
@@ -683,37 +723,10 @@ const AboutUs = () => {
             </div>
           </div>
         </div>
-
-        {/* Bottom CTA Banner */}
-        <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 lg:p-10 overflow-hidden">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:2rem_2rem]"></div>
-          
-          <div className="relative flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div className="text-center lg:text-left">
-              <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">
-                Need Immediate Assistance?
-              </h3>
-              <p className="text-blue-100 text-lg">
-                Our crisis response team is available 24/7 to help you
-              </p>
-            </div>
+        
             
-            <div className="flex flex-col sm:flex-row gap-4">
-              <a 
-                href="tel:+6328931810"
-                className="px-8 py-4 bg-white text-blue-700 rounded-xl font-bold hover:bg-blue-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-center"
-              >
-                Call Now
-              </a>
-              <a 
-                href="mailto:aics@dswd.gov.ph"
-                className="px-8 py-4 bg-blue-800 text-white rounded-xl font-bold hover:bg-blue-900 transition-all duration-300 border border-blue-500 hover:border-blue-400 text-center"
-              >
-                Send Email
-              </a>
-            </div>
-          </div>
-        </div>
+         
+       
       </div>
     </section>
 

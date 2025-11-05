@@ -12,7 +12,48 @@ import ArchiveModal from "./components/ArchiveModal";
 import ApplicantsFilter from "./components/ApplicantFilter";
 import toast, { Toaster } from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
-import { Loader2, AlertCircle } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  Search, // ADDED for search bar
+  X, // ADDED for clearing search
+  Users,
+  MapPin,
+  Building2,
+  FileText,
+  Calendar,
+} from "lucide-react";
+
+// --- Skeleton Row (Copied from ArchiveApplicants.js for consistency) ---
+const SkeletonRow = () => (
+  <tr className="border-b border-gray-100 animate-pulse">
+    <td className="px-3 py-4">
+      <div className="h-4 bg-gray-200 rounded w-6 mx-auto"></div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="h-4 bg-gray-200 rounded w-40 sm:w-56"></div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="h-4 bg-gray-100 rounded w-24 sm:w-32"></div>
+    </td>
+    <td className="px-6 py-4 hidden sm:table-cell">
+      <div className="h-4 bg-gray-100 rounded w-28"></div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="h-6 bg-gray-200 rounded-lg w-20"></div>
+    </td>
+    <td className="px-6 py-4 hidden md:table-cell">
+      <div className="h-4 bg-gray-100 rounded w-24"></div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="flex items-center gap-2">
+        <div className="h-9 w-16 bg-gray-200 rounded-lg"></div>
+        <div className="h-9 w-24 bg-blue-300 rounded-lg"></div>
+      </div>
+    </td>
+  </tr>
+);
+
 
 const Applicants = () => {
   const navigate = useNavigate();
@@ -192,6 +233,15 @@ const Applicants = () => {
   const sortedApplicants = useMemo(() => {
     if (!sortConfig.key) return filteredApplicants;
     return [...filteredApplicants].sort((a, b) => {
+      // For sorting the Name column
+      if (sortConfig.key === 'full_name') {
+        const aName = `${a.background_info?.last_name || ''} ${a.background_info?.first_name || ''}`.toLowerCase();
+        const bName = `${b.background_info?.last_name || ''} ${b.background_info?.first_name || ''}`.toLowerCase();
+        if (aName < bName) return sortConfig.direction === "ascending" ? -1 : 1;
+        if (aName > bName) return sortConfig.direction === "ascending" ? 1 : -1;
+        return 0;
+      }
+      
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
       if (aValue < bValue) return sortConfig.direction === "ascending" ? -1 : 1;
@@ -205,11 +255,49 @@ const Applicants = () => {
   const currentItems = sortedApplicants.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(sortedApplicants.length / itemsPerPage);
 
-  // --- REDESIGNED JSX (Filter moved to a separate card) ---
+  // Define the consistent table header structure
+  const tableHeader = (
+    <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
+      <th className="px-3 py-4 text-center w-[50px] align-middle">No.</th>
+      <th className="px-6 py-4 text-left w-[20%] align-middle">
+        <div className="flex items-center gap-2">
+          <Users className="w-4 h-4" />
+          Full Name
+        </div>
+      </th>
+      <th className="px-6 py-4 text-left w-[15%] align-middle">
+        <div className="flex items-center gap-2">
+          <MapPin className="w-4 h-4" />
+          Barangay
+        </div>
+      </th>
+      <th className="px-6 py-4 text-left w-[15%] align-middle">
+        <div className="flex items-center gap-2">
+          <Building2 className="w-4 h-4" />
+          City/Municipality
+        </div>
+      </th>
+      <th className="px-6 py-4 text-left w-[15%] align-middle">
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4" />
+          Assistance
+        </div>
+      </th>
+      <th className="px-6 py-4 text-left w-[120px] align-middle">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4" />
+          Date Filled
+        </div>
+      </th>
+      <th className="px-6 py-4 text-left w-auto align-middle">Actions</th>
+    </tr>
+  );
+
+  // --- REDESIGNED JSX to match ArchiveApplicants.js ---
   return (
-    // Background: Soft gradient and blurred elements (Consistent)
+    // Consistent Dashboard Background
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-      {/* Background Blur Shapes (Consistent) */}
+      {/* Background Blur Shapes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
         <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
@@ -217,26 +305,63 @@ const Applicants = () => {
       </div>
 
       <Toaster position="top-center" reverseOrder={false} />
-      <div className="relative z-10 p-4 sm:p-6 md:p-10 space-y-6">
+      
+      <div className="relative z-10 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         
-        {/* === 1. Header/Search Card === */}
-        <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 sm:p-8 border border-blue-200">
-          <ApplicantsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        {/* 1. Header Card (Retains ApplicantsHeader component) */}
+        <div className="mb-6 sm:mb-8">
+          <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-6 sm:p-8">
+            <ApplicantsHeader totalApplicants={applicants.length} navigate={navigate} />
+          </div>
         </div>
         
-        {/* === 2. Filter Card (New separate box, only wraps the component now) === */}
-        <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 sm:p-8 border border-blue-200">
-          {/* Removed the temporary H2 and border-b since the ApplicantsFilter component includes its own header/icon. */}
+        {/* 2. Filter Card (Consistent Card Style) */}
+        <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-4 sm:p-6">
           <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
         </div>
 
-        {/* Conditional Content Area */}
+        {/* 3. Search Bar Card (Dedicated Card) */}
+        <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-4 sm:p-6 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-2xl">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search applicants by name, barangay, or assistance type..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-800 placeholder-gray-400 text-sm outline-none shadow-sm bg-gray-50 transition-all duration-200"
+              />
+            </div>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="p-3 text-gray-500 hover:text-indigo-700 hover:bg-indigo-100 rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 4. Conditional Content Area and Table/Pagination Card (Single Card Structure) */}
         {isLoading ? (
-          <div className="flex justify-center items-center min-h-[60vh]">
-            {/* Consistent Loading Card Style */}
-            <div className="bg-white rounded-3xl shadow-xl border border-blue-200 p-10 text-center">
-              <Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" />
-              <p className="text-gray-600 font-semibold">Fetching applicant list...</p>
+          <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
+                <thead>
+                  {tableHeader}
+                </thead>
+                <tbody className="divide-y divide-blue-100 text-gray-800">
+                  {Array.from({ length: itemsPerPage }).map((_, index) => (
+                    <SkeletonRow key={index} />
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex justify-center items-center p-10">
+                <Loader2 className="w-8 h-8 text-blue-600 animate-spin mr-3" />
+                <p className="text-gray-600 font-semibold">Fetching applicant list...</p>
+              </div>
             </div>
           </div>
         ) : isError ? (
@@ -249,15 +374,14 @@ const Applicants = () => {
             </div>
           </div>
         ) : filteredApplicants.length === 0 ? (
-          // Consistent Empty State Card Style
+          // Empty State
           <div className="bg-white rounded-3xl shadow-xl border border-blue-200 p-10 text-center">
             <h3 className="text-2xl font-bold text-gray-800 mb-3">No Applicants Found</h3>
             <p className="text-gray-500 mb-6">
               {searchTerm
-                ? "Your search yielded no results. Try simplifying your query."
-                : "The applicant database is empty. Click below to add the first one."}
+                ? "Your search yielded no results. Try simplifying your query or checking your filters."
+                : "The applicant database is empty."}
             </p>
-            {/* Consistent Primary Gradient Button Style */}
             <button
               onClick={() => navigate("/new-applicant")}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition duration-300 shadow-lg"
@@ -266,46 +390,49 @@ const Applicants = () => {
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-4 sm:p-6 overflow-x-auto">
-              <ApplicantTable
-                currentItems={currentItems}
-                sortConfig={sortConfig}
-                handleSort={handleSort}
-                openPreviewView={applicant => {
-                  setPreviewApplicant(applicant);
-                  setPreviewView(true);
-                }}
-                openEditView={applicant => {
-                  setEditingApplicant(applicant);
-                  setEditView(true);
-                }}
-                openArchiveModal={id => setArchiveModal({ show: true, applicantId: id })}
-                goPrintPage={navigate}
-                formatDate={formatDate}
-              />
-            </div>
+          // Single card containing both Table and Pagination (ArchiveApplicants.js style)
+          // REMOVED the redundant 'space-y-6' wrapper
+          <div className="bg-white bg-opacity-90 backdrop-blur-xl shadow-xl border border-blue-200 overflow-hidden rounded-t-3xl rounded-b-none">
+  {/* Table */}
+  <div className="overflow-x-auto">
+    <ApplicantTable
+      currentItems={currentItems}
+      sortConfig={sortConfig}
+      handleSort={handleSort}
+      openPreviewView={applicant => {
+        setPreviewApplicant(applicant);
+        setPreviewView(true);
+      }}
+      openEditView={applicant => {
+        setEditingApplicant(applicant);
+        setEditView(true);
+      }}
+      openArchiveModal={id => setArchiveModal({ show: true, applicantId: id })}
+      goPrintPage={navigate}
+      formatDate={formatDate}
+      indexOfFirstItem={indexOfFirstItem}
+      tableHeader={tableHeader}
+    />
+  </div>
 
-            {/* Pagination Card (Consistent Card Style) */}
-            <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-4">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                handlePageChange={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-                handleItemsPerPageChange={e => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                totalItems={sortedApplicants.length}
-                indexOfFirstItem={indexOfFirstItem}
-                indexOfLastItem={indexOfLastItem}
-              />
-            </div>
-          </div>
+  {/* Pagination */}
+  {filteredApplicants.length > 0 && (
+    <Pagination
+      currentPage={currentPage}
+      totalPages={totalPages}
+      handlePageChange={setCurrentPage}
+      itemsPerPage={itemsPerPage}
+      handleItemsPerPageChange={e => {
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1);
+      }}
+      totalItems={filteredApplicants.length}
+      indexOfFirstItem={indexOfFirstItem}
+      indexOfLastItem={indexOfLastItem}
+    />
+  )}
+</div>
         )}
-
-        {/* Modals (Logic Unchanged) */}
         {previewView && previewApplicant && (
           <PreviewModal
             previewApplicant={previewApplicant}
