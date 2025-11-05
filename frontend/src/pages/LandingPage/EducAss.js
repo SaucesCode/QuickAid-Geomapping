@@ -236,24 +236,59 @@ const EducationalAssistance = () => {
         </section>
 
         {/* 4. Call-to-Action (Reversed Color Scheme) */}
-        <section className="bg-blue-50 text-blue-900 py-16 border-t border-blue-200">
-          <div className="max-w-4xl mx-auto text-center px-6">
-            <h2 className="text-3xl font-bold mb-4">
-              Need Help Applying for Assistance?
-            </h2>
-            <p className="mb-8 text-slate-700">
-              Visit your nearest DSWD Office today or check the online portal for more details on documentary requirements and schedules.
-            </p>
-            <Link
-              to="/contact"
-              className="inline-flex items-center gap-2 bg-blue-600 text-white font-semibold px-10 py-4 rounded-full shadow-lg hover:bg-blue-700 transition transform hover:scale-105"
-            >
-              <Phone className="w-5 h-5" />
-              Contact Us Now
-            </Link>
+        <div className="p-8 md:p-12 bg-blue-500 min-h-screen flex items-start justify-center">
+      
+      {/* Content card - rounded white background */}
+      <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8 lg:p-10 max-w-4xl w-full relative mt-16">
+        
+        {/* 'PAALALA' Header/Pill - positioned absolutely at the top-left */}
+        <div className="absolute top-0 left-4 md:left-8 transform -translate-y-1/2">
+          <div className="bg-red-600 text-white font-bold text-lg md:text-xl py-2 px-6 rounded-full shadow-lg border-2 border-white whitespace-nowrap">
+            PAALALA
           </div>
-        </section>
+        </div>
 
+        {/* Content Section */}
+        <div className="pt-4 md:pt-8 space-y-4">
+          
+          {/* Group 1: NO FIXER & NO EXTRA FEES */}
+          <div className="flex items-start space-x-4 md:space-x-6">
+            
+            {/* NO FIXER Icon */}
+            <div className="flex-shrink-0 w-24 h-24 flex flex-col items-center justify-center border-2 border-red-600 rounded-full text-red-600 font-extrabold text-center leading-tight">
+              <span className="text-xl">NO</span>
+              <span className="text-xl">FIXER</span>
+            </div>
+            
+            {/* Combined Text Block for NO FIXER and NO EXTRA FEES (using clean text) */}
+            <div className="text-lg text-gray-800 flex-grow pt-1 space-y-4">
+                <p>
+                    Ang lahat ng pinansyal na tulong mula sa Crisis Intervention Division ng DSWD ay buong matatanggap ng mga benepisyaryo.
+                </p>
+                <p>
+                    Walang sino mang empleyado o hindi empleyado ng ahensya ang awtorisado na magkaltas o magpataw ng ano mang pinansiyal na singil mula rito.
+                </p>
+            </div>
+          </div>
+          
+          {/* Group 2: FAKE DOCUMENTS */}
+          <div className="flex items-start space-x-4 md:space-x-6 pt-4">
+            
+            {/* FAKE Icon */}
+            <div className="flex-shrink-0 w-24 h-24 flex flex-col items-center justify-center border-2 border-red-600 rounded-lg text-red-600 font-extrabold text-center leading-none">
+              <span className="text-2xl tracking-widest" style={{ letterSpacing: '0.2em' }}>FAKE</span>
+            </div>
+            
+            {/* Text Block for FAKE DOCUMENTS (using clean text) */}
+            {/* This paragraph takes the same width as the combined two above it */}
+            <p className="text-lg text-gray-800 flex-grow pt-1">
+              Ang DSWD ay hindi tumatanggap ng mga fake/peke na mga dokumento at ito ay mapatunayan ng DSWD may kaukulang itong parusa at dadaan ito sa tamang proseso upang mabigyan ng tamang aksyon.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
         {/* Back Button */}
         <div className="max-w-6xl mx-auto px-6 py-12 text-center">
           <Link

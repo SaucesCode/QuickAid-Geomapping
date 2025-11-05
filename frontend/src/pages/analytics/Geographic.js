@@ -9,6 +9,7 @@ import {
   Building2,
   Activity,
   Clock,
+  Award,
   Target,
   BarChart3,
   TrendingUp,
@@ -92,14 +93,14 @@ const Geographic = () => {
   const [filters, setFilters] = useState({});
   const navigate = useNavigate();
 
-  // Original colors for the Pie Chart remain: blue, green, yellow, red, purple
-  const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+  // UPDATED: Primary blue/indigo palette for all charts (Pie Chart)
+  const COLORS = ["#1e40af", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe"]; // Dark blue to light blue
   
-  // Custom colors for the Stacked Bar Chart
+  // UPDATED: Custom colors for the Stacked Bar Chart (all in blue/indigo/light-blue range)
   const ASSISTANCE_COLORS = {
-    Educational: "#10b981", // Green
-    Medical: "#3b82f6",     // Blue
-    Burial: "#FDE68A",      // Light Yellow/Orange (Amber)
+    Educational: "#10B981", // Darker Blue
+    Medical: "#3B82F6",     // Primary Blue
+    Burial: "#FDE68A",      // Light Blue
   };
 
   const fetchData = async endpoint => {
@@ -206,16 +207,17 @@ const Geographic = () => {
       const heatData = locationData.map(loc => [loc.latitude, loc.longitude, 1.0]);
 
       if (L.heatLayer) {
+        // UPDATED: Heatmap gradient to use more blue tones (removed red/orange focus)
         const heatLayer = L.heatLayer(heatData, {
           radius: 20,
           blur: 15,
           maxZoom: 12,
           gradient: {
-            0.2: "#4ade80",
-            0.4: "#22d3ee",
-            0.6: "#3b82f6",
-            0.8: "#f97316",
-            1.0: "#ef4444",
+            0.2: "#bfdbfe", // Lightest Blue
+            0.4: "#60a5fa", // Lighter Blue
+            0.6: "#3b82f6", // Primary Blue
+            0.8: "#1d4ed8", // Darker Blue
+            1.0: "#1e3a8a", // Darkest Blue (Navy)
           },
         });
         heatLayer.addTo(map);
@@ -304,13 +306,13 @@ const Geographic = () => {
           </div>
         </div>
         <button
-  onClick={() => navigate("/heatmap")}
-  className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
->
-  <Map className="w-5 h-5" />
-  <span className="text-white">View Full Heatmap</span>
-  <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-</button>
+          onClick={() => navigate("/heatmap")}
+          className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+        >
+          <Map className="w-5 h-5" />
+          <span className="text-white">View Full Heatmap</span>
+          <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        </button>
 
       </div>
     </header>
@@ -350,76 +352,82 @@ const Geographic = () => {
           </>
         ) : (
           <>
+            {/* 1. KEY METRIC CARDS (ALL BLUE/INDIGO, CONSISTENT SIZING) */}
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              {/* CARD 1: Total Mapped */}
               <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                    <Users className="w-7 h-7 text-white" />
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
+                    <MapPin className="w-7 h-7 text-white" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm text-gray-600 font-semibold">Total Mapped</p>
-                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">
+                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700">
                       {stats.totalApplicants.toLocaleString()}
                     </h2>
                   </div>
                 </div>
               </div>
 
-              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-emerald-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-    <div className="flex items-center gap-3">
-        {/* Icon container: flex-shrink-0 ensures the icon's size is fixed */}
-        <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
-            <Building2 className="w-7 h-7 text-white" />
-        </div>
-        
-        {/* Text container: Added min-w-0 to allow the container to shrink gracefully in the flex layout */}
-        <div className="min-w-0"> 
-            <p className="text-sm text-gray-600 font-semibold">Top Barangay</p>
-            
-            {/* H2: break-words allows "Silanganan" to break (Sila... nganan) when space is tight. */}
-            <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-emerald-700 break-words"> 
-                {stats.topBarangay}
-            </h2>
-        </div>
-    </div>
-</div>
-
-              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-purple-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+              {/* CARD 2: Top Barangay (TEXT SIZE ADJUSTED FOR CONSISTENCY/ALIGNMENT) */}
+              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                    <Activity className="w-7 h-7 text-white" />
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
+                    <Award className="w-7 h-7 text-white" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
+                    <p className="text-sm text-gray-600 font-semibold">Top Barangay</p>
+                    {/* UPDATED SIZE: Changed h2 to text-lg, added overflow class for alignment */}
+                    <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700 break-words overflow-hidden text-ellipsis whitespace-nowrap">
+                      {stats.topBarangay}
+                    </h2>
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 3: Barangays */}
+              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
+                    <Building2 className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="min-w-0">
                     <p className="text-sm text-gray-600 font-semibold">Barangays</p>
-                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-purple-700">
+                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700">
                       {stats.barangayCount}
                     </h2>
                   </div>
                 </div>
               </div>
 
-              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-green-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+              {/* CARD 4: Avg Approval (UPDATED TO BLUE) */}
+              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                  {/* UPDATED ICON COLOR */}
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
                     <Target className="w-7 h-7 text-white" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm text-gray-600 font-semibold">Avg Approval</p>
-                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-green-700">
+                    {/* UPDATED TEXT GRADIENT */}
+                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700">
                       {stats.avgApprovalRate}%
                     </h2>
                   </div>
                 </div>
               </div>
 
-              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-orange-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+              {/* CARD 5: Inactive (UPDATED TO BLUE) */}
+              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                  {/* UPDATED ICON COLOR */}
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
                     <Clock className="w-7 h-7 text-white" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm text-gray-600 font-semibold">Inactive</p>
-                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-orange-700">
+                    {/* UPDATED TEXT GRADIENT */}
+                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700">
                       {stats.inactiveCount}
                     </h2>
                   </div>
@@ -427,6 +435,7 @@ const Geographic = () => {
               </div>
             </section>
 
+            {/* 2. HEATMAP PREVIEW (ALREADY BLUE) */}
             <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-blue-200">
               <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -457,6 +466,7 @@ const Geographic = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 3. TOP BARANGAYS CHART (ALREADY BLUE) */}
               <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md">
@@ -507,9 +517,11 @@ const Geographic = () => {
                 )}
               </div>
 
+              {/* 4. APPROVAL RATES PIE CHART (UPDATED TO BLUE) */}
               <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-emerald-700 rounded-lg flex items-center justify-center shadow-md">
+                  {/* UPDATED ICON COLOR */}
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md">
                     <TrendingUp className="w-5 h-5 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">
@@ -578,9 +590,11 @@ const Geographic = () => {
               </div>
             </div>
 
+            {/* 5. ASSISTANCE TYPE DISTRIBUTION CHART (UPDATED TO BLUE) */}
             <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md">
+                {/* UPDATED ICON COLOR */}
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md">
                   <Activity className="w-5 h-5 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">
@@ -613,32 +627,31 @@ const Geographic = () => {
                           boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
                         }}
                       />
-                      {/* --- COLOR CHANGE IMPLEMENTATION START --- */}
+                      {/* COLOR CHANGE IMPLEMENTATION */}
                       <Bar
                         dataKey="Medical"
                         stackId="a"
-                        fill={ASSISTANCE_COLORS.Medical} // Blue
+                        fill={ASSISTANCE_COLORS.Medical} // Primary Blue
                         radius={[4, 4, 0, 0]}
                       />
                       <Bar
                         dataKey="Educational"
                         stackId="a"
-                        fill={ASSISTANCE_COLORS.Educational} // Green
+                        fill={ASSISTANCE_COLORS.Educational} // Darker Blue
                         radius={[4, 4, 0, 0]}
                       />
                       <Bar
                         dataKey="Burial"
                         stackId="a"
-                        fill={ASSISTANCE_COLORS.Burial} // Light Yellow/Orange (Amber)
+                        fill={ASSISTANCE_COLORS.Burial} // Light Blue
                         radius={[4, 4, 0, 0]}
                       />
-                      {/* --- COLOR CHANGE IMPLEMENTATION END --- */}
                     </BarChart>
                   </ResponsiveContainer>
 
                   <div className="flex justify-center flex-wrap gap-8 mt-6">
-                    {/* --- LEGEND UPDATE START --- */}
-                    <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg border border-green-200">
+                    {/* LEGEND UPDATE */}
+                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
                       <div className="w-4 h-4 rounded-md shadow-sm" style={{ backgroundColor: ASSISTANCE_COLORS.Educational }}></div>
                       <span className="text-sm font-semibold text-gray-700">Educational</span>
                     </div>
@@ -646,11 +659,10 @@ const Geographic = () => {
                       <div className="w-4 h-4 rounded-md shadow-sm" style={{ backgroundColor: ASSISTANCE_COLORS.Medical }}></div>
                       <span className="text-sm font-semibold text-gray-700">Medical</span>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 rounded-lg border border-amber-200">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
                       <div className="w-4 h-4 rounded-md shadow-sm" style={{ backgroundColor: ASSISTANCE_COLORS.Burial }}></div>
                       <span className="text-sm font-semibold text-gray-700">Burial</span>
                     </div>
-                    {/* --- LEGEND UPDATE END --- */}
                   </div>
                 </>
               ) : (
@@ -660,17 +672,19 @@ const Geographic = () => {
               )}
             </div>
 
+            {/* 6. INACTIVE APPLICANTS ALERT (UPDATED TO BLUE) */}
             {inactiveApplicants.length > 0 && (
-              <div className="bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-300 rounded-3xl p-8 shadow-xl backdrop-blur-xl">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-3xl p-8 shadow-xl backdrop-blur-xl">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                  {/* UPDATED ICON COLOR */}
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                     <AlertCircle className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-orange-900 mb-3">
+                    <h3 className="text-2xl font-bold text-blue-900 mb-3">
                       Geographic Distribution Alert
                     </h3>
-                    <p className="text-orange-800 mb-6 leading-relaxed text-base">
+                    <p className="text-blue-800 mb-6 leading-relaxed text-base">
                       {inactiveApplicants.length} applicants from various locations haven't
                       submitted new applications in over 6 months. This may indicate gaps in
                       outreach coverage.
@@ -679,7 +693,7 @@ const Geographic = () => {
                       {inactiveApplicants.slice(0, 3).map(applicant => (
                         <div
                           key={applicant.id}
-                          className="bg-white p-4 rounded-xl border-2 border-orange-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                          className="bg-white p-4 rounded-xl border-2 border-blue-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                         >
                           <span className="font-bold text-gray-900 block text-lg mb-1">
                             {applicant.name}
@@ -692,9 +706,9 @@ const Geographic = () => {
                       ))}
                     </div>
                     {inactiveApplicants.length > 3 && (
-                      <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-lg border border-orange-300">
-                        <Sparkles className="w-4 h-4 text-orange-600" />
-                        <p className="text-sm text-orange-700 font-semibold">
+                      <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-lg border border-blue-300">
+                        <Sparkles className="w-4 h-4 text-blue-600" />
+                        <p className="text-sm text-blue-700 font-semibold">
                           +{inactiveApplicants.length - 3} more inactive applicants across
                           different areas
                         </p>

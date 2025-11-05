@@ -5,23 +5,35 @@ export default function HowToApply() {
   const steps = [
     {
       icon: ClipboardList,
-      title: "1. Submit Application",
-      description: "Fill out the online form or visit your nearest DSWD office to submit the required documents.",
+      title: "Submit Application",
+      description: [
+        "Fill out the online form or visit your nearest DSWD office.",
+        "Prepare and submit the required documents.",
+      ],
     },
     {
       icon: Search,
-      title: "2. Review & Validation",
-      description: "Your application will be reviewed within 24–48 hours for eligibility and assessment.",
+      title: "Review & Validation",
+      description: [
+        "Your application is reviewed for eligibility.",
+        "Verification takes around 24–48 hours.",
+      ],
     },
     {
       icon: ThumbsUp,
-      title: "3. Assistance Granted",
-      description: "Once approved, financial or material assistance will be released immediately.",
+      title: "Assistance Granted",
+      description: [
+        "Once approved, assistance will be released immediately.",
+        "You'll be notified of the details via SMS or email.",
+      ],
     },
     {
       icon: Heart,
-      title: "4. Support Received",
-      description: "Beneficiaries receive assistance plus follow-up support if needed.",
+      title: "Support Received",
+      description: [
+        "Receive your aid and follow-up support if needed.",
+        "Our team ensures proper assistance delivery.",
+      ],
     },
   ];
 
@@ -33,72 +45,99 @@ export default function HowToApply() {
   ];
 
   return (
-    // Crisp white background for a professional look
-    <section className="bg-white py-24 px-6 sm:py-32">
-      <div className="max-w-6xl mx-auto text-center">
-        
-        {/* Section Title: Strong, authoritative blue text */}
-        <h2 className="text-5xl lg:text-6x font-bold text-blue-900 mb-4 tracking-tight">
-          Our Simple <span className="text-5xl lg:text-6x text-blue-600">Process</span>
-        </h2>
-        
-        {/* Subtitle: Muted, high-contrast text */}
-        <p className="text-lg text-gray-500 max-w-4xl mx-auto mb-20 leading-relaxed">
-          Our streamlined four-step process ensures you get the help you need quickly and efficiently.
-        </p>
+    <section className="bg-gradient-to-b from-gray-50 to-white py-24 px-6">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-full mb-6">
+        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
+        <span className="text-blue-700 font-semibold text-sm uppercase tracking-wider">
+          Application Process
+        </span>
+      </div>
+          <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-5 tracking-tight">
+            How to Apply
+          </h2>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Our streamlined process ensures you receive assistance quickly and efficiently
+          </p>
+        </div>
 
-        {/* Steps: Modern, elevated cards with number badges */}
-        <div className="grid md:grid-cols-4 gap-8 mb-28">
+        {/* Steps */}
+        <div className="mb-24">
           {steps.map((step, index) => (
-            <div 
-              key={index}
-              // Card design: subtle shadow, rounded corners, clean hover effect
-              className="relative text-center p-8 bg-white border border-blue-50/50 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.01] group"
-            >
-              {/* Step Number Badge: Monochromatic blue circle for visual hierarchy */}
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-sm">{index + 1}</span>
+            <div key={index} className="flex gap-8 mb-8 last:mb-0">
+              {/* Left Side - Number and Line */}
+              <div className="flex flex-col items-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-xl text-white text-3xl font-bold flex-shrink-0">
+                  {index + 1}
+                </div>
+                {index < steps.length - 1 && (
+                  <div className="w-1 flex-1 bg-gradient-to-b from-blue-600 to-blue-300 mt-4 rounded-full min-h-[80px]"></div>
+                )}
               </div>
-              
-              {/* Icon Container: Primary blue icon on a slightly lighter blue background */}
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 mx-auto mt-2 mb-6">
-                <step.icon className="w-7 h-7 text-blue-600" />
+
+              {/* Right Side - Content */}
+              <div className="flex-1 pb-8">
+                <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl hover:border-blue-200 transition-all duration-300">
+                  <div className="flex items-start gap-5 mb-5">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <step.icon className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">{step.title}</h3>
+                      <div className="space-y-3">
+                        {step.description.map((line, i) => (
+                          <p key={i} className="text-gray-700 leading-relaxed flex items-start gap-3">
+                            <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
+                            <span>{line}</span>
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              
-              {/* Title: Dark, readable blue heading */}
-              <h3 className="text-xl font-semibold text-blue-800 mb-3">
-                {step.title.substring(3)} {/* Remove the number from the title since we have the badge */}
-              </h3>
-              
-              {/* Description: Clean gray text for readability */}
-              <p className="text-gray-500 text-sm leading-relaxed">
-                {step.description}
-              </p>
             </div>
           ))}
         </div>
 
-        {/* Timeline: Dark blue, high-contrast, professional block */}
-        <div className="bg-blue-800 text-white rounded-xl p-8 lg:p-12 shadow-2xl">
-          <h3 className="text-2xl font-bold text-white mb-10 border-b border-blue-600 pb-5">
-            Expected Timeline 
-          </h3>
-          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-6 md:gap-4 lg:gap-10">
-            
-            {timeline.map((item, index) => (
-              <React.Fragment key={index}>
-                {/* Timeline Item */}
-                <div className="text-center flex-1 py-2">
-                  <p className="text-blue-200 font-bold text-3xl mb-2">{item.time}</p>
-                  <p className="text-blue-300 text-sm font-semibold uppercase tracking-wider">{item.label}</p>
+        {/* Timeline Section */}
+        <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 rounded-3xl p-12 shadow-2xl relative overflow-hidden">
+          {/* Decorative Background Elements */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-500 rounded-full blur-3xl"></div>
+          </div>
+
+          <div className="relative z-10">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-bold text-white mb-3">Expected Timeline</h3>
+              <p className="text-blue-200 text-lg">From submission to support delivery</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {timeline.map((item, index) => (
+                <div key={index} className="relative">
+                  <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20 hover:bg-opacity-15 transition-all h-full">
+                    <div className="text-center">
+                      <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-500 bg-opacity-30 rounded-full mb-4">
+                        <span className="text-2xl font-bold text-white">{index + 1}</span>
+                      </div>
+                      <p className="text-white font-bold text-3xl mb-3">{item.time}</p>
+                      <p className="text-blue-200 text-sm font-medium leading-relaxed">
+                        {item.label}
+                      </p>
+                    </div>
+                  </div>
+                  {index < timeline.length - 1 && (
+                    <div className="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-20">
+                      <ArrowRight className="text-blue-400 w-6 h-6" />
+                    </div>
+                  )}
                 </div>
-                
-                {/* Arrow Divider: Bright blue arrow for visual separation (hidden on small screens) */}
-                {index < timeline.length - 1 && (
-                  <ArrowRight className="text-blue-500 w-6 h-6 hidden md:block flex-none" />
-                )}
-              </React.Fragment>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
