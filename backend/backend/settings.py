@@ -100,10 +100,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-if os.getenv("DJANGO_ENV") == "development":
+if os.getenv("DJANGO_ENV") == "production":
     DATABASES = {
         'default': dj_database_url.config(
-            default=f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",            
+            efault=os.getenv('DATABASE_URL'),
             conn_max_age=600,
             ssl_require=False
         )

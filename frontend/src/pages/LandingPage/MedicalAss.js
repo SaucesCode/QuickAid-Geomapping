@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import {
-  Heart, // Main Hero Icon
   Stethoscope, // Medical Consultation / General medical
   ClipboardList, // Records / Laboratory
   Users,
   Hospital, // Hospital / Facilities
   Pill, // Medicines
-  Bandage, // (Not explicitly used, but available)
   FileText,
   ListChecks,
   Gift,
@@ -19,7 +17,6 @@ import {
   FileSignature,
   CheckCircle,
   Banknote,
-  
 } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
 import Footer from "../../components/Footer/Footer";
@@ -43,9 +40,9 @@ const MedicalAssistance = () => {
                   Medical Assistance Program
                 </h1>
                 <p className="text-lg text-blue-100 max-w-xl">
-                  Providing immediate and compassionate healthcare support for
-                  indigent individuals and families through medicines, hospital
-                  assistance, and essential medical services.
+                  Providing immediate and compassionate healthcare support for indigent
+                  individuals and families through medicines, hospital assistance, and
+                  essential medical services.
                 </p>
               </div>
             </div>
@@ -112,9 +109,7 @@ const MedicalAssistance = () => {
             <div className="bg-white rounded-xl shadow-lg p-8">
               {activeTab === "requirements" && (
                 <div>
-                  <h2 className="text-2xl font-bold text-blue-700 mb-6">
-                    Requirements
-                  </h2>
+                  <h2 className="text-2xl font-bold text-blue-700 mb-6">Requirements</h2>
                   <div className="grid md:grid-cols-2 gap-6">
                     {[
                       {
@@ -176,22 +171,15 @@ const MedicalAssistance = () => {
                           icon: Banknote,
                         },
                       ].map((item, index) => (
-                        <div
-                          key={index}
-                          className="flex items-start gap-6 relative"
-                        >
+                        <div key={index} className="flex items-start gap-6 relative">
                           {/* Step Circle */}
                           <div className="z-10 flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white shadow-md">
                             <item.icon className="w-6 h-6" />
                           </div>
                           {/* Step Content */}
                           <div>
-                            <p className="text-gray-900 font-semibold text-lg">
-                              {item.step}
-                            </p>
-                            <p className="text-gray-600 text-sm mt-2">
-                              {item.desc}
-                            </p>
+                            <p className="text-gray-900 font-semibold text-lg">{item.step}</p>
+                            <p className="text-gray-600 text-sm mt-2">{item.desc}</p>
                           </div>
                         </div>
                       ))}
@@ -202,9 +190,7 @@ const MedicalAssistance = () => {
 
               {activeTab === "benefits" && (
                 <div>
-                  <h2 className="text-2xl font-bold text-blue-700 mb-6">
-                    Benefits
-                  </h2>
+                  <h2 className="text-2xl font-bold text-blue-700 mb-6">Benefits</h2>
                   <div className="grid md:grid-cols-2 gap-6 mb-12">
                     {[
                       {
@@ -262,69 +248,72 @@ const MedicalAssistance = () => {
         </section>
 
         <div className="p-8 md:p-12 bg-blue-500 min-h-screen flex items-start justify-center">
-      
-      {/* Content card - rounded white background */}
-      <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8 lg:p-10 max-w-4xl w-full relative mt-16">
-        
-        {/* 'PAALALA' Header/Pill - positioned absolutely at the top-left */}
-        <div className="absolute top-0 left-4 md:left-8 transform -translate-y-1/2">
-          <div className="bg-red-600 text-white font-bold text-lg md:text-xl py-2 px-6 rounded-full shadow-lg border-2 border-white whitespace-nowrap">
-            PAALALA
+          {/* Content card - rounded white background */}
+          <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8 lg:p-10 max-w-4xl w-full relative mt-16">
+            {/* 'PAALALA' Header/Pill - positioned absolutely at the top-left */}
+            <div className="absolute top-0 left-4 md:left-8 transform -translate-y-1/2">
+              <div className="bg-red-600 text-white font-bold text-lg md:text-xl py-2 px-6 rounded-full shadow-lg border-2 border-white whitespace-nowrap">
+                PAALALA
+              </div>
+            </div>
+
+            {/* Content Section */}
+            <div className="pt-4 md:pt-8 space-y-4">
+              {/* Group 1: NO FIXER & NO EXTRA FEES */}
+              <div className="flex items-start space-x-4 md:space-x-6">
+                {/* NO FIXER Icon */}
+                <div className="flex-shrink-0 w-24 h-24 flex flex-col items-center justify-center border-2 border-red-600 rounded-full text-red-600 font-extrabold text-center leading-tight">
+                  <span className="text-xl">NO</span>
+                  <span className="text-xl">FIXER</span>
+                </div>
+
+                {/* Combined Text Block for NO FIXER and NO EXTRA FEES (using clean text) */}
+                <div className="text-lg text-gray-800 flex-grow pt-1 space-y-4">
+                  <p>
+                    Ang lahat ng pinansyal na tulong mula sa Crisis Intervention Division ng
+                    DSWD ay buong matatanggap ng mga benepisyaryo.
+                  </p>
+                  <p>
+                    Walang sino mang empleyado o hindi empleyado ng ahensya ang awtorisado na
+                    magkaltas o magpataw ng ano mang pinansiyal na singil mula rito.
+                  </p>
+                </div>
+              </div>
+
+              {/* Group 2: FAKE DOCUMENTS */}
+              <div className="flex items-start space-x-4 md:space-x-6 pt-4">
+                {/* FAKE Icon */}
+                <div className="flex-shrink-0 w-24 h-24 flex flex-col items-center justify-center border-2 border-red-600 rounded-lg text-red-600 font-extrabold text-center leading-none">
+                  <span
+                    className="text-2xl tracking-widest"
+                    style={{ letterSpacing: "0.2em" }}
+                  >
+                    FAKE
+                  </span>
+                </div>
+
+                {/* Text Block for FAKE DOCUMENTS (using clean text) */}
+                {/* This paragraph takes the same width as the combined two above it */}
+                <p className="text-lg text-gray-800 flex-grow pt-1">
+                  Ang DSWD ay hindi tumatanggap ng mga fake/peke na mga dokumento at ito ay
+                  mapatunayan ng DSWD may kaukulang itong parusa at dadaan ito sa tamang
+                  proseso upang mabigyan ng tamang aksyon.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Content Section */}
-        <div className="pt-4 md:pt-8 space-y-4">
-          
-          {/* Group 1: NO FIXER & NO EXTRA FEES */}
-          <div className="flex items-start space-x-4 md:space-x-6">
-            
-            {/* NO FIXER Icon */}
-            <div className="flex-shrink-0 w-24 h-24 flex flex-col items-center justify-center border-2 border-red-600 rounded-full text-red-600 font-extrabold text-center leading-tight">
-              <span className="text-xl">NO</span>
-              <span className="text-xl">FIXER</span>
-            </div>
-            
-            {/* Combined Text Block for NO FIXER and NO EXTRA FEES (using clean text) */}
-            <div className="text-lg text-gray-800 flex-grow pt-1 space-y-4">
-                <p>
-                    Ang lahat ng pinansyal na tulong mula sa Crisis Intervention Division ng DSWD ay buong matatanggap ng mga benepisyaryo.
-                </p>
-                <p>
-                    Walang sino mang empleyado o hindi empleyado ng ahensya ang awtorisado na magkaltas o magpataw ng ano mang pinansiyal na singil mula rito.
-                </p>
-            </div>
-          </div>
-          
-          {/* Group 2: FAKE DOCUMENTS */}
-          <div className="flex items-start space-x-4 md:space-x-6 pt-4">
-            
-            {/* FAKE Icon */}
-            <div className="flex-shrink-0 w-24 h-24 flex flex-col items-center justify-center border-2 border-red-600 rounded-lg text-red-600 font-extrabold text-center leading-none">
-              <span className="text-2xl tracking-widest" style={{ letterSpacing: '0.2em' }}>FAKE</span>
-            </div>
-            
-            {/* Text Block for FAKE DOCUMENTS (using clean text) */}
-            {/* This paragraph takes the same width as the combined two above it */}
-            <p className="text-lg text-gray-800 flex-grow pt-1">
-              Ang DSWD ay hindi tumatanggap ng mga fake/peke na mga dokumento at ito ay mapatunayan ng DSWD may kaukulang itong parusa at dadaan ito sa tamang proseso upang mabigyan ng tamang aksyon.
-            </p>
-          </div>
-
-        </div>
-      </div>
-    </div>
 
         {/* Back Button */}
         <div className="max-w-6xl mx-auto px-6 py-12 text-center">
-                  <Link
-                    to="/services"
-                    className="inline-flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 py-3 rounded-full font-semibold transition-colors"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                    Back to Services
-                  </Link>
-                </div>
+          <Link
+            to="/services"
+            className="inline-flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 py-3 rounded-full font-semibold transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Services
+          </Link>
+        </div>
 
         <Footer />
       </div>

@@ -14,7 +14,6 @@ import {
   FileSearch,
   FileSignature,
   Banknote,
-  Phone, // Using Phone for Contact Us CTA
   ArrowLeft,
 } from "lucide-react";
 import Navbar from "../../components/Navigation/Navbar";
@@ -29,7 +28,6 @@ const EducationalAssistance = () => {
       <Navbar />
       {/* 1. Main Page Container (Using light blue/slate for professionalism) */}
       <div className="min-h-screen bg-slate-50 pt-32">
-        
         {/* 2. Hero Section - Deep Monochromatic Blue */}
         <section className="bg-gradient-to-r from-blue-700 to-blue-900 text-white py-16 relative overflow-hidden shadow-lg">
           <GraduationCap className="absolute right-12 top-12 w-40 h-40 text-blue-500 opacity-10" />
@@ -37,30 +35,39 @@ const EducationalAssistance = () => {
           <div className="max-w-6xl mx-auto px-6 relative z-10">
             <div className="flex flex-col md:flex-row items-center gap-10">
               <div className="flex-1">
-                <h1 className="text-4xl md:text-5xl text-blue-100 font-bold mb-4"> {/* Changed from extrabold to bold */}
+                <h1 className="text-4xl md:text-5xl text-blue-100 font-bold mb-4">
+                  {" "}
+                  {/* Changed from extrabold to bold */}
                   Educational Assistance Program
                 </h1>
-                <p className="text-lg text-blue-200 max-w-xl font-medium"> {/* Softer text color */}
-                  Supporting students and families by providing financial
-                  assistance for tuition, school supplies, and other educational needs.
+                <p className="text-lg text-blue-200 max-w-xl font-medium">
+                  {" "}
+                  {/* Softer text color */}
+                  Supporting students and families by providing financial assistance for
+                  tuition, school supplies, and other educational needs.
                 </p>
               </div>
             </div>
 
             {/* Stats */}
             <div className="grid md:grid-cols-3 gap-6 mt-12">
-              <div className="bg-white text-slate-800 rounded-xl shadow-xl p-6 text-center border-t-4 border-blue-500"> {/* Added border accent */}
+              <div className="bg-white text-slate-800 rounded-xl shadow-xl p-6 text-center border-t-4 border-blue-500">
+                {" "}
+                {/* Added border accent */}
                 <Users className="w-10 h-10 mx-auto mb-3 text-blue-600" />
-                <h3 className="text-2xl font-semibold">50,000+</h3> {/* Changed from bold to semibold */}
+                <h3 className="text-2xl font-semibold">50,000+</h3>{" "}
+                {/* Changed from bold to semibold */}
                 <p className="text-slate-600">Students Assisted</p>
               </div>
               <div className="bg-white text-slate-800 rounded-xl shadow-xl p-6 text-center border-t-4 border-blue-500">
-                <Banknote className="w-10 h-10 mx-auto mb-3 text-blue-600" /> {/* Changed icon to Banknote for finance */}
+                <Banknote className="w-10 h-10 mx-auto mb-3 text-blue-600" />{" "}
+                {/* Changed icon to Banknote for finance */}
                 <h3 className="text-2xl font-semibold">₱120M+</h3>
                 <p className="text-slate-600">Funds Granted</p>
               </div>
               <div className="bg-white text-slate-800 rounded-xl shadow-xl p-6 text-center border-t-4 border-blue-500">
-                <Home className="w-10 h-10 mx-auto mb-3 text-blue-600" /> {/* Changed icon to Home for Coverage */}
+                <Home className="w-10 h-10 mx-auto mb-3 text-blue-600" />{" "}
+                {/* Changed icon to Home for Coverage */}
                 <h3 className="text-2xl font-semibold">2nd District</h3>
                 <p className="text-slate-600">Coverage</p>
               </div>
@@ -69,14 +76,18 @@ const EducationalAssistance = () => {
         </section>
 
         {/* 3. Tabs Section */}
-        <section className="py-16 bg-white"> {/* White background for content clarity */}
+        <section className="py-16 bg-white">
+          {" "}
+          {/* White background for content clarity */}
           <div className="max-w-6xl mx-auto px-6">
-            
             {/* Tabs */}
-            <div className="flex justify-center space-x-4 mb-10 border-b-2 border-blue-100 pb-2"> {/* Added subtle border */}
+            <div className="flex justify-center space-x-4 mb-10 border-b-2 border-blue-100 pb-2">
+              {" "}
+              {/* Added subtle border */}
               <button
                 onClick={() => setActiveTab("requirements")}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-colors shadow-md ${ /* Rounded buttons, added shadow */
+                className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-colors shadow-md ${
+                  /* Rounded buttons, added shadow */
                   activeTab === "requirements"
                     ? "bg-blue-600 text-white"
                     : "bg-blue-50 text-blue-700 hover:bg-blue-100" // Monochromatic color change
@@ -107,7 +118,9 @@ const EducationalAssistance = () => {
             </div>
 
             {/* Tab Content */}
-            <div className="bg-slate-50 rounded-xl shadow-inner p-8 border border-blue-100"> {/* Soft, inset shadow for content area */}
+            <div className="bg-slate-50 rounded-xl shadow-inner p-8 border border-blue-100">
+              {" "}
+              {/* Soft, inset shadow for content area */}
               {activeTab === "requirements" && (
                 <div>
                   <h2 className="text-2xl font-bold text-blue-700 mb-6 border-l-4 border-blue-500 pl-3">
@@ -115,12 +128,21 @@ const EducationalAssistance = () => {
                   </h2>
                   <div className="grid md:grid-cols-2 gap-6">
                     {[
-                      { text: "Valid government-issued ID of the applicant/guardian", icon: IdCard },
-                      { text: "Proof of Enrollment or Certificate of Registration", icon: ClipboardList },
+                      {
+                        text: "Valid government-issued ID of the applicant/guardian",
+                        icon: IdCard,
+                      },
+                      {
+                        text: "Proof of Enrollment or Certificate of Registration",
+                        icon: ClipboardList,
+                      },
                       { text: "Barangay Certificate of Residency", icon: Home },
                       { text: "Proof of income (if applicable)", icon: Wallet },
                       { text: "Accomplished application form", icon: FileCheck },
-                      { text: "Latest grades/academic standing documentation", icon: GraduationCap }, // Added new requirement for balance
+                      {
+                        text: "Latest grades/academic standing documentation",
+                        icon: GraduationCap,
+                      }, // Added new requirement for balance
                     ].map((req, index) => (
                       <div
                         key={index}
@@ -133,7 +155,6 @@ const EducationalAssistance = () => {
                   </div>
                 </div>
               )}
-
               {activeTab === "application" && (
                 <div>
                   <h2 className="text-2xl font-bold text-blue-700 mb-8 border-l-4 border-blue-500 pl-3">
@@ -183,7 +204,6 @@ const EducationalAssistance = () => {
                   </div>
                 </div>
               )}
-
               {activeTab === "benefits" && (
                 <div>
                   <h2 className="text-2xl font-bold text-blue-700 mb-6 border-l-4 border-blue-500 pl-3">
@@ -191,10 +211,19 @@ const EducationalAssistance = () => {
                   </h2>
                   <div className="grid md:grid-cols-2 gap-6 mb-12">
                     {[
-                      { text: "Tuition fee coverage for qualified applicants", icon: GraduationCap },
-                      { text: "Provision of school supplies and uniforms", icon: ClipboardList },
+                      {
+                        text: "Tuition fee coverage for qualified applicants",
+                        icon: GraduationCap,
+                      },
+                      {
+                        text: "Provision of school supplies and uniforms",
+                        icon: ClipboardList,
+                      },
                       { text: "Transportation allowance", icon: Users },
-                      { text: "Other educational expenses to ensure participation", icon: Gift },
+                      {
+                        text: "Other educational expenses to ensure participation",
+                        icon: Gift,
+                      },
                     ].map((benefit, index) => (
                       <div
                         key={index}
@@ -215,7 +244,7 @@ const EducationalAssistance = () => {
                         "Students from low-income households who are struggling to pay tuition or school-related expenses.",
                         "Learners affected by emergencies or crises (e.g., calamities, displacement, or family emergencies) that disrupt their education.",
                         "Children of solo parents, persons with disabilities (PWDs), or marginalized sectors needing educational support.",
-                        "Students with outstanding academic performance but lacking resources to continue their studies."
+                        "Students with outstanding academic performance but lacking resources to continue their studies.",
                       ].map((item, index) => (
                         <div
                           key={index}
@@ -230,65 +259,67 @@ const EducationalAssistance = () => {
                   </div>
                 </div>
               )}
-
             </div>
           </div>
         </section>
 
         {/* 4. Call-to-Action (Reversed Color Scheme) */}
         <div className="p-8 md:p-12 bg-blue-500 min-h-screen flex items-start justify-center">
-      
-      {/* Content card - rounded white background */}
-      <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8 lg:p-10 max-w-4xl w-full relative mt-16">
-        
-        {/* 'PAALALA' Header/Pill - positioned absolutely at the top-left */}
-        <div className="absolute top-0 left-4 md:left-8 transform -translate-y-1/2">
-          <div className="bg-red-600 text-white font-bold text-lg md:text-xl py-2 px-6 rounded-full shadow-lg border-2 border-white whitespace-nowrap">
-            PAALALA
+          {/* Content card - rounded white background */}
+          <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8 lg:p-10 max-w-4xl w-full relative mt-16">
+            {/* 'PAALALA' Header/Pill - positioned absolutely at the top-left */}
+            <div className="absolute top-0 left-4 md:left-8 transform -translate-y-1/2">
+              <div className="bg-red-600 text-white font-bold text-lg md:text-xl py-2 px-6 rounded-full shadow-lg border-2 border-white whitespace-nowrap">
+                PAALALA
+              </div>
+            </div>
+
+            {/* Content Section */}
+            <div className="pt-4 md:pt-8 space-y-4">
+              {/* Group 1: NO FIXER & NO EXTRA FEES */}
+              <div className="flex items-start space-x-4 md:space-x-6">
+                {/* NO FIXER Icon */}
+                <div className="flex-shrink-0 w-24 h-24 flex flex-col items-center justify-center border-2 border-red-600 rounded-full text-red-600 font-extrabold text-center leading-tight">
+                  <span className="text-xl">NO</span>
+                  <span className="text-xl">FIXER</span>
+                </div>
+
+                {/* Combined Text Block for NO FIXER and NO EXTRA FEES (using clean text) */}
+                <div className="text-lg text-gray-800 flex-grow pt-1 space-y-4">
+                  <p>
+                    Ang lahat ng pinansyal na tulong mula sa Crisis Intervention Division ng
+                    DSWD ay buong matatanggap ng mga benepisyaryo.
+                  </p>
+                  <p>
+                    Walang sino mang empleyado o hindi empleyado ng ahensya ang awtorisado na
+                    magkaltas o magpataw ng ano mang pinansiyal na singil mula rito.
+                  </p>
+                </div>
+              </div>
+
+              {/* Group 2: FAKE DOCUMENTS */}
+              <div className="flex items-start space-x-4 md:space-x-6 pt-4">
+                {/* FAKE Icon */}
+                <div className="flex-shrink-0 w-24 h-24 flex flex-col items-center justify-center border-2 border-red-600 rounded-lg text-red-600 font-extrabold text-center leading-none">
+                  <span
+                    className="text-2xl tracking-widest"
+                    style={{ letterSpacing: "0.2em" }}
+                  >
+                    FAKE
+                  </span>
+                </div>
+
+                {/* Text Block for FAKE DOCUMENTS (using clean text) */}
+                {/* This paragraph takes the same width as the combined two above it */}
+                <p className="text-lg text-gray-800 flex-grow pt-1">
+                  Ang DSWD ay hindi tumatanggap ng mga fake/peke na mga dokumento at ito ay
+                  mapatunayan ng DSWD may kaukulang itong parusa at dadaan ito sa tamang
+                  proseso upang mabigyan ng tamang aksyon.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Content Section */}
-        <div className="pt-4 md:pt-8 space-y-4">
-          
-          {/* Group 1: NO FIXER & NO EXTRA FEES */}
-          <div className="flex items-start space-x-4 md:space-x-6">
-            
-            {/* NO FIXER Icon */}
-            <div className="flex-shrink-0 w-24 h-24 flex flex-col items-center justify-center border-2 border-red-600 rounded-full text-red-600 font-extrabold text-center leading-tight">
-              <span className="text-xl">NO</span>
-              <span className="text-xl">FIXER</span>
-            </div>
-            
-            {/* Combined Text Block for NO FIXER and NO EXTRA FEES (using clean text) */}
-            <div className="text-lg text-gray-800 flex-grow pt-1 space-y-4">
-                <p>
-                    Ang lahat ng pinansyal na tulong mula sa Crisis Intervention Division ng DSWD ay buong matatanggap ng mga benepisyaryo.
-                </p>
-                <p>
-                    Walang sino mang empleyado o hindi empleyado ng ahensya ang awtorisado na magkaltas o magpataw ng ano mang pinansiyal na singil mula rito.
-                </p>
-            </div>
-          </div>
-          
-          {/* Group 2: FAKE DOCUMENTS */}
-          <div className="flex items-start space-x-4 md:space-x-6 pt-4">
-            
-            {/* FAKE Icon */}
-            <div className="flex-shrink-0 w-24 h-24 flex flex-col items-center justify-center border-2 border-red-600 rounded-lg text-red-600 font-extrabold text-center leading-none">
-              <span className="text-2xl tracking-widest" style={{ letterSpacing: '0.2em' }}>FAKE</span>
-            </div>
-            
-            {/* Text Block for FAKE DOCUMENTS (using clean text) */}
-            {/* This paragraph takes the same width as the combined two above it */}
-            <p className="text-lg text-gray-800 flex-grow pt-1">
-              Ang DSWD ay hindi tumatanggap ng mga fake/peke na mga dokumento at ito ay mapatunayan ng DSWD may kaukulang itong parusa at dadaan ito sa tamang proseso upang mabigyan ng tamang aksyon.
-            </p>
-          </div>
-
-        </div>
-      </div>
-    </div>
         {/* Back Button */}
         <div className="max-w-6xl mx-auto px-6 py-12 text-center">
           <Link

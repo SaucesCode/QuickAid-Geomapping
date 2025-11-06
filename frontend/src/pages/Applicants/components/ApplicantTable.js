@@ -28,7 +28,6 @@ const ApplicantTable = ({
   return (
     // Outer Card Style copied from ApplicantForm.js table container
     <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-t-3xl rounded-b-none shadow-xl border border-blue-200 overflow-hidden">
-
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
           {/* Table Header: Gradient Background with White Text */}
@@ -76,8 +75,7 @@ const ApplicantTable = ({
                 <div className="flex items-center gap-2">
                   <Building2 className="w-4 h-4" />
                   City
-                  {sortConfig.key ===
-                    "background_info.barangay_details.city_name" &&
+                  {sortConfig.key === "background_info.barangay_details.city_name" &&
                     (sortConfig.direction === "ascending" ? (
                       <ChevronUp className="w-4 h-4" />
                     ) : (
@@ -115,9 +113,7 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
-              <th className="px-6 py-4 text-left w-auto align-middle">
-                Actions
-              </th>
+              <th className="px-6 py-4 text-left w-auto align-middle">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-blue-100 text-gray-800">
@@ -213,7 +209,7 @@ const ApplicantTable = ({
                         Archive
                       </button>
                       <button
-                        onClick={() => goPrintPage(applicant)}
+                        onClick={() => goPrintPage(`/print/${applicant.id}`)}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-colors border border-gray-300"
                       >
                         <Printer className="w-4 h-4" />
@@ -231,9 +227,7 @@ const ApplicantTable = ({
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-lg mb-4">
                       <Archive className="w-6 h-6 text-white" />
                     </div>
-                    <p className="text-blue-700 text-lg font-bold">
-                      No applicants found
-                    </p>
+                    <p className="text-blue-700 text-lg font-bold">No applicants found</p>
                     <p className="text-gray-500 text-sm mt-1">
                       Try adjusting your search or filters.
                     </p>
