@@ -139,7 +139,7 @@ const ApplicantTable = ({
                   {/* NO. Cell - px-3 for less padding */}
                   <td className="px-3 py-4 align-middle">
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors font-semibold text-gray-600">
-                      {id + 1}
+                      {applicant.id}
                     </div>
                   </td>
 
@@ -170,7 +170,9 @@ const ApplicantTable = ({
                   </td>
                   {/* Assistance Type (Styled Tag) - Smaller padding on tag and px-4 on cell */}
                   <td className="px-4 py-4 align-middle">
-                    <div className="flex items-center justify-center"> {/* Centered content for tag column */}
+                    <div className="flex items-center justify-center">
+                      {" "}
+                      {/* Centered content for tag column */}
                       <span
                         className={`inline-flex px-2 py-1 rounded-xl text-xs font-semibold shadow-md whitespace-nowrap
                           ${
@@ -221,7 +223,7 @@ const ApplicantTable = ({
                         Archive
                       </button>
                       <button
-                        onClick={() => goPrintPage(applicant)}
+                        onClick={() => goPrintPage(`/print/${applicant.id}`)}
                         className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-colors border border-gray-300"
                       >
                         <Printer className="w-4 h-4" />

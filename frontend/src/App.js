@@ -20,6 +20,8 @@ import ExportApplicants from "./pages/Applicants/ExportApplicants";
 import MultiStepForm from "./pages/forms/MultiStepForm";
 import PrintPage from "./pages/print/PrintPage";
 import PrintPagebyID from "./pages/print/PrintPagebyID";
+import PrintIntakeSheet from "./pages/print/PrintIntakeSheet";
+import PrintCertificate from "./pages/print/PrintCertificate";
 
 import Sidebar from "./components/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
@@ -64,6 +66,8 @@ function App() {
           <Route path="/services/funeral" element={<FuneralAssistanceProgram />} />
           <Route path="/print" element={<PrintPage />} />
           <Route path="/print/:id" element={<PrintPagebyID />} />
+          <Route path="/print/intake" element={<PrintIntakeSheet />} />
+          <Route path="/print/certificate" element={<PrintCertificate />} />
           <Route path="/terms" element={<TermsAndConditions />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/staff-qr" element={<StaffQR />} />
