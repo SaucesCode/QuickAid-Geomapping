@@ -29,25 +29,18 @@ const ApplicantTable = ({
     // Outer Card Style copied from ApplicantForm.js table container
     <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-t-3xl rounded-b-none shadow-xl border border-blue-200 overflow-hidden">
       <div className="overflow-x-auto">
-        {/*
-          IMPORTANT:
-          The table-fixed class, combined with setting fixed widths on columns, is key.
-          We need to ensure the total width of the fixed columns and content columns
-          is less than the container width to prevent unnecessary horizontal scrolling,
-          especially when the sidebar is maximized.
-        */}
         <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
           {/* Table Header: Gradient Background with White Text */}
           <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
             <tr>
-              {/* 1. NO. - Reduced width to w-[40px] from w-[50px] */}
+              {/* 1. NO. - Fixed w-[40px] */}
               <th className="px-3 py-4 text-left w-[40px] align-middle">
                 <div className="flex items-center justify-center">NO.</div>
               </th>
 
-              {/* 2. Full Name - Adjusted width to w-[20%] from w-1/5 */}
+              {/* 2. Full Name - ***REMOVED fixed width w-[20%] to allow flexibility.*** */}
               <th
-                className="px-6 py-4 text-left w-[20%] align-middle cursor-pointer"
+                className="px-6 py-4 text-left align-middle cursor-pointer"
                 onClick={() => handleSort("background_info.first_name")}
               >
                 <div className="flex items-center gap-2">
@@ -61,7 +54,7 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
-              {/* 3. Barangay - Adjusted width to w-[15%] from w-1/6 */}
+              {/* 3. Barangay - Fixed width w-[15%] */}
               <th
                 className="px-6 py-4 text-left w-[15%] align-middle cursor-pointer"
                 onClick={() => handleSort("background_info.barangay")}
@@ -77,7 +70,7 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
-              {/* 4. City - Adjusted width to w-[12%] from w-1/6 */}
+              {/* 4. City - Fixed width w-[12%] */}
               <th
                 className="px-6 py-4 text-left w-[12%] align-middle cursor-pointer"
                 onClick={() => handleSort("background_info.barangay_details.city_name")}
@@ -93,7 +86,7 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
-              {/* 5. Assistance Type - Adjusted width to w-[120px] from w-1/6 */}
+              {/* 5. Assistance Type - Fixed width w-[120px] */}
               <th
                 className="px-6 py-4 text-left w-[120px] align-middle cursor-pointer"
                 onClick={() => handleSort("type_of_assistance")}
@@ -109,7 +102,7 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
-              {/* 6. Date Filled - Maintained w-[120px] */}
+              {/* 6. Date Filled - Fixed width w-[120px] */}
               <th
                 className="px-6 py-4 text-left w-[120px] align-middle cursor-pointer"
                 onClick={() => handleSort("date_filled")}
@@ -125,7 +118,10 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
-              <th className="px-6 py-4 text-left w-auto align-middle">Actions</th>
+              {/* 7. Actions - ***Added minimum width to ensure space for the wrapped buttons.*** */}
+              <th className="px-6 py-4 text-left w-auto align-middle min-w-[200px]">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-blue-100 text-gray-800">
@@ -143,9 +139,9 @@ const ApplicantTable = ({
                     </div>
                   </td>
 
-                  {/* Full Name */}
+                  {/* Full Name - ***Removed whitespace-nowrap, added break-words to allow wrapping.*** */}
                   <td
-                    className="px-6 py-4 align-middle font-semibold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer group-hover:text-indigo-600"
+                    className="px-6 py-4 align-middle font-semibold text-gray-900 overflow-hidden cursor-pointer group-hover:text-indigo-600 break-words"
                     onClick={() => openPreviewView(applicant)} // Added click handler to match behavior
                   >
                     {`${applicant.background_info?.first_name || ""} ${
@@ -197,9 +193,9 @@ const ApplicantTable = ({
                       <span className="truncate">{formatDate(applicant.date_filled)}</span>
                     </div>
                   </td>
-                  {/* Actions - Used space-x-1 for tighter button spacing */}
+                  {/* Actions - ***Changed space-x-1 to gap-1 and added flex-wrap to ensure buttons fit by stacking if necessary.*** */}
                   <td className="px-6 py-4 align-middle">
-                    <div className="flex items-center space-x-1">
+                    <div className="flex **flex-wrap** items-center **gap-1**">
                       <button
                         onClick={() => openPreviewView(applicant)}
                         // Adjusted style for smaller buttons: px-2 py-1.5, text-xs
