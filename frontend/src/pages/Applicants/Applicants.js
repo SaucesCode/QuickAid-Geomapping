@@ -54,7 +54,6 @@ const SkeletonRow = () => (
   </tr>
 );
 
-
 const Applicants = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -234,14 +233,18 @@ const Applicants = () => {
     if (!sortConfig.key) return filteredApplicants;
     return [...filteredApplicants].sort((a, b) => {
       // For sorting the Name column
-      if (sortConfig.key === 'full_name') {
-        const aName = `${a.background_info?.last_name || ''} ${a.background_info?.first_name || ''}`.toLowerCase();
-        const bName = `${b.background_info?.last_name || ''} ${b.background_info?.first_name || ''}`.toLowerCase();
+      if (sortConfig.key === "full_name") {
+        const aName = `${a.background_info?.last_name || ""} ${
+          a.background_info?.first_name || ""
+        }`.toLowerCase();
+        const bName = `${b.background_info?.last_name || ""} ${
+          b.background_info?.first_name || ""
+        }`.toLowerCase();
         if (aName < bName) return sortConfig.direction === "ascending" ? -1 : 1;
         if (aName > bName) return sortConfig.direction === "ascending" ? 1 : -1;
         return 0;
       }
-      
+
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
       if (aValue < bValue) return sortConfig.direction === "ascending" ? -1 : 1;
@@ -253,6 +256,7 @@ const Applicants = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedApplicants.slice(indexOfFirstItem, indexOfLastItem);
+  console.log(currentItems);
   const totalPages = Math.ceil(sortedApplicants.length / itemsPerPage);
 
   // Define the consistent table header structure
@@ -305,16 +309,15 @@ const Applicants = () => {
       </div>
 
       <Toaster position="top-center" reverseOrder={false} />
-      
+
       <div className="relative z-10 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        
         {/* 1. Header Card (Retains ApplicantsHeader component) */}
         <div className="mb-6 sm:mb-8">
           <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-6 sm:p-8">
             <ApplicantsHeader totalApplicants={applicants.length} navigate={navigate} />
           </div>
         </div>
-        
+
         {/* 2. Filter Card (Consistent Card Style) */}
         <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-4 sm:p-6">
           <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
@@ -349,9 +352,7 @@ const Applicants = () => {
           <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
-                <thead>
-                  {tableHeader}
-                </thead>
+                <thead>{tableHeader}</thead>
                 <tbody className="divide-y divide-blue-100 text-gray-800">
                   {Array.from({ length: itemsPerPage }).map((_, index) => (
                     <SkeletonRow key={index} />
@@ -393,45 +394,45 @@ const Applicants = () => {
           // Single card containing both Table and Pagination (ArchiveApplicants.js style)
           // REMOVED the redundant 'space-y-6' wrapper
           <div className="bg-white bg-opacity-90 backdrop-blur-xl shadow-xl border border-blue-200 overflow-hidden rounded-t-3xl rounded-b-none">
-  {/* Table */}
-  <div className="overflow-x-auto">
-    <ApplicantTable
-      currentItems={currentItems}
-      sortConfig={sortConfig}
-      handleSort={handleSort}
-      openPreviewView={applicant => {
-        setPreviewApplicant(applicant);
-        setPreviewView(true);
-      }}
-      openEditView={applicant => {
-        setEditingApplicant(applicant);
-        setEditView(true);
-      }}
-      openArchiveModal={id => setArchiveModal({ show: true, applicantId: id })}
-      goPrintPage={navigate}
-      formatDate={formatDate}
-      indexOfFirstItem={indexOfFirstItem}
-      tableHeader={tableHeader}
-    />
-  </div>
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <ApplicantTable
+                currentItems={currentItems}
+                sortConfig={sortConfig}
+                handleSort={handleSort}
+                openPreviewView={applicant => {
+                  setPreviewApplicant(applicant);
+                  setPreviewView(true);
+                }}
+                openEditView={applicant => {
+                  setEditingApplicant(applicant);
+                  setEditView(true);
+                }}
+                openArchiveModal={id => setArchiveModal({ show: true, applicantId: id })}
+                goPrintPage={navigate}
+                formatDate={formatDate}
+                indexOfFirstItem={indexOfFirstItem}
+                tableHeader={tableHeader}
+              />
+            </div>
 
-  {/* Pagination */}
-  {filteredApplicants.length > 0 && (
-    <Pagination
-      currentPage={currentPage}
-      totalPages={totalPages}
-      handlePageChange={setCurrentPage}
-      itemsPerPage={itemsPerPage}
-      handleItemsPerPageChange={e => {
-        setItemsPerPage(Number(e.target.value));
-        setCurrentPage(1);
-      }}
-      totalItems={filteredApplicants.length}
-      indexOfFirstItem={indexOfFirstItem}
-      indexOfLastItem={indexOfLastItem}
-    />
-  )}
-</div>
+            {/* Pagination */}
+            {filteredApplicants.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                handlePageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                handleItemsPerPageChange={e => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                totalItems={filteredApplicants.length}
+                indexOfFirstItem={indexOfFirstItem}
+                indexOfLastItem={indexOfLastItem}
+              />
+            )}
+          </div>
         )}
         {previewView && previewApplicant && (
           <PreviewModal
