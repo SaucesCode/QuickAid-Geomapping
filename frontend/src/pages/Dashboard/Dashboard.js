@@ -270,17 +270,17 @@ const Dashboard = () => {
                     </thead>
                     <tbody>
   {recentApplicants?.slice(0, 5).map((a, i) => {
-    let typeClasses = "text-gray-700 bg-gray-100"; // default
+    let typeClasses = "text-gray-800 bg-gray-100"; // default
 
     // Conditional color styling based on assistance type
     const type = a.type_of_assistance?.toLowerCase() || "";
 
     if (type.includes("medical")) {
-      typeClasses = "text-blue-700 bg-blue-100"; // 🩺 Medical - Blue
+      typeClasses = "text-blue-800 bg-blue-100"; // 🩺 Medical - Blue
     } else if (type.includes("educational")) {
-      typeClasses = "text-green-700 bg-green-100"; // 🎓 Educational - Green
+      typeClasses = "text-green-800 bg-green-100"; // 🎓 Educational - Green
     } else if (type.includes("burial")) {
-      typeClasses = "text-yellow-800 bg-yellow-200"; // ⚰️ Burial - Light Yellow
+      typeClasses = "text-yellow-800 bg-yellow-100"; // ⚰️ Burial - Light Yellow
     }
 
     return (

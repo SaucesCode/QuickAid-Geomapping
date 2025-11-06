@@ -29,17 +29,25 @@ const ApplicantTable = ({
     // Outer Card Style copied from ApplicantForm.js table container
     <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-t-3xl rounded-b-none shadow-xl border border-blue-200 overflow-hidden">
       <div className="overflow-x-auto">
+        {/*
+          IMPORTANT:
+          The table-fixed class, combined with setting fixed widths on columns, is key.
+          We need to ensure the total width of the fixed columns and content columns
+          is less than the container width to prevent unnecessary horizontal scrolling,
+          especially when the sidebar is maximized.
+        */}
         <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
           {/* Table Header: Gradient Background with White Text */}
           <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
             <tr>
-              {/* 1. ADDED # COLUMN HEADER with style from ApplicantForm.js */}
-              <th className="px-6 py-4 text-left w-[50px] align-middle">
+              {/* 1. NO. - Reduced width to w-[40px] from w-[50px] */}
+              <th className="px-3 py-4 text-left w-[40px] align-middle">
                 <div className="flex items-center justify-center">NO.</div>
               </th>
 
+              {/* 2. Full Name - Adjusted width to w-[20%] from w-1/5 */}
               <th
-                className="px-6 py-4 text-left w-1/5 align-middle cursor-pointer"
+                className="px-6 py-4 text-left w-[20%] align-middle cursor-pointer"
                 onClick={() => handleSort("background_info.first_name")}
               >
                 <div className="flex items-center gap-2">
@@ -53,8 +61,9 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
+              {/* 3. Barangay - Adjusted width to w-[15%] from w-1/6 */}
               <th
-                className="px-6 py-4 text-left w-1/6 align-middle cursor-pointer"
+                className="px-6 py-4 text-left w-[15%] align-middle cursor-pointer"
                 onClick={() => handleSort("background_info.barangay")}
               >
                 <div className="flex items-center gap-2">
@@ -68,8 +77,9 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
+              {/* 4. City - Adjusted width to w-[12%] from w-1/6 */}
               <th
-                className="px-6 py-4 text-left w-1/6 align-middle cursor-pointer"
+                className="px-6 py-4 text-left w-[12%] align-middle cursor-pointer"
                 onClick={() => handleSort("background_info.barangay_details.city_name")}
               >
                 <div className="flex items-center gap-2">
@@ -83,8 +93,9 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
+              {/* 5. Assistance Type - Adjusted width to w-[120px] from w-1/6 */}
               <th
-                className="px-6 py-4 text-left w-1/6 align-middle cursor-pointer"
+                className="px-6 py-4 text-left w-[120px] align-middle cursor-pointer"
                 onClick={() => handleSort("type_of_assistance")}
               >
                 <div className="flex items-center gap-2">
@@ -98,6 +109,7 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
+              {/* 6. Date Filled - Maintained w-[120px] */}
               <th
                 className="px-6 py-4 text-left w-[120px] align-middle cursor-pointer"
                 onClick={() => handleSort("date_filled")}
@@ -124,8 +136,8 @@ const ApplicantTable = ({
                   // Row Hover: Very light blue, with cursor pointer
                   className="hover:bg-blue-50/50 transition-all duration-150 group"
                 >
-                  {/* 2. ADDED # COLUMN CELL with style from ApplicantForm.js */}
-                  <td className="px-6 py-4 align-middle">
+                  {/* NO. Cell - px-3 for less padding */}
+                  <td className="px-3 py-4 align-middle">
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors font-semibold text-gray-600">
                       {id + 1}
                     </div>
@@ -141,14 +153,14 @@ const ApplicantTable = ({
                     }`}
                   </td>
                   {/* Barangay (with icon) */}
-                  <td className="px-6 py-4 align-middle text-gray-700">
+                  <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
                       <span className="truncate">{applicant.background_info?.barangay}</span>
                     </div>
                   </td>
                   {/* City (with icon) */}
-                  <td className="px-6 py-4 align-middle text-gray-700">
+                  <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
                     <div className="flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
                       <span className="truncate">
@@ -156,11 +168,11 @@ const ApplicantTable = ({
                       </span>
                     </div>
                   </td>
-                  {/* Assistance Type (Styled Tag) */}
-                  <td className="px-6 py-4 align-middle">
-                    <div className="flex items-center gap-1.5">
+                  {/* Assistance Type (Styled Tag) - Smaller padding on tag and px-4 on cell */}
+                  <td className="px-4 py-4 align-middle">
+                    <div className="flex items-center justify-center"> {/* Centered content for tag column */}
                       <span
-                        className={`inline-flex px-3 py-1.5 rounded-xl text-xs font-semibold shadow-md
+                        className={`inline-flex px-2 py-1 rounded-xl text-xs font-semibold shadow-md whitespace-nowrap
                           ${
                             // Matching the ApplicantForm.js color logic exactly
                             applicant.type_of_assistance?.toLowerCase() === "educational"
@@ -176,41 +188,41 @@ const ApplicantTable = ({
                       </span>
                     </div>
                   </td>
-                  {/* Date Filled (with icon) */}
-                  <td className="px-6 py-4 align-middle text-gray-700">
+                  {/* Date Filled (with icon) - px-4 for less padding */}
+                  <td className="px-4 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
                       <span className="truncate">{formatDate(applicant.date_filled)}</span>
                     </div>
                   </td>
-                  {/* Actions */}
+                  {/* Actions - Used space-x-1 for tighter button spacing */}
                   <td className="px-6 py-4 align-middle">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center space-x-1">
                       <button
                         onClick={() => openPreviewView(applicant)}
-                        // Consistent action button style
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-300"
+                        // Adjusted style for smaller buttons: px-2 py-1.5, text-xs
+                        className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-300"
                       >
                         <Eye className="w-4 h-4" />
                         View
                       </button>
                       <button
                         onClick={() => openEditView(applicant)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors border border-blue-300"
+                        className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors border border-blue-300"
                       >
                         <Edit className="w-4 h-4" />
                         Edit
                       </button>
                       <button
                         onClick={() => openArchiveModal(applicant.id)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors border border-red-300"
+                        className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors border border-red-300"
                       >
                         <Archive className="w-4 h-4" />
                         Archive
                       </button>
                       <button
-                        onClick={() => goPrintPage(`/print/${applicant.id}`)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-colors border border-gray-300"
+                        onClick={() => goPrintPage(applicant)}
+                        className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-colors border border-gray-300"
                       >
                         <Printer className="w-4 h-4" />
                         Print
