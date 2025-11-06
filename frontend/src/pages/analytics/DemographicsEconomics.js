@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api"; // This is the actual imported API service
 import {
@@ -13,8 +13,6 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  LineChart,
-  Line,
   Area,
   AreaChart,
 } from "recharts";
@@ -24,10 +22,8 @@ import {
   Briefcase,
   DollarSign,
   TrendingUp,
-  UserCheck,
   AlertCircle,
   VenusAndMars,
-  Loader2,
   MapPin,
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
@@ -50,7 +46,7 @@ const COLOR_SEPARATED = "#93C5FD"; // Blue-300
 const COLOR_MALE = COLOR_PRIMARY; // Blue
 const COLOR_FEMALE = COLOR_PINK; // Indigo
 
-const getGenderColor = (gender) => {
+const getGenderColor = gender => {
   if (!gender) return "#94A3B8"; // Slate-400
   const normalized = gender.toString().trim().toLowerCase();
   if (normalized === "male") return COLOR_MALE;
@@ -58,14 +54,13 @@ const getGenderColor = (gender) => {
   return "#94A3B8";
 };
 
-const getCivilStatusColor = (status) => {
+const getCivilStatusColor = status => {
   const norm = (status || "").toLowerCase();
   if (norm.includes("married")) return COLOR_MARRIED;
   if (norm.includes("single")) return COLOR_SINGLE;
   if (norm.includes("divorced")) return COLOR_DIVORCED;
   if (norm.includes("widowed")) return COLOR_WIDOWED;
-  if (norm.includes("separated") || norm.includes("divprced"))
-    return COLOR_SEPARATED;
+  if (norm.includes("separated") || norm.includes("divprced")) return COLOR_SEPARATED;
   return "#94A3B8"; // Default/Fallback Slate
 };
 
@@ -113,7 +108,7 @@ const StatCard = ({
   iconAlignment = "inner",
 }) => {
   // Use a fixed Blue-Indigo gradient for the value text for visual consistency
-  const valueGradient = `linear-gradient(to right, ${COLOR_PRIMARY}, ${COLOR_SECONDARY})`; 
+  const valueGradient = `linear-gradient(to right, ${COLOR_PRIMARY}, ${COLOR_SECONDARY})`;
   // Use a fixed Blue-Indigo gradient for the icon background
   const iconGradient = `linear-gradient(to bottom right, ${COLOR_TERTIARY}, ${COLOR_ACCENT})`;
 
@@ -129,16 +124,14 @@ const StatCard = ({
           {isLoading ? (
             <div className="mt-1 space-y-2">
               <div className="h-8 w-20 bg-gray-300 rounded animate-pulse"></div>
-              {subtitle && (
-                <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>
-              )}
+              {subtitle && <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>}
             </div>
           ) : (
             <>
               {/* Value uses fixed blue-indigo gradient for consistency */}
               <h2
                 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r truncate overflow-hidden whitespace-nowrap"
-                style={{ backgroundImage: valueGradient }} 
+                style={{ backgroundImage: valueGradient }}
                 title={String(value)}
               >
                 {value}
@@ -152,7 +145,7 @@ const StatCard = ({
           className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-md flex-shrink-0 group-hover:scale-110 transition-transform`}
           // Removed dynamic color for a fixed blue gradient and removed color-specific shadow
           style={{
-            background: iconGradient, 
+            background: iconGradient,
             zIndex: 10,
           }}
         >
@@ -167,7 +160,7 @@ const DemographicsEconomics = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
 
-  const fetchData = async (endpoint) => {
+  const fetchData = async endpoint => {
     const params = new URLSearchParams();
 
     if (filters.start) params.append("start_date", filters.start);
@@ -232,30 +225,29 @@ const DemographicsEconomics = () => {
   ];
 
   // Data transformations (NO LOGIC CHANGE)
-  const transformGenderData = (data) =>
-    data.map((item) => ({
+  const transformGenderData = data =>
+    data.map(item => ({
       gender: item.background_info__sex || item.sex || "Unknown",
       count: item.count,
     }));
 
-  const transformCivilStatusData = (data) =>
-    data.map((item) => ({
-      status:
-        item.background_info__civil_status || item.civil_status || "Unknown",
+  const transformCivilStatusData = data =>
+    data.map(item => ({
+      status: item.background_info__civil_status || item.civil_status || "Unknown",
       count: item.count,
     }));
 
-  const transformOccupationData = (data) =>
+  const transformOccupationData = data =>
     data
-      .filter((item) => item.occupation)
+      .filter(item => item.occupation)
       .slice(0, 10)
-      .map((item) => ({
+      .map(item => ({
         occupation: item.occupation,
         count: item.count,
       }));
 
-  const transformAgeGenderData = (data) =>
-    data.map((item) => ({
+  const transformAgeGenderData = data =>
+    data.map(item => ({
       gender: item.background_info__sex || item.sex || "Unknown",
       "Under 18": item.under18 || 0,
       "18-35": item.between18_35 || 0,
@@ -416,9 +408,7 @@ const DemographicsEconomics = () => {
             icon={DollarSign}
             title="Income Profiles"
             value={
-              typeof totalIncome === "number"
-                ? totalIncome.toLocaleString()
-                : totalIncome
+              typeof totalIncome === "number" ? totalIncome.toLocaleString() : totalIncome
             }
             subtitle="Total with income data"
             color={COLOR_ACCENT} // Blue-700
@@ -460,7 +450,7 @@ const DemographicsEconomics = () => {
 
                   {/* Tooltip style matched */}
                   <Tooltip
-                    formatter={(v) => [v, "Count"]}
+                    formatter={v => [v, "Count"]}
                     contentStyle={{
                       backgroundColor: "white",
                       border: "2px solid #dbeafe",
@@ -553,7 +543,8 @@ const DemographicsEconomics = () => {
                   />
                   <defs>
                     <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={COLOR_PRIMARY} stopOpacity={0.8} /> {/* Blue-500 */}
+                      <stop offset="5%" stopColor={COLOR_PRIMARY} stopOpacity={0.8} />{" "}
+                      {/* Blue-500 */}
                       <stop offset="95%" stopColor={COLOR_PRIMARY} stopOpacity={0} />
                     </linearGradient>
                   </defs>
@@ -668,11 +659,7 @@ const DemographicsEconomics = () => {
                       <stop offset="100%" stopColor={COLOR_ACCENT} stopOpacity={1} />
                     </linearGradient>
                   </defs>
-                  <Bar
-                    dataKey="count"
-                    fill="url(#blueGradient)"
-                    radius={[0, 8, 8, 0]}
-                  />
+                  <Bar dataKey="count" fill="url(#blueGradient)" radius={[0, 8, 8, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -703,7 +690,7 @@ const DemographicsEconomics = () => {
                   <YAxis tick={{ fill: "#4b5563" }} />
                   {/* Tooltip style matched */}
                   <Tooltip
-                    formatter={(v) => [v, "Applicants"]}
+                    formatter={v => [v, "Applicants"]}
                     contentStyle={{
                       backgroundColor: "white",
                       border: "2px solid #dbeafe",
@@ -756,8 +743,8 @@ const DemographicsEconomics = () => {
                   <h4 className="font-semibold text-indigo-800 mb-2">Employment Patterns</h4>
                   {isOccupationLoaded ? (
                     <p className="text-gray-700 text-sm">
-                      {topOccupation?.occupation || "Various occupations"} is the most
-                      common occupation among applicants
+                      {topOccupation?.occupation || "Various occupations"} is the most common
+                      occupation among applicants
                     </p>
                   ) : (
                     <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
@@ -769,8 +756,8 @@ const DemographicsEconomics = () => {
                   <h4 className="font-semibold text-blue-900 mb-2">Economic Profile</h4>
                   {isIncomeLoaded ? (
                     <p className="text-gray-700 text-sm">
-                      Total of {totalIncome.toLocaleString()} applicants provided income
-                      data, showing varied economic backgrounds.
+                      Total of {totalIncome.toLocaleString()} applicants provided income data,
+                      showing varied economic backgrounds.
                     </p>
                   ) : (
                     <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>

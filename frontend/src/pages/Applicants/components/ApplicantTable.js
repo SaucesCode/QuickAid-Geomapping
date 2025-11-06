@@ -85,8 +85,7 @@ const ApplicantTable = ({
                 <div className="flex items-center gap-2">
                   <Building2 className="w-4 h-4" />
                   City
-                  {sortConfig.key ===
-                    "background_info.barangay_details.city_name" &&
+                  {sortConfig.key === "background_info.barangay_details.city_name" &&
                     (sortConfig.direction === "ascending" ? (
                       <ChevronUp className="w-4 h-4" />
                     ) : (
@@ -126,10 +125,7 @@ const ApplicantTable = ({
                     ))}
                 </div>
               </th>
-              {/* 7. Actions - Changed from w-auto to w-[200px] (fixed width for action buttons) */}
-              <th className="px-6 py-4 text-left w-[200px] align-middle">
-                Actions
-              </th>
+              <th className="px-6 py-4 text-left w-auto align-middle">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-blue-100 text-gray-800">
@@ -243,9 +239,7 @@ const ApplicantTable = ({
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-lg mb-4">
                       <Archive className="w-6 h-6 text-white" />
                     </div>
-                    <p className="text-blue-700 text-lg font-bold">
-                      No applicants found
-                    </p>
+                    <p className="text-blue-700 text-lg font-bold">No applicants found</p>
                     <p className="text-gray-500 text-sm mt-1">
                       Try adjusting your search or filters.
                     </p>
