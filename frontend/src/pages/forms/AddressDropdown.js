@@ -16,6 +16,8 @@ const AddressDropdown = ({ onSelect, initialValues = {} }) => {
   const [selectedCityCode, setSelectedCityCode] = useState("");
   const [barangays, setBarangays] = useState([]);
   const [selectedBrgyCode, setSelectedBrgyCode] = useState("");
+  // Added new state for loading indicator
+  const [isLoadingBrgys, setIsLoadingBrgys] = useState(false);
 
   useEffect(() => {
     if (!initialValues.city_municipality) return;
@@ -38,6 +40,7 @@ const AddressDropdown = ({ onSelect, initialValues = {} }) => {
   }, [selectedCityCode]);
 
   const fetchBarangays = async cityCode => {
+    setIsLoadingBrgys(true); // START LOADING
     try {
       const res = await fetch(`${PSGC_BASE}/cities-municipalities/${cityCode}/barangays/`);
       if (!res.ok) throw new Error("Failed barangay request");
@@ -59,6 +62,8 @@ const AddressDropdown = ({ onSelect, initialValues = {} }) => {
     } catch (err) {
       console.error("Error fetching barangays:", err);
       setBarangays([]);
+    } finally {
+      setIsLoadingBrgys(false); // STOP LOADING
     }
   };
 
@@ -88,62 +93,82 @@ const AddressDropdown = ({ onSelect, initialValues = {} }) => {
 
   return (
     <div className="address-dropdown-container">
-      <div className="form-group">
-        <label htmlFor="province" className="block text-sm font-medium text-gray-700 mb-1">
-          Province <span className="text-error">*</span>
-        </label>
-        <select
-          id="province"
-          className="select select-bordered w-full rounded-lg bg-gray-100 cursor-not-allowed"
-          value="Quezon"
-          disabled
-        >
-          <option value="Quezon">Quezon</option>
-        </select>
-      </div>
+      {/* Province, City/Municipality, and Barangay: 3 Columns on md screen and up */}
+      {/* Changed the outer structure to a grid for 3 columns instead of two separate sections */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        {/* Province */}
+        <div className="form-group mb-4 md:mb-0">
+          <label htmlFor="province" className="block text-sm font-medium text-gray-700 mb-1">
+            Province <span className="text-error">*</span>
+          </label>
+          <select
+            id="province"
+            // Changed input-lg to input-md for smaller box and font
+            className="select select-bordered w-full rounded-lg cursor-not-allowed input input-md bg-white text-gray-700"
+            value="Quezon"
+            disabled
+          >
+            <option value="Quezon">Quezon</option>
+          </select>
+        </div>
 
-      <div className="form-group">
-        <label
-          htmlFor="city_municipality"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          City / Municipality <span className="text-error">*</span>
-        </label>
-        <select
-          id="city_municipality"
-          className="select select-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent"
-          value={selectedCityCode}
-          onChange={handleCityChange}
-          required
-        >
-          <option value="">Select City or Municipality</option>
-          {CITY_OPTIONS.map(c => (
-            <option key={c.code} value={c.code}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </div>
+        {/* City / Municipality */}
+        <div className="form-group mb-4 md:mb-0">
+          <label
+            htmlFor="city_municipality"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            City / Municipality <span className="text-error">*</span>
+          </label>
+          <select
+            id="city_municipality"
+            // Changed input-lg to input-md for smaller box and font
+            className="select select-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent input input-md bg-white text-gray-700"
+            value={selectedCityCode}
+            onChange={handleCityChange}
+            required
+          >
+            <option value="">Select City or Municipality</option>
+            {CITY_OPTIONS.map(c => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="form-group">
-        <label htmlFor="barangay" className="block text-sm font-medium text-gray-700 mb-1">
-          Barangay <span className="text-error">*</span>
-        </label>
-        <select
-          id="barangay"
-          className="select select-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent"
-          value={selectedBrgyCode}
-          onChange={handleBarangayChange}
-          disabled={!selectedCityCode}
-          required
-        >
-          <option value="">Select Barangay</option>
-          {barangays.map(b => (
-            <option key={b.code} value={b.code}>
-              {b.name}
+        {/* Barangay */}
+        <div className="form-group mb-4">
+          <label htmlFor="barangay" className="block text-sm font-medium text-gray-700 mb-1">
+            Barangay <span className="text-error">*</span>
+          </label>
+          <select
+            id="barangay"
+            // Changed input-lg to input-md for smaller box and font
+            className="select select-bordered w-full rounded-lg focus:ring-2 focus:ring-quickaid-accent input input-md bg-white text-gray-700"
+            value={selectedBrgyCode}
+            onChange={handleBarangayChange}
+            // Disable if no city is selected OR if barangays are loading
+            disabled={!selectedCityCode || isLoadingBrgys}
+            required
+          >
+            {/* Conditional option text */}
+            <option value="">
+              {isLoadingBrgys
+                ? "Loading Barangays..."
+                : !selectedCityCode
+                  ? "Select City first"
+                  : "Select Barangay"
+              }
             </option>
-          ))}
-        </select>
+            {barangays.map(b => (
+              <option key={b.code} value={b.code}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
     </div>
   );

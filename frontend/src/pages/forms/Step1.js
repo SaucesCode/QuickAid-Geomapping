@@ -1,41 +1,33 @@
-// File: frontend/src/forms/Step1.js
+// File: frontend/src/forms/Step1.js (Final Pixel-Perfect Vertical Alignment Fix v8 - Client Requested Changes)
 import { useState } from "react";
 
 // Filipino-English Hybrid Translations
 const T = {
-  // Header
+  // Main Header
   headerTitle: "Personal Information (Impormasyon ng Sarili)",
   headerSubtitle: "Please provide your basic personal details. All fields marked with",
   requiredNote: "are required. (Ang lahat ng field na may markang * ay kinakailangan.)",
 
   // Form Labels
   firstName: "First Name (Unang Pangalan)",
-  // UPDATED: Middle Initial is now optional
-  middleInitial: "Middle Initial (Gitnang Pangalan) - Optional", 
+  middleInitial: "Middle Initial (Gitnang Pangalan) - Optional",
   lastName: "Last Name (Apelyido)",
-  suffix: "Suffix (Sufiks)",
+  // FIX 1: New keys to clearly separate label and default option text
+  suffixLabel: "Suffix ", 
+  suffixDefault: "None/Wala", 
   contactNumber: "Contact Number",
 
-  // Dropdown Options
-  suffixNone: "None (Wala)",
-
-  // Placeholders
+  // Placeholders/Help/Errors
   placeholderFirstName: "Enter your first name (e.g., Juan)",
   placeholderMiddleInitial: "Enter your middle initial (e.g., M.)",
   placeholderLastName: "Enter your last name (e.g., Dela Cruz)",
   placeholderContact: "e.g. 09123456789",
   helpText: "Enter your 11-digit mobile number (Ilagay ang iyong 11-digit na mobile number)",
-
-  // Buttons
   continue: "Continue to Address (Magpatuloy sa Tirahan)",
-
-  // Help/Footer Text
   footerHelp: "Need help? Contact our support team for assistance. (Kailangan ng tulong? Kontakin ang aming support team.)",
 
-  // Validation Messages (Filipino is the primary error message)
   errorFirstName: "Kailangan ang Unang Pangalan (First name is required)",
   errorLastName: "Kailangan ang Apelyido (Last name is required)",
-  // REMOVED: errorMiddleInitial is no longer needed as the field is optional
   errorContactRequired: "Kailangan ang Contact Number (Contact number is required)",
   errorContactInvalid: "Pakilagay ang wastong 11-digit na mobile number (Please enter a valid 11-digit mobile number)",
 };
@@ -53,12 +45,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
     if (!formData.last_name?.trim()) {
       newErrors.last_name = T.errorLastName;
     }
-    // 👇 REMOVED: This block makes the Middle Initial NOT required.
-    /*
-    if (!formData.middle_initial?.trim()) {
-      newErrors.middle_initial = T.errorMiddleInitial;
-    }
-    */
+
     if (!formData.contact_number?.trim()) {
       newErrors.contact_number = T.errorContactRequired;
     } else if (!/^[0-9]{11}$/.test(formData.contact_number)) {
@@ -74,19 +61,19 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
     e.stopPropagation();
 
     if (validateForm()) {
-      window.scrollTo({ top: 0, behavior: "smooth" }); // 👈 Scrolls up smoothly
+      window.scrollTo({ top: 0, behavior: "smooth" });
       nextStep();
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Enforce only digits & limit to 11 numbers for contact_number
     if (name === "contact_number") {
       const cleanedValue = value.replace(/\D/g, "").slice(0, 11);
       handleChange({ target: { name, value: cleanedValue } });
-    } 
+    }
     // Auto-capitalize first letter for name fields
     else if (["first_name", "last_name", "middle_initial"].includes(name)) {
       // Allow spaces (for composite names) but ensure title-casing
@@ -97,7 +84,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
         )
         .join(" ");
       handleChange({ target: { name, value: formattedValue } });
-    } 
+    }
     // Default for other fields (e.g., suffix)
     else {
       handleChange(e);
@@ -110,35 +97,39 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        
+    <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50 py-6 px-4 md:px-6">
+      <div className="max-w-7xl mx-auto">
+
         {/* Main Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          {/* Header Section */}
-          <div className="bg-gradient-to-r from-blue-500 to-blue-500 px-8 py-10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+          {/* HEADER SECTION */}
+          <div className="bg-gradient-to-r from-blue-500 to-blue-500 px-6 py-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-white">
                 {T.headerTitle}
               </h2>
             </div>
-            <p className="text-blue-50 text-base leading-relaxed">
+            <p className="text-sm text-blue-50 leading-relaxed">
               {T.headerSubtitle}{" "}
-              <span className="text-white font-semibold bg-white/20 px-1.5 py-0.5 rounded">*</span>{" "}
+              <span className="text-white font-semibold bg-white/20 px-1 py-0.5 rounded">*</span>{" "}
               {T.requiredNote}
             </p>
           </div>
 
           {/* Form Section */}
-          <form onSubmit={handleSubmit} noValidate className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* First Name */}
-              <div className="form-group">
+          <form onSubmit={handleSubmit} noValidate className="p-6">
+            {/* 3-COLUMN LAYOUT */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
+
+
+              {/* First Name (1/3) */}
+              <div className="flex flex-col">
                 <label
                   htmlFor="first_name"
                   className="block text-sm font-semibold text-gray-700 mb-2"
@@ -152,7 +143,8 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     name="first_name"
                     value={formData.first_name || ""}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                    // FIX: py-0 and leading-10 guarantee text is vertically centered in 40px box.
+                    className={`w-full h-11 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none ${
                       errors.first_name
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
@@ -162,31 +154,34 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     required
                   />
                   {formData.first_name && !errors.first_name && (
+                    // Reverted positioning to absolute for maximum stability
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                     </div>
                   )}
                 </div>
-                {errors.first_name && (
-                  <div className="flex items-center gap-1 mt-2">
-                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    <p className="text-sm text-red-600 font-medium">{errors.first_name}</p>
-                  </div>
-                )}
+                {/* Fixed space for error messages (ensures alignment) */}
+                <div className="h-6 flex items-start">
+                  {errors.first_name && (
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <p className="text-2xs text-red-600 font-medium">{errors.first_name}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Middle Initial - NO LONGER REQUIRED */}
-              <div className="form-group">
+              {/* Middle Initial (1/3) */}
+              <div className="flex flex-col">
                 <label
                   htmlFor="middle_initial"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
+                  className="block text-sm font-semibold text-gray-700 mb-2 whitespace-nowrap"
                 >
-                  {/* REMOVED: The required asterisk */}
-                  {T.middleInitial} 
+                  {T.middleInitial}
                 </label>
                 <div className="relative">
                   <input
@@ -195,35 +190,39 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     name="middle_initial"
                     value={formData.middle_initial || ""}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
-                      errors.middle_initial // This error check remains for display, though validation is gone
+                    // FIX: py-0 and leading-10 guarantee text is vertically centered in 40px box.
+                    className={`w-full h-11 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none ${
+                      errors.middle_initial
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                     }`}
                     placeholder={T.placeholderMiddleInitial}
                     autoComplete="additional-name"
-                    // REMOVED: The HTML required attribute
                   />
                   {formData.middle_initial && !errors.middle_initial && (
+                    // Reverted positioning to absolute for maximum stability
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                     </div>
                   )}
                 </div>
-                {errors.middle_initial && (
-                  <div className="flex items-center gap-1 mt-2">
-                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    <p className="text-sm text-red-600 font-medium">{errors.middle_initial}</p>
-                  </div>
-                )}
+                   {/* Fixed space for error messages (ensures alignment) */}
+                <div className="h-6 flex items-start">
+                    {errors.middle_initial && (
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <p className="text-2xs text-red-600 font-medium">{errors.middle_initial}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Last Name */}
-              <div className="form-group">
+              {/* Last Name (1/3) */}
+                <div className="flex flex-col">
                 <label
                   htmlFor="last_name"
                   className="block text-sm font-semibold text-gray-700 mb-2"
@@ -237,7 +236,8 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     name="last_name"
                     value={formData.last_name || ""}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                    // FIX: py-0 and leading-10 guarantee text is vertically centered in 40px box.
+                    className={`w-full h-11 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none ${
                       errors.last_name
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
@@ -247,30 +247,35 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     required
                   />
                   {formData.last_name && !errors.last_name && (
+                    // Reverted positioning to absolute for maximum stability
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                     </div>
                   )}
                 </div>
-                {errors.last_name && (
-                  <div className="flex items-center gap-1 mt-2">
-                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    <p className="text-sm text-red-600 font-medium">{errors.last_name}</p>
-                  </div>
-                )}
+                {/* Fixed space for error messages (ensures alignment) */}
+                <div className="h-6 flex items-start">
+                  {errors.last_name && (
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <p className="text-2xs text-red-600 font-medium">{errors.last_name}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Suffix */}
-              <div className="form-group">
+              {/* Suffix (1/3) */}
+              <div className="flex flex-col">
                 <label
                   htmlFor="suffix"
                   className="block text-sm font-semibold text-gray-700 mb-2"
                 >
-                  {T.suffix}
+                  {/* FIX 1: Use the dedicated label text */}
+                  {T.suffixLabel}
                 </label>
                 <div className="relative">
                   <select
@@ -278,9 +283,11 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     name="suffix"
                     value={formData.suffix || ""}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300 cursor-pointer"
+                    // FIX: py-0 and leading-10 guarantee text is vertically centered in 40px box.
+                    className="w-full h-11 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                   >
-                    <option value="">{T.suffixNone}</option>
+                    {/* FIX 1: Use the dedicated default option text */}
+                    <option value="">{T.suffixDefault}</option>
                     <option value="Jr.">Jr.</option>
                     <option value="Sr.">Sr.</option>
                     <option value="I">I</option>
@@ -288,16 +295,17 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     <option value="III">III</option>
                     <option value="IV">IV</option>
                   </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
+                  {/* FIX 2: Removed the custom dropdown arrow (the "second dropdown") */}
+                </div>
+                {/* Fixed space for error/help messages (ensures alignment) */}
+                <div className="h-6 flex items-start">
+                   {/* This container remains empty for alignment */}
                 </div>
               </div>
 
-              {/* Contact Number */}
-              <div className="form-group md:col-span-2">
+              {/* Contact Number (2/3) - Stays col-span-2 */}
+              <div className="flex flex-col md:col-span-2">
+
                 <label
                   htmlFor="contact_number"
                   className="block text-sm font-semibold text-gray-700 mb-2"
@@ -305,8 +313,9 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                   {T.contactNumber} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
+                  {/* Reverted positioning to absolute for maximum stability */}
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
                   </div>
@@ -318,7 +327,8 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     onChange={handleInputChange}
                     inputMode="numeric"
                     maxLength="11"
-                    className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                    // FIX 3: Changed 'px-3' to 'pl-11 pr-3' to prevent text from overlaying the icon.
+                    className={`w-full h-11 pl-11 pr-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none ${
                       errors.contact_number
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
@@ -328,44 +338,47 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     required
                   />
                   {formData.contact_number && !errors.contact_number && formData.contact_number.length === 11 && (
+                    // Reverted positioning to absolute for maximum stability
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                     </div>
                   )}
                 </div>
-                {errors.contact_number && (
-                  <div className="flex items-center gap-1 mt-2">
-                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    <p className="text-sm text-red-600 font-medium">
-                      {errors.contact_number}
-                    </p>
-                  </div>
-                )}
-                {!errors.contact_number && (
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                    <small className="text-sm text-gray-500">
-                      {T.helpText}
-                    </small>
-                  </div>
-                )}
+                {/* Fixed space for error/help messages (ensures alignment) */}
+                <div className="h-6 flex items-start">
+                  {errors.contact_number ? (
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <p className="text-2xs text-red-600 font-medium">
+                        {errors.contact_number}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <small className="text-2xs text-gray-500">
+                        {T.helpText}
+                      </small>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end mt-8 pt-6 border-t border-gray-100">
+            <div className="flex justify-end mt-6 pt-4 border-t border-gray-100">
               <button
                 type="submit"
-                className="group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white font-semibold rounded-xl px-8 py-3.5 inline-flex items-center gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-105 active:scale-95"
+                className="group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white text-sm font-semibold rounded-xl px-5 py-2.5 inline-flex items-center gap-2 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 <span>{T.continue}</span>
-                <svg className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </button>
@@ -374,8 +387,8 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
         </div>
 
         {/* Help Text */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
+        <div className="mt-3 text-center">
+          <p className="text-xs text-gray-500">
             {T.footerHelp}
           </p>
         </div>

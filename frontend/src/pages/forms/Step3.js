@@ -48,41 +48,41 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-12 px-4">
-      <div className="max-w-5xl mx-auto">
+    // Responsive: Outer container padding ensures space on all screens
+    <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50 py-6 px-4 md:px-6">
+      <div className="max-w-7xl mx-auto">
 
         {/* Main Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           {/* Header Section */}
-          <div className="bg-gradient-to-r from-blue-500 to-blue-500 px-8 py-10">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-500 px-6 py-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-white">
                 ID & Assistance Details
               </h2>
             </div>
-            <p className="text-blue50 text-base leading-relaxed">
+            <p className="text-blue-50 text-sm leading-relaxed">
               Please provide your identification and assistance information. Fields marked with{" "}
               <span className="text-white font-semibold bg-white/20 px-1.5 py-0.5 rounded">*</span>{" "}
               are required.(Ang lahat ng field na may markang * ay kinakailangan.)
             </p>
           </div>
 
-          {/* Form Section */}
-          <form onSubmit={handleNext} noValidate className="p-8">
-            {/* Valid ID Information Section */}
-            <section className="mb-10">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+          <form onSubmit={handleNext} noValidate className="p-6">
+            {/* Valid ID Information Section - Responsive grid: 1 col on mobile, 2 on md, 3 on lg */}
+            <section className="mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center">
                   <svg className="w-5 h-5 text-blue600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">
+                <h3 className="text-lg font-bold text-gray-800">
                   Valid ID Information
                 </h3>
               </div>
@@ -107,7 +107,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                   ].map(id => (
                     <label
                       key={id}
-                      className={`flex items-center space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                      className={`flex items-center space-x-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                         formData.valid_id_presented === id
                           ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
                           : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50"
@@ -128,7 +128,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
 
                   <div className="flex flex-col">
                     <label
-                      className={`flex items-center space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                      className={`flex items-center space-x-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                         formData.valid_id_presented === "Others"
                           ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
                           : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50"
@@ -153,7 +153,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           placeholder="Specify ID"
                           value={formData.other_valid_id || ""}
                           onChange={handleChange}
-                          className={`w-full px-3 py-2 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                          className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
                             errors.other_valid_id
                               ? "border-red-400 bg-red-50 focus:border-red-500"
                               : "border-gray-200 focus:border-blue-500"
@@ -184,14 +184,14 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
             </section>
 
             {/* Assistance Type Section */}
-            <section className="mb-10">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+            <section className="mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center">
                   <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">
+                <h3 className="text-lg font-bold text-gray-800">
                   Type of Assistance
                 </h3>
               </div>
@@ -209,14 +209,14 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     name="type_of_assistance"
                     value={formData.type_of_assistance}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
+                    className={`w-full px-4 py-2.5 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
                       errors.type_of_assistance
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                     }`}
                     required
                   >
-                    <option value=""disabled>Select assistance type</option>
+                    <option value="" disabled>Select assistance type</option>
                     <option value="Medical">Medical</option>
                     <option value="Burial">Burial</option>
                     <option value="Educational">Educational</option>
@@ -240,13 +240,13 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
 
             {/* Applicant Information Section */}
             <section>
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center">
                   <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">
+                <h3 className="text-lg font-bold text-gray-800">
                   Applicant Type
                 </h3>
               </div>
@@ -255,7 +255,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                 <p className="text-gray-700 font-semibold mb-4">
                   Are you applying for yourself or someone else?
                 </p>
-                <div className="flex gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <label
                     className={`flex-1 flex items-center justify-center space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                       formData.applicant_type === "Self"
@@ -296,7 +296,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
               </div>
 
               {formData.applicant_type === "Representative" && (
-                <div className="border-2 border-blue-200 bg-gradient-to-br from-blue-50/50 to-white rounded-2xl p-8 shadow-lg">
+                <div className="border-2 border-blue-200 bg-gradient-to-br from-blue-50/50 to-white rounded-2xl p-6 shadow-lg">
                   <div className="flex items-center gap-2 mb-6">
                     <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -306,7 +306,8 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     </h4>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Responsive grid: 1 col on mobile, 2 on md, 3 on lg */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* Representative First Name */}
                     <div className="form-group">
                       <label
@@ -322,7 +323,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           name="rep_first_name"
                           value={formData.rep_first_name || ""}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                          className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
                             errors.rep_first_name
                               ? "border-red-400 bg-red-50 focus:border-red-500"
                               : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
@@ -363,7 +364,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           name="rep_last_name"
                           value={formData.rep_last_name || ""}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                          className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
                             errors.rep_last_name
                               ? "border-red-400 bg-red-50 focus:border-red-500"
                               : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
@@ -390,30 +391,30 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     </div>
 
                     {/* Representative Middle Name */}
-<div className="form-group">
-  <label
-    htmlFor="rep_middle_name"
-    className="block text-sm font-semibold text-gray-700 mb-2"
-  >
-    Middle Name (Gitnang Pangalan)
-  </label>
-  <input
-    type="text"
-    id="rep_middle_name"
-    name="rep_middle_name"
-    value={formData.rep_middle_name || ""}
-    onChange={(e) => {
-      const value = e.target.value;
-      const formatted =
-        value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-      handleChange({
-        target: { name: "rep_middle_name", value: formatted },
-      });
-    }}
-    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
-    placeholder="Enter full middle name (optional)"
-  />
-</div>
+                    <div className="form-group">
+                      <label
+                        htmlFor="rep_middle_name"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
+                        Middle Name (Gitnang Pangalan)
+                      </label>
+                      <input
+                        type="text"
+                        id="rep_middle_name"
+                        name="rep_middle_name"
+                        value={formData.rep_middle_name || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const formatted =
+                            value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+                          handleChange({
+                            target: { name: "rep_middle_name", value: formatted },
+                          });
+                        }}
+                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
+                        placeholder="Enter full middle name (optional)"
+                      />
+                    </div>
 
 
 
@@ -431,7 +432,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           name="rep_suffix"
                           value={formData.rep_suffix || ""}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300 cursor-pointer"
+                          className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300 cursor-pointer"
                         >
                           <option value="">None</option>
                           <option value="Jr.">Jr.</option>
@@ -449,8 +450,8 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                       </div>
                     </div>
 
-                    {/* Representative Address */}
-                    <div className="form-group md:col-span-2">
+                    {/* Representative Address - FIX: Ensures address field spans full width on md (2-col) and lg (3-col) */}
+                    <div className="form-group md:col-span-2 lg:col-span-3">
                       <label
                         htmlFor="rep_address"
                         className="block text-sm font-semibold text-gray-700 mb-2"
@@ -485,7 +486,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           name="rep_address"
                           value={formData.rep_address || ""}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                          className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
                             errors.rep_address
                               ? "border-red-400 bg-red-50 focus:border-red-500"
                               : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
@@ -527,7 +528,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           name="rep_birthday"
                           value={formData.rep_birthday || ""}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                          className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
                             errors.rep_birthday
                               ? "border-red-400 bg-red-50 focus:border-red-500"
                               : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
@@ -566,14 +567,14 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           name="rep_gender"
                           value={formData.rep_gender || ""}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
+                          className={`w-full px-4 py-2.5 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
                             errors.rep_gender
                               ? "border-red-400 bg-red-50 focus:border-red-500"
                               : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                           }`}
                           required
                         >
-                          <option value=""disabled>Select Sex(Mamili ng Kasarian)</option>
+                          <option value="" disabled>Select Sex(Mamili ng Kasarian)</option>
                           <option value="Male">Male(Lalaki)</option>
                           <option value="Female">Female(Babae)</option>
                         </select>
@@ -607,14 +608,14 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           name="rep_civil_status"
                           value={formData.rep_civil_status || ""}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
+                          className={`w-full px-4 py-2.5 border-2 rounded-xl appearance-none bg-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer ${
                             errors.rep_civil_status
                               ? "border-red-400 bg-red-50 focus:border-red-500"
                               : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                           }`}
                           required
                         >
-                          <option value=""disabled>Select Civil Status(Pumili ng Katayuang Sibil)</option>
+                          <option value="" disabled>Select Civil Status(Pumili ng Katayuang Sibil)</option>
                           <option value="Single">Single(Walang Asawa)</option>
                           <option value="Married">Married(Kasal)</option>
                           <option value="Widowed">Widowed(Balo)</option>
@@ -651,7 +652,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         name="rep_occupation"
                         value={formData.rep_occupation || ""}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
+                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
                         placeholder="Enter occupation"
                       />
                     </div>
@@ -674,7 +675,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           name="rep_monthly_income"
                           value={formData.rep_monthly_income || ""}
                           onChange={handleChange}
-                          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
+                          className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
                           placeholder="Enter monthly income"
                         />
                       </div>
@@ -686,7 +687,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_relationship"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Relationship to Beneficiary(Relasyon sa Benepisyaryo) <span className="text-red-500">*</span>
+                        Relationship to Beneficiary <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <input
@@ -695,7 +696,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           name="rep_relationship"
                           value={formData.rep_relationship || ""}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
+                          className={`w-full px-4 py-2.5 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 ${
                             errors.rep_relationship
                               ? "border-red-400 bg-red-50 focus:border-red-500"
                               : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
@@ -725,12 +726,12 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
               )}
             </section>
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
+            {/* Navigation Buttons - FIX: Use flex-col and w-full on mobile, revert on sm: */}
+            <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-6 mt-8 pt-6 border-t border-gray-100">
               <button
                 type="button"
                 onClick={prevStep}
-                className="group inline-flex items-center gap-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl px-6 py-3 transition-all duration-200 hover:scale-105 active:scale-95"
+                className="w-full sm:w-auto group inline-flex items-center justify-center sm:justify-start gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl px-4 py-2.5 transition-all duration-200 hover:scale-[1.02] active:scale-95"
               >
                 <svg className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
@@ -739,7 +740,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
               </button>
               <button
                 type="submit"
-                className="group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white font-semibold rounded-xl px-8 py-3.5 inline-flex items-center gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-105 active:scale-95"
+                className="w-full sm:w-auto group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white font-semibold rounded-xl px-6 py-2.5 inline-flex items-center justify-center sm:justify-start gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-[1.02] active:scale-95"
               >
                 <span>Continue to Preview(Magpatuloy)</span>
                 <svg className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -750,10 +751,10 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
           </form>
         </div>
 
-        {/* Help Text */}
+        {/* Footer */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            Need help? Contact our support team for assistance.
+          <p className="text-xs text-gray-500">
+            Need help? Contact our support team for assistance. (Kailangan ng tulong? Kontakin ang aming support team.)
           </p>
         </div>
       </div>
