@@ -14,11 +14,14 @@ export default function PrintPageById() {
   const printRef = useRef(null);
 
   useEffect(() => {
-    document.title = "QuickAid | Print Applicant";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  document.title = "QuickAid | Applicant Forms";
+
+  // 👇 remove the reset or make it blank
+  return () => {
+    document.title = "";
+  };
+}, []);
+
 
   // ---- Fetch Applicant ----
   useEffect(() => {

@@ -104,7 +104,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
   }
   const numValue = parseFloat(value);
   if (numValue < 0) return; // Keep this
-  handleChange(e); // Allow all other numbers
+  handleChange(e); 
   return;
 }
 
