@@ -10,11 +10,14 @@ const PrintPage = () => {
   const applicant = state?.applicant;
 
   useEffect(() => {
-    document.title = "QuickAid | Applicant Forms";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  document.title = "QuickAid | Applicant Forms";
+
+  // 👇 remove the reset or make it blank
+  return () => {
+    document.title = "";
+  };
+}, []);
+
 
   if (!applicant) {
     navigate("/dashboard");
