@@ -1,6 +1,8 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import *
+from .export_analytics import *
+
 
 urlpatterns = [
     # =============================================
@@ -104,4 +106,11 @@ urlpatterns = [
     path("analytics/performance/staff-activity/", staff_activity_logs, name="analytics-performance-activity"),
     path("analytics/performance/staff-heatmap/", staff_activity_heatmap, name="analytics-performance-heatmap"),
 
+
+    # ========================
+    # Export
+    # ========================
+    path('export/analytics/', export_analytics_report, name='export-analytics'),
+    path('export/history/', export_history, name='export-history'),
+    path('export/filters/', available_filters, name='available-filters'),
 ]

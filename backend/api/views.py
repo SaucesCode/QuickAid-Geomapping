@@ -4,6 +4,7 @@ import datetime
 import json
 import requests
 import pandas as pd
+import base64
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta, date
 
@@ -13,7 +14,7 @@ from django.contrib.auth.password_validation import validate_password, Validatio
 from django.db import transaction
 from django.db.models import (
     Avg, Count, ExpressionWrapper, F, DurationField,
-    IntegerField, Max, Q, Prefetch
+    IntegerField, Max, Q, Prefetch, Min
 )
 from django.db.models.functions import TruncDate, ExtractYear, TruncMonth, ExtractHour
 from django.http import JsonResponse, StreamingHttpResponse
@@ -22,6 +23,8 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.timezone import now, timedelta
 from .utils import apply_applicant_filters, apply_approval_filters, get_applicant_history
+from .export_analytics import ExportOrchestrator
+from django.core.exceptions import ValidationError
 
 # Django REST Framework
 from rest_framework import status
@@ -1990,3 +1993,183 @@ def get_location_filters(request):
         .order_by("background_info__barangay__name")
     )
     return JsonResponse({"barangays": list(barangays)}, safe=False)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def export_analytics_report(request):
+    """
+    Export analytics report in PDF, Excel, or both formats (in-memory)
+    Returns base64-encoded files directly in the response
+    """
+    try:
+        # Parse request data
+        format_type = request.data.get('format', 'both')
+        filters = request.data.get('filters', {})
+        branding = request.data.get('branding', {})
+
+        # Validate format
+        if format_type not in ['pdf', 'excel', 'both']:
+            return Response(
+                {"error": "Invalid format. Choose 'pdf', 'excel', or 'both'"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate date range
+        start_date = filters.get('start_date')
+        end_date = filters.get('end_date')
+        if start_date and end_date:
+            try:
+                start = datetime.strptime(start_date, '%Y-%m-%d')
+                end = datetime.strptime(end_date, '%Y-%m-%d')
+                if start > end:
+                    return Response(
+                        {"error": "Start date must be before end date"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            except ValueError:
+                return Response(
+                    {"error": "Invalid date format. Use YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # Add branding to filters
+        filters['branding'] = branding
+
+        # Generate report in-memory (returns base64 files)
+        orchestrator = ExportOrchestrator(filters, request.user, format_type)
+        result = orchestrator.generate_report()
+
+        if not result['success']:
+            return Response(
+                {
+                    "success": False,
+                    "error": result.get('error', 'Unknown error occurred'),
+                    "traceback": result.get('traceback', '')
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        # Log export activity
+        log_staff_activity(
+            request.user,
+            'EXPORT_ANALYTICS',
+            f"Exported analytics report ({format_type}) for period "
+            f"{filters.get('start_date', 'All')} to {filters.get('end_date', 'All')}",
+            request
+        )
+
+        # Return JSON with metadata + base64 files (already encoded by ExportOrchestrator)
+        return Response({
+            'success': True,
+            'files': result['files'],  # Already contains base64
+            'metadata': result['metadata']
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        import traceback
+        return Response(
+            {
+                "success": False,
+                "error": f"Failed to generate report: {str(e)}",
+                "traceback": traceback.format_exc()
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_history(request):
+    """
+    Get history of exported analytics reports
+    Returns list of previous exports by the user or all (if admin)
+    """
+    try:
+        user = request.user
+        
+        # Get export activity logs
+        if user.is_superuser:
+            logs = StaffActivityLog.objects.filter(
+                action='EXPORT_ANALYTICS'
+            ).select_related('staff').order_by('-timestamp')[:50]
+        else:
+            logs = StaffActivityLog.objects.filter(
+                staff=user,
+                action='EXPORT_ANALYTICS'
+            ).order_by('-timestamp')[:50]
+        
+        data = [
+            {
+                'id': log.id,
+                'exported_by': f"{log.staff.first_name} {log.staff.last_name}",
+                'username': log.staff.username,
+                'details': log.details,
+                'timestamp': log.timestamp.isoformat(),
+                'formatted_time': log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            for log in logs
+        ]
+        
+        return Response(data, status=status.HTTP_200_OK)
+    
+    except Exception as e:
+        return Response(
+            {"error": f"Failed to fetch export history: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def available_filters(request):
+    """
+    Get available filter options for analytics export
+    Returns: cities, barangays, assistance types that have data
+    """
+    try:
+        # Get all active applicants
+        applicants = Applicant.objects.filter(is_archived=False)
+        
+        # Get unique cities
+        cities = list(
+            applicants.values_list('background_info__barangay__city__name', flat=True)
+            .distinct()
+            .order_by('background_info__barangay__city__name')
+        )
+        
+        # Get unique barangays
+        barangays = list(
+            applicants.values_list('background_info__barangay__name', flat=True)
+            .distinct()
+            .order_by('background_info__barangay__name')
+        )
+        
+        # Get unique assistance types
+        assistance_types = list(
+            applicants.values_list('type_of_assistance', flat=True)
+            .distinct()
+            .order_by('type_of_assistance')
+        )
+        
+        # Get date range
+        date_range = applicants.aggregate(
+            earliest=Min('date_filled'),
+            latest=Max('date_filled')
+        )
+        
+        return Response({
+            'cities': [c for c in cities if c],
+            'barangays': [b for b in barangays if b],
+            'assistance_types': [a for a in assistance_types if a],
+            'date_range': {
+                'earliest': date_range['earliest'].date().isoformat() if date_range['earliest'] else None,
+                'latest': date_range['latest'].date().isoformat() if date_range['latest'] else None
+            }
+        }, status=status.HTTP_200_OK)
+    
+    except Exception as e:
+        return Response(
+            {"error": f"Failed to fetch filter options: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
