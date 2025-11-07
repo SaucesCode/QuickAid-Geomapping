@@ -36,23 +36,14 @@ const PrintPage = () => {
         {/* ACTION BUTTONS */}
         <div className="no-print flex justify-center flex-wrap gap-4 mt-8 pb-8">
           <button
-            onClick={() => navigate(-1)}
-            className="px-8 py-3 bg-gray-700 text-white rounded-lg font-semibold flex items-center gap-2 hover:bg-gray-800 transition"
-          >
-            <ArrowLeft size={18} /> Back
-          </button>
-
-          <button
-            onClick={() => navigate(`/print/intake/${applicant.id}`, { state: { applicant } })}
+            onClick={() => navigate(`/print/intake`, { state: { applicant: applicant } })}
             className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700 transition"
           >
             <FileDown size={18} /> Download Intake Sheet
           </button>
 
           <button
-            onClick={() =>
-              navigate(`/print/certificate/${applicant.id}`, { state: { applicant } })
-            }
+            onClick={() => navigate(`/print/certificate`, { state: { applicant: applicant } })}
             className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold flex items-center gap-2 hover:bg-green-700 transition"
           >
             <FileDown size={18} /> Download Certificate

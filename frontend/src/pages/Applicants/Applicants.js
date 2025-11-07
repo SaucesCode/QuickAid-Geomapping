@@ -256,7 +256,6 @@ const Applicants = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedApplicants.slice(indexOfFirstItem, indexOfLastItem);
-  console.log(currentItems);
   const totalPages = Math.ceil(sortedApplicants.length / itemsPerPage);
 
   // Define the consistent table header structure
