@@ -1,5 +1,7 @@
 // GeneralIntakeSheet.jsx
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import dswdLogo from "../../assets/dswd-logo.png";
 
 const toTitleCase = (str) => {
@@ -108,7 +110,7 @@ export default function GeneralIntakeSheet({ applicant }) {
         applicantType: applicant?.applicant_type || "",
         familyMembers: applicant?.family_composition || [],
         // UPDATED: Separated name and designation
-        approvingAuthorityName: "MARYNEL B. CALABIT", // The name only
+        approvingAuthorityName: "", // The name only
         approvingAuthorityDesignation: "SWAD TEAM LEADER", // The designation
         fundSource: "PSP 2023",
     };
@@ -130,6 +132,7 @@ export default function GeneralIntakeSheet({ applicant }) {
         }));
     };
 
+    const contentRef = useRef();
     // Handler to add a new row
     const handleAddFamilyMember = () => {
         setFormData(prevFormData => ({
@@ -433,18 +436,7 @@ export default function GeneralIntakeSheet({ applicant }) {
                     </div>
 
                     {/* Add Family Member Button */}
-                    <div className="flex justify-end mt-2 mb-8">
-                        <button
-                            type="button"
-                            onClick={handleAddFamilyMember}
-                            className="text-xs px-3 py-1 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 transition-colors shadow-sm flex items-center gap-1"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                            Add Family Member
-                        </button>
-                    </div>
+
 
                     {/* ... (rest of the form) ... */}
 
@@ -470,14 +462,14 @@ export default function GeneralIntakeSheet({ applicant }) {
                         </div>
 
                         {/* UPDATED Approving Authority Block with only ONE line */}
-                        <div className="text-center">
+                        <div className="text-center mt-6">
                             {/* Editable Name Field (No bottom border on input) */}
                             <input
                                 type="text"
                                 value={formData.approvingAuthorityName}
                                 onChange={(e) => handleGeneralChange('approvingAuthorityName', e.target.value)}
                                 className="w-full text-center mb-1 py-1 text-sm font-black text-blue-900 uppercase focus:outline-none bg-transparent"
-                                placeholder="ENTER NAME"
+                                placeholder=" "
                             />
 
                             {/* The single signature line and standard titles (Uses border-t-2) */}

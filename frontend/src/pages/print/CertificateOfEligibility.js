@@ -1,8 +1,12 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useRef,useCallback } from "react";
 import dswdLogo from "../../assets/dswd-logo.png";
 import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function CertificateOfEligibility({ applicant }) {
+
+  const contentRef = useRef(null);
+
   
   const initialFormData = {
     qn: applicant?.id || "",
@@ -223,9 +227,9 @@ export default function CertificateOfEligibility({ applicant }) {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 font-sans">
-      <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden border border-blue-100">
-        <div className="p-8">
+    <div ref={contentRef} className="min-h-screen bg-gray-50 p-6 font-sans">
+    <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden border border-blue-100">
+      <div className="p-8">
           {/* Header row */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">

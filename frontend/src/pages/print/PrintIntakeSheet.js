@@ -9,29 +9,66 @@ export default function PrintIntake() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const applicant = state?.applicant;
-  console.log(applicant);
   const printRef = useRef();
 
   if (!applicant) return <p>Applicant data missing.</p>;
 
   const handleDownloadPDF = async () => {
     const element = printRef.current;
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, width, height);
-    pdf.save(`IntakeSheet_${applicant.full_name}.pdf`);
+    if (!element) return;
+
+    // hide elements that shouldn’t appear
+    const hiddenEls = element.querySelectorAll(".no-download");
+    hiddenEls.forEach((el) => (el.style.display = "none"));
+    await new Promise((r) => setTimeout(r, 200));
+
+    const canvas = await html2canvas(element, {
+      scale: 1.8, // reduced from 3 to lower memory footprint
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      scrollX: 0,
+      scrollY: 0,
+      logging: false,
+      windowWidth: element.scrollWidth,
+      windowHeight: element.scrollHeight,
+    });
+
+    hiddenEls.forEach((el) => (el.style.display = "")); // restore hidden elements
+
+    // compress image to JPEG instead of PNG
+    const imgData = canvas.toDataURL("image/jpeg", 0.85);
+
+    // convert exact pixel dimensions to mm
+    const pdfWidth = canvas.width * 0.264583;
+    const pdfHeight = canvas.height * 0.264583;
+    const pdf = new jsPDF("p", "mm", [pdfWidth, pdfHeight]);
+
+    pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save(
+      `IntakeSheet_${(applicant.full_name || "applicant")
+        .replace(/\s+/g, "_")
+        .trim()}.pdf`
+    );
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-4">
       <style>
-        {`@media print { .no-print { display: none !important; } body { background: white; } }`}
+        {`
+          @media print {
+            .no-print, .no-download {
+              display: none !important;
+              visibility: hidden !important;
+            }
+            body { background: white; }
+          }
+        `}
       </style>
 
-      <div ref={printRef} className="bg-white shadow-xl rounded-xl border border-blue-100 p-6">
+      <div
+        ref={printRef}
+        className="bg-white shadow-xl rounded-xl border border-blue-100 p-6"
+      >
         <GeneralIntakeSheet applicant={applicant} />
       </div>
 
