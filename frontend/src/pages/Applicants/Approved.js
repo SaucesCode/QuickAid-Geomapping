@@ -8,12 +8,17 @@ import {
   ChevronUp,
   CheckCircle,
   BarChart3,
-  Loader2, // Added for consistent loading UI
+  Loader2,
+  AlertCircle,
+  FileSpreadsheet,
+  Filter,
+  X,
+  Calendar,
 } from "lucide-react";
 import { formatDate } from "../../utils/FormatDate";
 import ApplicantsFilter from "./components/ApplicantFilter";
 
-// --- API Helpers (NO CHANGES) ---
+// --- API Helpers ---
 const fetchBatches = async () => {
   const res = await api.get("/approved/batches/?limit=50");
   return res.data.results;
@@ -26,8 +31,8 @@ const uploadApprovedFile = async file => {
   return res.data;
 };
 
-// --- Child Component: BatchRow (REDESIGNED) ---
-const BatchRow = ({ batch, toggleBatch }) => {
+// --- Child Component: BatchRow (ENHANCED) ---
+const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
   const [filters, setFilters] = useState({
     city: "",
     barangay: "",
@@ -35,6 +40,7 @@ const BatchRow = ({ batch, toggleBatch }) => {
     start: "",
     end: "",
   });
+  const [showFilters, setShowFilters] = useState(false);
 
   const { data: approvals = [], isLoading } = useQuery({
     queryKey: ["approvals", batch.id, filters],
@@ -51,103 +57,191 @@ const BatchRow = ({ batch, toggleBatch }) => {
       const res = await api.get(`/approved/batch/${batch.id}/approvals/?${params.toString()}`);
       return res.data.results || [];
     },
-    enabled: batch.expanded,
+    enabled: isExpanded,
     staleTime: 1000 * 60 * 5,
   });
 
+  const hasActiveFilters =
+    filters.city || filters.barangay || filters.type || (filters.start && filters.end);
+
+  const clearFilters = () => {
+    setFilters({ city: "", barangay: "", type: "", start: "", end: "" });
+  };
+
   return (
-    // Card Style: Slight glass-morphism for nested element
-    <div className="bg-white bg-opacity-80 backdrop-blur-md rounded-2xl shadow-md border border-blue-200 hover:shadow-lg transition-all duration-300">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 overflow-hidden">
+      {/* Batch Header */}
       <button
         onClick={() => toggleBatch(batch.id)}
-        className="w-full flex justify-between items-center p-5 focus:outline-none rounded-t-2xl hover:bg-blue-50/50 transition-all"
-        aria-expanded={batch.expanded ? "true" : "false"}
-        aria-controls={`batch-${batch.id}-content`}
+        className="w-full flex justify-between items-center p-6 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all group"
+        aria-expanded={isExpanded ? "true" : "false"}
       >
-        <div className="text-left space-y-1">
-          <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-indigo-500" />
-            File: {batch.file_name}
-          </h3>
-          <p className="text-sm text-gray-500 ml-7">
-            Uploaded by <span className="font-medium text-blue-700">{batch.uploaded_by}</span>{" "}
-            on {new Date(batch.uploaded_at).toLocaleString()}
-          </p>
-          <p className="flex flex-wrap gap-4 mt-2 ml-7">
-            <span className="flex items-center gap-1 text-sm font-medium text-gray-700">
-              <BarChart3 className="w-4 h-4 text-blue-600" /> Processed:{" "}
-              <span className="font-bold text-blue-800">{batch.total_processed}</span>
+        <div className="text-left space-y-3 flex-1">
+          {/* File Name */}
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
+              <FileSpreadsheet className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">
+              {batch.file_name}
+            </h3>
+          </div>
+
+          {/* Upload Info */}
+          <div className="flex items-center gap-2 text-sm text-gray-600 ml-11">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <span>
+              Uploaded by{" "}
+              <span className="font-semibold text-blue-700">{batch.uploaded_by}</span> on{" "}
+              {new Date(batch.uploaded_at).toLocaleString()}
             </span>
-            <span className="flex items-center gap-1 text-sm font-medium text-gray-700">
-              <CheckCircle className="w-4 h-4 text-green-600" /> Approved:{" "}
-              <span className="font-bold text-green-800">{batch.total_approved}</span>
-            </span>
-          </p>
+          </div>
+
+          {/* Statistics */}
+          <div className="flex flex-wrap gap-4 ml-11">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg">
+              <BarChart3 className="w-4 h-4 text-blue-600" />
+              <span className="text-sm text-gray-700">
+                Processed:{" "}
+                <span className="font-bold text-blue-800">{batch.total_processed}</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-lg">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm text-gray-700">
+                Approved:{" "}
+                <span className="font-bold text-green-800">{batch.total_approved}</span>
+              </span>
+            </div>
+          </div>
         </div>
 
-        <span className="text-indigo-600 font-semibold select-none flex items-center p-2 rounded-full bg-blue-100/50">
-          {batch.expanded ? (
-            <ChevronUp className="w-5 h-5" />
+        {/* Expand/Collapse Icon */}
+        <div className="ml-4 p-3 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 group-hover:from-blue-200 group-hover:to-indigo-200 transition-all">
+          {isExpanded ? (
+            <ChevronUp className="w-5 h-5 text-indigo-600" />
           ) : (
-            <ChevronDown className="w-5 h-5" />
+            <ChevronDown className="w-5 h-5 text-indigo-600" />
           )}
-        </span>
+        </div>
       </button>
 
-      {batch.expanded && (
-        <div
-          id={`batch-${batch.id}-content`}
-          className="overflow-x-auto max-h-96 border-t border-blue-200 bg-white rounded-b-2xl"
-        >
-          <div className="p-4 border-b border-blue-100 bg-blue-50/50">
-            <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
-          </div>
-          {isLoading ? (
-            <div className="flex justify-center items-center py-6">
-              <Loader2 className="w-5 h-5 animate-spin text-indigo-600 mr-2" />
-              <p className="text-indigo-600 font-medium">Loading approvals...</p>
+      {/* Expanded Content */}
+      {isExpanded && (
+        <div className="border-t border-gray-200">
+          {/* Filter Section */}
+          <div className="p-4 bg-gradient-to-r from-gray-50 to-blue-50">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                <Filter className="w-4 h-4 text-indigo-600" />
+                Filter Approvals
+              </h4>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+              >
+                {showFilters ? "Hide" : "Show"} Filters
+                {showFilters ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
             </div>
-          ) : (
-            <table className="min-w-full text-sm text-left text-gray-800">
-              {/* Table Header Style: Soft blue with text-blue-900 */}
-              <thead className="bg-blue-100/80 sticky top-0 z-10 font-semibold text-blue-800 border-b border-blue-200">
-                <tr>
-                  <th className="px-5 py-3 border-r border-blue-100">Last Name</th>
-                  <th className="px-5 py-3 border-r border-blue-100">First Name</th>
-                  <th className="px-5 py-3 border-r border-blue-100">Barangay</th>
-                  <th className="px-5 py-3 border-r border-blue-100">Municipal</th>
-                  <th className="px-5 py-3 border-r border-blue-100">Assistance</th>
-                  <th className="px-5 py-3 border-r border-blue-100">Amount</th>
-                  <th className="px-5 py-3">Approved At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {approvals.map(app => (
-                  <tr
-                    key={app.id}
-                    className="hover:bg-blue-50 transition-all duration-150 border-b border-blue-50 last:border-b-0"
+
+            {showFilters && (
+              <div className="space-y-3">
+                <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="w-full text-sm text-red-600 font-medium hover:bg-red-50 rounded-lg py-2 flex items-center justify-center gap-2 transition-colors"
                   >
-                    <td className="px-5 py-3 text-gray-900 font-medium whitespace-nowrap">
-                      {app.last_name}
-                    </td>
-                    <td className="px-5 py-3 text-gray-900 font-medium whitespace-nowrap">
-                      {app.first_name}
-                    </td>
-                    <td className="px-5 py-3">{app.barangay}</td>
-                    <td className="px-5 py-3">{app.municipal}</td>
-                    <td className="px-5 py-3">
-                      {/* CONSISTENT CHIP STYLE: Gradient background with rounded-xl and small icon */}
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md">
-                        <FileText className="w-3 h-3" />
-                        {app.type_of_assistance}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 font-semibold text-green-700">{app.amount}</td>
-                    <td className="px-5 py-3">{formatDate(app.approved_at)}</td>
+                    <X className="w-4 h-4" /> Clear All Filters
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Table Section */}
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+            {isLoading ? (
+              <div className="flex flex-col justify-center items-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
+                <p className="text-indigo-600 font-medium">Loading approvals...</p>
+              </div>
+            ) : approvals.length === 0 ? (
+              <div className="flex flex-col justify-center items-center py-12 text-gray-500">
+                <AlertCircle className="w-12 h-12 mb-3 text-gray-400" />
+                <p className="font-medium">No approvals found</p>
+                <p className="text-sm mt-1">Try adjusting your filters</p>
+              </div>
+            ) : (
+              <table className="min-w-full text-sm">
+                <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white sticky top-0 z-10">
+                  <tr>
+                    <th className="px-5 py-3 text-left font-semibold border-r border-blue-500/30">
+                      Last Name
+                    </th>
+                    <th className="px-5 py-3 text-left font-semibold border-r border-blue-500/30">
+                      First Name
+                    </th>
+                    <th className="px-5 py-3 text-left font-semibold border-r border-blue-500/30">
+                      Barangay
+                    </th>
+                    <th className="px-5 py-3 text-left font-semibold border-r border-blue-500/30">
+                      Municipal
+                    </th>
+                    <th className="px-5 py-3 text-left font-semibold border-r border-blue-500/30">
+                      Assistance
+                    </th>
+                    <th className="px-5 py-3 text-left font-semibold border-r border-blue-500/30">
+                      Amount
+                    </th>
+                    <th className="px-5 py-3 text-left font-semibold">Approved At</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {approvals.map((app, index) => (
+                    <tr
+                      key={app.id}
+                      className={`hover:bg-blue-50 transition-colors ${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      }`}
+                    >
+                      <td className="px-5 py-3 text-gray-900 font-medium whitespace-nowrap">
+                        {app.last_name}
+                      </td>
+                      <td className="px-5 py-3 text-gray-900 font-medium whitespace-nowrap">
+                        {app.first_name}
+                      </td>
+                      <td className="px-5 py-3 text-gray-700">{app.barangay}</td>
+                      <td className="px-5 py-3 text-gray-700">{app.municipal}</td>
+                      <td className="px-5 py-3">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-sm">
+                          <FileText className="w-3 h-3" />
+                          {app.type_of_assistance}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 font-semibold text-green-700">₱{app.amount}</td>
+                      <td className="px-5 py-3 text-gray-700">
+                        {formatDate(app.approved_at)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Results Count */}
+          {!isLoading && approvals.length > 0 && (
+            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-600">
+              Showing <span className="font-semibold text-gray-800">{approvals.length}</span>{" "}
+              approval
+              {approvals.length !== 1 ? "s" : ""}
+            </div>
           )}
         </div>
       )}
@@ -155,12 +249,13 @@ const BatchRow = ({ batch, toggleBatch }) => {
   );
 };
 
-// --- Main Component (REDESIGNED) ---
+// --- Main Component ---
 const Approved = () => {
   const queryClient = useQueryClient();
   const [file, setFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
 
-  // 🔹 Fetch all batches (NO CHANGES)
+  // Fetch batches
   const {
     data: batches = [],
     isLoading,
@@ -170,136 +265,239 @@ const Approved = () => {
     queryFn: fetchBatches,
   });
 
-  // 🔹 Upload mutation (NO CHANGES)
+  // Upload mutation
   const uploadMutation = useMutation({
     mutationFn: uploadApprovedFile,
     onSuccess: () => {
-      queryClient.invalidateQueries(["approved-batches"]); // refresh batches
+      queryClient.invalidateQueries(["approved-batches"]);
       setFile(null);
     },
   });
 
-  // 🔹 Toggle expand/collapse (NO CHANGES)
+  // Toggle batch expansion
   const toggleBatch = batchId => {
     queryClient.setQueryData(["approved-batches"], old =>
       old ? old.map(b => (b.id === batchId ? { ...b, expanded: !b.expanded } : b)) : []
     );
   };
 
-  return (
-    // Background: Matching the Applicants component
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-      {/* Background Blur Shapes (Copied for consistency) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-      </div>
+  // Drag and drop handlers
+  const handleDrag = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
 
-      <div className="relative z-10 p-4 sm:p-6 md:p-10 space-y-6">
-        {/* Header Card (New Card Style) */}
-        <div className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
-          <div className="flex items-center gap-3">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                  <CheckCircle className="w-8 h-8 text-white" />
-                </div>
-                <div className="space-y-1">
-                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
-                    Approved Applicants
-                  </h1>
-                  <p className="text-gray-600 text-lg mt-1">
-                    Upload and manage approved applicant batches
-                  </p>
-                </div>
-              </div>
+  const handleDrop = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Page Header */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-lg">
+              <CheckCircle className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">Approved Applicants</h1>
+              <p className="text-gray-600 mt-1">
+                Upload and manage approved applicant batches
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Upload Section (New Card Style) */}
-        <section className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
-          <div className="flex items-center gap-2 mb-4 border-b border-blue-100 pb-2">
+        {/* Upload Section */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+          <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-200">
             <Upload className="w-6 h-6 text-indigo-600" />
             <h2 className="text-xl font-bold text-gray-800">Upload Approved List</h2>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <input
-              type="file"
-              onChange={e => setFile(e.target.files[0])}
-              className="block w-full sm:w-auto text-gray-700 border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-gray-50 text-sm"
-            />
+          {/* Drag and Drop Area */}
+          <div
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+              dragActive
+                ? "border-indigo-500 bg-indigo-50"
+                : "border-gray-300 hover:border-indigo-400 hover:bg-gray-50"
+            }`}
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="p-4 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full">
+                <FileSpreadsheet className="w-8 h-8 text-indigo-600" />
+              </div>
+              <div>
+                <p className="text-gray-700 font-medium mb-1">
+                  Drag and drop your file here, or click to browse
+                </p>
+                <p className="text-sm text-gray-500">Supports CSV and Excel files</p>
+              </div>
+              <input
+                type="file"
+                onChange={e => setFile(e.target.files[0])}
+                className="hidden"
+                id="file-upload"
+                accept=".csv,.xlsx,.xls"
+              />
+              <label
+                htmlFor="file-upload"
+                className="cursor-pointer px-6 py-2 bg-white border-2 border-gray-300 rounded-lg text-gray-700 font-medium hover:border-indigo-400 hover:bg-gray-50 transition-all"
+              >
+                Choose File
+              </label>
+            </div>
+          </div>
+
+          {/* Selected File Display */}
+          {file && (
+            <div className="mt-4 flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-3">
+                <FileText className="w-5 h-5 text-blue-600" />
+                <div>
+                  <p className="font-medium text-gray-800">{file.name}</p>
+                  <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setFile(null)}
+                className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-red-600" />
+              </button>
+            </div>
+          )}
+
+          {/* Upload Button */}
+          <div className="mt-4 flex justify-end">
             <button
               onClick={() => uploadMutation.mutate(file)}
               disabled={!file || uploadMutation.isPending}
-              className={`inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md ${
+              className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold transition-all shadow-lg ${
                 file && !uploadMutation.isPending
-                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-400/50 hover:shadow-lg"
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white hover:shadow-xl"
                   : "bg-gray-300 cursor-not-allowed text-gray-600"
               }`}
             >
               {uploadMutation.isPending ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" /> Uploading...
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Uploading...
                 </>
               ) : (
                 <>
-                  <Upload className="w-5 h-5" /> Upload
+                  <Upload className="w-5 h-5" />
+                  Upload File
                 </>
               )}
             </button>
           </div>
 
+          {/* Upload Summary */}
           {uploadMutation.data && (
-            <div className="mt-6 bg-indigo-50 border border-indigo-200 rounded-xl p-5 text-indigo-900">
-              <h3 className="font-bold mb-3 flex items-center gap-2 text-lg">
-                <BarChart3 className="w-5 h-5 text-indigo-700" />
-                Upload Summary
+            <div className="mt-6 p-5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+              <h3 className="font-bold mb-3 flex items-center gap-2 text-green-900">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                Upload Successful!
               </h3>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" /> Approved:{" "}
-                  <span className="font-semibold">
-                    {uploadMutation.data.total_approved ?? 0}
-                  </span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-blue-700" /> Total Processed:{" "}
-                  <span className="font-semibold">
-                    {uploadMutation.data.total_processed ?? 0}
-                  </span>
-                </li>
-              </ul>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-white rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Approved</p>
+                    <p className="text-lg font-bold text-green-800">
+                      {uploadMutation.data.total_approved ?? 0}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-white rounded-lg">
+                    <BarChart3 className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Total Processed</p>
+                    <p className="text-lg font-bold text-blue-800">
+                      {uploadMutation.data.total_processed ?? 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
-        </section>
 
-        {/* Batches Section (New Card Style - NO CHANGES) */}
-        <section className="max-w-7xl mx-auto bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
-          <div className="flex items-center gap-2 mb-6 border-b border-blue-100 pb-2">
+          {/* Upload Error */}
+          {uploadMutation.isError && (
+            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+              <div>
+                <p className="font-semibold text-red-900">Upload Failed</p>
+                <p className="text-sm text-red-700 mt-1">
+                  {uploadMutation.error?.message ||
+                    "An error occurred while uploading the file."}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Batches Section */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+          <div className="flex items-center gap-2 mb-6 pb-3 border-b border-gray-200">
             <FileText className="w-6 h-6 text-indigo-600" />
             <h2 className="text-xl font-bold text-gray-800">Approval Batches History</h2>
           </div>
 
           {isLoading ? (
-            <div className="flex justify-center items-center py-10">
-              <Loader2 className="w-6 h-6 animate-spin text-indigo-600 mr-2" />
-              <p className="text-indigo-600 font-medium">Loading approval batches...</p>
+            <div className="flex flex-col justify-center items-center py-16">
+              <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
+              <p className="text-indigo-600 font-medium text-lg">
+                Loading approval batches...
+              </p>
             </div>
           ) : isError ? (
-            <p className="text-center text-red-600 py-10 font-medium">
-              Failed to load batches. An error occurred while fetching data.
-            </p>
+            <div className="flex flex-col justify-center items-center py-16 text-red-600">
+              <AlertCircle className="w-12 h-12 mb-4" />
+              <p className="font-medium text-lg">Failed to load batches</p>
+              <p className="text-sm text-gray-600 mt-2">
+                An error occurred while fetching data
+              </p>
+            </div>
           ) : batches.length === 0 ? (
-            <p className="text-center text-gray-500 py-10 italic">
-              No approval batches have been uploaded yet.
-            </p>
+            <div className="flex flex-col justify-center items-center py-16 text-gray-500">
+              <FileText className="w-16 h-16 mb-4 text-gray-400" />
+              <p className="font-medium text-lg">No approval batches yet</p>
+              <p className="text-sm mt-2">Upload your first batch to get started</p>
+            </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {batches.map(batch => (
-                <BatchRow key={batch.id} batch={batch} toggleBatch={toggleBatch} />
+                <BatchRow
+                  key={batch.id}
+                  batch={batch}
+                  toggleBatch={toggleBatch}
+                  isExpanded={batch.expanded}
+                />
               ))}
             </div>
           )}
-        </section>
+        </div>
       </div>
     </div>
   );
