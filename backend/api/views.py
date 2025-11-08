@@ -747,16 +747,34 @@ class Echo:
     def write(self, value):
         return value
     
-@api_view(['GET'])
+from django.utils import timezone
+from datetime import datetime, timedelta
+from django.http import StreamingHttpResponse
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+import csv
+
+class Echo:
+    """An object that implements just the write method of the file-like interface."""
+    def write(self, value):
+        return value
+
+
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def export_applicants_csv(request):
     """
     Export filtered applicant data as a CSV file.
-    Includes representative information when available.
+    Now supports multiple filters (cities, barangays, assistance types).
     """
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
-    assistance_type = request.GET.get("assistance_type")
+
+    # Accept multiple filter values (from query string)
+    cities = request.GET.getlist("cities")
+    barangays = request.GET.getlist("barangays")
+    assistance_types = request.GET.getlist("assistance_types")
 
     # Base queryset
     qs = Applicant.objects.filter(is_archived=False).select_related(
@@ -777,9 +795,17 @@ def export_applicants_csv(request):
         except ValueError:
             return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
 
-    # 🎯 Assistance type filtering (case-insensitive)
-    if assistance_type:
-        qs = qs.filter(type_of_assistance__iexact=assistance_type)
+    # 🏙 City filtering
+    if cities:
+        qs = qs.filter(background_info__barangay__city__name__in=cities)
+
+    # 🏘 Barangay filtering
+    if barangays:
+        qs = qs.filter(background_info__barangay__name__in=barangays)
+
+    # 🎯 Assistance types filtering (case-insensitive)
+    if assistance_types:
+        qs = qs.filter(type_of_assistance__in=assistance_types)
 
     # 🧠 Use iterator() for large datasets — avoids loading all into memory
     qs = qs.iterator(chunk_size=500)
@@ -795,47 +821,47 @@ def export_applicants_csv(request):
         "Representative Contact Number"
     ]
 
-    # ⚡ Streaming response setup
     pseudo_buffer = Echo()
     writer = csv.writer(pseudo_buffer)
-    rows = []
 
-    # Header row first
-    rows.append(writer.writerow(header))
+    def row_generator():
+        # Header first
+        yield writer.writerow(header)
 
-    # Data rows generator (lazy)
-    for app in qs:
-        bg = app.background_info
-        rep = getattr(app, "representative", None)
-        rep_bg = getattr(rep, "background_info", None) if rep else None
+        # Stream data rows
+        for app in qs:
+            bg = app.background_info
+            rep = getattr(app, "representative", None)
+            rep_bg = getattr(rep, "background_info", None) if rep else None
 
-        rows.append(writer.writerow([
-            app.id,
-            bg.first_name,
-            bg.middle_initial or "",
-            bg.last_name,
-            bg.suffix or "",
-            app.contact_number,
-            bg.barangay.name,
-            bg.barangay.city.name,
-            bg.barangay.city.province.name,
-            bg.birthday.strftime("%Y-%m-%d"),
-            bg.sex,
-            bg.civil_status,
-            bg.occupation or "",
-            bg.monthly_income or "",
-            app.valid_id_presented,
-            app.type_of_assistance,
-            app.applicant_type,
-            app.date_filled.strftime("%Y-%m-%d %H:%M:%S"),
-            rep_bg.first_name if rep_bg else "",
-            rep_bg.last_name if rep_bg else "",
-            getattr(rep, "contact_number", ""),
-        ]))
+            yield writer.writerow([
+                app.id,
+                bg.first_name,
+                bg.middle_initial or "",
+                bg.last_name,
+                bg.suffix or "",
+                app.contact_number,
+                bg.barangay.name,
+                bg.barangay.city.name,
+                bg.barangay.city.province.name,
+                bg.birthday.strftime("%Y-%m-%d"),
+                bg.sex,
+                bg.civil_status,
+                bg.occupation or "",
+                bg.monthly_income or "",
+                app.valid_id_presented,
+                app.type_of_assistance,
+                app.applicant_type,
+                app.date_filled.strftime("%Y-%m-%d %H:%M:%S"),
+                rep_bg.first_name if rep_bg else "",
+                rep_bg.last_name if rep_bg else "",
+                getattr(rep, "contact_number", ""),
+            ])
 
-    response = StreamingHttpResponse(rows, content_type="text/csv")
+    response = StreamingHttpResponse(row_generator(), content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="applicants.csv"'
     return response
+
 
 # RECENT APPLICANTS
 # Function to get the 5 most recent applicants
@@ -2001,6 +2027,23 @@ def export_analytics_report(request):
     """
     Export analytics report in PDF, Excel, or both formats (in-memory)
     Returns base64-encoded files directly in the response
+
+    REQUEST BODY: 
+    {
+        "format": "both", // "pdf" | "excel" | "both"
+        "filters": {
+            "start_date": "2025-01-01",
+            "end_date": "2025-11-01",
+            "cities": ["Lucena"],
+            "barangays": ["Brgy 1"],
+            "assistance_types": ["Medical"]
+        },
+        "branding": {
+            "organization_name": "DSWD Quezon Province",
+            "primary_color": "#0066cc"
+        }
+    }
+
     """
     try:
         # Parse request data
