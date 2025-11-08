@@ -15,22 +15,74 @@ export default function PrintCertificate() {
 
   const handleDownloadPDF = async () => {
     const element = printRef.current;
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
+    if (!element) return;
+
+    // Hide unwanted elements (like buttons)
+    const hiddenEls = element.querySelectorAll(".no-download");
+    hiddenEls.forEach((el) => (el.style.display = "none"));
+
+    await new Promise((r) => setTimeout(r, 200));
+
+    // Lower scale slightly to reduce size, and use JPEG compression
+    const canvas = await html2canvas(element, {
+      scale: 2, // ⬅️ 2 gives balance of quality & file size
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: document.documentElement.scrollWidth,
+    });
+
+    hiddenEls.forEach((el) => (el.style.display = ""));
+
+    // Convert to JPEG with 0.85 compression quality
+    const imgData = canvas.toDataURL("image/jpeg", 0.85);
+
     const pdf = new jsPDF("p", "mm", "a4");
-    const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, width, height);
-    pdf.save(`Certificate_${applicant.full_name}.pdf`);
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    pdf.save(
+      `Certificate_${(applicant.full_name || "Applicant")
+        .replace(/\s+/g, "_")
+        .trim()}.pdf`
+    );
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-4">
       <style>
-        {`@media print { .no-print { display: none !important; } body { background: white; } }`}
+        {`
+          @media print {
+            .no-print, .no-download {
+              display: none !important;
+              visibility: hidden !important;
+            }
+            body { background: white; }
+          }
+        `}
       </style>
 
-      <div ref={printRef} className="bg-white shadow-xl rounded-xl border border-blue-100 p-6">
+      <div
+        ref={printRef}
+        className="bg-white shadow-xl rounded-xl border border-blue-100 p-6"
+      >
         <CertificateOfEligibility applicant={applicant} />
       </div>
 
