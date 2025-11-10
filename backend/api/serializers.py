@@ -152,9 +152,10 @@ class ApplicantSerializer(serializers.ModelSerializer):
 
         # Identify the person by first_name + last_name + birthday
         unique_identifiers = {
-            "first_name": bg_data.get("first_name"),
-            "last_name": bg_data.get("last_name"),
+            "first_name": bg_data.get("first_name").strip().lower(),
+            "last_name": bg_data.get("last_name").strip().lower(),
             "birthday": bg_data.get("birthday"),
+            "barangay": bg_data.get("barangay"),
         }
 
         background_info, created = BackgroundInfo.objects.get_or_create(
@@ -169,20 +170,35 @@ class ApplicantSerializer(serializers.ModelSerializer):
 
         # --- 3-Month Rule ---
         three_months_ago = timezone.now() - timedelta(days=90)
-        recent_app = (
-            Applicant.objects
-            .filter(background_info=background_info, is_archived=False)
-            .order_by('-date_filled')
-            .first()
+        recent_same_person = (
+            Applicant.objects.filter(
+                background_info=background_info,
+                is_archived=False,
+                date_filled__gte=three_months_ago,
+            ).order_by('-date_filled').first()
         )
-        if recent_app and recent_app.date_filled >= three_months_ago:
+
+        contact_number = validated_data.get("contact_number")
+        recent_same_contact = (
+            Applicant.objects.filter(
+                contact_number=contact_number,
+                is_archived=False,
+                date_filled__gte=three_months_ago,
+            ).order_by('-date_filled').first()
+        )
+        if recent_same_person or recent_same_contact:
+            recent_app = recent_same_person or recent_same_contact
             next_eligible = recent_app.date_filled + timedelta(days=90)
-            raise serializers.ValidationError(
-                f"This person last applied on {recent_app.date_filled.strftime('%B %d, %Y')}. "
-                f"They can only apply once every 3 months. "
-                f"Their next eligible application date is {next_eligible.strftime('%B %d, %Y')}."
+            reason = (
+                "same person"
+                if recent_same_person
+                else "same contact number"
             )
-            
+            raise serializers.ValidationError(
+                f"This {reason} already submitted an application on "
+                f"{recent_app.date_filled.strftime('%B %d, %Y')}. "
+                f"Next eligible date: {next_eligible.strftime('%B %d, %Y')}."
+            )
 
         # ✅ Get or create the applicant (per person)
         applicant, created = Applicant.objects.get_or_create(
