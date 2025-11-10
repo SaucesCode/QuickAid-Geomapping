@@ -1,39 +1,38 @@
 import React, { useState, useMemo, useEffect } from "react";
-import {
-  Search,
-  Plus,
-  Users,
-  MapPin,
-  Building2,
-  Calendar,
-  FileText,
-  UserPlus,
-  Loader2,
-} from "lucide-react";
+import { Search, Plus, Users, FileText, UserPlus } from "lucide-react";
 import { api } from "../../services/api";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "../../utils/FormatDate";
 import toast from "react-hot-toast";
 import Pagination from "../../components/Pagination";
-
+import {
+  PageContainer,
+  Card,
+  PageHeader,
+  GradientButton,
+  LoadingState,
+  H2,
+  BodyText,
+  Caption,
+} from "../../components/DesignSystem";
 
 const ApplicantForm = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  // ➕ State for Pagination
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10); // Default items per page
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
-    document.title = "QuickAid | Applicant Form";
+    document.title = "QuickAid | Applicant Registry";
     return () => {
       document.title = "QuickAid | Home";
     };
   }, []);
 
-  // ✅ Fetch applicants using React Query
+  // Fetch applicants
   const {
     data: applicants = [],
     isLoading,
@@ -47,7 +46,7 @@ const ApplicantForm = () => {
       });
       return Array.isArray(res.data.results) ? res.data.results : [];
     },
-    staleTime: 1000 * 60 * 5, // cache for 5 minutes
+    staleTime: 1000 * 60 * 5,
     retry: 1,
     onError: () =>
       toast.error("Failed to load applicants", {
@@ -55,7 +54,7 @@ const ApplicantForm = () => {
       }),
   });
 
-  // 🔍 Filter results with useMemo for performance
+  // Filter
   const filteredApplicants = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return applicants;
@@ -76,274 +75,174 @@ const ApplicantForm = () => {
     });
   }, [applicants, searchTerm]);
 
-  // ➕ Pagination Logic
+  // Pagination logic
   const totalItems = filteredApplicants.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  // Get the applicants for the current page
-  const currentApplicants = useMemo(() => {
-    return filteredApplicants.slice(indexOfFirstItem, indexOfLastItem);
-  }, [filteredApplicants, indexOfFirstItem, indexOfLastItem]);
+  const currentApplicants = useMemo(
+    () => filteredApplicants.slice(indexOfFirstItem, indexOfLastItem),
+    [filteredApplicants, indexOfFirstItem, indexOfLastItem]
+  );
 
-  // Handler for changing page
-  const handlePageChange = (pageNumber) => {
+  const handlePageChange = pageNumber => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
     }
   };
 
-  // Handler for changing items per page
-  const handleItemsPerPageChange = (event) => {
-    setItemsPerPage(Number(event.target.value));
-    setCurrentPage(1); // Reset to first page when changing items per page
+  const handleItemsPerPageChange = e => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
   };
-  
-  // 💡 Reset page to 1 whenever the search term or applicant list changes
+
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, applicants]); 
+  }, [searchTerm, applicants]);
 
-  // Updated EmptyState component (omitted for brevity)
+  // Empty State
   const EmptyState = () => (
-    <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden p-6">
-      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="mb-6 w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
-          <FileText className="w-10 h-10 text-white" />
-        </div>
-        <h3 className="text-2xl font-bold mb-3 text-gray-800">
-          {isError ? "Error Loading Data" : "No Applicants Found"}
-        </h3>
-        <p className="text-gray-500 mb-8 max-w-md">
-          {isError
-            ? "There was an issue fetching the data. Please check your connection or try again later."
-            : searchTerm
-            ? "Your search criteria yielded no results. Try adjusting your search."
-            : "Get started by adding your first applicant to the system."}
-        </p>
-        <button
-          onClick={() => navigate("/new-applicant")}
-          className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-blue-400/30 hover:shadow-xl hover:shadow-blue-400/40 flex items-center gap-2 hover:scale-105 active:scale-95"
-        >
-          <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-200" />
-          Add New Applicant
-        </button>
+    <Card className="p-8 text-center space-y-6">
+      <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+        <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
       </div>
-    </div>
+      <H2>{isError ? "Error Loading Data" : "No Applicants Found"}</H2>
+      <BodyText className="max-w-md mx-auto">
+        {isError
+          ? "There was an issue fetching the data. Please check your connection or try again later."
+          : searchTerm
+          ? "Your search criteria yielded no results. Try adjusting your search."
+          : "Get started by adding your first applicant to the system."}
+      </BodyText>
+      <GradientButton onClick={() => navigate("/new-applicant")} className="mx-auto">
+        <Plus className="w-5 h-5" />
+        Add New Applicant
+      </GradientButton>
+    </Card>
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 relative overflow-hidden">
-      {/* Background Blur Shapes (omitted for brevity) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-      </div>
+    <PageContainer>
+      {/* Header */}
+      <PageHeader
+        icon={UserPlus}
+        title="Applicant Registry"
+        subtitle="Manage, view, and add new applicants"
+        action={
+          <GradientButton onClick={() => navigate("/new-applicant")}>
+            <Plus className="w-5 h-5" />
+            New Applicant
+          </GradientButton>
+        }
+      />
 
-      <div className="relative z-10 p-4 sm:p-6 md:p-10">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header Card (omitted for brevity) */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-8">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-              <div className="flex items-start gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                  <UserPlus className="w-8 h-8 text-white" />
-                </div>
-                <div className="space-y-1">
-                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 leading-tight">
-                    Applicant Registry
-                  </h1>
-                  <p className="text-gray-600 text-lg mt-1 flex items-center gap-2">
-                    Input and manage assistance applicants
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => navigate("/new-applicant")}
-                className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-blue-400/30 hover:shadow-xl hover:shadow-blue-400/40 flex items-center gap-2 hover:scale-105 active:scale-95"
-              >
-                <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-200" />
-                New Applicant
-              </button>
-            </div>
-          </div>
-
-          {/* Search + Stats Card (omitted for brevity) */}
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
-            <div className="p-6 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-6">
-              <div className="flex-1 relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
-                <input
-                  type="text"
-                  placeholder="Search by name, barangay, city, or assistance type..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-gray-50 focus:bg-white text-gray-700 placeholder-gray-400"
-                />
-              </div>
-
-              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-3 lg:p-4 border border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 w-full lg:w-auto flex-shrink-0" style={{ borderLeftColor: "#3B82F6" }}>
-                  <div className="flex items-center gap-4 justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 font-semibold">Total Applicants</p>
-                      {isLoading ? (
-                        <div className="mt-1 space-y-2">
-                          <div className="h-8 w-20 bg-gray-300 rounded animate-pulse"></div>
-                          <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>
-                        </div>
-                      ) : (
-                        <>
-                          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r" style={{backgroundImage: `linear-gradient(to right, #3B82F6, #6366f1)`}}>
-                            {applicants.length.toLocaleString()}
-                          </h2>
-                          <p className="text-sm text-gray-500 mt-1">Total in registry</p>
-                        </>
-                      )}
-                    </div>
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
-                        style={{ backgroundColor: "#3B82F6", background: `linear-gradient(to bottom right, #3B82F690, #3B82F6)` }}>
-                      <Users className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Table or Loading/Empty */}
-          {isLoading ? (
-            <div className="flex justify-center items-center py-24 bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600 mr-3" />
-              <span className="text-blue-700 font-semibold">Loading Applicant Data...</span>
-            </div>
-          ) : isError || !filteredApplicants.length ? (
-            <EmptyState />
-          ) : (
-            <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
-  <div className="overflow-x-auto">
-    <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
-      <thead>
-        <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
-          <th className="px-6 py-4 text-left w-12 align-middle">
-            <div className="flex items-center justify-center">No.</div>
-          </th>
-          <th className="px-6 py-4 text-left w-1/4 align-middle">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Full Name
-            </div>
-          </th>
-          <th className="px-6 py-4 text-left w-1/6 align-middle">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              Barangay
-            </div>
-          </th>
-          <th className="px-6 py-4 text-left w-1/6 align-middle">
-            <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4" />
-              City
-            </div>
-          </th>
-          <th className="px-6 py-4 text-left w-1/6 align-middle">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Assistance Type
-            </div>
-          </th>
-          <th className="px-6 py-4 text-left w-[120px] align-middle">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Date Filled
-            </div>
-          </th>
-        </tr>
-      </thead>
-
-      <tbody className="divide-y divide-blue-100 text-gray-800">
-        {/* Changed from filteredApplicants to currentApplicants for pagination */}
-        {currentApplicants.map((a, i) => (
-          <tr
-            key={a.id || i}
-            className="hover:bg-blue-50/50 transition-all duration-150 group cursor-pointer"
-            onClick={() => navigate(`/applicants/${a.id}`)}
-          >
-            <td className="px-6 py-4 align-middle">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors font-semibold text-gray-600">
-                {/* 💡 Adjust index calculation for current page */}
-                {totalItems - (indexOfFirstItem + i)}
-              </div>
-            </td>
-
-            <td className="px-6 py-4 align-middle font-semibold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
-              {a.background_info?.first_name} {a.background_info?.last_name}
-            </td>
-
-            <td className="px-6 py-4 align-middle text-gray-700">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                <span className="truncate">{a.background_info?.barangay}</span>
-              </div>
-            </td>
-
-            <td className="px-6 py-4 align-middle text-gray-700">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                <span className="truncate">
-                  {a.background_info?.barangay_details?.city_name || "N/A"}
-                </span>
-              </div>
-            </td>
-
-            <td className="px-6 py-4 align-middle">
-  <div className="flex items-center gap-1.5">
-    <span
-      className={`inline-flex px-3 py-1.5 rounded-xl text-xs font-semibold shadow-md
-        ${
-          a.type_of_assistance?.toLowerCase() === "educational"
-            ? "bg-green-100 text-green-800"
-            : a.type_of_assistance?.toLowerCase() === "medical"
-            ? "bg-blue-100 text-blue-800"
-            : a.type_of_assistance?.toLowerCase() === "burial"
-            ? "bg-yellow-100 text-yellow-800"
-            : "bg-gray-100 text-gray-800"
-        }`}
-    >
-      {a.type_of_assistance || "N/A"}
-    </span>
-  </div>
-</td>
-
-
-            <td className="px-6 py-4 align-middle text-gray-700">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                <span className="truncate">{formatDate(a.created_at)}</span>
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-  {/* ➕ Added Pagination Component at the bottom */}
-  <Pagination
-    currentPage={currentPage}
-    totalPages={totalPages}
-    handlePageChange={handlePageChange}
-    itemsPerPage={itemsPerPage}
-    handleItemsPerPageChange={handleItemsPerPageChange}
-    totalItems={totalItems}
-    indexOfFirstItem={indexOfFirstItem}
-    indexOfLastItem={indexOfLastItem}
-  />
-</div>
-          )}
+      {/* Search & Stats */}
+      <Card className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 sm:gap-6">
+        <div className="flex-1 relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name, barangay, city, or assistance type..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50 focus:bg-white text-gray-700 placeholder-gray-400 text-sm sm:text-base"
+          />
         </div>
-      </div>
-    </div>
+
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 shadow-inner flex items-center justify-between w-full lg:w-auto">
+          <div>
+            <Caption className="font-semibold text-gray-600">Total Applicants</Caption>
+            {isLoading ? (
+              <div className="h-6 sm:h-8 w-16 sm:w-20 bg-gray-200 rounded animate-pulse mt-1"></div>
+            ) : (
+              <h2 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600">
+                {applicants.length.toLocaleString()}
+              </h2>
+            )}
+          </div>
+          <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </div>
+        </div>
+      </Card>
+
+      {/* Data Display */}
+      {isLoading ? (
+        <Card>
+          <LoadingState message="Loading Applicant Data..." />
+        </Card>
+      ) : isError || !filteredApplicants.length ? (
+        <EmptyState />
+      ) : (
+        <Card className="p-0 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-blue-100 text-sm">
+              <thead>
+                <tr className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white uppercase text-xs font-semibold tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">No.</th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">Full Name</th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">Barangay</th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">City</th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">Assistance Type</th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">Date Filled</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-blue-50 text-gray-800">
+                {currentApplicants.map((a, i) => (
+                  <tr
+                    key={a.id || i}
+                    onClick={() => navigate(`/applicants/${a.id}`)}
+                    className="hover:bg-blue-50 cursor-pointer transition-all duration-150"
+                  >
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-600">
+                      {totalItems - (indexOfFirstItem + i)}
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-gray-900">
+                      {a.background_info?.first_name} {a.background_info?.last_name}
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700">
+                      {a.background_info?.barangay}
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700">
+                      {a.background_info?.barangay_details?.city_name || "N/A"}
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4">
+                      <span
+                        className={`inline-flex px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-semibold ${
+                          a.type_of_assistance?.toLowerCase() === "educational"
+                            ? "bg-green-100 text-green-800"
+                            : a.type_of_assistance?.toLowerCase() === "medical"
+                            ? "bg-blue-100 text-blue-800"
+                            : a.type_of_assistance?.toLowerCase() === "burial"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {a.type_of_assistance || "N/A"}
+                      </span>
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700">
+                      {formatDate(a.created_at)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            handlePageChange={handlePageChange}
+            itemsPerPage={itemsPerPage}
+            handleItemsPerPageChange={handleItemsPerPageChange}
+            totalItems={totalItems}
+            indexOfFirstItem={indexOfFirstItem}
+            indexOfLastItem={indexOfLastItem}
+          />
+        </Card>
+      )}
+    </PageContainer>
   );
 };
 
