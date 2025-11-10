@@ -114,14 +114,12 @@ const StatCard = ({
   badge,
   isLoading,
 }) => {
-  // Simplified getGradientColors inline, keeping only necessary logic
   let gradientClass = "from-gray-500 to-gray-700";
   let borderClass = "border-gray-200";
   let textClass = "from-gray-600 to-gray-700";
 
-  // **LOGIC CHANGE:** Mapped StatCard colors to new scheme
   switch (color) {
-    case BLUE_MEDIUM: // Primary Blue
+    case BLUE_MEDIUM:
       gradientClass = "from-blue-500 to-blue-700";
       borderClass = "border-blue-200";
       textClass = "from-blue-600 to-indigo-700";
@@ -131,13 +129,12 @@ const StatCard = ({
       borderClass = "border-green-200";
       textClass = "from-green-600 to-green-700";
       break;
-    // NOTE: WARING_YELLOW is still used here for the Trophy card
     case WARNING_YELLOW:
       gradientClass = "from-yellow-500 to-orange-500";
       borderClass = "border-yellow-200";
       textClass = "from-orange-600 to-yellow-700";
       break;
-    case BLUE_DARK: // Used PURPLE slot, now uses darker blue
+    case BLUE_DARK:
       gradientClass = "from-indigo-500 to-indigo-700";
       borderClass = "border-indigo-200";
       textClass = "from-indigo-600 to-indigo-700";
@@ -161,18 +158,21 @@ const StatCard = ({
         >
           <Icon className="w-7 h-7 text-white" />
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <p className="text-sm text-gray-600 font-semibold">{title}</p>
           {isLoading ? (
             <div className="h-8 w-20 bg-gray-300 rounded mt-1 animate-pulse"></div>
           ) : (
             <>
               <h2
-                className={`text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r ${textClass}`}
+                className={`text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r ${textClass} truncate hover:whitespace-normal hover:overflow-visible`}
+                title={value}
               >
                 {value}
               </h2>
-              {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+              {subtitle && (
+                <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+              )}
             </>
           )}
         </div>
@@ -180,6 +180,7 @@ const StatCard = ({
     </div>
   );
 };
+
 
 // --- Main Component ---
 const Performance = () => {
