@@ -30,7 +30,6 @@ import {
   Target,
   Loader2,
   FileText,
-  
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 
@@ -128,7 +127,11 @@ const StatCard = ({ icon: Icon, title, value, subtitle, trend, color, isLoading 
                       trend >= 0 ? "text-green-600" : "text-red-600"
                     }`}
                   >
-                    {trend >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                    {trend >= 0 ? (
+                      <ArrowUp className="h-3 w-3" />
+                    ) : (
+                      <ArrowDown className="h-3 w-3" />
+                    )}
                     <span className="ml-1">{Math.abs(trend).toFixed(1)}%</span>
                   </div>
                 )}
@@ -173,22 +176,22 @@ const Trends = () => {
   // 1. Define the Assistance Type Color Mapping - KEPT UNCHANGED
   const ASSISTANCE_COLOR_MAP = {
     educational: "#10B981", // Green-600
-    medical: "#3B82F6",    // Blue-600
-    burial: "#FDE68A",     // Yellow-400 (light yellow/gold)
+    medical: "#3B82F6", // Blue-600
+    burial: "#FDE68A", // Yellow-400 (light yellow/gold)
     // Add other colors for any non-mapped types or use default.
-    other: "#EF4444",      // Red-600 (as requested for secondary analytics/other)
-    default: "#8B5CF6",    // Purple (fallback)
+    other: "#EF4444", // Red-600 (as requested for secondary analytics/other)
+    default: "#8B5CF6", // Purple (fallback)
   };
 
   // Helper function to get the correct color, normalizing the key - KEPT UNCHANGED
-  const getAssistanceColor = (type) => {
-    const key = type ? type.toLowerCase() : '';
-    if (key.includes('educational')) return ASSISTANCE_COLOR_MAP.educational;
-    if (key.includes('medical')) return ASSISTANCE_COLOR_MAP.medical;
-    if (key.includes('burial')) return ASSISTANCE_COLOR_MAP.burial;
-    
+  const getAssistanceColor = type => {
+    const key = type ? type.toLowerCase() : "";
+    if (key.includes("educational")) return ASSISTANCE_COLOR_MAP.educational;
+    if (key.includes("medical")) return ASSISTANCE_COLOR_MAP.medical;
+    if (key.includes("burial")) return ASSISTANCE_COLOR_MAP.burial;
+
     const definedColors = Object.values(ASSISTANCE_COLOR_MAP);
-        return ASSISTANCE_COLOR_MAP[key] || ASSISTANCE_COLOR_MAP.default;
+    return ASSISTANCE_COLOR_MAP[key] || ASSISTANCE_COLOR_MAP.default;
   };
 
   // Instead of a fixed array, we'll collect the unique types from the data and assign colors.
@@ -229,7 +232,9 @@ const Trends = () => {
   useEffect(() => {
     if (assistanceTypeData.length > 0) {
       // Collect all unique assistance types
-      const uniqueTypes = [...new Set(assistanceTypeData.map(item => item.type_of_assistance))];
+      const uniqueTypes = [
+        ...new Set(assistanceTypeData.map(item => item.type_of_assistance)),
+      ];
 
       // Use the explicit map, and cycle through the fallback colors for any extra types
       const fallbackColors = ["#8B5CF6", "#F59E0B", "#EF4444", "#3B82F6"]; // A custom cycle array
@@ -476,7 +481,7 @@ const Trends = () => {
             value={mostPopularAssistance.type_of_assistance}
             subtitle={`${mostPopularAssistance.count} applications`}
             // KEPT UNCHANGED: Uses the logic to preserve Educational/Medical/Burial colors
-            color={getAssistanceColor(mostPopularAssistance.type_of_assistance) || "#8B5CF6"} 
+            color={getAssistanceColor(mostPopularAssistance.type_of_assistance) || "#8B5CF6"}
             isLoading={!isAssistanceTypeLoaded}
           />
         </div>
@@ -535,8 +540,8 @@ const Trends = () => {
                   <defs>
                     {/* Secondary Monochromatic Blue for Analytics */}
                     <linearGradient id="yearlyGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#1e40af" /> 
-                      <stop offset="100%" stopColor="#3b82f6" /> 
+                      <stop offset="0%" stopColor="#1e40af" />
+                      <stop offset="100%" stopColor="#3b82f6" />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
@@ -722,7 +727,7 @@ const Trends = () => {
           </div>
           <div className="relative">
             {loadingStates.applicantHeatmap ? (
-              <SkeletonLoader height={180} type="heatmap" /> 
+              <SkeletonLoader height={180} type="heatmap" />
             ) : (
               // Increased grid columns for better layout of 24 hours
               <div className="grid grid-cols-6 sm:grid-cols-12 xl:grid-cols-24 gap-2">
@@ -788,7 +793,7 @@ const Trends = () => {
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (
                 <p className="text-gray-700 text-sm">
-                  The dashboard maintains an average of 
+                  The dashboard maintains an average of
                   {averageMonthlyApplications.toLocaleString()} applications per month,
                   indicating steady demand.
                 </p>
@@ -801,8 +806,8 @@ const Trends = () => {
                 <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
               ) : (
                 <p className="text-gray-700 text-sm">
-                  The most demanded service is {mostPopularAssistance.type_of_assistance}{" "}
-                  with{" "}{mostPopularAssistance.count} requests.
+                  The most demanded service is {mostPopularAssistance.type_of_assistance} with{" "}
+                  {mostPopularAssistance.count} requests.
                 </p>
               )}
             </div>
