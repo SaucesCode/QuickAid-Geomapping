@@ -3,15 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../../services/api";
 import { Mail, CheckCircle, X, Loader2 } from "lucide-react";
 import Pagination from "../../../components/Pagination";
+import { Card } from "../../../components/DesignSystem";
 
-const SupportMessages = ({ theme, token }) => {
+const SupportMessages = ({ token }) => {
   const queryClient = useQueryClient();
   const [viewResolved, setViewResolved] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // ✅ Fetch messages
   const { data: supportMessages = [], isLoading } = useQuery({
     queryKey: ["supportMessages"],
     queryFn: async () => {
@@ -22,7 +22,6 @@ const SupportMessages = ({ theme, token }) => {
     },
   });
 
-  // ✅ Mutation to mark resolved
   const resolveMessageMutation = useMutation({
     mutationFn: async id =>
       api.patch(
@@ -35,12 +34,10 @@ const SupportMessages = ({ theme, token }) => {
     },
   });
 
-  // ✅ Separate resolved & pending
   const resolvedMessages = supportMessages.filter(m => m.is_resolved);
   const pendingMessages = supportMessages.filter(m => !m.is_resolved);
   const displayedMessages = viewResolved ? resolvedMessages : pendingMessages;
 
-  // ✅ Pagination logic
   const totalPages = Math.ceil(displayedMessages.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -56,7 +53,7 @@ const SupportMessages = ({ theme, token }) => {
   };
 
   return (
-    <div className={`bg-${theme.surface} shadow-lg rounded-2xl p-6 border border-gray-200`}>
+    <Card>
       {/* --- Header --- */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -177,7 +174,7 @@ const SupportMessages = ({ theme, token }) => {
       {/* --- Modal for full message --- */}
       {selectedMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 relative">
+          <Card className="relative w-full max-w-lg">
             <button
               onClick={() => setSelectedMessage(null)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1"
@@ -192,10 +189,10 @@ const SupportMessages = ({ theme, token }) => {
             <div className="mt-4 text-xs text-gray-500">
               {new Date(selectedMessage.created_at).toLocaleString()}
             </div>
-          </div>
+          </Card>
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 
