@@ -5,20 +5,16 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import {
   MapPin,
-  Users,
   Building2,
-  Activity,
-  Clock,
   Award,
   Target,
+  Clock,
   BarChart3,
   TrendingUp,
-  AlertCircle,
-  Loader2,
-  ArrowRight,
+  Activity,
+  Map,
   ExternalLink,
   Sparkles,
-  Map,
 } from "lucide-react";
 import {
   BarChart,
@@ -31,12 +27,23 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
 import { api } from "../../services/api";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 import { useNavigate } from "react-router-dom";
 
+// Import Design System Components
+import {
+  PageContainer,
+  PageHeader,
+  Card,
+  StatCard,
+  ChartCard,
+  AlertCard,
+  Stack,
+  Grid,
+  GradientButton,
+} from "../../components/DesignSystem";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -45,117 +52,66 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
-const LoadingCardSkeleton = () => (
-  <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-gray-200 animate-pulse">
-    <div className="flex items-center gap-3">
-      <div className="w-14 h-14 bg-gray-300 rounded-xl"></div>
-      <div>
-        <div className="h-4 w-24 bg-gray-300 rounded mb-2"></div>
-        <div className="h-8 w-20 bg-gray-300 rounded"></div>
-      </div>
-    </div>
-  </div>
-);
+// Assistance Type Colors - KEPT UNCHANGED
+const ASSISTANCE_COLORS = {
+  Educational: "#10B981",
+  Medical: "#3B82F6",
+  Burial: "#FDE68A",
+};
 
-const LoadingChartSkeleton = ({ height = 280, title = "Loading Chart..." }) => (
-  <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200 animate-pulse">
-    <div className="flex items-center gap-3 mb-6">
-      <div className="w-10 h-10 bg-gray-300 rounded-lg"></div>
-      <h3 className="text-xl font-bold text-gray-400">{title}</h3>
-    </div>
-    <div
-      className="flex items-center justify-center bg-gray-100 rounded-xl"
-      style={{ height: `${height}px` }}
-    >
-      <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
-    </div>
-  </div>
-);
-
-const LoadingMapSkeleton = () => (
-  <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-gray-200 animate-pulse">
-    <div className="p-6 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-gray-300 rounded-lg"></div>
-        <h3 className="text-xl font-bold text-gray-400">Distribution Heatmap Preview</h3>
-      </div>
-    </div>
-    <div className="h-[350px] relative bg-gray-300 flex items-center justify-center">
-      <MapPin className="w-12 h-12 text-gray-500 opacity-60 animate-bounce" />
-    </div>
-  </div>
-);
-
-
+const COLORS = ["#1e40af", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe"];
 
 const Geographic = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
   const navigate = useNavigate();
 
-  // UPDATED: Primary blue/indigo palette for all charts (Pie Chart)
-  const COLORS = ["#1e40af", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe"]; // Dark blue to light blue
-  
-  // UPDATED: Custom colors for the Stacked Bar Chart (all in blue/indigo/light-blue range)
-  const ASSISTANCE_COLORS = {
-    Educational: "#10B981", // Darker Blue
-    Medical: "#3B82F6",     // Primary Blue
-    Burial: "#FDE68A",      // Light Blue
-  };
-
+  // Fetch logic - KEPT UNCHANGED
   const fetchData = async endpoint => {
     const params = new URLSearchParams();
-
     if (filters.start) params.append("start_date", filters.start);
     if (filters.end) params.append("end_date", filters.end);
-    if (filters.type) params.append("type", filters.type); // if you need it
-
+    if (filters.type) params.append("type", filters.type);
     const query = params.toString() ? `?${params.toString()}` : "";
     const res = await api.get(`${endpoint}${query}`);
     return res.data;
   };
 
-  // Locations
   const { data: locations = [], isLoading: locationsLoading } = useQuery({
     queryKey: ["geographic", "locations", filters],
-    queryFn: () => fetchData("/analytics/geographic/locations/", filters),
+    queryFn: () => fetchData("/analytics/geographic/locations/"),
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
 
-  // Top Barangays
   const { data: topBarangays = [], isLoading: topBarangaysLoading } = useQuery({
     queryKey: ["geographic", "topBarangays", filters],
-    queryFn: () => fetchData("/analytics/geographic/top-barangays/", filters),
+    queryFn: () => fetchData("/analytics/geographic/top-barangays/"),
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
 
-  // Barangay by Type
   const { data: barangayByType = [], isLoading: barangayTypeLoading } = useQuery({
     queryKey: ["geographic", "barangayByType", filters],
-    queryFn: () => fetchData("/analytics/geographic/barangay-by-type/", filters),
+    queryFn: () => fetchData("/analytics/geographic/barangay-by-type/"),
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
 
-  // Approval Rate
   const { data: approvalRates = [], isLoading: approvalLoading } = useQuery({
     queryKey: ["geographic", "approvalRate", filters],
-    queryFn: () => fetchData("/analytics/geographic/approval-rate/", filters),
+    queryFn: () => fetchData("/analytics/geographic/approval-rate/"),
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
 
-  // Inactive Applicants
   const { data: inactiveApplicants = [], isLoading: inactiveLoading } = useQuery({
     queryKey: ["geographic", "inactiveApplicants", filters],
-    queryFn: () => fetchData("/analytics/geographic/inactive-applicants/", filters),
+    queryFn: () => fetchData("/analytics/geographic/inactive-applicants/"),
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
 
-  // Combine loading states
   const loading =
     locationsLoading ||
     topBarangaysLoading ||
@@ -163,17 +119,14 @@ const Geographic = () => {
     approvalLoading ||
     inactiveLoading;
 
+  // Data processing - KEPT UNCHANGED
   const validLocations = (locations || []).filter(loc => loc.latitude && loc.longitude);
-
   const totalApplicants = validLocations.length;
-
   const topBarangay =
     Array.isArray(topBarangays) && topBarangays.length > 0
       ? topBarangays[0]?.background_info__barangay__name || "N/A"
       : "N/A";
-
   const barangayCount = [...new Set(validLocations.map(loc => loc.barangay))].length;
-
   const avgApprovalRate =
     Array.isArray(approvalRates) && approvalRates.length > 0
       ? (
@@ -182,42 +135,29 @@ const Geographic = () => {
         ).toFixed(1)
       : 0;
 
-  const stats = {
-    totalApplicants,
-    topBarangay,
-    barangayCount,
-    avgApprovalRate,
-    inactiveCount: inactiveApplicants?.length || 0,
-  };
-
   const initializeHeatmap = locationData => {
     setTimeout(() => {
       const mapContainer = document.querySelector(".leaflet-container");
       if (!mapContainer || !locationData.length) return;
-
       const map = mapContainer._leaflet_map;
       if (!map) return;
-
       map.eachLayer(layer => {
         if (layer.options && layer.options.heat) {
           map.removeLayer(layer);
         }
       });
-
       const heatData = locationData.map(loc => [loc.latitude, loc.longitude, 1.0]);
-
       if (L.heatLayer) {
-        // UPDATED: Heatmap gradient to use more blue tones (removed red/orange focus)
         const heatLayer = L.heatLayer(heatData, {
           radius: 20,
           blur: 15,
           maxZoom: 12,
           gradient: {
-            0.2: "#bfdbfe", // Lightest Blue
-            0.4: "#60a5fa", // Lighter Blue
-            0.6: "#3b82f6", // Primary Blue
-            0.8: "#1d4ed8", // Darker Blue
-            1.0: "#1e3a8a", // Darkest Blue (Navy)
+            0.2: "#bfdbfe",
+            0.4: "#60a5fa",
+            0.6: "#3b82f6",
+            0.8: "#1d4ed8",
+            1.0: "#1e3a8a",
           },
         });
         heatLayer.addTo(map);
@@ -234,7 +174,6 @@ const Geographic = () => {
           .filter(name => typeof name === "string" && name.trim().length > 0)
       ),
     ];
-
     return barangays.slice(0, 6).map(barangay => {
       const items = safeData.filter(item => item.barangay === barangay);
       const safeBarangayName = barangay || "Unknown";
@@ -251,11 +190,6 @@ const Geographic = () => {
     });
   };
 
-  const chartData =
-    Array.isArray(barangayByType) && barangayByType.length > 0
-      ? processBarangayTypeData()
-      : [];
-
   const processApprovalData = () => {
     if (!approvalRates.length) return [];
     return approvalRates.slice(0, 5).map(item => ({
@@ -266,462 +200,253 @@ const Geographic = () => {
     }));
   };
 
+  const chartData = processBarangayTypeData();
   const pieData = processApprovalData();
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-red-50 to-indigo-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-red-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        </div>
-        <div className="relative z-10 bg-white p-10 rounded-3xl shadow-2xl border border-red-200 max-w-md w-full mx-4">
-          <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl mx-auto mb-6 shadow-lg">
-            <AlertCircle className="h-10 w-10 text-white" />
-          </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">Error Loading Data</h3>
-          <p className="text-gray-600 mb-6 leading-relaxed">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const HeaderComponent = (
-    <header className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-8">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
-            <MapPin className="w-8 h-8 text-white" />
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800">Geographic Analytics</h1>
-            <p className="text-gray-600 text-lg mt-1">
-              Spatial distribution insights across all regions
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => navigate("/heatmap")}
-          className="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-        >
-          <Map className="w-5 h-5" />
-          <span className="text-white">View Full Heatmap</span>
-          <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </button>
-
-      </div>
-    </header>
-  );
+  useEffect(() => {
+    if (validLocations.length > 0) {
+      initializeHeatmap(validLocations);
+    }
+  }, [validLocations]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 relative">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-      </div>
-
-      <div className="relative z-10 p-6 space-y-6">
-        {HeaderComponent}
+    <PageContainer>
+      <Stack spacing="lg">
+        {/* REDESIGNED: Using PageHeader from Design System */}
+        <PageHeader
+          icon={MapPin}
+          title="Geographic Analytics"
+          subtitle="Spatial distribution insights across all regions"
+          action={
+            <GradientButton onClick={() => navigate("/heatmap")}>
+              <Map className="w-4 h-4" />
+              View Full Heatmap
+              <ExternalLink className="w-3 h-3" />
+            </GradientButton>
+          }
+        />
 
         <AnalyticsFilter onFilterChange={setFilters} />
 
-        {loading ? (
-          <>
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              <LoadingCardSkeleton />
-              <LoadingCardSkeleton />
-              <LoadingCardSkeleton />
-              <LoadingCardSkeleton />
-              <LoadingCardSkeleton />
-            </section>
-            <LoadingMapSkeleton />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <LoadingChartSkeleton title="Loading Top Barangays..." />
-              <LoadingChartSkeleton title="Loading Approval Rates..." />
+        {/* REDESIGNED: Using Grid and StatCard from Design System */}
+        <Grid cols={{ default: 1, sm: 2, lg: 5 }} gap="md">
+          <StatCard
+            icon={MapPin}
+            title="Total Mapped"
+            value={totalApplicants.toLocaleString()}
+            color="blue"
+            isLoading={loading}
+          />
+          <StatCard
+            icon={Award}
+            title="Top Barangay"
+            value={topBarangay}
+            color="blue"
+            isLoading={loading}
+          />
+          <StatCard
+            icon={Building2}
+            title="Barangays"
+            value={barangayCount}
+            color="blue"
+            isLoading={loading}
+          />
+          <StatCard
+            icon={Target}
+            title="Avg Approval"
+            value={`${avgApprovalRate}%`}
+            color="blue"
+            isLoading={loading}
+          />
+          <StatCard
+            icon={Clock}
+            title="Inactive"
+            value={inactiveApplicants?.length || 0}
+            color="blue"
+            isLoading={loading}
+          />
+        </Grid>
+
+        {/* REDESIGNED: Using Card from Design System */}
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <MapPin className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-bold text-gray-900">Distribution Heatmap Preview</h3>
             </div>
-            <LoadingChartSkeleton
-              height={350}
-              title="Loading Assistance Types Distribution..."
-            />
-          </>
-        ) : (
-          <>
-            {/* 1. KEY METRIC CARDS (ALL BLUE/INDIGO, CONSISTENT SIZING) */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              {/* CARD 1: Total Mapped */}
-              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
-                    <MapPin className="w-7 h-7 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm text-gray-600 font-semibold">Total Mapped</p>
-                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700">
-                      {stats.totalApplicants.toLocaleString()}
-                    </h2>
-                  </div>
-                </div>
-              </div>
+          </div>
+          <div className="h-[350px] relative rounded-xl overflow-hidden">
+            <MapContainer
+              center={[13.9311, 121.5542]}
+              zoom={10}
+              className="w-full h-full"
+              scrollWheelZoom={false}
+              doubleClickZoom={false}
+              dragging={false}
+              zoomControl={false}
+              attributionControl={false}
+            >
+              <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+            </MapContainer>
+          </div>
+        </Card>
 
-              {/* CARD 2: Top Barangay (TEXT SIZE ADJUSTED FOR CONSISTENCY/ALIGNMENT) */}
-              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
-                    <Award className="w-7 h-7 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm text-gray-600 font-semibold">Top Barangay</p>
-                    {/* UPDATED SIZE: Changed h2 to text-lg, added overflow class for alignment */}
-                    <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700 break-words overflow-hidden text-ellipsis whitespace-nowrap">
-                      {stats.topBarangay}
-                    </h2>
-                  </div>
-                </div>
-              </div>
+        {/* REDESIGNED: Using Grid and ChartCard from Design System */}
+        <Grid cols={{ default: 1, lg: 2 }} gap="lg">
+          <ChartCard
+            icon={BarChart3}
+            title="Top Barangays by Applications"
+            isLoading={loading}
+          >
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart
+                data={topBarangays.slice(0, 8)}
+                margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                <XAxis
+                  dataKey="background_info__barangay__name"
+                  tick={{ fontSize: 11, fill: "#4b5563" }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  interval={0}
+                />
+                <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
+                <RechartsTooltip />
+                <Bar dataKey="count" fill="url(#blueGradient)" radius={[8, 8, 0, 0]} />
+                <defs>
+                  <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" />
+                    <stop offset="100%" stopColor="#6366f1" />
+                  </linearGradient>
+                </defs>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
 
-              {/* CARD 3: Barangays */}
-              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
-                    <Building2 className="w-7 h-7 text-white" />
+          <ChartCard icon={TrendingUp} title="Approval Rates by Location" isLoading={loading}>
+            <div className="flex items-center">
+              <ResponsiveContainer width="60%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={90}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, value }) => `${value}%`}
+                    strokeWidth={3}
+                    stroke="#fff"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex-1 space-y-3">
+                {pieData.map((item, index) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                  >
+                    <div
+                      className="w-4 h-4 rounded-md shadow-sm"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    ></div>
+                    <span className="text-sm font-medium text-gray-700 flex-1">
+                      {item.name}
+                    </span>
+                    <span className="text-sm font-bold text-gray-900">{item.value}%</span>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm text-gray-600 font-semibold">Barangays</p>
-                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700">
-                      {stats.barangayCount}
-                    </h2>
-                  </div>
-                </div>
-              </div>
-
-              {/* CARD 4: Avg Approval (UPDATED TO BLUE) */}
-              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="flex items-center gap-3">
-                  {/* UPDATED ICON COLOR */}
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
-                    <Target className="w-7 h-7 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm text-gray-600 font-semibold">Avg Approval</p>
-                    {/* UPDATED TEXT GRADIENT */}
-                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700">
-                      {stats.avgApprovalRate}%
-                    </h2>
-                  </div>
-                </div>
-              </div>
-
-              {/* CARD 5: Inactive (UPDATED TO BLUE) */}
-              <div className="group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="flex items-center gap-3">
-                  {/* UPDATED ICON COLOR */}
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
-                    <Clock className="w-7 h-7 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm text-gray-600 font-semibold">Inactive</p>
-                    {/* UPDATED TEXT GRADIENT */}
-                    <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700">
-                      {stats.inactiveCount}
-                    </h2>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 2. HEATMAP PREVIEW (ALREADY BLUE) */}
-            <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-blue-200">
-              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-6 h-6 text-blue-600" />
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Distribution Heatmap Preview
-                  </h3>
-                </div>
-                <span className="text-sm text-gray-500">Map data visualization</span>
-              </div>
-              <div className="h-[350px] relative">
-                <MapContainer
-                  center={[13.9311, 121.5542]}
-                  zoom={10}
-                  className="w-full h-full"
-                  scrollWheelZoom={false}
-                  doubleClickZoom={false}
-                  dragging={false}
-                  zoomControl={false}
-                  attributionControl={false}
-                >
-                  <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                  />
-                </MapContainer>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* 3. TOP BARANGAYS CHART (ALREADY BLUE) */}
-              <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md">
-                    <BarChart3 className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Top Barangays by Applications
-                  </h3>
-                </div>
-                {topBarangays.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart
-                      data={topBarangays.slice(0, 8)}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                      <XAxis
-                        dataKey="background_info__barangay__name"
-                        tick={{ fontSize: 11, fill: "#4b5563" }}
-                        angle={-45}
-                        textAnchor="end"
-                        height={80}
-                        interval={0}
-                      />
-                      <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
-                      <RechartsTooltip
-                        contentStyle={{
-                          backgroundColor: "white",
-                          border: "2px solid #dbeafe",
-                          borderRadius: "12px",
-                          fontSize: "14px",
-                          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-                        }}
-                      />
-                      <Bar dataKey="count" fill="url(#blueGradient)" radius={[8, 8, 0, 0]} />
-                      <defs>
-                        <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#3b82f6" />
-                          <stop offset="100%" stopColor="#6366f1" />
-                        </linearGradient>
-                      </defs>
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-280 flex items-center justify-center text-gray-500">
-                    <p>No barangay data available</p>
-                  </div>
-                )}
-              </div>
-
-              {/* 4. APPROVAL RATES PIE CHART (UPDATED TO BLUE) */}
-              <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
-                <div className="flex items-center gap-3 mb-6">
-                  {/* UPDATED ICON COLOR */}
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md">
-                    <TrendingUp className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Approval Rates by Location
-                  </h3>
-                </div>
-                {pieData.length > 0 ? (
-                  <div className="flex items-center">
-                    <ResponsiveContainer width="60%" height={280}>
-                      <PieChart>
-                        <Pie
-                          data={pieData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={90}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ name, value }) => `${value}%`}
-                          strokeWidth={3}
-                          stroke="#fff"
-                        >
-                          {pieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <RechartsTooltip
-                          formatter={(value, name, props) => [
-                            `${value}% (${props.payload.approved}/${props.payload.total})`,
-                            "Approval Rate",
-                          ]}
-                          contentStyle={{
-                            backgroundColor: "white",
-                            border: "2px solid #dbeafe",
-                            borderRadius: "12px",
-                            fontSize: "14px",
-                            boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="flex-1 space-y-3">
-                      {pieData.map((item, index) => (
-                        <div
-                          key={item.name}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                        >
-                          <div
-                            className="w-4 h-4 rounded-md shadow-sm"
-                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                          ></div>
-                          <span className="text-sm font-medium text-gray-700 flex-1">
-                            {item.name}
-                          </span>
-                          <span className="text-sm font-bold text-gray-900">
-                            {item.value}%
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-[280px] flex items-center justify-center text-gray-500">
-                    No approval rate data available.
-                  </div>
-                )}
+                ))}
               </div>
             </div>
+          </ChartCard>
+        </Grid>
 
-            {/* 5. ASSISTANCE TYPE DISTRIBUTION CHART (UPDATED TO BLUE) */}
-            <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-blue-200">
-              <div className="flex items-center gap-3 mb-6">
-                {/* UPDATED ICON COLOR */}
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md">
-                  <Activity className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">
-                  Assistance Types Distribution by Barangay
-                </h3>
+        <ChartCard
+          icon={Activity}
+          title="Assistance Types Distribution by Barangay"
+          isLoading={loading}
+        >
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+              <XAxis
+                dataKey="barangay"
+                tick={{ fontSize: 11, fill: "#4b5563" }}
+                angle={-45}
+                textAnchor="end"
+                height={100}
+                interval={0}
+              />
+              <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
+              <RechartsTooltip />
+              <Bar
+                dataKey="Medical"
+                stackId="a"
+                fill={ASSISTANCE_COLORS.Medical}
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                dataKey="Educational"
+                stackId="a"
+                fill={ASSISTANCE_COLORS.Educational}
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                dataKey="Burial"
+                stackId="a"
+                fill={ASSISTANCE_COLORS.Burial}
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="flex justify-center flex-wrap gap-6 mt-4">
+            {Object.entries(ASSISTANCE_COLORS).map(([key, color]) => (
+              <div key={key} className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-md" style={{ backgroundColor: color }}></div>
+                <span className="text-sm font-medium text-gray-700">{key}</span>
               </div>
-              {chartData.length > 0 ? (
-                <>
-                  <ResponsiveContainer width="100%" height={350}>
-                    <BarChart
-                      data={chartData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 80 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                      <XAxis
-                        dataKey="barangay"
-                        tick={{ fontSize: 11, fill: "#4b5563" }}
-                        angle={-45}
-                        textAnchor="end"
-                        height={100}
-                        interval={0}
-                      />
-                      <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
-                      <RechartsTooltip
-                        contentStyle={{
-                          backgroundColor: "white",
-                          border: "2px solid #dbeafe",
-                          borderRadius: "12px",
-                          fontSize: "14px",
-                          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-                        }}
-                      />
-                      {/* COLOR CHANGE IMPLEMENTATION */}
-                      <Bar
-                        dataKey="Medical"
-                        stackId="a"
-                        fill={ASSISTANCE_COLORS.Medical} // Primary Blue
-                        radius={[4, 4, 0, 0]}
-                      />
-                      <Bar
-                        dataKey="Educational"
-                        stackId="a"
-                        fill={ASSISTANCE_COLORS.Educational} // Darker Blue
-                        radius={[4, 4, 0, 0]}
-                      />
-                      <Bar
-                        dataKey="Burial"
-                        stackId="a"
-                        fill={ASSISTANCE_COLORS.Burial} // Light Blue
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+            ))}
+          </div>
+        </ChartCard>
 
-                  <div className="flex justify-center flex-wrap gap-8 mt-6">
-                    {/* LEGEND UPDATE */}
-                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="w-4 h-4 rounded-md shadow-sm" style={{ backgroundColor: ASSISTANCE_COLORS.Educational }}></div>
-                      <span className="text-sm font-semibold text-gray-700">Educational</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="w-4 h-4 rounded-md shadow-sm" style={{ backgroundColor: ASSISTANCE_COLORS.Medical }}></div>
-                      <span className="text-sm font-semibold text-gray-700">Medical</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="w-4 h-4 rounded-md shadow-sm" style={{ backgroundColor: ASSISTANCE_COLORS.Burial }}></div>
-                      <span className="text-sm font-semibold text-gray-700">Burial</span>
-                    </div>
+        {/* REDESIGNED: Using AlertCard from Design System */}
+        {inactiveApplicants.length > 0 && (
+          <AlertCard
+            icon={Clock}
+            title="Geographic Distribution Alert"
+            description={`${inactiveApplicants.length} applicants from various locations haven't submitted new applications in over 6 months.`}
+            variant="info"
+          >
+            <Grid cols={{ default: 1, md: 3 }} gap="md">
+              {inactiveApplicants.slice(0, 3).map(applicant => (
+                <Card key={applicant.id} className="hover:-translate-y-1 transition-all">
+                  <div className="font-bold text-gray-900 mb-1">{applicant.name}</div>
+                  <div className="text-sm text-gray-600 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    Last: {new Date(applicant.last_application).toLocaleDateString()}
                   </div>
-                </>
-              ) : (
-                <div className="h-[350px] flex items-center justify-center text-gray-500">
-                  No assistance type data available.
-                </div>
-              )}
-            </div>
-
-            {/* 6. INACTIVE APPLICANTS ALERT (UPDATED TO BLUE) */}
-            {inactiveApplicants.length > 0 && (
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-3xl p-8 shadow-xl backdrop-blur-xl">
-                <div className="flex items-start gap-4">
-                  {/* UPDATED ICON COLOR */}
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                    <AlertCircle className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-blue-900 mb-3">
-                      Geographic Distribution Alert
-                    </h3>
-                    <p className="text-blue-800 mb-6 leading-relaxed text-base">
-                      {inactiveApplicants.length} applicants from various locations haven't
-                      submitted new applications in over 6 months. This may indicate gaps in
-                      outreach coverage.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {inactiveApplicants.slice(0, 3).map(applicant => (
-                        <div
-                          key={applicant.id}
-                          className="bg-white p-4 rounded-xl border-2 border-blue-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-                        >
-                          <span className="font-bold text-gray-900 block text-lg mb-1">
-                            {applicant.name}
-                          </span>
-                          <span className="text-sm text-gray-600 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            Last: {new Date(applicant.last_application).toLocaleDateString()}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    {inactiveApplicants.length > 3 && (
-                      <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-lg border border-blue-300">
-                        <Sparkles className="w-4 h-4 text-blue-600" />
-                        <p className="text-sm text-blue-700 font-semibold">
-                          +{inactiveApplicants.length - 3} more inactive applicants across
-                          different areas
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                </Card>
+              ))}
+            </Grid>
+            {inactiveApplicants.length > 3 && (
+              <div className="mt-4 flex items-center gap-2 text-blue-700">
+                <Sparkles className="w-4 h-4" />
+                <span className="text-sm font-semibold">
+                  +{inactiveApplicants.length - 3} more inactive applicants
+                </span>
               </div>
             )}
-          </>
+          </AlertCard>
         )}
-      </div>
-    </div>
+      </Stack>
+    </PageContainer>
   );
 };
 
