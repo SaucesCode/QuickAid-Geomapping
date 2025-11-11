@@ -20,6 +20,8 @@ DEBUG = os.environ.get("DEBUG")
 # ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -59,7 +61,7 @@ SIMPLE_JWT = {
 
 
 CORS_ALLOWED_ORIGINS = [
-    os.environ.get('CORS_ALLOWED_ORIGINS'),  # React frontend URL
+    os.environ.get('CORS_ALLOWED_ORIGINS'),
 ]
 
 
@@ -103,7 +105,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 if os.getenv("DJANGO_ENV") == "production":
     DATABASES = {
         'default': dj_database_url.config(
-            efault=os.getenv('DATABASE_URL'),
+            default=os.getenv('DATABASE_URL'),
             conn_max_age=600,
             ssl_require=False
         )

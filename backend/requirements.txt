@@ -21,4 +21,5 @@ reportlab
 openpyxl
 xlsxwriter
 matplotlib
+seaborn
 

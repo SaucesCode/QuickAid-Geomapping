@@ -13,18 +13,28 @@ import ApplicantsFilter from "./components/ApplicantFilter";
 import toast, { Toaster } from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
 import {
-  Loader2,
   AlertCircle,
-  Search, // ADDED for search bar
-  X, // ADDED for clearing search
+  Search,
+  X,
   Users,
   MapPin,
   Building2,
   FileText,
   Calendar,
+  UserPlus,
+  Plus,
 } from "lucide-react";
+import {
+  PageContainer,
+  PageHeader,
+  Card,
+  GradientButton,
+  LoadingState,
+  H2,
+  BodyText,
+} from "../../components/DesignSystem";
 
-// --- Skeleton Row (Copied from ArchiveApplicants.js for consistency) ---
+// --- Skeleton Row ---
 const SkeletonRow = () => (
   <tr className="border-b border-gray-100 animate-pulse">
     <td className="px-3 py-4">
@@ -108,7 +118,7 @@ const Applicants = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  // --- HANDLERS (NO CHANGES) ---
+  // --- HANDLERS ---
   const handleChange = e => {
     const { name, value } = e.target;
 
@@ -159,7 +169,6 @@ const Applicants = () => {
     if (!editingApplicant?.id) return;
 
     try {
-      // ✅ Instant feedback for the user
       toast.loading("Saving changes...", { id: "saving" });
 
       const coordPromise = api.post("/update_coordinates/", {
@@ -172,10 +181,8 @@ const Applicants = () => {
         },
       });
 
-      // Wait for coordinates first
       const { data } = await coordPromise;
 
-      // Merge new coordinates into applicant
       const updatedApplicant = {
         ...editingApplicant,
         latitude: data.latitude,
@@ -186,7 +193,7 @@ const Applicants = () => {
       await savePromise;
 
       toast.success("Applicant updated successfully", { id: "saving" });
-      refetch(); // Refresh data after
+      refetch();
     } catch (err) {
       console.error("Error saving applicant:", err);
       toast.error("Failed to update applicant", { id: "saving" });
@@ -214,7 +221,7 @@ const Applicants = () => {
     }));
   };
 
-  // --- MEMOIZED DATA (NO CHANGES) ---
+  // --- MEMOIZED DATA ---
   const filteredApplicants = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return applicants.filter(a => {
@@ -232,7 +239,6 @@ const Applicants = () => {
   const sortedApplicants = useMemo(() => {
     if (!sortConfig.key) return filteredApplicants;
     return [...filteredApplicants].sort((a, b) => {
-      // For sorting the Name column
       if (sortConfig.key === "full_name") {
         const aName = `${a.background_info?.last_name || ""} ${
           a.background_info?.first_name || ""
@@ -258,9 +264,9 @@ const Applicants = () => {
   const currentItems = sortedApplicants.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(sortedApplicants.length / itemsPerPage);
 
-  // Define the consistent table header structure
+  // Table header structure
   const tableHeader = (
-    <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
+    <tr className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
       <th className="px-3 py-4 text-center w-[50px] align-middle">No.</th>
       <th className="px-6 py-4 text-left w-[20%] align-middle">
         <div className="flex items-center gap-2">
@@ -296,168 +302,157 @@ const Applicants = () => {
     </tr>
   );
 
-  // --- REDESIGNED JSX to match ArchiveApplicants.js ---
   return (
-    // Consistent Dashboard Background
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-      {/* Background Blur Shapes */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-      </div>
-
+    <PageContainer>
       <Toaster position="top-center" reverseOrder={false} />
 
-      <div className="relative z-10 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        {/* 1. Header Card (Retains ApplicantsHeader component) */}
-        <div className="mb-6 sm:mb-8">
-          <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-6 sm:p-8">
-            <ApplicantsHeader totalApplicants={applicants.length} navigate={navigate} />
-          </div>
-        </div>
+      {/* Header */}
+      <PageHeader
+        icon={UserPlus}
+        title="Applicants Registry"
+        subtitle="Manage, view, and archive assistance applicants"
+        action={
+          <GradientButton onClick={() => navigate("/new-applicant")}>
+            <Plus className="w-5 h-5" />
+            Add New Applicant
+          </GradientButton>
+        }
+      />
 
-        {/* 2. Filter Card (Consistent Card Style) */}
-        <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-4 sm:p-6">
-          <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
-        </div>
+      {/* Filters */}
+      <Card>
+        <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
+      </Card>
 
-        {/* 3. Search Bar Card (Dedicated Card) */}
-        <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-4 sm:p-6 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-2xl">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search applicants by name, barangay, or assistance type..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-800 placeholder-gray-400 text-sm outline-none shadow-sm bg-gray-50 transition-all duration-200"
-              />
-            </div>
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="p-3 text-gray-500 hover:text-indigo-700 hover:bg-indigo-100 rounded-xl transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
+      {/* Search Bar */}
+      <Card>
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search applicants by name, barangay, or assistance type..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-800 placeholder-gray-400 text-sm outline-none shadow-sm bg-gray-50 transition-all duration-200"
+            />
           </div>
-        </div>
-
-        {/* 4. Conditional Content Area and Table/Pagination Card (Single Card Structure) */}
-        {isLoading ? (
-          <div className="bg-white bg-opacity-90 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
-                <thead>{tableHeader}</thead>
-                <tbody className="divide-y divide-blue-100 text-gray-800">
-                  {Array.from({ length: itemsPerPage }).map((_, index) => (
-                    <SkeletonRow key={index} />
-                  ))}
-                </tbody>
-              </table>
-              <div className="flex justify-center items-center p-10">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin mr-3" />
-                <p className="text-gray-600 font-semibold">Fetching applicant list...</p>
-              </div>
-            </div>
-          </div>
-        ) : isError ? (
-          <div className="bg-red-50 border border-red-300 rounded-3xl p-6 text-center shadow-md">
-            <div className="flex items-center justify-center">
-              <AlertCircle className="w-6 h-6 text-red-600 mr-2" />
-              <p className="text-red-700 font-semibold">
-                <span className="font-bold">Error:</span> Failed to load applicants.
-              </p>
-            </div>
-          </div>
-        ) : filteredApplicants.length === 0 ? (
-          // Empty State
-          <div className="bg-white rounded-3xl shadow-xl border border-blue-200 p-10 text-center">
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">No Applicants Found</h3>
-            <p className="text-gray-500 mb-6">
-              {searchTerm
-                ? "Your search yielded no results. Try simplifying your query or checking your filters."
-                : "The applicant database is empty."}
-            </p>
+          {searchTerm && (
             <button
-              onClick={() => navigate("/new-applicant")}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition duration-300 shadow-lg"
+              onClick={() => setSearchTerm("")}
+              className="p-2 sm:p-3 text-gray-500 hover:text-indigo-700 hover:bg-indigo-100 rounded-xl transition-colors"
             >
-              Add New Applicant
+              <X className="w-5 h-5" />
             </button>
-          </div>
-        ) : (
-          // Single card containing both Table and Pagination (ArchiveApplicants.js style)
-          // REMOVED the redundant 'space-y-6' wrapper
-          <div className="bg-white bg-opacity-90 backdrop-blur-xl shadow-xl border border-blue-200 overflow-hidden rounded-t-3xl rounded-b-none">
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <ApplicantTable
-                currentItems={currentItems}
-                sortConfig={sortConfig}
-                handleSort={handleSort}
-                openPreviewView={applicant => {
-                  setPreviewApplicant(applicant);
-                  setPreviewView(true);
-                }}
-                openEditView={applicant => {
-                  setEditingApplicant(applicant);
-                  setEditView(true);
-                }}
-                openArchiveModal={id => setArchiveModal({ show: true, applicantId: id })}
-                goPrintPage={navigate}
-                formatDate={formatDate}
-                indexOfFirstItem={indexOfFirstItem}
-                tableHeader={tableHeader}
-              />
-            </div>
+          )}
+        </div>
+      </Card>
 
-            {/* Pagination */}
-            {filteredApplicants.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                handlePageChange={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-                handleItemsPerPageChange={e => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                totalItems={filteredApplicants.length}
-                indexOfFirstItem={indexOfFirstItem}
-                indexOfLastItem={indexOfLastItem}
-              />
-            )}
+      {/* Data Display */}
+      {isLoading ? (
+        <Card className="p-0 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
+              <thead>{tableHeader}</thead>
+              <tbody className="divide-y divide-blue-100 text-gray-800">
+                {Array.from({ length: itemsPerPage }).map((_, index) => (
+                  <SkeletonRow key={index} />
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-        {previewView && previewApplicant && (
-          <PreviewModal
-            previewApplicant={previewApplicant}
-            closePreviewView={() => setPreviewView(false)}
-            formatDate={formatDate}
-          />
-        )}
-        {archiveModal.show && (
-          <ArchiveModal
-            archiveModal={archiveModal}
-            closeArchiveModal={() => setArchiveModal({ show: false, applicantId: null })}
-            handleArchive={handleArchive}
-          />
-        )}
-        {editView && editingApplicant && (
-          <EditModal
-            editingApplicant={editingApplicant}
-            closeEditView={() => setEditView(false)}
-            handleChange={handleChange}
-            handleSave={handleSave}
-            setEditingApplicant={setEditingApplicant}
-          />
-        )}
-      </div>
-    </div>
+          <LoadingState message="Fetching applicant list..." />
+        </Card>
+      ) : isError ? (
+        <Card className="bg-red-50 border-red-300 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <AlertCircle className="w-6 h-6 text-red-600" />
+            <BodyText className="text-red-700 font-semibold">
+              <span className="font-bold">Error:</span> Failed to load applicants.
+            </BodyText>
+          </div>
+        </Card>
+      ) : filteredApplicants.length === 0 ? (
+        <Card className="p-8 sm:p-10 text-center space-y-4 sm:space-y-6">
+          <H2>No Applicants Found</H2>
+          <BodyText>
+            {searchTerm
+              ? "Your search yielded no results. Try simplifying your query or checking your filters."
+              : "The applicant database is empty."}
+          </BodyText>
+          <GradientButton onClick={() => navigate("/new-applicant")} className="mx-auto">
+            <Plus className="w-5 h-5" />
+            Add New Applicant
+          </GradientButton>
+        </Card>
+      ) : (
+        <Card className="p-0 overflow-hidden">
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <ApplicantTable
+              currentItems={currentItems}
+              sortConfig={sortConfig}
+              handleSort={handleSort}
+              openPreviewView={applicant => {
+                setPreviewApplicant(applicant);
+                setPreviewView(true);
+              }}
+              openEditView={applicant => {
+                setEditingApplicant(applicant);
+                setEditView(true);
+              }}
+              openArchiveModal={id => setArchiveModal({ show: true, applicantId: id })}
+              goPrintPage={navigate}
+              formatDate={formatDate}
+              indexOfFirstItem={indexOfFirstItem}
+              tableHeader={tableHeader}
+            />
+          </div>
+
+          {/* Pagination */}
+          {filteredApplicants.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              handlePageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              handleItemsPerPageChange={e => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              totalItems={filteredApplicants.length}
+              indexOfFirstItem={indexOfFirstItem}
+              indexOfLastItem={indexOfLastItem}
+            />
+          )}
+        </Card>
+      )}
+
+      {/* Modals */}
+      {previewView && previewApplicant && (
+        <PreviewModal
+          previewApplicant={previewApplicant}
+          closePreviewView={() => setPreviewView(false)}
+          formatDate={formatDate}
+        />
+      )}
+      {archiveModal.show && (
+        <ArchiveModal
+          archiveModal={archiveModal}
+          closeArchiveModal={() => setArchiveModal({ show: false, applicantId: null })}
+          handleArchive={handleArchive}
+        />
+      )}
+      {editView && editingApplicant && (
+        <EditModal
+          editingApplicant={editingApplicant}
+          closeEditView={() => setEditView(false)}
+          handleChange={handleChange}
+          handleSave={handleSave}
+          setEditingApplicant={setEditingApplicant}
+        />
+      )}
+    </PageContainer>
   );
 };
 

@@ -141,72 +141,75 @@ const LandingPage = () => {
 
       {/* Hero Section */}
       <section
-        id="home"
-        style={{
-          backgroundImage: `url(${bgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-        className="relative pt-48 pb-20"
+  id="home"
+  className="relative pt-48 pb-20 overflow-hidden"
+>
+  {/* Blurred background image */}
+  <img
+    src={bgImage}
+    alt="Background"
+    className="absolute inset-0 w-full h-full object-cover opacity-100 blur"
+  />
+
+  {/* Optional gradient overlay for color tone */}
+  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-white/10 to-indigo-50/20"></div>
+
+  {/* Foreground content */}
+  <div className="relative z-10 max-w-7xl mx-auto px-4">
+    <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <motion.div
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
       >
-        {/* Optional gradient overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-white/10 to-indigo-50/20"></div>
+        <h1 className="text-4xl lg:text-6xl font-bold text-white leading-tight mb-6">
+          <span className="text-4xl lg:text-6xl text-blue-400">Assistance</span> to
+          Individuals in{" "}
+          <span className="text-4xl lg:text-6xl text-blue-400">Crisis</span> Situation
+        </h1>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <h1 className="text-4xl lg:text-6xl font-bold text-white leading-tight mb-6">
-                <span className="text-4xl lg:text-6xl text-blue-400">Assistance</span> to
-                Individuals in{" "}
-                <span className="text-4xl lg:text-6xl text-blue-400">Crisis</span> Situation
-              </h1>
+        <p className="text-xl text-blue-200 mb-8 leading-relaxed">
+          AICS is a DSWD program providing medical, burial, transport, education, food,
+          and financial aid to individuals or families in crisis situations.
+        </p>
 
-              <p className="text-xl text-blue-200 mb-8 leading-relaxed">
-                AICS is a DSWD program providing medical, burial, transport, education, food,
-                and financial aid to individuals or families in crisis situations.
-              </p>
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mt-6 max-w-4xl mx-auto">
+          {/* Families Helped */}
+          <div className="flex flex-col items-center bg-white/20 backdrop-blur-sm p-3 w-48 h-15 rounded-lg shadow-md hover:shadow-lg transition duration-300 mx-auto">
+            <Users className="w-6 h-6 text-blue-200 mb-1" />
+            <h3 className="text-sm font-semibold text-white text-center">
+              25,000+ Families Helped
+            </h3>
+          </div>
 
-              {/* Stats Section */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mt-6 max-w-4xl mx-auto">
-                {/* Families Helped */}
-                <div className="flex flex-col items-center bg-white/20 backdrop-blur-sm p-3 w-48 h-15 rounded-lg shadow-md hover:shadow-lg transition duration-300 mx-auto">
-                  <Users className="w-6 h-6 text-blue-200 mb-1" />
-                  <h3 className="text-sm font-semibold text-white text-center">
-                    25,000+ Families Helped
-                  </h3>
-                </div>
-
-                {/* 24/7 Emergency Support */}
-                <div className="flex flex-col items-center bg-white/20 backdrop-blur-sm p-3 w-48 h-15 rounded-lg shadow-md hover:shadow-lg transition duration-300 mx-auto">
-                  <Clock className="w-6 h-6 text-blue-200 mb-1" />
-                  <h3 className="text-sm font-semibold text-white text-center">
-                    24/7 Emergency Support
-                  </h3>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="relative"
-            >
-              <img
-                src={aics}
-                alt="AICS Services"
-                className="relative z-10 w-auto mx-auto"
-                style={{ width: 320 }}
-              />
-            </motion.div>
+          {/* 24/7 Emergency Support */}
+          <div className="flex flex-col items-center bg-white/20 backdrop-blur-sm p-3 w-48 h-15 rounded-lg shadow-md hover:shadow-lg transition duration-300 mx-auto">
+            <Clock className="w-6 h-6 text-blue-200 mb-1" />
+            <h3 className="text-sm font-semibold text-white text-center">
+              24/7 Emergency Support
+            </h3>
           </div>
         </div>
-      </section>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+        className="relative"
+      >
+        <img
+          src={aics}
+          alt="AICS Services"
+          className="relative z-10 w-auto mx-auto"
+          style={{ width: 320 }}
+        />
+      </motion.div>
+    </div>
+  </div>
+</section>
+
       {/* Program Objective Section */}
       <section className="py-24 bg-gradient-to-r from-blue-50 via-white to-blue-50">
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">

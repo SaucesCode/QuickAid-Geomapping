@@ -29,47 +29,44 @@ import AnalyticsFilter from "../../components/AnalyticsFilter";
 // --- Consistent Design Constants and Helpers ---
 const BLUE_DARK = "#1D4ED8"; // Primary Blue for highlights
 const BLUE_MEDIUM = "#3B82F6"; // Medium Blue
-const BLUE_LIGHT = "#93C5FD"; // Light Blue
 const DANGER_RED = "#EF4444"; // For poor performance/critical points
 const SUCCESS_GREEN = "#10B981";
 const WARNING_YELLOW = "#FACC15"; // Keep green for success/good status in StatCards
 
 // **NEW COLOR CONSTANTS FOR DIVERSE CHART VISUALS**
-const TEAL = "#14B8A6";       // Tailwind teal-500
-const PURPLE = "#8B5CF6";     // Tailwind violet-500
-const ORANGE = "#F97316";     // Tailwind orange-500
-const GRAY_OUT = "#E5E7EB";   // Tailwind gray-200 (for 0% values)
+const TEAL = "#14B8A6"; // Tailwind teal-500
+const PURPLE = "#8B5CF6"; // Tailwind violet-500
+const ORANGE = "#F97316"; // Tailwind orange-500
+const GRAY_OUT = "#E5E7EB"; // Tailwind gray-200 (for 0% values)
 const BURIAL_YELLOW = "#FDE68A"; // Tailwind yellow-300 for Burial type
 
 // **MAPPING FOR ASSISTANCE TYPE (Bar Chart) - Not critical for Pie Chart fix, but good practice**
 const EDUCATION_GREEN = SUCCESS_GREEN;
 const MEDICALS_BLUE = BLUE_MEDIUM;
 
-
 // **FIXED COLOR LOGIC:** Update CHART_COLORS for Distribution Pie Chart
 // This directly maps colors to the data index (0, 1, 2, 3, 4) in the pie chart
 const CHART_COLORS = [
-    TEAL,               // Index 0 (40% in image) -> Teal
-    PURPLE,             // Index 1 (40% in image) -> Purple
-    GRAY_OUT,           // Index 2 (0% in image) -> Gray
-    ORANGE,             // Index 3 (20% in image) -> Orange
-    GRAY_OUT,           // Index 4 (0% in image) -> Gray
-    BLUE_DARK,
-    DANGER_RED,
+  TEAL, // Index 0 (40% in image) -> Teal
+  PURPLE, // Index 1 (40% in image) -> Purple
+  GRAY_OUT, // Index 2 (0% in image) -> Gray
+  ORANGE, // Index 3 (20% in image) -> Orange
+  GRAY_OUT, // Index 4 (0% in image) -> Gray
+  BLUE_DARK,
+  DANGER_RED,
 ];
-
 
 // **LOGIC CHANGE:** Now uses Blue for good, Yellow for warning (default), and Red for poor.
 // Used for Processing Time by Assistance Type (Bar Chart)
-const getTimeColor = (minutes) => {
-  if (minutes < 60) return BLUE_MEDIUM; // Good is now Blue
-  if (minutes < 120) return WARNING_YELLOW; // Warning is Yellow
-  return DANGER_RED; // Poor is Red
-};
+// const getTimeColor = minutes => {
+//   if (minutes < 60) return BLUE_MEDIUM; // Good is now Blue
+//   if (minutes < 120) return WARNING_YELLOW; // Warning is Yellow
+//   return DANGER_RED; // Poor is Red
+// };
 
 // **LOGIC CHANGE:** Now uses Blue for high, Yellow for medium (default), and Red for low.
 // Used for Staff Productivity (Bar Chart)
-const getProductivityColor = (count) => {
+const getProductivityColor = count => {
   if (count > 50) return BLUE_MEDIUM; // High is now Blue
   if (count > 25) return WARNING_YELLOW; // Medium is Yellow
   return DANGER_RED; // Low is Red
@@ -77,34 +74,32 @@ const getProductivityColor = (count) => {
 
 // **NEW HELPER FUNCTION for Pie Chart Color based on Category Type/Bucket**
 // This is used for the legend/tooltip if the data uses names like "0-30" instead of indices
-const getTypeColor = (type) => {
-    const normalizedType = (type || "").toUpperCase();
-    
-    // Logic to handle potential named buckets (e.g., "0-30")
-    if (normalizedType.includes("0-30")) return TEAL;
-    if (normalizedType.includes("31-60")) return PURPLE;
-    if (normalizedType.includes("61-120")) return ORANGE;
-    if (normalizedType.includes(">120")) return DANGER_RED;
+// const getTypeColor = type => {
+//   const normalizedType = (type || "").toUpperCase();
 
-    // Logic to handle assistance types (e.g., "Medical") - secondary use case for this function
-    if (normalizedType.includes("EDUCATIONAL")) return EDUCATION_GREEN;
-    if (normalizedType.includes("MEDICAL")) return MEDICALS_BLUE;
-    if (normalizedType.includes("BURIAL")) return BURIAL_YELLOW;
-    
-    // Final Fallback
-    return BLUE_DARK;
-};
+//   // Logic to handle potential named buckets (e.g., "0-30")
+//   if (normalizedType.includes("0-30")) return TEAL;
+//   if (normalizedType.includes("31-60")) return PURPLE;
+//   if (normalizedType.includes("61-120")) return ORANGE;
+//   if (normalizedType.includes(">120")) return DANGER_RED;
+
+//   // Logic to handle assistance types (e.g., "Medical") - secondary use case for this function
+//   if (normalizedType.includes("EDUCATIONAL")) return EDUCATION_GREEN;
+//   if (normalizedType.includes("MEDICAL")) return MEDICALS_BLUE;
+//   if (normalizedType.includes("BURIAL")) return BURIAL_YELLOW;
+
+//   // Final Fallback
+//   return BLUE_DARK;
+// };
 
 // --- UI Components (StatCard is kept the same as no new color constant was provided for WARNING_YELLOW) ---
 const MinimalChartLoader = ({ height = 300 }) => (
-  <div
-    className={`animate-pulse bg-gray-100 rounded-xl p-4`}
-    style={{ height }}
-  >
+  <div className={`animate-pulse bg-gray-100 rounded-xl p-4`} style={{ height }}>
     <div className="h-full w-full bg-gray-200 rounded-lg"></div>
   </div>
 );
 
+<<<<<<< HEAD
 const StatCard = ({
   icon: Icon,
   title,
@@ -114,6 +109,10 @@ const StatCard = ({
   badge,
   isLoading,
 }) => {
+=======
+const StatCard = ({ icon: Icon, title, value, subtitle, color, badge, isLoading }) => {
+  // Simplified getGradientColors inline, keeping only necessary logic
+>>>>>>> 2c876430244c46e4c9269dd3cb7554f2b7c9de48
   let gradientClass = "from-gray-500 to-gray-700";
   let borderClass = "border-gray-200";
   let textClass = "from-gray-600 to-gray-700";
@@ -187,7 +186,7 @@ const Performance = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
 
-  const fetchData = async (endpoint) => {
+  const fetchData = async endpoint => {
     const params = new URLSearchParams();
 
     if (filters.start) params.append("start_date", filters.start);
@@ -195,7 +194,7 @@ const Performance = () => {
     if (filters.type) params.append("type", filters.type);
 
     const query = params.toString() ? `?${params.toString()}` : "";
-    const res = await api.get(`${endpoint}${query}`).catch((err) => {
+    const res = await api.get(`${endpoint}${query}`).catch(err => {
       // Catch network/API errors at the data fetching level
       setError(err);
       throw err;
@@ -209,33 +208,29 @@ const Performance = () => {
     keepPreviousData: true,
   });
 
-  const { data: avgProcessingTimeByType = [], isLoading: loadingType } =
-    useQuery({
-      queryKey: ["performance", "processing-by-type", filters],
-      queryFn: () => fetchData(`/analytics/performance/processing-by-type/`),
-      keepPreviousData: true,
-    });
+  const { data: avgProcessingTimeByType = [], isLoading: loadingType } = useQuery({
+    queryKey: ["performance", "processing-by-type", filters],
+    queryFn: () => fetchData(`/analytics/performance/processing-by-type/`),
+    keepPreviousData: true,
+  });
 
-  const { data: processingDistribution = [], isLoading: loadingDistribution } =
-    useQuery({
-      queryKey: ["performance", "processing-distribution", filters],
-      queryFn: () => fetchData(`/analytics/performance/processing-distribution/`),
-      keepPreviousData: true,
-    });
+  const { data: processingDistribution = [], isLoading: loadingDistribution } = useQuery({
+    queryKey: ["performance", "processing-distribution", filters],
+    queryFn: () => fetchData(`/analytics/performance/processing-distribution/`),
+    keepPreviousData: true,
+  });
 
-  const { data: staffProductivity = [], isLoading: loadingProductivity } =
-    useQuery({
-      queryKey: ["performance", "staff-productivity", filters],
-      queryFn: () => fetchData(`/analytics/performance/staff-productivity/`),
-      keepPreviousData: true,
-    });
+  const { data: staffProductivity = [], isLoading: loadingProductivity } = useQuery({
+    queryKey: ["performance", "staff-productivity", filters],
+    queryFn: () => fetchData(`/analytics/performance/staff-productivity/`),
+    keepPreviousData: true,
+  });
 
-  const { data: staffLeaderboard = [], isLoading: loadingLeaderboard } =
-    useQuery({
-      queryKey: ["performance", "staff-leaderboard", filters],
-      queryFn: () => fetchData(`/analytics/performance/staff-leaderboard/`),
-      keepPreviousData: true,
-    });
+  const { data: staffLeaderboard = [], isLoading: loadingLeaderboard } = useQuery({
+    queryKey: ["performance", "staff-leaderboard", filters],
+    queryFn: () => fetchData(`/analytics/performance/staff-leaderboard/`),
+    keepPreviousData: true,
+  });
 
   const { data: staffActivity = [], isLoading: loadingActivity } = useQuery({
     queryKey: ["performance", "staff-activity", filters],
@@ -251,7 +246,7 @@ const Performance = () => {
 
   // Transforms - kept mostly as you had them but safer
   const transformProcessingByType = (data = []) => {
-    return data.map((item) => ({
+    return data.map(item => ({
       type: item.type,
       avgMinutes: item.avg_minutes ?? 0,
       efficiency:
@@ -265,34 +260,29 @@ const Performance = () => {
 
   const transformStaffProductivity = (data = []) => {
     return data
-      .filter((item) => item.processed_by__username || item.staff__username)
-      .map((item) => ({
+      .filter(item => item.processed_by__username || item.staff__username)
+      .map(item => ({
         staff: item.processed_by__username || item.staff__username || "Unknown",
         count: item.count ?? 0,
         productivity:
-          (item.count ?? 0) > 50
-            ? "High"
-            : (item.count ?? 0) > 25
-            ? "Medium"
-            : "Low",
+          (item.count ?? 0) > 50 ? "High" : (item.count ?? 0) > 25 ? "Medium" : "Low",
       }))
       .slice(0, 10);
   };
 
   const transformStaffLeaderboard = (data = []) => {
     return data
-      .filter((item) => item.processed_by__username || item.staff__username)
+      .filter(item => item.processed_by__username || item.staff__username)
       .map((item, index) => ({
         rank: index + 1,
         staff: item.processed_by__username || item.staff__username || "Unknown",
         count: item.count ?? 0,
-        medal:
-          index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`,
+        medal: index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`,
       }))
       .slice(0, 10);
   };
 
-  const getTimeAgo = (date) => {
+  const getTimeAgo = date => {
     if (!date || isNaN(date.getTime())) return "";
     const now = new Date();
     const diff = now - date;
@@ -307,7 +297,7 @@ const Performance = () => {
   };
 
   const transformStaffActivity = (data = []) => {
-    return data.slice(0, 20).map((item) => {
+    return data.slice(0, 20).map(item => {
       let parsed = null;
       try {
         parsed = item.timestamp ? new Date(item.timestamp) : null;
@@ -315,11 +305,7 @@ const Performance = () => {
         parsed = null;
       }
       return {
-        id:
-          item.id ??
-          `${item.staff ?? "unknown"}-${Math.random()
-            .toString(36)
-            .slice(2, 7)}`,
+        id: item.id ?? `${item.staff ?? "unknown"}-${Math.random().toString(36).slice(2, 7)}`,
         staff: item.staff || "System",
         action: item.action || "UNKNOWN",
         timestamp: parsed && !isNaN(parsed.getTime()) ? parsed.toLocaleString() : "—",
@@ -336,15 +322,15 @@ const Performance = () => {
       intensity: 0,
     }));
 
-    (data || []).forEach((item) => {
+    (data || []).forEach(item => {
       const hourIndex = Number(item.hour);
       if (!Number.isNaN(hourIndex) && hourIndex >= 0 && hourIndex < 24) {
         hours[hourIndex].count = item.count ?? 0;
       }
     });
 
-    const maxCount = Math.max(...hours.map((h) => h.count));
-    hours.forEach((hour) => {
+    const maxCount = Math.max(...hours.map(h => h.count));
+    hours.forEach(hour => {
       hour.intensity = maxCount > 0 ? (hour.count / maxCount) * 100 : 0;
     });
 
@@ -369,8 +355,7 @@ const Performance = () => {
         ? Math.round(totalStaffProcessed / processedProductivity.length)
         : 0;
     const topPerformer = processedLeaderboard[0] ?? null;
-    const processingEfficiency =
-      avgProcessingTime?.average_processing_time_minutes ?? 0;
+    const processingEfficiency = avgProcessingTime?.average_processing_time_minutes ?? 0;
 
     return {
       totalStaffProcessed,
@@ -407,29 +392,19 @@ const Performance = () => {
   }
 
   // Transformed datasets
-  const transformedProcessingByType = transformProcessingByType(
-    avgProcessingTimeByType
-  );
-  const transformedStaffProductivity =
-    transformStaffProductivity(staffProductivity);
-  const transformedStaffLeaderboard =
-    transformStaffLeaderboard(staffLeaderboard);
+  const transformedProcessingByType = transformProcessingByType(avgProcessingTimeByType);
+  const transformedStaffProductivity = transformStaffProductivity(staffProductivity);
+  const transformedStaffLeaderboard = transformStaffLeaderboard(staffLeaderboard);
   const transformedStaffActivity = transformStaffActivity(staffActivity);
-  const transformedHeatmapData = staffHeatmap
-    ? transformHeatmapData(staffHeatmap)
-    : [];
+  // const transformedHeatmapData = staffHeatmap ? transformHeatmapData(staffHeatmap) : [];
   const stats = calculateStats();
 
   // Loading guards
   const isAvgProcessingTimeLoaded = !loadingAvg && !!avgProcessingTime;
   const isLeaderboardLoaded =
-    !loadingLeaderboard &&
-    Array.isArray(staffLeaderboard) &&
-    staffLeaderboard.length > 0;
+    !loadingLeaderboard && Array.isArray(staffLeaderboard) && staffLeaderboard.length > 0;
   const isProductivityLoaded =
-    !loadingProductivity &&
-    Array.isArray(staffProductivity) &&
-    staffProductivity.length > 0;
+    !loadingProductivity && Array.isArray(staffProductivity) && staffProductivity.length > 0;
   const isTotalProcessedLoaded = isProductivityLoaded;
 
   // Header (single)
@@ -445,8 +420,7 @@ const Performance = () => {
               Performance Analytics Dashboard
             </h1>
             <p className="text-gray-600 text-lg mt-1">
-              Staff productivity, processing efficiency, and operational
-              performance metrics
+              Staff productivity, processing efficiency, and operational performance metrics
             </p>
           </div>
         </div>
@@ -495,9 +469,7 @@ const Performance = () => {
             title="Top Performer"
             value={isLeaderboardLoaded ? stats.topPerformer?.staff || "N/A" : "—"}
             subtitle={
-              isLeaderboardLoaded
-                ? `${stats.topPerformer?.count || 0} applications`
-                : ""
+              isLeaderboardLoaded ? `${stats.topPerformer?.count || 0} applications` : ""
             }
             color={BLUE_MEDIUM} // Keep Yellow/Gold for Trophy
             badge="🏆"
@@ -507,9 +479,7 @@ const Performance = () => {
             icon={Activity}
             title="Total Processed"
             value={
-              isTotalProcessedLoaded
-                ? (stats.totalStaffProcessed || 0).toLocaleString()
-                : "—"
+              isTotalProcessedLoaded ? (stats.totalStaffProcessed || 0).toLocaleString() : "—"
             }
             subtitle="By all staff"
             color={BLUE_MEDIUM} // Use Darker Blue
@@ -543,7 +513,7 @@ const Performance = () => {
                     fontSize={12}
                   />
                   <YAxis />
-                  <Tooltip formatter={(value) => [`${value} min`, "Processing Time"]} />
+                  <Tooltip formatter={value => [`${value} min`, "Processing Time"]} />
                   <Bar dataKey="avgMinutes" radius={[4, 4, 0, 0]}>
                     {transformedProcessingByType.map((entry, index) => {
                       let fillColor = "#94a3b8"; // default (gray)
@@ -557,10 +527,7 @@ const Performance = () => {
                       }
 
                       return (
-                        <Cell
-                          key={`type-cell-${index}-${entry.type}`}
-                          fill={fillColor}
-                        />
+                        <Cell key={`type-cell-${index}-${entry.type}`} fill={fillColor} />
                       );
                     })}
                   </Bar>
@@ -601,7 +568,7 @@ const Performance = () => {
                       />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [value, "Applications"]} />
+                  <Tooltip formatter={value => [value, "Applications"]} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -635,7 +602,7 @@ const Performance = () => {
                     fontSize={11}
                   />
                   <YAxis />
-                  <Tooltip formatter={(value) => [value, "Applications Processed"]} />
+                  <Tooltip formatter={value => [value, "Applications Processed"]} />
                   <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                     {transformedStaffProductivity.map((entry, index) => (
                       <Cell
@@ -683,9 +650,7 @@ const Performance = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-800">
-                        {staff.count}
-                      </p>
+                      <p className="text-2xl font-bold text-gray-800">{staff.count}</p>
                       <p className="text-xs text-gray-600">applications</p>
                     </div>
                   </div>
@@ -718,9 +683,7 @@ const Performance = () => {
                     <th className="text-left py-3 px-4 font-semibold text-gray-700 rounded-tl-lg">
                       Staff Member
                     </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Action
-                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Action</th>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700">
                       Timestamp
                     </th>
@@ -730,14 +693,12 @@ const Performance = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {transformedStaffActivity.map((activity) => (
+                  {transformedStaffActivity.slice(0, 10).map(activity => (
                     <tr
                       key={activity.id}
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="py-3 px-4 font-medium text-gray-800">
-                        {activity.staff}
-                      </td>
+                      <td className="py-3 px-4 font-medium text-gray-800">{activity.staff}</td>
                       <td className="py-3 px-4">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -753,12 +714,8 @@ const Performance = () => {
                           {activity.action}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-gray-600 text-sm">
-                        {activity.timestamp}
-                      </td>
-                      <td className="py-3 px-4 text-gray-500 text-sm">
-                        {activity.timeAgo}
-                      </td>
+                      <td className="py-3 px-4 text-gray-600 text-sm">{activity.timestamp}</td>
+                      <td className="py-3 px-4 text-gray-500 text-sm">{activity.timeAgo}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -769,15 +726,11 @@ const Performance = () => {
 
         {/* Insights (kept minimal insights) */}
         <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">
-            Performance Insights
-          </h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Performance Insights</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* **COLOR CHANGE:** Insights now consistently use Blue/Green/Indigo hues */}
             <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <h3 className="font-semibold text-blue-800 mb-2">
-                Processing Efficiency
-              </h3>
+              <h3 className="font-semibold text-blue-800 mb-2">Processing Efficiency</h3>
               <p className="text-blue-700 text-sm">
                 Average processing time of{" "}
                 <span className="font-bold">
@@ -793,9 +746,7 @@ const Performance = () => {
               </p>
             </div>
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-              <h3 className="font-semibold text-green-800 mb-2">
-                Staff Performance
-              </h3>
+              <h3 className="font-semibold text-green-800 mb-2">Staff Performance</h3>
               <p className="text-green-700 text-sm">
                 <span className="font-bold">
                   {stats.topPerformer?.staff || "Top performer"}
@@ -808,13 +759,11 @@ const Performance = () => {
               </p>
             </div>
             <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-              <h3 className="font-semibold text-indigo-800 mb-2">
-                Workload Distribution
-              </h3>
+              <h3 className="font-semibold text-indigo-800 mb-2">Workload Distribution</h3>
               <p className="text-indigo-700 text-sm">
-                Average productivity of {" "}
-                <span className="font-bold">{stats.averageProductivity}</span>{" "}
-                applications per staff member indicates workload balance.
+                Average productivity of{" "}
+                <span className="font-bold">{stats.averageProductivity}</span> applications per
+                staff member indicates workload balance.
               </p>
             </div>
           </div>
