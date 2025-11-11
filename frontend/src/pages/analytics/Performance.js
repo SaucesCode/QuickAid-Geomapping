@@ -54,6 +54,77 @@ const EDUCATION_GREEN = SUCCESS_GREEN;
 const MEDICALS_BLUE = BLUE_MEDIUM;
 const BURIAL_YELLOW = "#FDE68A";
 
+const StatCard = ({ icon: Icon, title, value, subtitle, color, badge, isLoading }) => {
+  // Simplified getGradientColors inline, keeping only necessary logic
+  let gradientClass = "from-gray-500 to-gray-700";
+  let borderClass = "border-gray-200";
+  let textClass = "from-gray-600 to-gray-700";
+
+  switch (color) {
+    case BLUE_MEDIUM:
+      gradientClass = "from-blue-500 to-blue-700";
+      borderClass = "border-blue-200";
+      textClass = "from-blue-600 to-indigo-700";
+      break;
+    case SUCCESS_GREEN:
+      gradientClass = "from-green-500 to-green-700";
+      borderClass = "border-green-200";
+      textClass = "from-green-600 to-green-700";
+      break;
+    case WARNING_YELLOW:
+      gradientClass = "from-yellow-500 to-orange-500";
+      borderClass = "border-yellow-200";
+      textClass = "from-orange-600 to-yellow-700";
+      break;
+    case BLUE_DARK:
+      gradientClass = "from-indigo-500 to-indigo-700";
+      borderClass = "border-indigo-200";
+      textClass = "from-indigo-600 to-indigo-700";
+      break;
+    default:
+      break;
+  }
+
+  return (
+    <div
+      className={`group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border ${borderClass} hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative`}
+    >
+      {badge && (
+        <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-800 px-2 py-1 rounded-full text-xs font-bold">
+          {badge}
+        </div>
+      )}
+      <div className="flex items-center gap-3">
+        <div
+          className={`w-14 h-14 bg-gradient-to-br ${gradientClass} rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
+        >
+          <Icon className="w-7 h-7 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-gray-600 font-semibold">{title}</p>
+          {isLoading ? (
+            <div className="h-8 w-20 bg-gray-300 rounded mt-1 animate-pulse"></div>
+          ) : (
+            <>
+              <h2
+                className={`text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r ${textClass} truncate hover:whitespace-normal hover:overflow-visible`}
+                title={value}
+              >
+                {value}
+              </h2>
+              {subtitle && (
+                <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+// --- Main Component ---
 // Chart Colors - KEPT UNCHANGED
 const CHART_COLORS = [TEAL, PURPLE, GRAY_OUT, ORANGE, GRAY_OUT, BLUE_DARK, DANGER_RED];
 
