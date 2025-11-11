@@ -1,11 +1,21 @@
 import React, { useState } from "react";
-import { Users, UserPlus, Mail, Lock, Eye, EyeOff, Save } from "lucide-react";
+import { Users, UserPlus, Mail, Lock, Eye, EyeOff, Save, Edit3 } from "lucide-react";
 import SupportMessages from "./components/SupportMessages";
 import ActivityLogs from "./components/ActivityLogs";
 import StaffTable from "./components/StaffTable";
 import { api } from "../../services/api";
 import toast, { Toaster } from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
+
+// Import Design System Components
+import {
+  PageContainer,
+  PageHeader,
+  Card,
+  Stack,
+  GradientButton,
+  OutlineButton,
+} from "../../components/DesignSystem";
 
 const AdminManagement = () => {
   const [showModal, setShowModal] = useState(false);
@@ -17,22 +27,13 @@ const AdminManagement = () => {
     email: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [editData, setEditData] = useState(null);
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const queryClient = useQueryClient();
 
-  // 💠 Theme system - UPDATED for blue monochromatic consistency
-  const theme = {
-    primary: "indigo-600",
-    primaryHover: "indigo-700",
-    primaryLight: "blue-100", // Changed to blue-100
-    background: "blue-50",    // Changed to blue-50 for a light blue page background
-    surface: "white",
-    textPrimary: "gray-800",
-    textSecondary: "gray-500",
-  };
-
-  // 💠 Your auth token (if needed)
   const token = localStorage.getItem("accessToken");
 
+  // Submit Logic - KEPT UNCHANGED
   const handleSubmit = async () => {
     try {
       await api.post(`/register_staff/`, formData, {
@@ -43,9 +44,7 @@ const AdminManagement = () => {
       });
 
       toast.success("Staff registered successfully!");
-
       queryClient.invalidateQueries(["staffList"]);
-
       setFormData({ username: "", password: "", first_name: "", last_name: "", email: "" });
       setShowModal(false);
     } catch (error) {
@@ -54,106 +53,89 @@ const AdminManagement = () => {
     }
   };
 
+  const handleUpdate = async () => {
+    try {
+      await api.put(`/update-staff/${editData.id}/`, editData, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      toast.success("Staff updated successfully!");
+      queryClient.invalidateQueries(["staffList"]);
+      setEditData(null);
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Update failed");
+    }
+  };
+
   const handleChange = e => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   return (
-    // REFACTORED: Main container style with subtle background gradients and relative positioning
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 relative">
-      {/* REFACTORED: Absolute background effects from DemographicsEconomics */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-      </div>
+    <PageContainer>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "white",
+            color: "#1f2937",
+            border: "1px solid #e2e8f0",
+            borderRadius: "0.75rem",
+            boxShadow:
+              "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+          },
+          success: { iconTheme: { primary: "#2563eb", secondary: "white" } },
+          error: { iconTheme: { primary: "#ef4444", secondary: "white" } },
+        }}
+      />
 
-      {/* REFACTORED: Content wrapper with padding and z-index */}
-      <div className="relative z-10 p-6 space-y-6 max-w-7xl mx-auto">
-        <Toaster
-          position="top-center"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: theme.surface,
-              color: theme.textPrimary,
-              border: `1px solid #e2e8f0`,
-              borderRadius: "0.75rem",
-              boxShadow:
-                "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-            },
-            // UPDATED: Success icon theme uses blue-600 for monochromatic look
-            success: { iconTheme: { primary: `#2563eb`, secondary: theme.surface } }, 
-            error: { iconTheme: { primary: `#ef4444`, secondary: theme.surface } },
-          }}
-        />
-        {/* --- Header - REFACTORED to new card style --- */}
-        <header className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-8 mb-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 flex items-center gap-4 mb-2">
-                {/* REFACTORED: Icon container matches DemographicsEconomics: w-16 h-16, larger shadow */}
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                Admin Management
-              </h1>
-              <p className="text-base md:text-lg text-gray-600 ml-[80px]">
-                Manage staff members, monitor activity, and handle support requests
-              </p>
-            </div>
-
-            <button
-              onClick={() => setShowModal(true)}
-              // Button style already matches the desired look
-              className="inline-flex items-center gap-2 px-6 py-3.5 text-base bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl font-bold transition-all duration-300 shadow-xl shadow-blue-400/50 hover:shadow-2xl hover:shadow-indigo-400/50 hover:scale-[1.02] active:scale-100 flex-shrink-0"
-            >
-              <UserPlus className="w-5 h-5" />
+      <Stack spacing="lg">
+        {/* REDESIGNED: Using PageHeader from Design System */}
+        <PageHeader
+          icon={Users}
+          title="Admin Management"
+          subtitle="Manage staff members, monitor activity, and handle support requests"
+          action={
+            <GradientButton onClick={() => setShowModal(true)}>
+              <UserPlus className="w-4 h-4" />
               Add New Staff
-            </button>
-          </div>
-        </header>
+            </GradientButton>
+          }
+        />
 
-        {/* --- Main Content Layout --- */}
-        <div className="space-y-8">
-          {/* Support Messages Section */}
-          <SupportMessages theme={theme} token={token} />
+        {/* REDESIGNED: Using Stack for consistent spacing */}
+        <Stack spacing="lg">
+          <SupportMessages token={token} />
+          <StaffTable
+            token={token}
+            onEdit={staff => {
+              setEditData(staff);
+            }}
+          />
+          <ActivityLogs token={token} />
+        </Stack>
+      </Stack>
 
-          {/* Staff Table Section */}
-          <StaffTable theme={theme} token={token} />
-
-          {/* Activity Logs Section */}
-          <ActivityLogs theme={theme} token={token} />
-        </div>
-      </div>
-
-      {/* --- Add Staff Modal --- */}
+      {/* Add Staff Modal - REDESIGNED */}
       {showModal && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300">
-          <div
-            // REFACTORED: Modal container style to match DemographicsEconomics card style
-            className={`bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 w-full max-w-lg scale-100 transform transition-all duration-300`}
-          >
+          <Card className="w-full max-w-lg scale-100 transform transition-all duration-300">
             {/* Modal Header */}
-            <div className={`flex items-center gap-4 p-6 border-b border-gray-100`}>
-              <div
-                // REFACTORED: Icon container style to match DemographicsEconomics
-                className={`w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg`}
-              >
-                <UserPlus className={`w-6 h-6 text-white`} />
+            <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <UserPlus className="w-6 h-6 text-white" />
               </div>
-              <h2 className={`text-2xl font-bold text-gray-800`}>
-                Register New Staff Member
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-800">Register New Staff Member</h2>
             </div>
 
             {/* Modal Content */}
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="form-control">
-                  <label
-                    className={`block text-sm font-medium text-gray-600 mb-1`}
-                  >
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     First Name
                   </label>
                   <div className="relative">
@@ -162,18 +144,13 @@ const AdminManagement = () => {
                       value={formData.first_name}
                       onChange={handleChange}
                       placeholder="e.g., Jane"
-                      // Input styling preserved
-                      className={`w-full p-3.5 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-600 text-sm text-gray-800 transition-all hover:border-indigo-400`}
+                      className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600 text-sm text-gray-800 transition-all hover:border-blue-400"
                     />
-                    <Users
-                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
-                    />
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   </div>
                 </div>
-                <div className="form-control">
-                  <label
-                    className={`block text-sm font-medium text-gray-600 mb-1`}
-                  >
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     Last Name
                   </label>
                   <div className="relative">
@@ -182,18 +159,15 @@ const AdminManagement = () => {
                       value={formData.last_name}
                       onChange={handleChange}
                       placeholder="e.g., Doe"
-                      // Input styling preserved
-                      className={`w-full p-3.5 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-600 text-sm text-gray-800 transition-all hover:border-indigo-400`}
+                      className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600 text-sm text-gray-800 transition-all hover:border-blue-400"
                     />
-                    <Users
-                      className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
-                    />
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   </div>
                 </div>
               </div>
 
-              <div className="form-control">
-                <label className={`block text-sm font-medium text-gray-600 mb-1`}>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
                   Email Address
                 </label>
                 <div className="relative">
@@ -203,17 +177,14 @@ const AdminManagement = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="e.g., jane.doe@quickaid.com"
-                    // Input styling preserved
-                    className={`w-full p-3.5 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-600 text-sm text-gray-800 transition-all hover:border-indigo-400`}
+                    className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600 text-sm text-gray-800 transition-all hover:border-blue-400"
                   />
-                  <Mail
-                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
-                  />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 </div>
               </div>
 
-              <div className="form-control">
-                <label className={`block text-sm font-medium text-gray-600 mb-1`}>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
                   Username
                 </label>
                 <div className="relative">
@@ -222,17 +193,14 @@ const AdminManagement = () => {
                     value={formData.username}
                     onChange={handleChange}
                     placeholder="Enter username"
-                    // Input styling preserved
-                    className={`w-full p-3.5 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-600 text-sm text-gray-800 transition-all hover:border-indigo-400`}
+                    className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600 text-sm text-gray-800 transition-all hover:border-blue-400"
                   />
-                  <UserPlus
-                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
-                  />
+                  <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 </div>
               </div>
 
-              <div className="form-control">
-                <label className={`block text-sm font-medium text-gray-600 mb-1`}>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
                   Password
                 </label>
                 <div className="relative">
@@ -242,12 +210,9 @@ const AdminManagement = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Create a strong password"
-                    // Input styling preserved
-                    className={`w-full p-3.5 pr-10 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-300 focus:border-indigo-600 text-sm text-gray-800 transition-all hover:border-indigo-400`}
+                    className="w-full p-3 pr-10 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600 text-sm text-gray-800 transition-all hover:border-blue-400"
                   />
-                  <Lock
-                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400`}
-                  />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <button
                     type="button"
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
@@ -264,27 +229,95 @@ const AdminManagement = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex justify-end gap-3 p-6 border-t border-gray-100">
-              <button
-                onClick={() => setShowModal(false)}
-                // REFACTORED: Monochromatic gray/blue cancel button style from DemographicsEconomics
-                className="px-6 py-3 text-sm font-semibold bg-gray-100 hover:bg-blue-100 text-gray-700 rounded-xl transition-colors hover:text-blue-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                // Primary button style is already matching the desired look
-                className={`px-6 py-3 text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-400/50 hover:shadow-xl hover:scale-[1.01] active:scale-100`}
-              >
+            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+              <OutlineButton onClick={() => setShowModal(false)}>Cancel</OutlineButton>
+              <GradientButton onClick={handleSubmit}>
                 <Save className="w-4 h-4" />
                 Register Staff
-              </button>
+              </GradientButton>
             </div>
-          </div>
+          </Card>
         </div>
       )}
-    </div>
+
+      {/* Edit Staff Modal - REDESIGNED */}
+      {editData && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            {/* Modal Header */}
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <Edit3 className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-800">Edit Staff Member</h2>
+            </div>
+
+            {/* Modal Content */}
+            <div className="space-y-4">
+              <input
+                name="username"
+                value={editData.username}
+                onChange={e => setEditData({ ...editData, username: e.target.value })}
+                placeholder="Username"
+                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
+              />
+              <input
+                name="first_name"
+                value={editData.first_name}
+                onChange={e => setEditData({ ...editData, first_name: e.target.value })}
+                placeholder="First Name"
+                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
+              />
+              <input
+                name="last_name"
+                value={editData.last_name}
+                onChange={e => setEditData({ ...editData, last_name: e.target.value })}
+                placeholder="Last Name"
+                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
+              />
+              <input
+                name="email"
+                value={editData.email}
+                onChange={e => setEditData({ ...editData, email: e.target.value })}
+                placeholder="Email"
+                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
+              />
+              <div className="relative">
+                <input
+                  name="password"
+                  type={showEditPassword ? "text" : "password"}
+                  placeholder="New password (optional)"
+                  onChange={e => setEditData({ ...editData, password: e.target.value })}
+                  className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowEditPassword(!showEditPassword)}
+                >
+                  {showEditPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
+              <OutlineButton onClick={() => setEditData(null)} className="flex-1">
+                Cancel
+              </OutlineButton>
+              <GradientButton onClick={handleUpdate} className="flex-1">
+                <Save className="w-4 h-4" />
+                Save Changes
+              </GradientButton>
+            </div>
+          </Card>
+        </div>
+      )}
+    </PageContainer>
   );
 };
 
