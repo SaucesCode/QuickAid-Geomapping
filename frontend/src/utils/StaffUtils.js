@@ -2,6 +2,7 @@
 export const getStaffFormLink = () => {
   const user = JSON.parse(localStorage.getItem("userData"));
   if (!user) return null;
+  const encoded = btoa(user.ref_code);
 
-  return `${process.env.REACT_APP_BASE_URL}/new-applicant?staff_ref_code=${user.ref_code}`;
+  return `${process.env.REACT_APP_BASE_URL}/apply?k=${encoded}`;
 };
