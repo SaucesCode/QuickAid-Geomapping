@@ -144,8 +144,6 @@ const Sidebar = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Toaster position="top-center" reverseOrder={false} />
-
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div

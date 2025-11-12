@@ -145,7 +145,6 @@ const ArchiveApplicants = () => {
 
   return (
     <PageContainer>
-      <Toaster position="top-center" reverseOrder={false} />
       {/* Header */}
       <PageHeader
         icon={Archive}

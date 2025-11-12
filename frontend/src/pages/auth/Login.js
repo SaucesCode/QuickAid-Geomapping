@@ -76,7 +76,7 @@ const Login = () => {
       className="min-h-screen flex bg-cover bg-center"
       style={{
         backgroundImage: `url(${bg})`,
-        backgroundColor: '#1a202c', // A dark blue fallback
+        backgroundColor: "#1a202c", // A dark blue fallback
       }}
     >
       <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
@@ -103,18 +103,13 @@ const Login = () => {
 
         {/* Welcome Text */}
         <div className="relative z-10 flex flex-col justify-center flex-1 px-6 text-center lg:text-left -mt-20">
-  <div className="relative mx-auto lg:mx-0 w-fit">
-    <img 
-      src={LP1} 
-      alt="QuickAid Logo" 
-      className="w-64 drop-shadow-lg mx-auto" 
-    />
-    <p className="absolute bottom-[-1.8rem] right-[-90%] text-lg text-blue-200 whitespace-nowrap">
-      Authorized Staff Login Portal for the AICS Information System
-    </p>
-  </div>
-</div>
-
+          <div className="relative mx-auto lg:mx-0 w-fit">
+            <img src={LP1} alt="QuickAid Logo" className="w-64 drop-shadow-lg mx-auto" />
+            <p className="absolute bottom-[-1.8rem] right-[-90%] text-lg text-blue-200 whitespace-nowrap">
+              Authorized Staff Login Portal for the AICS Information System
+            </p>
+          </div>
+        </div>
 
         {/* Removed the original "Back to Home" link from the right section and moved a simplified one here. */}
         <Link
@@ -135,9 +130,7 @@ const Login = () => {
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-10 shadow-2xl shadow-white/30 border border-white/20">
             <div className="mb-8 text-left text-white">
               <h2 className="text-3xl font-semibold text-white mb-1">Welcome back</h2>
-              <p className="text-sky-200 text-base opacity-80">
-                Please enter your details.
-              </p>
+              <p className="text-sky-200 text-base opacity-80">Please enter your details.</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6" noValidate>
@@ -200,31 +193,33 @@ const Login = () => {
 
               {/* Login Button */}
               <button
-    type="submit"
-    disabled={!username || !password || isLoading}
-    // 🎨 Button styling - Solid dark blue background, rounded-lg, white text
-    className="w-full bg-blue-600 hover:bg-blue-300 text-white rounded-lg px-4 py-3 font-medium transition-all duration-200 shadow-xl shadow-blue-500/40 disabled:bg-blue-500/50 disabled:cursor-not-allowed relative"
->
-    {isLoading && (
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-        </div>
-    )}
-    <span className={isLoading ? "opacity-0" : "opacity-100"}>Log in</span>
-</button>
+                type="submit"
+                disabled={!username || !password || isLoading}
+                // 🎨 Button styling - Solid dark blue background, rounded-lg, white text
+                className="w-full bg-blue-600 hover:bg-blue-300 text-white rounded-lg px-4 py-3 font-medium transition-all duration-200 shadow-xl shadow-blue-500/40 disabled:bg-blue-500/50 disabled:cursor-not-allowed relative"
+              >
+                {isLoading && (
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  </div>
+                )}
+                <span className={isLoading ? "opacity-0" : "opacity-100"}>Log in</span>
+              </button>
             </form>
 
             {/* Register Here / Footer */}
             <div className="mt-6 text-center">
               <p className="text-sm text-white/70">
                 Having trouble?{" "}
-                <Link
-                  to="/register"
-                  className="text-sky-300 font-medium hover:underline"
+                <button
+                  type="button"
+                  onClick={() => setShowContactModal(true)} // ✅ opens the modal
+                  className="text-sky-300 font-medium hover:underline focus:outline-none"
                 >
                   Contact your administrator
-                </Link>
+                </button>
               </p>
+
               {/* Removed "Having trouble? Contact your administrator" to match snippet and clean up */}
             </div>
           </div>

@@ -304,8 +304,6 @@ const Applicants = () => {
 
   return (
     <PageContainer>
-      <Toaster position="top-center" reverseOrder={false} />
-
       {/* Header */}
       <PageHeader
         icon={UserPlus}

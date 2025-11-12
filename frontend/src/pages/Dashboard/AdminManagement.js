@@ -74,23 +74,6 @@ const AdminManagement = () => {
 
   return (
     <PageContainer>
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: "white",
-            color: "#1f2937",
-            border: "1px solid #e2e8f0",
-            borderRadius: "0.75rem",
-            boxShadow:
-              "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-          },
-          success: { iconTheme: { primary: "#2563eb", secondary: "white" } },
-          error: { iconTheme: { primary: "#ef4444", secondary: "white" } },
-        }}
-      />
-
       <AnalyticsStack spacing="lg">
         <PageHeader
           icon={Users}

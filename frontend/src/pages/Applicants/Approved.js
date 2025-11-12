@@ -260,7 +260,6 @@ const Approved = () => {
   // --- Render ---
   return (
     <PageContainer>
-      <Toaster position="top-center" reverseOrder={false} />
       <PageHeader
         icon={CheckCircle}
         title="Approved Applicants"

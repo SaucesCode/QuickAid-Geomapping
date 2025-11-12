@@ -154,7 +154,6 @@ const AnalyticsExport = () => {
 
   return (
     <div className="space-y-6">
-      <Toaster position="top-right" reverseOrder={false} />
       {/* Info Banner */}
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex items-start gap-3">
         <BarChart3 className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
