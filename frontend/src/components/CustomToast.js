@@ -11,6 +11,10 @@ import {
   ShieldCheck,
   FolderArchive,
   Rocket,
+  Upload,
+  RotateCcw,
+  FileSpreadsheet,
+  BarChart3,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -63,15 +67,47 @@ const toastVariants = {
     accent: "bg-emerald-100 text-emerald-600",
     icon: <CheckCircle2 className="w-6 h-6" strokeWidth={2.5} />,
   },
+  upload: {
+    title: "Upload Successful!",
+    message: "Your file has been processed successfully.",
+    color: "bg-green-50",
+    text: "text-green-900",
+    accent: "bg-green-100 text-green-600",
+    icon: <Upload className="w-6 h-6" strokeWidth={2.5} />,
+  },
+  restore: {
+    title: "Applicant Restored",
+    message: "The applicant has been successfully moved back to active records.",
+    color: "bg-teal-50",
+    text: "text-teal-900",
+    accent: "bg-teal-100 text-teal-600",
+    icon: <RotateCcw className="w-6 h-6" strokeWidth={2.5} />,
+  },
+  analyticsExport: {
+    title: "Analytics Report Generated",
+    message: "Your analytics report has been successfully exported.",
+    color: "bg-blue-50",
+    text: "text-blue-900",
+    accent: "bg-blue-100 text-blue-600",
+    icon: <BarChart3 className="w-6 h-6" strokeWidth={2.5} />,
+  },
+  applicantExport: {
+    title: "Applicant Data Exported",
+    message: "The CSV file has been exported successfully.",
+    color: "bg-emerald-50",
+    text: "text-emerald-900",
+    accent: "bg-emerald-100 text-emerald-600",
+    icon: <FileSpreadsheet className="w-6 h-6" strokeWidth={2.5} />,
+  },
 };
 
-const CustomToast = ({ t, type }) => {
+const CustomToast = ({ t, type, customMessage }) => {
   const { title, message, color, text, accent, icon } = toastVariants[type] || {};
   return (
     <div
       className={`${
         t.visible ? "animate-custom-enter" : "animate-custom-leave"
-      } max-w-sm w-full ${color} shadow-lg rounded-xl pointer-events-auto flex items-center ring-1 ring-black ring-opacity-5`}
+      } max-w-sm w-full z-[1000000] ${color} shadow-lg rounded-xl pointer-events-auto flex items-center ring-1 ring-black ring-opacity-5`}
     >
       {/* Icon Section */}
       <div className="flex-shrink-0 ml-4">
@@ -85,7 +121,7 @@ const CustomToast = ({ t, type }) => {
       {/* Text Section */}
       <div className="ml-3 flex-1 py-3">
         <p className={`text-sm font-semibold ${text}`}>{title}</p>
-        <p className="text-sm text-gray-600">{message}</p>
+        <p className="text-sm text-gray-600">{customMessage || message}</p>
       </div>
 
       {/* Close Button */}

@@ -7,15 +7,14 @@ import { api } from "../../services/api";
 import toast, { Toaster } from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
-// Import Design System Components
+// Import Analytics Components
 import {
   PageContainer,
   PageHeader,
-  Card,
-  Stack,
   GradientButton,
-  OutlineButton,
-} from "../../components/DesignSystem";
+  AnalyticsCard,
+  AnalyticsStack,
+} from "../../components/AnalyticsComponents";
 
 const AdminManagement = () => {
   const [showModal, setShowModal] = useState(false);
@@ -33,7 +32,7 @@ const AdminManagement = () => {
 
   const token = localStorage.getItem("accessToken");
 
-  // Submit Logic - KEPT UNCHANGED
+  // Submit Logic
   const handleSubmit = async () => {
     try {
       await api.post(`/register_staff/`, formData, {
@@ -92,8 +91,7 @@ const AdminManagement = () => {
         }}
       />
 
-      <Stack spacing="lg">
-        {/* REDESIGNED: Using PageHeader from Design System */}
+      <AnalyticsStack spacing="lg">
         <PageHeader
           icon={Users}
           title="Admin Management"
@@ -106,8 +104,7 @@ const AdminManagement = () => {
           }
         />
 
-        {/* REDESIGNED: Using Stack for consistent spacing */}
-        <Stack spacing="lg">
+        <AnalyticsStack spacing="md">
           <SupportMessages token={token} />
           <StaffTable
             token={token}
@@ -116,26 +113,29 @@ const AdminManagement = () => {
             }}
           />
           <ActivityLogs token={token} />
-        </Stack>
-      </Stack>
+        </AnalyticsStack>
+      </AnalyticsStack>
 
-      {/* Add Staff Modal - REDESIGNED */}
+      {/* Add Staff Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300">
-          <Card className="w-full max-w-lg scale-100 transform transition-all duration-300">
+          <AnalyticsCard className="w-full max-w-lg scale-100 transform transition-all duration-300">
             {/* Modal Header */}
-            <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <UserPlus className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-blue-100">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                <UserPlus className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-800">Register New Staff Member</h2>
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Register New Staff</h2>
+                <p className="text-xs text-gray-500">Add a new team member</p>
+              </div>
             </div>
 
             {/* Modal Content */}
-            <div className="space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     First Name
                   </label>
                   <div className="relative">
@@ -144,13 +144,13 @@ const AdminManagement = () => {
                       value={formData.first_name}
                       onChange={handleChange}
                       placeholder="e.g., Jane"
-                      className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600 text-sm text-gray-800 transition-all hover:border-blue-400"
+                      className="w-full p-2 pl-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm text-gray-800 transition-all hover:border-blue-400 outline-none"
                     />
-                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     Last Name
                   </label>
                   <div className="relative">
@@ -159,15 +159,15 @@ const AdminManagement = () => {
                       value={formData.last_name}
                       onChange={handleChange}
                       placeholder="e.g., Doe"
-                      className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600 text-sm text-gray-800 transition-all hover:border-blue-400"
+                      className="w-full p-2 pl-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm text-gray-800 transition-all hover:border-blue-400 outline-none"
                     />
-                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                   Email Address
                 </label>
                 <div className="relative">
@@ -177,14 +177,14 @@ const AdminManagement = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="e.g., jane.doe@quickaid.com"
-                    className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600 text-sm text-gray-800 transition-all hover:border-blue-400"
+                    className="w-full p-2 pl-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm text-gray-800 transition-all hover:border-blue-400 outline-none"
                   />
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                   Username
                 </label>
                 <div className="relative">
@@ -193,14 +193,14 @@ const AdminManagement = () => {
                     value={formData.username}
                     onChange={handleChange}
                     placeholder="Enter username"
-                    className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600 text-sm text-gray-800 transition-all hover:border-blue-400"
+                    className="w-full p-2 pl-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm text-gray-800 transition-all hover:border-blue-400 outline-none"
                   />
-                  <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                   Password
                 </label>
                 <div className="relative">
@@ -210,18 +210,18 @@ const AdminManagement = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Create a strong password"
-                    className="w-full p-3 pr-10 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600 text-sm text-gray-800 transition-all hover:border-blue-400"
+                    className="w-full p-2 pr-9 pl-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm text-gray-800 transition-all hover:border-blue-400 outline-none"
                   />
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                   <button
                     type="button"
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
+                      <EyeOff className="h-3.5 w-3.5" />
                     ) : (
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3.5 w-3.5" />
                     )}
                   </button>
                 </div>
@@ -229,92 +229,128 @@ const AdminManagement = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-              <OutlineButton onClick={() => setShowModal(false)}>Cancel</OutlineButton>
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-blue-100">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-semibold transition-all hover:shadow-sm active:scale-[0.98] border border-gray-200"
+              >
+                Cancel
+              </button>
               <GradientButton onClick={handleSubmit}>
-                <Save className="w-4 h-4" />
+                <Save className="w-3.5 h-3.5" />
                 Register Staff
               </GradientButton>
             </div>
-          </Card>
+          </AnalyticsCard>
         </div>
       )}
 
-      {/* Edit Staff Modal - REDESIGNED */}
+      {/* Edit Staff Modal */}
       {editData && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
+          <AnalyticsCard className="w-full max-w-md">
             {/* Modal Header */}
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <Edit3 className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-blue-100">
+              <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                <Edit3 className="w-4 h-4 text-white" />
               </div>
-              <h2 className="text-xl font-semibold text-gray-800">Edit Staff Member</h2>
+              <div>
+                <h2 className="text-base font-bold text-gray-800">Edit Staff Member</h2>
+                <p className="text-xs text-gray-500">Update staff information</p>
+              </div>
             </div>
 
             {/* Modal Content */}
-            <div className="space-y-4">
-              <input
-                name="username"
-                value={editData.username}
-                onChange={e => setEditData({ ...editData, username: e.target.value })}
-                placeholder="Username"
-                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
-              />
-              <input
-                name="first_name"
-                value={editData.first_name}
-                onChange={e => setEditData({ ...editData, first_name: e.target.value })}
-                placeholder="First Name"
-                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
-              />
-              <input
-                name="last_name"
-                value={editData.last_name}
-                onChange={e => setEditData({ ...editData, last_name: e.target.value })}
-                placeholder="Last Name"
-                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
-              />
-              <input
-                name="email"
-                value={editData.email}
-                onChange={e => setEditData({ ...editData, email: e.target.value })}
-                placeholder="Email"
-                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
-              />
-              <div className="relative">
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  Username
+                </label>
                 <input
-                  name="password"
-                  type={showEditPassword ? "text" : "password"}
-                  placeholder="New password (optional)"
-                  onChange={e => setEditData({ ...editData, password: e.target.value })}
-                  className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
+                  name="username"
+                  value={editData.username}
+                  onChange={e => setEditData({ ...editData, username: e.target.value })}
+                  placeholder="Username"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm outline-none"
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowEditPassword(!showEditPassword)}
-                >
-                  {showEditPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  First Name
+                </label>
+                <input
+                  name="first_name"
+                  value={editData.first_name}
+                  onChange={e => setEditData({ ...editData, first_name: e.target.value })}
+                  placeholder="First Name"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  Last Name
+                </label>
+                <input
+                  name="last_name"
+                  value={editData.last_name}
+                  onChange={e => setEditData({ ...editData, last_name: e.target.value })}
+                  placeholder="Last Name"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  Email
+                </label>
+                <input
+                  name="email"
+                  value={editData.email}
+                  onChange={e => setEditData({ ...editData, email: e.target.value })}
+                  placeholder="Email"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  Password (Optional)
+                </label>
+                <div className="relative">
+                  <input
+                    name="password"
+                    type={showEditPassword ? "text" : "password"}
+                    placeholder="New password (leave blank to keep current)"
+                    onChange={e => setEditData({ ...editData, password: e.target.value })}
+                    className="w-full p-2 pr-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm outline-none"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                    onClick={() => setShowEditPassword(!showEditPassword)}
+                  >
+                    {showEditPassword ? (
+                      <EyeOff className="h-3.5 w-3.5" />
+                    ) : (
+                      <Eye className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
-              <OutlineButton onClick={() => setEditData(null)} className="flex-1">
+            <div className="flex gap-2 mt-4 pt-3 border-t border-blue-100">
+              <button
+                onClick={() => setEditData(null)}
+                className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-semibold transition-all hover:shadow-sm active:scale-[0.98] border border-gray-200"
+              >
                 Cancel
-              </OutlineButton>
+              </button>
               <GradientButton onClick={handleUpdate} className="flex-1">
-                <Save className="w-4 h-4" />
+                <Save className="w-3.5 h-3.5" />
                 Save Changes
               </GradientButton>
             </div>
-          </Card>
+          </AnalyticsCard>
         </div>
       )}
     </PageContainer>

@@ -1383,7 +1383,7 @@ def inactive_applicants(request):
     # Annotate latest application date for each person
     inactive_qs = (
         BackgroundInfo.objects.annotate(last_app=Max("applicant__date_filled"))
-        .filter(Q(last_app__lt=cutoff) | Q(last_app__isnull=True))
+        .filter(Q(last_app__lt=cutoff), applicant__isnull=False)
         .select_related()  # lightweight optimization
         .order_by("last_app")
     )

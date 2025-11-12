@@ -8,6 +8,7 @@ import {
   Calendar,
   BarChart2,
   LineChart,
+  Users,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -20,26 +21,33 @@ import {
 } from "recharts";
 import toast from "react-hot-toast";
 
-// Import Design System Components
+// Import Analytics Components
 import {
   PageContainer,
   PageHeader,
-  Card,
-  StatCard,
-  ChartCard,
-  Stack,
-  Grid,
-} from "../../components/DesignSystem";
+  AnalyticsStatCard,
+  AnalyticsChartCard,
+  AnalyticsGrid,
+  AnalyticsStack,
+  ChartContainer,
+  AnalyticsTable,
+  TableHeader,
+  TableHeaderCell,
+  TableBody,
+  TableRow,
+  TableCell,
+  Badge,
+} from "../../components/AnalyticsComponents";
 
-// Assistance Type Colors - KEPT UNCHANGED
+// Assistance Type Colors
 const ASSISTANCE_COLORS = {
-  medical: "text-blue-800 bg-blue-100",
-  educational: "text-green-800 bg-green-100",
-  burial: "text-yellow-800 bg-yellow-100",
-  default: "text-gray-800 bg-gray-100",
+  medical: "info",
+  educational: "success",
+  burial: "warning",
+  default: "default",
 };
 
-const getAssistanceTypeColor = type => {
+const getAssistanceTypeVariant = type => {
   const normalized = (type || "").toLowerCase();
   if (normalized.includes("medical")) return ASSISTANCE_COLORS.medical;
   if (normalized.includes("educational")) return ASSISTANCE_COLORS.educational;
@@ -48,7 +56,7 @@ const getAssistanceTypeColor = type => {
 };
 
 const Dashboard = () => {
-  // Fetch Logic - KEPT UNCHANGED
+  // Fetch Logic
   const fetcher = async url => (await api.get(url)).data;
 
   const {
@@ -85,7 +93,7 @@ const Dashboard = () => {
       style: { background: "#1e293b", color: "#f1f5f9" },
     });
 
-  // Data Processing - KEPT UNCHANGED
+  // Data Processing
   const daily = monthlyTrend?.daily ?? 0;
   const weekly = monthlyTrend?.weekly ?? 0;
   const monthly = monthlyTrend?.monthly ?? 0;
@@ -97,173 +105,176 @@ const Dashboard = () => {
       ]
     : [];
 
+  // Calculate growth percentage
+  const growthPercentage = growth
+    ? growth.previous_month > 0
+      ? (((growth.this_month - growth.previous_month) / growth.previous_month) * 100).toFixed(
+          1
+        )
+      : 0
+    : 0;
+
   return (
     <PageContainer>
-      <Stack spacing="lg">
-        {/* REDESIGNED: Using PageHeader from Design System */}
+      <AnalyticsStack spacing="lg">
         <PageHeader
           icon={LayoutDashboard}
           title="Operational Dashboard"
           subtitle="Comprehensive overview of QuickAid metrics and recent activities"
         />
 
-        {/* REDESIGNED: Using Grid and StatCard from Design System */}
-        <Grid cols={{ default: 1, sm: 2, lg: 3 }} gap="md">
-          <StatCard
+        <AnalyticsGrid cols={{ default: 1, sm: 2, lg: 3 }} gap="md">
+          <AnalyticsStatCard
             icon={Calendar}
             title="Daily Applicants"
             value={daily}
+            subtitle="Today's submissions"
             color="blue"
             isLoading={trendLoading}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={BarChart2}
             title="Weekly Applicants"
             value={weekly}
-            color="blue"
+            subtitle="Last 7 days"
+            color="green"
             isLoading={trendLoading}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={LineChart}
             title="Monthly Applicants"
             value={monthly}
-            color="blue"
+            subtitle="This month"
+            color="purple"
+            trend={parseFloat(growthPercentage)}
             isLoading={trendLoading}
           />
-        </Grid>
+        </AnalyticsGrid>
 
-        {/* REDESIGNED: Using ChartCard from Design System */}
-        <ChartCard
+        <AnalyticsChartCard
           icon={TrendingUp}
           title="Monthly Application Growth"
+          subtitle="Comparison of previous and current month"
           isLoading={growthLoading}
         >
-          <ResponsiveContainer width="100%" height={350}>
-            <RechartsLineChart
-              data={growthChartData}
-              margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-              <XAxis dataKey="name" stroke="#9ca3af" padding={{ left: 30, right: 30 }} />
-              <YAxis stroke="#9ca3af" />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: "8px",
-                  border: "none",
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                }}
-                labelStyle={{ fontWeight: "bold", color: "#1f2937" }}
-              />
-              <Line
-                type="monotone"
-                dataKey="count"
-                stroke="#2563eb"
-                strokeWidth={4}
-                dot={{ r: 6, fill: "#2563eb", stroke: "#fff", strokeWidth: 2 }}
-                activeDot={{ r: 8 }}
-              />
-            </RechartsLineChart>
-          </ResponsiveContainer>
-        </ChartCard>
+          <ChartContainer height={350}>
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsLineChart
+                data={growthChartData}
+                margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  stroke="#6b7280"
+                  padding={{ left: 30, right: 30 }}
+                  tick={{ fill: "#4b5563" }}
+                />
+                <YAxis stroke="#6b7280" tick={{ fill: "#4b5563" }} />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: "8px",
+                    border: "none",
+                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                    backgroundColor: "#ffffff",
+                  }}
+                  labelStyle={{ fontWeight: "bold", color: "#1f2937" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  dot={{ r: 6, fill: "#3b82f6", stroke: "#fff", strokeWidth: 2 }}
+                  activeDot={{ r: 8 }}
+                />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </AnalyticsChartCard>
 
-        {/* REDESIGNED: Using Grid and ChartCard from Design System */}
-        <Grid cols={{ default: 1, lg: 5 }} gap="lg">
+        <AnalyticsGrid cols={{ default: 1, lg: 5 }} gap="md">
           {/* Staff Leaderboard */}
           <div className="lg:col-span-2">
-            <ChartCard
+            <AnalyticsChartCard
               icon={Activity}
               title="Staff Activity Leaderboard"
+              subtitle="Top 5 performers"
               isLoading={staffLoading}
             >
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {staffActivity?.slice(0, 5).map((s, i) => (
                   <div
                     key={i}
-                    className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm transition-all duration-300 hover:shadow-md hover:border-blue-200"
+                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:shadow-sm hover:border-blue-300"
                   >
-                    <span
-                      className={`text-lg font-bold ${
-                        i < 3 ? "text-blue-600" : "text-gray-700"
-                      }`}
-                    >
-                      {i + 1}.
-                    </span>
-                    <span className="font-semibold text-gray-800 flex-grow ml-4">
-                      {s.staff__username}
-                    </span>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold shadow-sm">
-                      {s.count} Processed
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`text-base font-bold ${
+                          i < 3 ? "text-blue-600" : "text-gray-600"
+                        }`}
+                      >
+                        {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
+                      </span>
+                      <span className="font-semibold text-gray-800 text-sm">
+                        {s.staff__username}
+                      </span>
+                    </div>
+                    <Badge variant="info" className="text-xs">
+                      {s.count}
+                    </Badge>
                   </div>
                 ))}
               </div>
-            </ChartCard>
+            </AnalyticsChartCard>
           </div>
 
           {/* Recent Applicants */}
           <div className="lg:col-span-3">
-            <ChartCard
+            <AnalyticsChartCard
               icon={FileText}
               title="Recently Submitted Applications"
+              subtitle="Latest 5 submissions"
               isLoading={recentLoading}
             >
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="bg-blue-50 border-b-2 border-blue-100">
-                      <th className="p-4 text-left font-bold text-blue-800 uppercase tracking-wider">
-                        Applicant
-                      </th>
-                      <th className="p-4 text-center font-bold text-blue-800 uppercase tracking-wider hidden sm:table-cell">
-                        Barangay
-                      </th>
-                      <th className="p-4 text-center font-bold text-blue-800 uppercase tracking-wider hidden md:table-cell">
-                        Type
-                      </th>
-                      <th className="p-4 text-right font-bold text-blue-800 uppercase tracking-wider">
-                        Date
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentApplicants?.slice(0, 5).map((a, i) => {
-                      const typeClasses = getAssistanceTypeColor(a.type_of_assistance);
+              <AnalyticsTable>
+                <TableHeader>
+                  <TableHeaderCell>Applicant</TableHeaderCell>
+                  <TableHeaderCell className="hidden sm:table-cell">Barangay</TableHeaderCell>
+                  <TableHeaderCell className="hidden md:table-cell">Type</TableHeaderCell>
+                  <TableHeaderCell>Date</TableHeaderCell>
+                </TableHeader>
+                <TableBody>
+                  {recentApplicants?.slice(0, 5).map((a, i) => {
+                    const typeVariant = getAssistanceTypeVariant(a.type_of_assistance);
 
-                      return (
-                        <tr
-                          key={i}
-                          className="border-b border-gray-100 transition-colors duration-200 hover:bg-blue-50/50"
-                        >
-                          <td className="p-4 font-semibold text-gray-800">
-                            {a.background_info?.first_name} {a.background_info?.last_name}
-                          </td>
-                          <td className="p-4 text-center text-gray-600 hidden sm:table-cell">
-                            {a.background_info?.barangay}
-                          </td>
-                          <td className="p-4 text-center hidden md:table-cell">
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${typeClasses}`}
-                            >
-                              {a.type_of_assistance}
-                            </span>
-                          </td>
-                          <td className="p-4 text-right text-gray-500 text-xs font-medium">
-                            {new Date(a.date_filled).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </ChartCard>
+                    return (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium">
+                          {a.background_info?.first_name} {a.background_info?.last_name}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {a.background_info?.barangay}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <Badge variant={typeVariant}>{a.type_of_assistance}</Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {new Date(a.date_filled).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </AnalyticsTable>
+            </AnalyticsChartCard>
           </div>
-        </Grid>
-      </Stack>
+        </AnalyticsGrid>
+      </AnalyticsStack>
     </PageContainer>
   );
 };

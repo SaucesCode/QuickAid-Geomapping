@@ -32,18 +32,20 @@ import { api } from "../../services/api";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 import { useNavigate } from "react-router-dom";
 
-// Import Design System Components
+// Import Analytics Components
 import {
   PageContainer,
   PageHeader,
-  Card,
-  StatCard,
-  ChartCard,
-  AlertCard,
-  Stack,
-  Grid,
   GradientButton,
-} from "../../components/DesignSystem";
+  AnalyticsCard,
+  AnalyticsStatCard,
+  AnalyticsChartCard,
+  AnalyticsAlertCard,
+  AnalyticsGrid,
+  AnalyticsStack,
+  ChartContainer,
+  Badge,
+} from "../../components/AnalyticsComponents";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -52,7 +54,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
-// Assistance Type Colors - KEPT UNCHANGED
+// Assistance Type Colors
 const ASSISTANCE_COLORS = {
   Educational: "#10B981",
   Medical: "#3B82F6",
@@ -66,7 +68,7 @@ const Geographic = () => {
   const [filters, setFilters] = useState({});
   const navigate = useNavigate();
 
-  // Fetch logic - KEPT UNCHANGED
+  // Fetch logic
   const fetchData = async endpoint => {
     const params = new URLSearchParams();
     if (filters.start) params.append("start_date", filters.start);
@@ -119,7 +121,7 @@ const Geographic = () => {
     approvalLoading ||
     inactiveLoading;
 
-  // Data processing - KEPT UNCHANGED
+  // Data processing
   const validLocations = (locations || []).filter(loc => loc.latitude && loc.longitude);
   const totalApplicants = validLocations.length;
   const topBarangay =
@@ -211,8 +213,7 @@ const Geographic = () => {
 
   return (
     <PageContainer>
-      <Stack spacing="lg">
-        {/* REDESIGNED: Using PageHeader from Design System */}
+      <AnalyticsStack spacing="lg">
         <PageHeader
           icon={MapPin}
           title="Geographic Analytics"
@@ -228,54 +229,67 @@ const Geographic = () => {
 
         <AnalyticsFilter onFilterChange={setFilters} />
 
-        {/* REDESIGNED: Using Grid and StatCard from Design System */}
-        <Grid cols={{ default: 1, sm: 2, lg: 5 }} gap="md">
-          <StatCard
+        <AnalyticsGrid cols={{ default: 1, sm: 2, lg: 5 }} gap="md">
+          <AnalyticsStatCard
             icon={MapPin}
             title="Total Mapped"
             value={totalApplicants.toLocaleString()}
+            subtitle="Geocoded applicants"
             color="blue"
             isLoading={loading}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={Award}
             title="Top Barangay"
             value={topBarangay}
-            color="blue"
+            subtitle="Highest applications"
+            color="yellow"
+            badge="🏆"
             isLoading={loading}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={Building2}
             title="Barangays"
             value={barangayCount}
-            color="blue"
+            subtitle="Unique locations"
+            color="purple"
             isLoading={loading}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={Target}
             title="Avg Approval"
             value={`${avgApprovalRate}%`}
-            color="blue"
+            subtitle="Success rate"
+            color="green"
             isLoading={loading}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={Clock}
             title="Inactive"
             value={inactiveApplicants?.length || 0}
-            color="blue"
+            subtitle="6+ months"
+            color="red"
             isLoading={loading}
           />
-        </Grid>
+        </AnalyticsGrid>
 
-        {/* REDESIGNED: Using Card from Design System */}
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-blue-600" />
-              <h3 className="text-lg font-bold text-gray-900">Distribution Heatmap Preview</h3>
+        <AnalyticsCard>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                <MapPin className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-gray-800">
+                  Distribution Heatmap Preview
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Interactive geographic visualization
+                </p>
+              </div>
             </div>
           </div>
-          <div className="h-[350px] relative rounded-xl overflow-hidden">
+          <div className="h-[350px] relative rounded-xl overflow-hidden border border-gray-200">
             <MapContainer
               center={[13.9311, 121.5542]}
               zoom={10}
@@ -289,163 +303,188 @@ const Geographic = () => {
               <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
             </MapContainer>
           </div>
-        </Card>
+        </AnalyticsCard>
 
-        {/* REDESIGNED: Using Grid and ChartCard from Design System */}
-        <Grid cols={{ default: 1, lg: 2 }} gap="lg">
-          <ChartCard
+        <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+          <AnalyticsChartCard
             icon={BarChart3}
             title="Top Barangays by Applications"
+            subtitle="Leading areas by application volume"
             isLoading={loading}
           >
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart
-                data={topBarangays.slice(0, 8)}
-                margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
-              >
+            <ChartContainer height={280}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={topBarangays.slice(0, 8)}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis
+                    dataKey="background_info__barangay__name"
+                    tick={{ fontSize: 11, fill: "#4b5563" }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    interval={0}
+                  />
+                  <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
+                  <RechartsTooltip />
+                  <Bar dataKey="count" fill="url(#blueGradient)" radius={[8, 8, 0, 0]} />
+                  <defs>
+                    <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" />
+                      <stop offset="100%" stopColor="#6366f1" />
+                    </linearGradient>
+                  </defs>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
+
+          <AnalyticsChartCard
+            icon={TrendingUp}
+            title="Approval Rates by Location"
+            subtitle="Success rates across top regions"
+            isLoading={loading}
+          >
+            <ChartContainer height={280}>
+              <div className="flex items-center h-full">
+                <ResponsiveContainer width="60%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={90}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, value }) => `${value}%`}
+                      strokeWidth={3}
+                      stroke="#fff"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex-1 space-y-2">
+                  {pieData.map((item, index) => (
+                    <div
+                      key={item.name}
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                    >
+                      <div
+                        className="w-3 h-3 rounded-md shadow-sm"
+                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                      ></div>
+                      <span className="text-xs font-medium text-gray-700 flex-1">
+                        {item.name}
+                      </span>
+                      <span className="text-xs font-bold text-gray-900">{item.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </ChartContainer>
+          </AnalyticsChartCard>
+        </AnalyticsGrid>
+
+        <AnalyticsChartCard
+          icon={Activity}
+          title="Assistance Types Distribution by Barangay"
+          subtitle="Service breakdown across top 6 barangays"
+          isLoading={loading}
+        >
+          <ChartContainer height={350}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
                 <XAxis
-                  dataKey="background_info__barangay__name"
+                  dataKey="barangay"
                   tick={{ fontSize: 11, fill: "#4b5563" }}
                   angle={-45}
                   textAnchor="end"
-                  height={80}
+                  height={100}
                   interval={0}
                 />
                 <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
                 <RechartsTooltip />
-                <Bar dataKey="count" fill="url(#blueGradient)" radius={[8, 8, 0, 0]} />
-                <defs>
-                  <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" />
-                    <stop offset="100%" stopColor="#6366f1" />
-                  </linearGradient>
-                </defs>
+                <Bar
+                  dataKey="Medical"
+                  stackId="a"
+                  fill={ASSISTANCE_COLORS.Medical}
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="Educational"
+                  stackId="a"
+                  fill={ASSISTANCE_COLORS.Educational}
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="Burial"
+                  stackId="a"
+                  fill={ASSISTANCE_COLORS.Burial}
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
-          </ChartCard>
-
-          <ChartCard icon={TrendingUp} title="Approval Rates by Location" isLoading={loading}>
-            <div className="flex items-center">
-              <ResponsiveContainer width="60%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={90}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, value }) => `${value}%`}
-                    strokeWidth={3}
-                    stroke="#fff"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex-1 space-y-3">
-                {pieData.map((item, index) => (
-                  <div
-                    key={item.name}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                  >
-                    <div
-                      className="w-4 h-4 rounded-md shadow-sm"
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                    ></div>
-                    <span className="text-sm font-medium text-gray-700 flex-1">
-                      {item.name}
-                    </span>
-                    <span className="text-sm font-bold text-gray-900">{item.value}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </ChartCard>
-        </Grid>
-
-        <ChartCard
-          icon={Activity}
-          title="Assistance Types Distribution by Barangay"
-          isLoading={loading}
-        >
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-              <XAxis
-                dataKey="barangay"
-                tick={{ fontSize: 11, fill: "#4b5563" }}
-                angle={-45}
-                textAnchor="end"
-                height={100}
-                interval={0}
-              />
-              <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
-              <RechartsTooltip />
-              <Bar
-                dataKey="Medical"
-                stackId="a"
-                fill={ASSISTANCE_COLORS.Medical}
-                radius={[4, 4, 0, 0]}
-              />
-              <Bar
-                dataKey="Educational"
-                stackId="a"
-                fill={ASSISTANCE_COLORS.Educational}
-                radius={[4, 4, 0, 0]}
-              />
-              <Bar
-                dataKey="Burial"
-                stackId="a"
-                fill={ASSISTANCE_COLORS.Burial}
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-          <div className="flex justify-center flex-wrap gap-6 mt-4">
+          </ChartContainer>
+          <div className="flex justify-center flex-wrap gap-4 mt-3">
             {Object.entries(ASSISTANCE_COLORS).map(([key, color]) => (
-              <div key={key} className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-md" style={{ backgroundColor: color }}></div>
-                <span className="text-sm font-medium text-gray-700">{key}</span>
+              <div key={key} className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-md" style={{ backgroundColor: color }}></div>
+                <span className="text-xs font-medium text-gray-700">{key}</span>
               </div>
             ))}
           </div>
-        </ChartCard>
+        </AnalyticsChartCard>
 
-        {/* REDESIGNED: Using AlertCard from Design System */}
         {inactiveApplicants.length > 0 && (
-          <AlertCard
+          <AnalyticsAlertCard
             icon={Clock}
             title="Geographic Distribution Alert"
             description={`${inactiveApplicants.length} applicants from various locations haven't submitted new applications in over 6 months.`}
-            variant="info"
+            variant="warning"
           >
-            <Grid cols={{ default: 1, md: 3 }} gap="md">
+            <AnalyticsGrid cols={{ default: 1, sm: 2, md: 3 }} gap="sm">
               {inactiveApplicants.slice(0, 3).map(applicant => (
-                <Card key={applicant.id} className="hover:-translate-y-1 transition-all">
-                  <div className="font-bold text-gray-900 mb-1">{applicant.name}</div>
-                  <div className="text-sm text-gray-600 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    Last: {new Date(applicant.last_application).toLocaleDateString()}
+                <AnalyticsCard
+                  key={applicant.id}
+                  className="hover:-translate-y-0.5 transition-all cursor-pointer"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-gray-900 text-sm truncate mb-1">
+                        {applicant.name}
+                      </div>
+                      <div className="text-xs text-gray-600 flex items-center gap-1">
+                        <Clock className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">
+                          Last: {new Date(applicant.last_application).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <Badge variant="warning" className="flex-shrink-0">
+                      Inactive
+                    </Badge>
                   </div>
-                </Card>
+                </AnalyticsCard>
               ))}
-            </Grid>
+            </AnalyticsGrid>
             {inactiveApplicants.length > 3 && (
-              <div className="mt-4 flex items-center gap-2 text-blue-700">
+              <div className="mt-3 flex items-center justify-center gap-2 text-orange-700 bg-orange-50 rounded-lg p-2">
                 <Sparkles className="w-4 h-4" />
                 <span className="text-sm font-semibold">
                   +{inactiveApplicants.length - 3} more inactive applicants
                 </span>
               </div>
             )}
-          </AlertCard>
+          </AnalyticsAlertCard>
         )}
-      </Stack>
+      </AnalyticsStack>
     </PageContainer>
   );
 };

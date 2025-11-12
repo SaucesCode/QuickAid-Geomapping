@@ -29,19 +29,23 @@ import {
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 
-// Import Design System Components
+// Import Analytics Components
 import {
   PageContainer,
   PageHeader,
-  Card,
-  StatCard,
-  ChartCard,
-  AlertCard,
-  Stack,
-  Grid,
-} from "../../components/DesignSystem";
+  AnalyticsStatCard,
+  AnalyticsChartCard,
+  AnalyticsAlertCard,
+  AnalyticsGrid,
+  AnalyticsStack,
+  AnalyticsCard,
+  HeatmapCell,
+  HeatmapLegend,
+  ChartContainer,
+  InsightCard,
+} from "../../components/AnalyticsComponents";
 
-// Assistance Type Color Mapping - KEPT UNCHANGED
+// Assistance Type Color Mapping
 const ASSISTANCE_COLOR_MAP = {
   educational: "#10B981",
   medical: "#3B82F6",
@@ -63,7 +67,7 @@ const Trends = () => {
   const [filters, setFilters] = useState({});
   const [colorMap, setColorMap] = useState({});
 
-  // Fetch Logic - KEPT UNCHANGED
+  // Fetch Logic
   const fetchData = async endpoint => {
     const params = new URLSearchParams();
     if (filters.start) params.append("start_date", filters.start);
@@ -114,7 +118,7 @@ const Trends = () => {
     applicantHeatmap: applicantHeatmapLoading,
   };
 
-  // Data Transformations - KEPT UNCHANGED
+  // Data Transformations
   const transformMonthlyData = data =>
     data.map(item => ({
       month: new Date(item.month).toLocaleDateString("en-US", {
@@ -164,7 +168,6 @@ const Trends = () => {
   const transformApplicantHeatmap = data => {
     const hours = Array.from({ length: 24 }, (_, i) => ({
       hour: i,
-      label: `${i.toString().padStart(2, "0")}:00`,
       count: 0,
       intensity: 0,
     }));
@@ -188,28 +191,7 @@ const Trends = () => {
     return previous > 0 ? ((latest - previous) / previous) * 100 : 0;
   };
 
-  // HeatmapCell Component - KEPT UNCHANGED
-  const HeatmapCell = ({ hour, count, intensity }) => {
-    const getIntensityColor = intensity => {
-      if (intensity === 0) return "#F3F4F6";
-      if (intensity < 20) return "#E0F2FE";
-      if (intensity < 40) return "#93C5FD";
-      if (intensity < 60) return "#3B82F6";
-      if (intensity < 80) return "#1D4ED8";
-      return "#B91C1C";
-    };
-    return (
-      <div
-        className="flex flex-col items-center p-2 rounded-lg border border-gray-100 transition-all shadow-sm hover:shadow-md hover:scale-[1.02]"
-        style={{ backgroundColor: getIntensityColor(intensity) }}
-      >
-        <span className="text-xs font-medium text-gray-700">{hour.label}</span>
-        <span className="text-sm font-bold text-gray-800">{count}</span>
-      </div>
-    );
-  };
-
-  // Dynamic Color Mapping - KEPT UNCHANGED
+  // Dynamic Color Mapping
   useEffect(() => {
     if (assistanceTypeData.length > 0) {
       const uniqueTypes = [
@@ -241,7 +223,7 @@ const Trends = () => {
   );
   const transformedApplicantHeatmap = transformApplicantHeatmap(applicantHeatmap);
 
-  // Calculated Stats - KEPT UNCHANGED
+  // Calculated Stats
   const isCumulativeLoaded = !loadingStates.cumulative;
   const isMonthlyLoaded = !loadingStates.monthly;
   const isAssistanceTypeLoaded = !loadingStates.assistanceType;
@@ -272,8 +254,7 @@ const Trends = () => {
 
   return (
     <PageContainer>
-      <Stack spacing="lg">
-        {/* REDESIGNED: Using PageHeader from Design System */}
+      <AnalyticsStack spacing="md">
         <PageHeader
           icon={TrendingUp}
           title="Application Trends Analysis"
@@ -282,9 +263,9 @@ const Trends = () => {
 
         <AnalyticsFilter onFilterChange={setFilters} />
 
-        {/* REDESIGNED: Using Grid and StatCard from Design System */}
-        <Grid cols={{ default: 1, md: 2, lg: 4 }} gap="md">
-          <StatCard
+        {/* Stats Cards */}
+        <AnalyticsGrid cols={{ default: 1, md: 2, lg: 4 }} gap="md">
+          <AnalyticsStatCard
             icon={FileText}
             title="Total Applications"
             value={
@@ -296,7 +277,7 @@ const Trends = () => {
             color="blue"
             isLoading={!isCumulativeLoaded}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={TrendingUp}
             title="Monthly Growth"
             value={
@@ -309,7 +290,7 @@ const Trends = () => {
             color="green"
             isLoading={!isMonthlyLoaded}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={BarChart3}
             title="Monthly Average"
             value={
@@ -321,7 +302,7 @@ const Trends = () => {
             color="yellow"
             isLoading={!isMonthlyLoaded}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={Target}
             title="Top Assistance"
             value={mostPopularAssistance.type_of_assistance}
@@ -329,259 +310,250 @@ const Trends = () => {
             color="purple"
             isLoading={!isAssistanceTypeLoaded}
           />
-        </Grid>
+        </AnalyticsGrid>
 
-        {/* REDESIGNED: Using Grid and ChartCard from Design System */}
-        <Grid cols={{ default: 1, lg: 2 }} gap="lg">
-          <ChartCard
+        {/* Chart Row 1 */}
+        <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+          <AnalyticsChartCard
             icon={Calendar}
             title="Monthly Trends (Last 12 Months)"
             isLoading={loadingStates.monthly}
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={transformedMonthlyData}>
-                <defs>
-                  <linearGradient id="monthlyGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis dataKey="month" fontSize={12} tick={{ fill: "#4b5563" }} />
-                <YAxis tick={{ fill: "#4b5563" }} />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#3B82F6"
-                  fill="url(#monthlyGradient)"
-                  strokeWidth={2}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </ChartCard>
+            <ChartContainer height={250}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={transformedMonthlyData}>
+                  <defs>
+                    <linearGradient id="monthlyGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="month" fontSize={11} tick={{ fill: "#4b5563" }} />
+                  <YAxis fontSize={11} tick={{ fill: "#4b5563" }} />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#3B82F6"
+                    fill="url(#monthlyGradient)"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
 
-          <ChartCard
+          <AnalyticsChartCard
             icon={BarChart3}
             title="Yearly Application Volume"
             isLoading={loadingStates.yearly}
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={transformedYearlyData}>
-                <defs>
-                  <linearGradient id="yearlyGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1e40af" />
-                    <stop offset="100%" stopColor="#3b82f6" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis dataKey="year" tick={{ fill: "#4b5563" }} />
-                <YAxis tick={{ fill: "#4b5563" }} />
-                <Tooltip />
-                <Bar dataKey="count" fill="url(#yearlyGradient)" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </Grid>
+            <ChartContainer height={250}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={transformedYearlyData}>
+                  <defs>
+                    <linearGradient id="yearlyGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#1e40af" />
+                      <stop offset="100%" stopColor="#3b82f6" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="year" fontSize={11} tick={{ fill: "#4b5563" }} />
+                  <YAxis fontSize={11} tick={{ fill: "#4b5563" }} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="url(#yearlyGradient)" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
+        </AnalyticsGrid>
 
-        <Grid cols={{ default: 1, lg: 2 }} gap="lg">
-          <ChartCard
+        {/* Chart Row 2 */}
+        <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+          <AnalyticsChartCard
             icon={Clock}
             title="Daily Application Trends"
             isLoading={loadingStates.overtime}
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={transformedOvertimeData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis
-                  dataKey="date"
-                  fontSize={11}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                  tick={{ fill: "#4b5563" }}
-                />
-                <YAxis tick={{ fill: "#4b5563" }} />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#EF4444"
-                  strokeWidth={3}
-                  dot={{ fill: "#EF4444", stroke: "#fff", strokeWidth: 2, r: 5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartCard>
+            <ChartContainer height={250}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={transformedOvertimeData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis
+                    dataKey="date"
+                    fontSize={10}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                    tick={{ fill: "#4b5563" }}
+                  />
+                  <YAxis fontSize={11} tick={{ fill: "#4b5563" }} />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#EF4444"
+                    strokeWidth={2}
+                    dot={{ fill: "#EF4444", stroke: "#fff", strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
 
-          <ChartCard
+          <AnalyticsChartCard
             icon={TrendingUp}
             title="Cumulative Growth"
             isLoading={loadingStates.cumulative}
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={transformedCumulativeData}>
-                <defs>
-                  <linearGradient id="cumulativeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#6366F1" stopOpacity={0.1} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis
-                  dataKey="date"
-                  fontSize={11}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                  tick={{ fill: "#4b5563" }}
-                />
-                <YAxis tick={{ fill: "#4b5563" }} />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="cumulative"
-                  stroke="#6366F1"
-                  fill="url(#cumulativeGradient)"
-                  strokeWidth={3}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </Grid>
+            <ChartContainer height={250}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={transformedCumulativeData}>
+                  <defs>
+                    <linearGradient id="cumulativeGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#6366F1" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis
+                    dataKey="date"
+                    fontSize={10}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                    tick={{ fill: "#4b5563" }}
+                  />
+                  <YAxis fontSize={11} tick={{ fill: "#4b5563" }} />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="cumulative"
+                    stroke="#6366F1"
+                    fill="url(#cumulativeGradient)"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
+        </AnalyticsGrid>
 
-        <Grid cols={{ default: 1, lg: 2 }} gap="lg">
-          <ChartCard
+        {/* Chart Row 3 */}
+        <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+          <AnalyticsChartCard
             icon={Target}
             title="Assistance Type Distribution"
             isLoading={loadingStates.assistanceType}
           >
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
-                <Pie
-                  data={assistanceTypeData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={120}
-                  dataKey="count"
-                  nameKey="type_of_assistance"
-                  stroke="#fff"
-                >
-                  {assistanceTypeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={colorMap[entry.type_of_assistance]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartCard>
+            <ChartContainer height={250}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={assistanceTypeData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={90}
+                    dataKey="count"
+                    nameKey="type_of_assistance"
+                    stroke="#fff"
+                  >
+                    {assistanceTypeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={colorMap[entry.type_of_assistance]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: "12px" }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
 
-          <ChartCard
+          <AnalyticsChartCard
             icon={BarChart3}
             title="Assistance Types Over Time"
             isLoading={loadingStates.assistanceTypeOverTime}
           >
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={transformedAssistanceOverTime}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis dataKey="month" tick={{ fill: "#4b5563" }} />
-                <YAxis tick={{ fill: "#4b5563" }} />
-                <Tooltip />
-                <Legend />
-                {Object.keys(transformedAssistanceOverTime[0] || {})
-                  .filter(key => key !== "month")
-                  .map((key, index) => (
-                    <Bar key={key} dataKey={key} fill={colorMap[key]} radius={[4, 4, 0, 0]} />
-                  ))}
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </Grid>
+            <ChartContainer height={250}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={transformedAssistanceOverTime}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="month" fontSize={11} tick={{ fill: "#4b5563" }} />
+                  <YAxis fontSize={11} tick={{ fill: "#4b5563" }} />
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: "11px" }} />
+                  {Object.keys(transformedAssistanceOverTime[0] || {})
+                    .filter(key => key !== "month")
+                    .map((key, index) => (
+                      <Bar
+                        key={key}
+                        dataKey={key}
+                        fill={colorMap[key]}
+                        radius={[4, 4, 0, 0]}
+                      />
+                    ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
+        </AnalyticsGrid>
 
-        {/* REDESIGNED: Using ChartCard from Design System */}
-        <ChartCard
+        {/* Heatmap */}
+        <AnalyticsChartCard
           icon={Clock}
           title="Applicant Activity Heatmap (by Hour)"
           isLoading={loadingStates.applicantHeatmap}
         >
-          <div className="grid grid-cols-6 sm:grid-cols-12 xl:grid-cols-24 gap-2">
+          <div className="grid grid-cols-6 sm:grid-cols-12 xl:grid-cols-24 gap-1.5">
             {transformedApplicantHeatmap.map((hour, index) => (
               <HeatmapCell key={index} {...hour} />
             ))}
           </div>
-          <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-gray-600">
-            <div className="flex items-center space-x-1">
-              <div className="w-4 h-4 bg-gray-200 rounded-full border border-gray-300"></div>
-              <span>Low Activity (0)</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-4 h-4 bg-blue-600 rounded-full shadow-inner"></div>
-              <span>Medium Activity</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-4 h-4 bg-red-700 rounded-full shadow-md"></div>
-              <span>High Activity (Max)</span>
-            </div>
-          </div>
-        </ChartCard>
+          <HeatmapLegend className="mt-4" />
+        </AnalyticsChartCard>
 
-        {/* REDESIGNED: Using AlertCard from Design System */}
-        <AlertCard
+        {/* Insights */}
+        <AnalyticsAlertCard
           icon={AlertCircle}
           title="Trend Analysis Summary & Key Insights"
           description="A snapshot of the most critical temporal and service-related patterns identified in the data."
           variant="info"
         >
-          <Grid cols={{ default: 1, md: 3 }} gap="md">
-            <Card>
-              <h3 className="font-semibold text-blue-800 mb-2">Growth Pattern</h3>
-              {loadingStates.monthly ? (
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-              ) : (
-                <p className="text-gray-700 text-sm">
-                  The current application volume shows a{" "}
-                  <span
-                    className={`font-bold ${
-                      monthlyGrowth >= 0 ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {monthlyGrowth >= 0 ? "Positive" : "Negative"} growth trend
-                  </span>{" "}
-                  with {Math.abs(monthlyGrowth).toFixed(1)}% change vs. previous month.
-                </p>
-              )}
-            </Card>
+          <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="md">
+            <InsightCard title="Growth Pattern" isLoading={loadingStates.monthly}>
+              <p className="text-gray-700">
+                The current application volume shows a{" "}
+                <span
+                  className={`font-bold ${
+                    monthlyGrowth >= 0 ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {monthlyGrowth >= 0 ? "Positive" : "Negative"} growth trend
+                </span>{" "}
+                with {Math.abs(monthlyGrowth).toFixed(1)}% change vs. previous month.
+              </p>
+            </InsightCard>
 
-            <Card>
-              <h3 className="font-semibold text-blue-800 mb-2">Peak Activity</h3>
-              {loadingStates.monthly ? (
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-              ) : (
-                <p className="text-gray-700 text-sm">
-                  The dashboard maintains an average of{" "}
-                  {averageMonthlyApplications.toLocaleString()} applications per month,
-                  indicating steady demand.
-                </p>
-              )}
-            </Card>
+            <InsightCard title="Peak Activity" isLoading={loadingStates.monthly}>
+              <p className="text-gray-700">
+                The dashboard maintains an average of{" "}
+                {averageMonthlyApplications.toLocaleString()} applications per month,
+                indicating steady demand.
+              </p>
+            </InsightCard>
 
-            <Card>
-              <h3 className="font-semibold text-blue-800 mb-2">Service Demand</h3>
-              {loadingStates.assistanceType ? (
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-              ) : (
-                <p className="text-gray-700 text-sm">
-                  The most demanded service is {mostPopularAssistance.type_of_assistance} with{" "}
-                  {mostPopularAssistance.count} requests.
-                </p>
-              )}
-            </Card>
-          </Grid>
-        </AlertCard>
-      </Stack>
+            <InsightCard title="Service Demand" isLoading={loadingStates.assistanceType}>
+              <p className="text-gray-700">
+                The most demanded service is {mostPopularAssistance.type_of_assistance} with{" "}
+                {mostPopularAssistance.count} requests.
+              </p>
+            </InsightCard>
+          </AnalyticsGrid>
+        </AnalyticsAlertCard>
+      </AnalyticsStack>
     </PageContainer>
   );
 };

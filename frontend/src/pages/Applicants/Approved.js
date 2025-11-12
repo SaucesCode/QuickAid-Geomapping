@@ -27,6 +27,8 @@ import {
   H2,
   BodyText,
 } from "../../components/DesignSystem";
+import toast, { Toaster } from "react-hot-toast";
+import CustomToast from "../../components/CustomToast";
 
 // --- API Helpers ---
 const fetchBatches = async () => {
@@ -69,12 +71,6 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
     enabled: isExpanded,
     staleTime: 1000 * 60 * 5,
   });
-
-  const hasActiveFilters =
-    filters.city || filters.barangay || filters.type || (filters.start && filters.end);
-
-  const clearFilters = () =>
-    setFilters({ city: "", barangay: "", type: "", start: "", end: "" });
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all">
@@ -150,14 +146,6 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
             {showFilters && (
               <div className="space-y-3">
                 <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
-                {hasActiveFilters && (
-                  <OutlineButton
-                    onClick={clearFilters}
-                    className="w-full text-red-600 border-red-300 hover:bg-red-50"
-                  >
-                    <X className="w-4 h-4" /> Clear All Filters
-                  </OutlineButton>
-                )}
               </div>
             )}
           </div>
@@ -242,9 +230,24 @@ const Approved = () => {
 
   const uploadMutation = useMutation({
     mutationFn: uploadApprovedFile,
-    onSuccess: () => {
+    onSuccess: data => {
       queryClient.invalidateQueries(["approved-batches"]);
       setFile(null);
+      toast.custom(
+        t => (
+          <CustomToast
+            t={t}
+            type="upload"
+            customMessage={`Processed ${data.total_processed || 0} records, ${
+              data.total_approved || 0
+            } approved.`}
+          />
+        ),
+        { duration: 4000 }
+      );
+    },
+    onError: error => {
+      toast.error(error?.message || "Upload failed. Please try again.");
     },
   });
 
@@ -257,6 +260,7 @@ const Approved = () => {
   // --- Render ---
   return (
     <PageContainer>
+      <Toaster position="top-center" reverseOrder={false} />
       <PageHeader
         icon={CheckCircle}
         title="Approved Applicants"
@@ -341,26 +345,6 @@ const Approved = () => {
             <Upload className="w-5 h-5" /> Upload File
           </GradientButton>
         </div>
-
-        {/* Upload Result */}
-        {uploadMutation.data && (
-          <Card className="mt-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-            <H2 className="text-green-800 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              Upload Successful!
-            </H2>
-            <div className="grid grid-cols-2 gap-4 mt-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <BodyText>Approved: {uploadMutation.data.total_approved ?? 0}</BodyText>
-              </div>
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-blue-600" />
-                <BodyText>Processed: {uploadMutation.data.total_processed ?? 0}</BodyText>
-              </div>
-            </div>
-          </Card>
-        )}
 
         {uploadMutation.isError && (
           <Card className="mt-6 bg-red-50 border-red-200 text-red-800">

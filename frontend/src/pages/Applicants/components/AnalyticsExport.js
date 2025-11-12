@@ -15,6 +15,8 @@ import {
   BarChart3,
 } from "lucide-react";
 import FilterGroup from "./FilterGroup";
+import toast, { Toaster } from "react-hot-toast";
+import CustomToast from "../../../components/CustomToast";
 
 const AnalyticsExport = () => {
   // Form state
@@ -94,11 +96,13 @@ const AnalyticsExport = () => {
   const analyticsMutation = useMutation({
     mutationFn: exportAnalytics,
     onSuccess: () => {
-      alert("✅ Analytics report exported successfully!");
+      toast.custom(t => <CustomToast t={t} type="analyticsExport" />, { duration: 4000 });
     },
     onError: err => {
       console.error("Analytics export failed:", err);
-      alert(`❌ Analytics export failed: ${err.message}`);
+      toast.error(`Analytics export failed: ${err.message}`, {
+        duration: 5000,
+      });
     },
   });
 
@@ -150,6 +154,7 @@ const AnalyticsExport = () => {
 
   return (
     <div className="space-y-6">
+      <Toaster position="top-right" reverseOrder={false} />
       {/* Info Banner */}
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex items-start gap-3">
         <BarChart3 className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />

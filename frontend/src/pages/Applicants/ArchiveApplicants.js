@@ -30,6 +30,8 @@ import {
   H2,
   BodyText,
 } from "../../components/DesignSystem";
+import toast, { Toaster } from "react-hot-toast";
+import CustomToast from "../../components/CustomToast";
 
 // --- Skeleton Loader ---
 const SkeletonRow = () => (
@@ -88,9 +90,18 @@ const ArchiveApplicants = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(["archived-applicants"]);
       setRestoreModal({ show: false, applicantId: null });
-      alert("✅ Applicant restored successfully!");
+
+      // ✅ Custom restore toast
+      toast.custom(t => <CustomToast t={t} type="restore" />, {
+        duration: 4000,
+      });
     },
-    onError: () => alert("❌ Failed to restore applicant. Please try again."),
+    onError: () => {
+      toast.error("Failed to restore applicant. Please try again.", {
+        duration: 5000,
+        position: "top-right",
+      });
+    },
   });
 
   const handleRestore = () => {
@@ -134,6 +145,7 @@ const ArchiveApplicants = () => {
 
   return (
     <PageContainer>
+      <Toaster position="top-center" reverseOrder={false} />
       {/* Header */}
       <PageHeader
         icon={Archive}

@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Calendar, Filter, RotateCcw } from "lucide-react";
+import React, { useState } from "react";
+import { Calendar, Filter, RotateCcw, MapPin, Building2, Tags } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../../services/api";
 
 const ApplicantsFilter = ({ filters, onFilterChange }) => {
-  // Define a consistent, professional style for all select/input elements
-  const filterInputClass =
-    "w-full sm:w-auto border border-blue-300 rounded-lg px-3 py-2 bg-white text-gray-700 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm outline-none disabled:opacity-50 disabled:bg-blue-50/50";
+  const [localFilters, setLocalFilters] = useState(filters);
 
-  // Fetch city and barangay list dynamically
+  // Fetch cities
   const { data: cities = [], isFetching: isFetchingCities } = useQuery({
     queryKey: ["citiesWithApplicants"],
     queryFn: async () => {
@@ -20,121 +18,180 @@ const ApplicantsFilter = ({ filters, onFilterChange }) => {
 
   // Fetch barangays for selected city
   const { data: barangays = [], isFetching: isFetchingBarangays } = useQuery({
-    queryKey: ["barangaysByCity", filters.city],
+    queryKey: ["barangaysByCity", localFilters.city],
     queryFn: async () => {
-      if (!filters.city) return [];
-      const res = await api.get(`/applicant-locations/filters/?city=${filters.city}`);
+      if (!localFilters.city) return [];
+      const res = await api.get(`/applicant-locations/filters/?city=${localFilters.city}`);
       return res.data.barangays || [];
     },
-    enabled: !!filters.city,
+    enabled: !!localFilters.city,
     staleTime: 1000 * 60 * 5,
   });
 
+  const handleChange = (field, value) => {
+    setLocalFilters(prev => ({ ...prev, [field]: value }));
+    if (field === "city") {
+      setLocalFilters(prev => ({ ...prev, barangay: "" }));
+    }
+  };
+
   const handleReset = () => {
-    onFilterChange({
-      city: "",
-      barangay: "",
-      type: "",
-      start: "",
-      end: "",
-    });
+    const cleared = { city: "", barangay: "", type: "", start: "", end: "" };
+    setLocalFilters(cleared);
+    onFilterChange?.(cleared);
+  };
+
+  const handleApply = () => {
+    onFilterChange(localFilters);
   };
 
   return (
-    // Outer container (uses the consistent card style from ArchiveApplicants.js)
-    <div className="bg-white bg-opacity-90 backdrop-blur-xl shadow-xl rounded-3xl border border-blue-200 p-4 sm:p-5">
-      
-      {/* Responsive Filter Container: Stacks vertically on mobile, wraps horizontally on larger screens */}
-      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
-        
-        {/* Filter Title/Icon (Stays on the left on larger screens) */}
-        <div className="flex items-center gap-2 text-lg text-blue-700 font-semibold flex-shrink-0 sm:pr-4">
-          <Filter className="w-5 h-5 text-blue-500" /> 
-          <span className="hidden sm:inline">Filters:</span>
+    <div>
+      <div className="flex items-center gap-2 mb-4">
+        <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+          <Filter className="w-4 h-4 text-white" />
         </div>
+        <div>
+          <h3 className="text-base font-bold text-gray-800">Filters</h3>
+          <p className="text-xs text-gray-500">Refine your applicants search</p>
+        </div>
+      </div>
 
-        {/* City Filter */}
-        <select
-          value={filters.city}
-          onChange={e => onFilterChange({ ...filters, city: e.target.value, barangay: "" })}
-          className={filterInputClass}
+      <div className="flex flex-wrap items-end gap-3">
+        {/* City */}
+        <FilterSelect
+          icon={MapPin}
+          label="City"
+          value={localFilters.city}
+          onChange={value => handleChange("city", value)}
+          disabled={isFetchingCities}
+        >
+          <option value="">{isFetchingCities ? "Loading..." : "All Cities"}</option>
+          {cities.map(city => (
+            <option key={city} value={city}>
+              {city}
+            </option>
+          ))}
+        </FilterSelect>
+
+        {/* Barangay */}
+        <FilterSelect
+          icon={Building2}
+          label="Barangay"
+          value={localFilters.barangay}
+          onChange={value => handleChange("barangay", value)}
+          disabled={!localFilters.city || isFetchingBarangays}
         >
           <option value="">
-            {isFetchingCities ? "Loading Cities..." : "All Cities"}
-          </option>
-          {!isFetchingCities &&
-            cities.map(city => (
-              <option key={city} value={city}>
-                {city}
-              </option>
-            ))}
-        </select>
-
-        {/* Barangay Filter */}
-        <select
-          value={filters.barangay}
-          onChange={e => onFilterChange({ ...filters, barangay: e.target.value })}
-          disabled={!filters.city || isFetchingBarangays}
-          className={filterInputClass}
-        >
-          <option value="">
-            {filters.city
+            {localFilters.city
               ? isFetchingBarangays
-                ? "Loading Barangays..."
+                ? "Loading..."
                 : "All Barangays"
               : "Select City First"}
           </option>
-          {!isFetchingBarangays &&
-            barangays.map(b => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-        </select>
+          {barangays.map(b => (
+            <option key={b} value={b}>
+              {b}
+            </option>
+          ))}
+        </FilterSelect>
 
-        {/* Type of Assistance Filter */}
-        <select
-          value={filters.type}
-          onChange={e => onFilterChange({ ...filters, type: e.target.value })}
-          className={filterInputClass}
+        {/* Assistance Type */}
+        <FilterSelect
+          icon={Tags}
+          label="Assistance Type"
+          value={localFilters.type}
+          onChange={value => handleChange("type", value)}
         >
-          <option value="">All Assistance Types</option>
+          <option value="">All Types</option>
           <option value="Medical">Medical</option>
           <option value="Educational">Educational</option>
           <option value="Burial">Burial</option>
-        </select>
+        </FilterSelect>
 
-        {/* Date Range Inputs (use a flex group for consistency and responsiveness) */}
-        <div className="flex items-center gap-2 flex-grow sm:flex-grow-0">
-          <Calendar className="w-5 h-5 text-blue-500 flex-shrink-0 hidden sm:block" />
-          <input
-            type="date"
-            value={filters.start}
-            onChange={e => onFilterChange({ ...filters, start: e.target.value })}
-            className={`${filterInputClass} flex-1`}
-            aria-label="Start Date"
-          />
-          <span className="text-gray-500 hidden sm:block">to</span>
-          <input
-            type="date"
-            value={filters.end}
-            onChange={e => onFilterChange({ ...filters, end: e.target.value })}
-            className={`${filterInputClass} flex-1`}
-            aria-label="End Date"
-          />
+        {/* Date Range */}
+        <DateInput
+          icon={Calendar}
+          label="Start Date"
+          value={localFilters.start}
+          onChange={value => handleChange("start", value)}
+        />
+        <DateInput
+          icon={Calendar}
+          label="End Date"
+          value={localFilters.end}
+          onChange={value => handleChange("end", value)}
+        />
+
+        {/* Buttons */}
+        <div className="flex gap-2 ml-auto">
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-semibold transition-all hover:shadow-sm active:scale-[0.98] border border-gray-200"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Reset
+          </button>
+          <button
+            onClick={handleApply}
+            className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 rounded-lg text-sm font-semibold transition-all hover:shadow-md active:scale-[0.98] shadow-sm"
+          >
+            <Filter className="w-3.5 h-3.5" />
+            Apply
+          </button>
         </div>
-
-        {/* Reset Button (Pushed to the far right on large screens) */}
-        <button
-          onClick={handleReset}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-blue-600 font-semibold border border-blue-400 hover:bg-blue-50 transition-colors flex-shrink-0"
-        >
-          <RotateCcw className="w-4 h-4" /> 
-          Reset Filters
-        </button>
       </div>
     </div>
   );
 };
+
+const FilterSelect = ({ icon: Icon, label, value, onChange, disabled, children }) => (
+  <div className="flex flex-col min-w-[140px]">
+    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+      {Icon && <Icon className="w-3 h-3" />}
+      {label}
+    </label>
+    <div className="relative">
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        disabled={disabled}
+        className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 appearance-none cursor-pointer pr-8 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50"
+      >
+        {children}
+      </select>
+      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+        <svg
+          className="w-4 h-4 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+);
+
+const DateInput = ({ icon: Icon, label, value, onChange }) => (
+  <div className="flex flex-col min-w-[140px]">
+    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+      {Icon && <Icon className="w-3 h-3" />}
+      {label}
+    </label>
+    <input
+      type="date"
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 cursor-pointer"
+    />
+  </div>
+);
 
 export default ApplicantsFilter;
