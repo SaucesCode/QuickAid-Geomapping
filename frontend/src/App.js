@@ -46,6 +46,7 @@ import StaffQR from "./components/StaffQR";
 import eligibility from "./pages/print/CertificateOfEligibility";
 import CertificateOfEligibility from "./pages/print/CertificateOfEligibility";
 import GeneralIntakeSheet from "./pages/print/Intakesheet";
+import { Toaster } from "react-hot-toast";
 
 const queryClient = new QueryClient();
 
@@ -110,6 +111,7 @@ function App() {
           </Route>
         </Routes>
       </div>
+      <Toaster position="top-center" reverseOrder={false} />
     </QueryClientProvider>
   );
 }

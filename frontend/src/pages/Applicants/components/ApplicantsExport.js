@@ -138,7 +138,6 @@ const ApplicantExport = () => {
 
   return (
     <div className="space-y-6">
-      <Toaster position="top-right" reverseOrder={false} />
       {/* Info Banner */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
         <FileSpreadsheet className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
