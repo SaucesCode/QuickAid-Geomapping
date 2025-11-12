@@ -43,6 +43,10 @@ const MultiStepForm = () => {
   const [cancelModal, setCancelModal] = useState({ show: false });
   const [formData, setFormData] = useState(initialFormData);
 
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get("k");
+  const staffRef = encoded ? atob(encoded) : null;
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
@@ -80,6 +84,7 @@ const MultiStepForm = () => {
     handleChange,
     nextStep,
     prevStep: step > 1 ? prevStep : undefined,
+    staffRef,
     ...(step === 2 && { setFormData }),
     ...(step === 3 && { setFormData }),
   };
