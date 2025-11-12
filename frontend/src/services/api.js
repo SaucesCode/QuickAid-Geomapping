@@ -135,7 +135,16 @@ export const checkTokenValidity = () => {
 export const submitApplicant = async data => {
   try {
     const urlParams = new URLSearchParams(window.location.search);
-    const staffRefCode = urlParams.get("staff_ref_code");
+    let staffRefCode = data.staff_ref_code || urlParams.get("staff_ref_code");
+
+    const encoded = urlParams.get("k");
+    if (!staffRefCode && encoded) {
+      try {
+        staffRefCode = atob(encoded);
+      } catch (e) {
+        console.error("Invalid encoded staff code:", e);
+      }
+    }
 
     const background_info = {
       first_name: data.first_name,
