@@ -21,7 +21,7 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
       navigate("/print", { state: { applicant: data } });
       toast.custom(t => <CustomToast t={t} type="submit" />, {
         duration: 4000,
-        position: "top-right",
+        position: "top-center",
       });
     } catch (error) {
       console.error("Submission Error:", error);

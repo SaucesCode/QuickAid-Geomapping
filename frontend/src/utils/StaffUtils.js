@@ -4,5 +4,5 @@ export const getStaffFormLink = () => {
   if (!user) return null;
   const encoded = btoa(user.ref_code);
 
-  return `${process.env.REACT_APP_BASE_URL}/apply?k=${encoded}`;
+  return `/apply?k=${encoded}`;
 };
