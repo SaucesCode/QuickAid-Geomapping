@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 const Pagination = ({
   currentPage,
@@ -12,32 +12,68 @@ const Pagination = ({
   indexOfLastItem,
 }) => {
   return (
-    <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50">
-      <div className="flex items-center gap-4">
-        <span className="text-sm text-gray-600">
-          Showing {indexOfFirstItem + 1} to{" "}
-          {Math.min(indexOfLastItem, totalItems)} of {totalItems} entries
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-blue-100 bg-gradient-to-r from-gray-50 to-blue-50">
+      {/* Left Section: Items Info & Per Page Selector */}
+      <div className="flex items-center gap-3 text-sm">
+        <span className="text-gray-600 font-medium">
+          Showing <span className="font-bold text-gray-800">{indexOfFirstItem + 1}</span> to{" "}
+          <span className="font-bold text-gray-800">
+            {Math.min(indexOfLastItem, totalItems)}
+          </span>{" "}
+          of <span className="font-bold text-gray-800">{totalItems}</span> entries
         </span>
-        <select
-          value={itemsPerPage}
-          onChange={handleItemsPerPageChange}
-          className="text-sm border border-gray-200 rounded-lg px-3 py-1 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-        >
-          <option value={10}>10 per page</option>
-          <option value={20}>20 per page</option>
-          <option value={50}>50 per page</option>
-          <option value={100}>100 per page</option>
-        </select>
+        <div className="relative">
+          <select
+            value={itemsPerPage}
+            onChange={handleItemsPerPageChange}
+            className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 pr-8 bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none appearance-none cursor-pointer hover:border-blue-400 transition-all"
+          >
+            <option value={10}>10 per page</option>
+            <option value={20}>20 per page</option>
+            <option value={50}>50 per page</option>
+            <option value={100}>100 per page</option>
+          </select>
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+            <svg
+              className="w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </div>
       </div>
-      <div className="flex items-center gap-2">
+
+      {/* Right Section: Pagination Controls */}
+      <div className="flex items-center gap-1.5">
+        {/* First Page Button */}
+        <button
+          onClick={() => handlePageChange(1)}
+          disabled={currentPage === 1}
+          className="inline-flex items-center justify-center w-8 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-300 transition-all"
+          title="First page"
+        >
+          <ChevronsLeft className="w-4 h-4" />
+        </button>
+
+        {/* Previous Button */}
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="inline-flex items-center gap-1 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-1 px-3 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-300 transition-all font-medium"
         >
-          <ChevronLeft className="w-4 h-4" />
-          Previous
+          <ChevronLeft className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Previous</span>
         </button>
+
+        {/* Page Numbers */}
         {Array.from({ length: totalPages }, (_, i) => i + 1)
           .filter(page => {
             return (
@@ -50,13 +86,13 @@ const Pagination = ({
             if (index > 0 && page - array[index - 1] > 1) {
               return (
                 <React.Fragment key={`ellipsis-${page}`}>
-                  <span className="px-2 text-gray-400">...</span>
+                  <span className="px-2 text-gray-400 text-sm">...</span>
                   <button
                     onClick={() => handlePageChange(page)}
-                    className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                    className={`inline-flex items-center justify-center w-8 h-8 text-sm rounded-lg transition-all font-medium ${
                       currentPage === page
-                        ? "bg-teal-500 text-white"
-                        : "border border-gray-200 hover:bg-gray-100"
+                        ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-sm"
+                        : "border border-gray-300 hover:bg-blue-50 hover:border-blue-400 text-gray-700"
                     }`}
                   >
                     {page}
@@ -68,23 +104,35 @@ const Pagination = ({
               <button
                 key={page}
                 onClick={() => handlePageChange(page)}
-                className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                className={`inline-flex items-center justify-center w-8 h-8 text-sm rounded-lg transition-all font-medium ${
                   currentPage === page
-                    ? "bg-teal-500 text-white"
-                    : "border border-gray-200 hover:bg-gray-100"
+                    ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-sm"
+                    : "border border-gray-300 hover:bg-blue-50 hover:border-blue-400 text-gray-700"
                 }`}
               >
                 {page}
               </button>
             );
           })}
+
+        {/* Next Button */}
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="inline-flex items-center gap-1 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-1 px-3 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-300 transition-all font-medium"
         >
-          Next
-          <ChevronRight className="w-4 h-4" />
+          <span className="hidden sm:inline">Next</span>
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+
+        {/* Last Page Button */}
+        <button
+          onClick={() => handlePageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="inline-flex items-center justify-center w-8 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-300 transition-all"
+          title="Last page"
+        >
+          <ChevronsRight className="w-4 h-4" />
         </button>
       </div>
     </div>

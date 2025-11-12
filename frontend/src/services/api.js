@@ -14,7 +14,7 @@ const storeTokens = (access, refresh) => {
 };
 
 // ✅ Decode and check expiration
-const isTokenExpired = (token) => {
+const isTokenExpired = token => {
   try {
     const { exp } = jwtDecode(token);
     return Date.now() >= exp * 1000;
@@ -62,12 +62,12 @@ function subscribeTokenRefresh(cb) {
 }
 
 function onRefreshed(token) {
-  refreshSubscribers.map((cb) => cb(token));
+  refreshSubscribers.map(cb => cb(token));
   refreshSubscribers = [];
 }
 
 api.interceptors.request.use(
-  async (config) => {
+  async config => {
     let accessToken = localStorage.getItem("accessToken");
 
     // 🔹 Refresh if expired
@@ -79,7 +79,7 @@ api.interceptors.request.use(
         onRefreshed(accessToken);
       } else {
         // Wait until refresh finishes
-        accessToken = await new Promise((resolve) => {
+        accessToken = await new Promise(resolve => {
           subscribeTokenRefresh(resolve);
         });
       }
@@ -92,13 +92,13 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error)
 );
 
 // ✅ Response interceptor (handle global 401)
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
+  response => response,
+  async error => {
     if (error.response?.status === 401) {
       console.warn("🚫 Unauthorized request, redirecting to login...");
       logoutUser();
@@ -132,7 +132,7 @@ export const checkTokenValidity = () => {
 };
 
 // ✅ Submit Applicant
-export const submitApplicant = async (data) => {
+export const submitApplicant = async data => {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const staffRefCode = urlParams.get("staff_ref_code");
@@ -186,6 +186,6 @@ export const submitApplicant = async (data) => {
     return response.data;
   } catch (error) {
     console.error("Submission Error:", error.response?.data);
-    throw error.response?.data || "Submission failed";
+    throw error;
   }
 };

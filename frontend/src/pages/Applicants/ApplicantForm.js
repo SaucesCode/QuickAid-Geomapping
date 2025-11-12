@@ -191,7 +191,6 @@ const ApplicantForm = () => {
                 {currentApplicants.map((a, i) => (
                   <tr
                     key={a.id || i}
-                    onClick={() => navigate(`/applicants/${a.id}`)}
                     className="hover:bg-blue-50 cursor-pointer transition-all duration-150"
                   >
                     <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-600">

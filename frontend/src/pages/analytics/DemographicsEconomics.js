@@ -27,19 +27,20 @@ import {
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 
-// Import Design System Components
+// Import Analytics Components
 import {
   PageContainer,
   PageHeader,
-  Card,
-  StatCard,
-  ChartCard,
-  AlertCard,
-  Stack,
-  Grid,
-} from "../../components/DesignSystem";
+  AnalyticsStatCard,
+  AnalyticsChartCard,
+  AnalyticsAlertCard,
+  AnalyticsGrid,
+  AnalyticsStack,
+  ChartContainer,
+  InsightCard,
+} from "../../components/AnalyticsComponents";
 
-// Color Constants - KEPT UNCHANGED
+// Color Constants
 const COLOR_PRIMARY = "#3B82F6";
 const COLOR_SECONDARY = "#6366F1";
 const COLOR_TERTIARY = "#2563EB";
@@ -55,7 +56,7 @@ const COLOR_SEPARATED = "#93C5FD";
 const COLOR_MALE = COLOR_PRIMARY;
 const COLOR_FEMALE = COLOR_PINK;
 
-// Color Helper Functions - KEPT UNCHANGED
+// Color Helper Functions
 const getGenderColor = gender => {
   if (!gender) return "#94A3B8";
   const normalized = gender.toString().trim().toLowerCase();
@@ -88,7 +89,7 @@ const DemographicsEconomics = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
 
-  // Fetch Logic - KEPT UNCHANGED
+  // Fetch Logic
   const fetchData = async endpoint => {
     const params = new URLSearchParams();
     if (filters.start) params.append("start_date", filters.start);
@@ -138,7 +139,7 @@ const DemographicsEconomics = () => {
     income: incomeLoading,
   };
 
-  // Data Transformations - KEPT UNCHANGED
+  // Data Transformations
   const transformGenderData = data =>
     data.map(item => ({
       gender: item.background_info__sex || item.sex || "Unknown",
@@ -194,7 +195,7 @@ const DemographicsEconomics = () => {
   const transformedOccupationData = transformOccupationData(occupationData);
   const transformedAgeGenderData = transformAgeGenderData(ageGenderData);
 
-  // Calculated Stats - KEPT UNCHANGED
+  // Calculated Stats
   const isGenderLoaded = !loadingStates.gender;
   const isOccupationLoaded = !loadingStates.occupation;
   const isIncomeLoaded = !loadingStates.income;
@@ -218,8 +219,7 @@ const DemographicsEconomics = () => {
 
   return (
     <PageContainer>
-      <Stack spacing="lg">
-        {/* REDESIGNED: Using PageHeader from Design System */}
+      <AnalyticsStack spacing="lg">
         <PageHeader
           icon={Users}
           title="Demographics & Economics Analysis"
@@ -228,9 +228,8 @@ const DemographicsEconomics = () => {
 
         <AnalyticsFilter onFilterChange={setFilters} />
 
-        {/* REDESIGNED: Using Grid and StatCard from Design System */}
-        <Grid cols={{ default: 1, sm: 2, lg: 4 }} gap="md">
-          <StatCard
+        <AnalyticsGrid cols={{ default: 1, sm: 2, lg: 4 }} gap="md">
+          <AnalyticsStatCard
             icon={Users}
             title="Total Applicants"
             value={
@@ -242,7 +241,7 @@ const DemographicsEconomics = () => {
             color="blue"
             isLoading={!isGenderLoaded}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={VenusAndMars}
             title="Dominant Gender"
             value={dominantGender.gender || "N/A"}
@@ -251,10 +250,10 @@ const DemographicsEconomics = () => {
                 ? dominantGender.count.toLocaleString()
                 : dominantGender.count
             } applications`}
-            color="blue"
+            color="purple"
             isLoading={!isGenderLoaded}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={Briefcase}
             title="Top Occupation"
             value={topOccupation?.occupation || "N/A"}
@@ -263,254 +262,278 @@ const DemographicsEconomics = () => {
                 ? topOccupation?.count.toLocaleString()
                 : topOccupation?.count || 0
             } applicants`}
-            color="blue"
+            color="green"
             isLoading={!isOccupationLoaded}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={DollarSign}
             title="Income Profiles"
             value={
               typeof totalIncome === "number" ? totalIncome.toLocaleString() : totalIncome
             }
             subtitle="Total with income data"
-            color="blue"
+            color="yellow"
             isLoading={!isIncomeLoaded}
           />
-        </Grid>
+        </AnalyticsGrid>
 
-        {/* REDESIGNED: Using Grid and ChartCard from Design System */}
-        <Grid cols={{ default: 1, lg: 2 }} gap="lg">
-          <ChartCard icon={Users} title="Gender Distribution" isLoading={loadingStates.gender}>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={transformedGenderData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderCustomLabel}
-                  outerRadius={100}
-                  dataKey="count"
-                  nameKey="gender"
-                  stroke="#fff"
-                >
-                  {transformedGenderData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getGenderColor(entry.gender)} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartCard>
+        <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+          <AnalyticsChartCard
+            icon={Users}
+            title="Gender Distribution"
+            subtitle="Distribution of applicants by gender"
+            isLoading={loadingStates.gender}
+          >
+            <ChartContainer height={300}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={transformedGenderData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={renderCustomLabel}
+                    outerRadius={100}
+                    dataKey="count"
+                    nameKey="gender"
+                    stroke="#fff"
+                  >
+                    {transformedGenderData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={getGenderColor(entry.gender)} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
 
-          <ChartCard
+          <AnalyticsChartCard
             icon={Heart}
             title="Civil Status Distribution"
+            subtitle="Breakdown by marital status"
             isLoading={loadingStates.civilStatus}
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={transformedCivilStatusData}
-                margin={{ top: 5, right: 30, left: -10, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis
-                  dataKey="status"
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  fontSize={12}
-                  tick={{ fill: "#4b5563" }}
-                />
-                <YAxis tick={{ fill: "#4b5563" }} />
-                <Tooltip />
-                <Bar dataKey="count" radius={[8, 8, 0, 0]}>
-                  {transformedCivilStatusData.map((entry, i) => (
-                    <Cell key={`status-cell-${i}`} fill={getCivilStatusColor(entry.status)} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </Grid>
+            <ChartContainer height={300}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={transformedCivilStatusData}
+                  margin={{ top: 5, right: 30, left: -10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis
+                    dataKey="status"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    fontSize={12}
+                    tick={{ fill: "#4b5563" }}
+                  />
+                  <YAxis tick={{ fill: "#4b5563" }} />
+                  <Tooltip />
+                  <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+                    {transformedCivilStatusData.map((entry, i) => (
+                      <Cell
+                        key={`status-cell-${i}`}
+                        fill={getCivilStatusColor(entry.status)}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
+        </AnalyticsGrid>
 
-        <Grid cols={{ default: 1, lg: 2 }} gap="lg">
-          <ChartCard
+        <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+          <AnalyticsChartCard
             icon={TrendingUp}
             title="Age Group Distribution"
+            subtitle="Population across age ranges"
             isLoading={loadingStates.ageGroup}
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart
-                data={ageGroupData}
-                margin={{ top: 5, right: 30, left: -10, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis dataKey="age_group" tick={{ fill: "#4b5563" }} />
-                <YAxis tick={{ fill: "#4b5563" }} />
-                <Tooltip />
-                <defs>
-                  <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLOR_PRIMARY} stopOpacity={0.8} />
-                    <stop offset="95%" stopColor={COLOR_PRIMARY} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Area
-                  type="monotone"
-                  dataKey="count"
-                  stroke={COLOR_ACCENT}
-                  fill="url(#areaGradient)"
-                  strokeWidth={2}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </ChartCard>
+            <ChartContainer height={300}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={ageGroupData}
+                  margin={{ top: 5, right: 30, left: -10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="age_group" tick={{ fill: "#4b5563" }} />
+                  <YAxis tick={{ fill: "#4b5563" }} />
+                  <Tooltip />
+                  <defs>
+                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={COLOR_PRIMARY} stopOpacity={0.8} />
+                      <stop offset="95%" stopColor={COLOR_PRIMARY} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke={COLOR_ACCENT}
+                    fill="url(#areaGradient)"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
 
-          <ChartCard
+          <AnalyticsChartCard
             icon={Users}
             title="Age Groups by Gender"
+            subtitle="Gender distribution across age ranges"
             isLoading={loadingStates.ageGender}
           >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={transformedAgeGenderData}
-                margin={{ top: 5, right: 30, left: -10, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis dataKey="gender" tick={{ fill: "#4b5563" }} />
-                <YAxis tick={{ fill: "#4b5563" }} />
-                <Tooltip />
-                <Legend />
-                <Bar
-                  dataKey="Under 18"
-                  stackId="a"
-                  fill={COLOR_PRIMARY}
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="18-35"
-                  stackId="a"
-                  fill={COLOR_SECONDARY}
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar dataKey="36-60" stackId="a" fill={COLOR_TERTIARY} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Over 60" stackId="a" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </Grid>
+            <ChartContainer height={300}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={transformedAgeGenderData}
+                  margin={{ top: 5, right: 30, left: -10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis dataKey="gender" tick={{ fill: "#4b5563" }} />
+                  <YAxis tick={{ fill: "#4b5563" }} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar
+                    dataKey="Under 18"
+                    stackId="a"
+                    fill={COLOR_PRIMARY}
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="18-35"
+                    stackId="a"
+                    fill={COLOR_SECONDARY}
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="36-60"
+                    stackId="a"
+                    fill={COLOR_TERTIARY}
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="Over 60"
+                    stackId="a"
+                    fill={COLOR_ACCENT}
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
+        </AnalyticsGrid>
 
-        <Grid cols={{ default: 1, lg: 2 }} gap="lg">
-          <ChartCard
+        <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+          <AnalyticsChartCard
             icon={Briefcase}
             title="Top 10 Occupations"
+            subtitle="Most common professions"
             isLoading={loadingStates.occupation}
           >
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={transformedOccupationData}
-                layout="vertical"
-                margin={{ top: 20, right: 30, left: 80, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis type="number" tick={{ fill: "#4b5563" }} />
-                <YAxis
-                  type="category"
-                  dataKey="occupation"
-                  width={80}
-                  fontSize={11}
-                  tick={{ fill: "#4b5563" }}
-                />
-                <Tooltip />
-                <defs>
-                  <linearGradient id="blueGradientHoriz" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor={COLOR_TERTIARY} stopOpacity={0.8} />
-                    <stop offset="100%" stopColor={COLOR_ACCENT} stopOpacity={1} />
-                  </linearGradient>
-                </defs>
-                <Bar dataKey="count" fill="url(#blueGradientHoriz)" radius={[0, 8, 8, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
+            <ChartContainer height={400}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={transformedOccupationData}
+                  layout="vertical"
+                  margin={{ top: 20, right: 30, left: 80, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis type="number" tick={{ fill: "#4b5563" }} />
+                  <YAxis
+                    type="category"
+                    dataKey="occupation"
+                    width={80}
+                    fontSize={11}
+                    tick={{ fill: "#4b5563" }}
+                  />
+                  <Tooltip />
+                  <defs>
+                    <linearGradient id="blueGradientHoriz" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor={COLOR_TERTIARY} stopOpacity={0.8} />
+                      <stop offset="100%" stopColor={COLOR_ACCENT} stopOpacity={1} />
+                    </linearGradient>
+                  </defs>
+                  <Bar dataKey="count" fill="url(#blueGradientHoriz)" radius={[0, 8, 8, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
 
-          <ChartCard
+          <AnalyticsChartCard
             icon={DollarSign}
             title="Income Distribution"
+            subtitle="Economic profile of applicants"
             isLoading={loadingStates.income}
           >
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={incomeDistribution}
-                margin={{ top: 5, right: 30, left: -10, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis
-                  dataKey="range"
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  fontSize={10}
-                  tick={{ fill: "#4b5563" }}
-                />
-                <YAxis tick={{ fill: "#4b5563" }} />
-                <Tooltip formatter={v => [v, "Applicants"]} />
-                <Bar dataKey="count" fill={COLOR_PRIMARY} radius={[8, 8, 0, 0]}>
-                  {incomeDistribution.map((e, i) => (
-                    <Cell key={i} fill={INCOME_COLORS[i % INCOME_COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </Grid>
+            <ChartContainer height={400}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={incomeDistribution}
+                  margin={{ top: 5, right: 30, left: -10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                  <XAxis
+                    dataKey="range"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    fontSize={10}
+                    tick={{ fill: "#4b5563" }}
+                  />
+                  <YAxis tick={{ fill: "#4b5563" }} />
+                  <Tooltip formatter={v => [v, "Applicants"]} />
+                  <Bar dataKey="count" fill={COLOR_PRIMARY} radius={[8, 8, 0, 0]}>
+                    {incomeDistribution.map((e, i) => (
+                      <Cell key={i} fill={INCOME_COLORS[i % INCOME_COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </AnalyticsChartCard>
+        </AnalyticsGrid>
 
-        {/* REDESIGNED: Using AlertCard from Design System */}
-        <AlertCard
+        <AnalyticsAlertCard
           icon={Users}
           title="Key Demographics Insights"
           description="A snapshot of the most critical demographic and economic patterns identified in the data."
           variant="info"
         >
-          <Grid cols={{ default: 1, md: 3 }} gap="md">
-            <Card>
-              <h4 className="font-semibold text-blue-800 mb-2">Gender Balance</h4>
-              {isGenderLoaded ? (
-                <p className="text-gray-700 text-sm">
+          <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="sm">
+            <InsightCard title="Gender Balance" isLoading={!isGenderLoaded}>
+              {isGenderLoaded && (
+                <>
                   {dominantGender.gender} applicants represent the majority with{" "}
                   {dominantGender.count.toLocaleString()} applications
-                </p>
-              ) : (
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                </>
               )}
-            </Card>
+            </InsightCard>
 
-            <Card>
-              <h4 className="font-semibold text-indigo-800 mb-2">Employment Patterns</h4>
-              {isOccupationLoaded ? (
-                <p className="text-gray-700 text-sm">
+            <InsightCard title="Employment Patterns" isLoading={!isOccupationLoaded}>
+              {isOccupationLoaded && (
+                <>
                   {topOccupation?.occupation || "Various occupations"} is the most common
                   occupation among applicants
-                </p>
-              ) : (
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                </>
               )}
-            </Card>
+            </InsightCard>
 
-            <Card>
-              <h4 className="font-semibold text-blue-900 mb-2">Economic Profile</h4>
-              {isIncomeLoaded ? (
-                <p className="text-gray-700 text-sm">
+            <InsightCard title="Economic Profile" isLoading={!isIncomeLoaded}>
+              {isIncomeLoaded && (
+                <>
                   Total of {totalIncome.toLocaleString()} applicants provided income data,
                   showing varied economic backgrounds.
-                </p>
-              ) : (
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                </>
               )}
-            </Card>
-          </Grid>
-        </AlertCard>
-      </Stack>
+            </InsightCard>
+          </AnalyticsGrid>
+        </AnalyticsAlertCard>
+      </AnalyticsStack>
     </PageContainer>
   );
 };

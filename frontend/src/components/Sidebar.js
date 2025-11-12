@@ -156,10 +156,11 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-screen flex flex-col bg-gray-800 border-r border-gray-700 transition-all duration-300 ease-in-out z-50
-          ${collapsed ? "w-16" : "w-56"}
-          ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-        `}
+        className={`fixed top-0 left-0 flex flex-col bg-gray-800 border-r border-gray-700 transition-all duration-300 ease-in-out z-50
+    ${collapsed ? "w-16" : "w-56"}
+    ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+  `}
+        style={{ height: "100%", minHeight: "100vh", overflowY: "auto" }}
       >
         {/* Top Section - Burger Icon and New Application Button */}
         <div className="flex-shrink-0 p-3 border-b border-gray-700 flex flex-col gap-3">
@@ -203,13 +204,16 @@ const Sidebar = () => {
             }}
           >
             {/* Main Navigation */}
-            <div className="space-y-4 py-4"> {/* Reduced space-y-6 to space-y-4 */}
+            <div className="space-y-4 py-4">
+              {" "}
+              {/* Reduced space-y-6 to space-y-4 */}
               {/* Overview Section */}
               <div>
                 {!collapsed && (
                   <h3
                     // Ensured this is pure white
-                    className={`text-white font-bold uppercase tracking-wider px-3 mb-1 transition-opacity duration-300 text-xs ${ /* Reduced mb-2 to mb-1 */
+                    className={`text-white font-bold uppercase tracking-wider px-3 mb-1 transition-opacity duration-300 text-xs ${
+                      /* Reduced mb-2 to mb-1 */
                       showContent ? "opacity-100" : "opacity-0"
                     }`}
                   >
@@ -220,7 +224,8 @@ const Sidebar = () => {
                   <NavLink
                     to="/dashboard"
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                      `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                        /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                         isActive
                           ? "bg-gray-700 text-white font-semibold shadow-inner shadow-gray-900/50"
                           : // Ensured inactive text is pure white
@@ -241,14 +246,14 @@ const Sidebar = () => {
                   </NavLink>
                 </div>
               </div>
-
               {/* Maps Section */}
               {user?.is_superuser && (
                 <div>
                   {!collapsed && (
                     <h3
                       // Ensured this is pure white
-                      className={`text-white font-bold uppercase tracking-wider px-3 mb-1 transition-opacity duration-300 text-xs ${ /* Reduced mb-2 to mb-1 */
+                      className={`text-white font-bold uppercase tracking-wider px-3 mb-1 transition-opacity duration-300 text-xs ${
+                        /* Reduced mb-2 to mb-1 */
                         showContent ? "opacity-100" : "opacity-0"
                       }`}
                     >
@@ -259,7 +264,8 @@ const Sidebar = () => {
                     <button
                       onClick={() => toggleSection("maps")}
                       // Ensured button text and icon is pure white
-                      className={`flex items-center gap-3 w-full px-3 py-1.5 text-xs rounded-lg transition-all duration-200 text-white hover:bg-gray-700 hover:text-white ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                      className={`flex items-center gap-3 w-full px-3 py-1.5 text-xs rounded-lg transition-all duration-200 text-white hover:bg-gray-700 hover:text-white ${
+                        /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                         collapsed ? "justify-center" : ""
                       }`}
                     >
@@ -284,14 +290,16 @@ const Sidebar = () => {
 
                     {openSections.maps && !collapsed && (
                       <div
-                        className={`ml-4 space-y-0.5 border-l-2 border-gray-600 pl-3 transition-opacity duration-300 ${ /* Reduced space-y-1 to space-y-0.5 */
+                        className={`ml-4 space-y-0.5 border-l-2 border-gray-600 pl-3 transition-opacity duration-300 ${
+                          /* Reduced space-y-1 to space-y-0.5 */
                           showContent ? "opacity-100" : "opacity-0"
                         }`}
                       >
                         <NavLink
                           to="/geomapping"
                           className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                              /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
                                 : // Ensured nested link text is pure white
@@ -305,7 +313,8 @@ const Sidebar = () => {
                         <NavLink
                           to="/heatmap"
                           className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                              /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
                                 : // Ensured nested link text is pure white
@@ -321,14 +330,14 @@ const Sidebar = () => {
                   </div>
                 </div>
               )}
-
               {/* Analytics Section */}
               {user?.is_superuser && (
                 <div>
                   {!collapsed && (
                     <h3
                       // Ensured this is pure white
-                      className={`text-white font-bold uppercase tracking-wider px-3 mb-1 transition-opacity duration-300 text-xs ${ /* Reduced mb-2 to mb-1 */
+                      className={`text-white font-bold uppercase tracking-wider px-3 mb-1 transition-opacity duration-300 text-xs ${
+                        /* Reduced mb-2 to mb-1 */
                         showContent ? "opacity-100" : "opacity-0"
                       }`}
                     >
@@ -339,7 +348,8 @@ const Sidebar = () => {
                     <button
                       onClick={() => toggleSection("analytics")}
                       // Ensured button text and icon is pure white
-                      className={`flex items-center gap-3 w-full px-3 py-1.5 text-xs rounded-lg transition-all duration-200 text-white hover:bg-gray-700 hover:text-white ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                      className={`flex items-center gap-3 w-full px-3 py-1.5 text-xs rounded-lg transition-all duration-200 text-white hover:bg-gray-700 hover:text-white ${
+                        /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                         collapsed ? "justify-center" : ""
                       }`}
                     >
@@ -364,14 +374,16 @@ const Sidebar = () => {
 
                     {openSections.analytics && !collapsed && (
                       <div
-                        className={`ml-4 space-y-0.5 border-l-2 border-gray-600 pl-3 transition-opacity duration-300 ${ /* Reduced space-y-1 to space-y-0.5 */
+                        className={`ml-4 space-y-0.5 border-l-2 border-gray-600 pl-3 transition-opacity duration-300 ${
+                          /* Reduced space-y-1 to space-y-0.5 */
                           showContent ? "opacity-100" : "opacity-0"
                         }`}
                       >
                         <NavLink
                           to="/analytics/geographic"
                           className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                              /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
                                 : // Ensured nested link text is pure white
@@ -386,7 +398,8 @@ const Sidebar = () => {
                         <NavLink
                           to="/analytics/demographics-economics"
                           className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                              /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
                                 : // Ensured nested link text is pure white
@@ -401,7 +414,8 @@ const Sidebar = () => {
                         <NavLink
                           to="/analytics/trends"
                           className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                              /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
                                 : // Ensured nested link text is pure white
@@ -416,7 +430,8 @@ const Sidebar = () => {
                         <NavLink
                           to="/analytics/performance"
                           className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                              /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                               isActive
                                 ? "bg-gray-700 text-white font-medium"
                                 : // Ensured nested link text is pure white
@@ -432,13 +447,13 @@ const Sidebar = () => {
                   </div>
                 </div>
               )}
-
               {/* Applicants Section */}
               <div>
                 {!collapsed && (
                   <h3
                     // Ensured this is pure white
-                    className={`text-white font-bold uppercase tracking-wider px-3 mb-1 transition-opacity duration-300 text-xs ${ /* Reduced mb-2 to mb-1 */
+                    className={`text-white font-bold uppercase tracking-wider px-3 mb-1 transition-opacity duration-300 text-xs ${
+                      /* Reduced mb-2 to mb-1 */
                       showContent ? "opacity-100" : "opacity-0"
                     }`}
                   >
@@ -449,7 +464,8 @@ const Sidebar = () => {
                   <button
                     onClick={() => toggleSection("applicants")}
                     // Ensured button text and icon is pure white
-                    className={`flex items-center gap-3 w-full px-3 py-1.5 text-xs rounded-lg transition-all duration-200 text-white hover:bg-gray-700 hover:text-white ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                    className={`flex items-center gap-3 w-full px-3 py-1.5 text-xs rounded-lg transition-all duration-200 text-white hover:bg-gray-700 hover:text-white ${
+                      /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                       collapsed ? "justify-center" : ""
                     }`}
                   >
@@ -474,14 +490,16 @@ const Sidebar = () => {
 
                   {openSections.applicants && !collapsed && (
                     <div
-                      className={`ml-4 space-y-0.5 border-l-2 border-gray-600 pl-3 transition-opacity duration-300 ${ /* Reduced space-y-1 to space-y-0.5 */
+                      className={`ml-4 space-y-0.5 border-l-2 border-gray-600 pl-3 transition-opacity duration-300 ${
+                        /* Reduced space-y-1 to space-y-0.5 */
                         showContent ? "opacity-100" : "opacity-0"
                       }`}
                     >
                       <NavLink
                         to="/register-applicant"
                         className={({ isActive }) =>
-                          `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                          `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                            /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                             isActive
                               ? "bg-gray-700 text-white font-medium"
                               : // Ensured nested link text is pure white
@@ -496,7 +514,8 @@ const Sidebar = () => {
                       <NavLink
                         to="/applicants"
                         className={({ isActive }) =>
-                          `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                          `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                            /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                             isActive
                               ? "bg-gray-700 text-white font-medium"
                               : // Ensured nested link text is pure white
@@ -512,7 +531,8 @@ const Sidebar = () => {
                           <NavLink
                             to="/approved"
                             className={({ isActive }) =>
-                              `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                              `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                                /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                                 isActive
                                   ? "bg-gray-700 text-white font-medium"
                                   : "text-white hover:bg-gray-700 hover:text-white"
@@ -526,7 +546,8 @@ const Sidebar = () => {
                           <NavLink
                             to="/export-applicants"
                             className={({ isActive }) =>
-                              `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                              `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                                /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                                 isActive
                                   ? "bg-gray-700 text-white font-medium"
                                   : "text-white hover:bg-gray-700 hover:text-white"
@@ -541,7 +562,8 @@ const Sidebar = () => {
                       <NavLink
                         to="/archived-applicants"
                         className={({ isActive }) =>
-                          `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                          `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                            /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                             isActive
                               ? "bg-gray-700 text-white font-medium"
                               : // Ensured nested link text is pure white
@@ -560,7 +582,8 @@ const Sidebar = () => {
                     <NavLink
                       to="/admin-management"
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${ /* Reduced text-sm to text-xs, py-2 to py-1.5 */
+                        `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                          /* Reduced text-sm to text-xs, py-2 to py-1.5 */
                           isActive
                             ? "bg-gray-700 text-white font-semibold shadow-inner shadow-gray-900/50"
                             : // Ensured inactive text is pure white
@@ -603,7 +626,9 @@ const Sidebar = () => {
 
                 {!collapsed && (
                   <div className="flex-1 text-left">
-                    <p className="text-xs font-semibold text-white truncate"> {/* Reduced text-sm to text-xs */}
+                    <p className="text-xs font-semibold text-white truncate">
+                      {" "}
+                      {/* Reduced text-sm to text-xs */}
                       {user ? `${user.first_name} ${user.last_name}` : "User"}
                     </p>
                     {/* Remains text-xs */}
@@ -617,8 +642,12 @@ const Sidebar = () => {
               {/* Dropdown */}
               {!collapsed && profileMenuOpen && (
                 <div className="absolute bottom-14 left-3 right-3 bg-gray-800 rounded-lg shadow-2xl border border-gray-700 py-2 z-50 animate-fade-in">
-                  <div className="px-3 py-1.5 border-b border-gray-700"> {/* Reduced py-2 to py-1.5 */}
-                    <p className="text-xs font-semibold text-white"> {/* Reduced text-sm to text-xs */}
+                  <div className="px-3 py-1.5 border-b border-gray-700">
+                    {" "}
+                    {/* Reduced py-2 to py-1.5 */}
+                    <p className="text-xs font-semibold text-white">
+                      {" "}
+                      {/* Reduced text-sm to text-xs */}
                       {user ? `${user.first_name} ${user.last_name}` : "User"}
                     </p>
                     {/* Remains text-xs */}
@@ -667,7 +696,7 @@ const Sidebar = () => {
         } z-30`}
       >
         {/* Header */}
-        <header className="sticky top-0 z-40 flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
+        <header className="sticky top-0 z-[100] flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
           <div className="sticky flex items-center gap-4 z-50">
             {/* Mobile Menu Button (Remains) */}
             <button className="text-gray-600 md:hidden" onClick={toggleMobileMenu}>

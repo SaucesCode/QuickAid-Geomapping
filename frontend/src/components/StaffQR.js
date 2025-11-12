@@ -17,7 +17,7 @@ const StaffQR = () => {
   }
 
   return (
-    <div className="flex flex-col items-center p-6 bg-white border border-gray-200 rounded-xl shadow-lg max-w-md mx-auto space-y-6">
+    <div className="flex flex-col items-center p-6 bg-white  max-w-md mx-auto space-y-6">
       <h2 className="text-2xl font-bold text-gray-800">Your Applicant Form</h2>
       <p className="text-gray-600 text-center">
         Scan the QR code below or click the link to access the form.
