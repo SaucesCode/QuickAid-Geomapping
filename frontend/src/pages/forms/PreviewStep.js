@@ -5,7 +5,7 @@ import { submitApplicant } from "../../services/api";
 import toast, { Toaster } from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
 
-const PreviewStep = ({ formData, prevStep }) => {
+const PreviewStep = ({ formData, prevStep, staffRef }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [errorModal, setErrorModal] = useState({ show: false, message: "" });
@@ -16,12 +16,12 @@ const PreviewStep = ({ formData, prevStep }) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const data = await submitApplicant(formData);
+      const data = await submitApplicant({ ...formData, staff_ref_code: staffRef });
       setSubmitSuccess(true);
       navigate("/print", { state: { applicant: data } });
       toast.custom(t => <CustomToast t={t} type="submit" />, {
         duration: 4000,
-        position: "top-right",
+        position: "top-center",
       });
     } catch (error) {
       console.error("Submission Error:", error);
