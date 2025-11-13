@@ -10,8 +10,7 @@ import {
   Check,
   AlertCircle,
   FileText,
-  History,
-  Loader2,
+  Info,
   Users,
   MapPin,
   Building2,
@@ -117,7 +116,7 @@ const ArchiveApplicants = () => {
         (info.first_name || "").toLowerCase().includes(term) ||
         (info.last_name || "").toLowerCase().includes(term) ||
         (info.barangay || "").toLowerCase().includes(term) ||
-        (info.city || "").toLowerCase().includes(term) ||
+        (info.barangay_details?.city_name || "").toLowerCase().includes(term) ||
         (a.type_of_assistance || "").toLowerCase().includes(term)
       );
     });
@@ -236,49 +235,86 @@ const ArchiveApplicants = () => {
                 </thead>
                 <tbody className="divide-y divide-blue-100 text-gray-800">
                   {currentItems.map((a, index) => (
-                    <tr key={a.id} className="hover:bg-blue-50 transition-colors">
-                      <td className="px-3 py-4 text-center text-gray-500">
-                        {indexOfFirstItem + index + 1}
+                    <tr
+                      key={a.id}
+                      className="hover:bg-blue-50/50 transition-all duration-150 group"
+                    >
+                      <td className="px-3 py-4 align-middle">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors font-semibold text-gray-600">
+                          {indexOfFirstItem + index + 1}
+                        </div>
                       </td>
                       <td
                         onClick={() => {
                           setPreviewApplicant(a);
                           setPreviewView(true);
                         }}
-                        className="px-6 py-4 font-semibold text-gray-900 cursor-pointer hover:text-indigo-600"
+                        className="px-6 py-4 align-middle font-semibold text-gray-900 cursor-pointer group-hover:text-indigo-600 break-words"
                       >
                         {`${a.background_info?.first_name || ""} ${
                           a.background_info?.last_name || ""
                         }`}
                       </td>
-                      <td className="px-6 py-4">{a.background_info?.barangay || "—"}</td>
-                      <td className="px-6 py-4">
-                        {a.background_info?.barangay_details?.city_name || "—"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-sm">
-                          {a.type_of_assistance}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">{formatDateReadable(a.date_filled)}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
                         <div className="flex items-center gap-2">
-                          <OutlineButton
+                          <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                          <span className="truncate">
+                            {a.background_info?.barangay || "—"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                          <span className="truncate">
+                            {a.background_info?.barangay_details?.city_name || "—"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 align-middle">
+                        <div className="flex items-center justify-center">
+                          <span
+                            className={`inline-flex px-2 py-1 rounded-xl text-xs font-semibold shadow-md whitespace-nowrap
+            ${
+              a.type_of_assistance?.toLowerCase() === "educational"
+                ? "bg-green-100 text-green-800"
+                : a.type_of_assistance?.toLowerCase() === "medical"
+                ? "bg-blue-100 text-blue-800"
+                : a.type_of_assistance?.toLowerCase() === "burial"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+                          >
+                            {a.type_of_assistance}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                          <span className="truncate">{formatDateReadable(a.date_filled)}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 align-middle">
+                        <div className="flex flex-wrap items-center gap-1">
+                          <button
                             onClick={() => {
                               setPreviewApplicant(a);
                               setPreviewView(true);
                             }}
-                            className="text-indigo-600 border-indigo-300 hover:bg-indigo-50"
+                            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-300"
                           >
-                            <Eye className="w-4 h-4" /> View
-                          </OutlineButton>
-                          <GradientButton
+                            <Eye className="w-4 h-4" />
+                            View
+                          </button>
+                          <button
                             onClick={() => setRestoreModal({ show: true, applicantId: a.id })}
-                            loading={restoreMutation.isPending}
                             disabled={restoreMutation.isPending}
+                            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors border border-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <RotateCcw className="w-4 h-4" /> Restore
-                          </GradientButton>
+                            <RotateCcw className="w-4 h-4" />
+                            Restore
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -315,37 +351,87 @@ const ArchiveApplicants = () => {
 
       {restoreModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="max-w-md w-full p-0 overflow-hidden">
-            <div className="flex items-center gap-4 p-5 border-b border-blue-100 bg-blue-50">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
-                <RotateCcw className="w-5 h-5 text-white" />
-              </div>
-              <H2>Confirm Restore</H2>
-            </div>
-            <div className="p-5">
-              <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-blue-500" />
-                <BodyText>
-                  Are you sure you want to restore this applicant? This will move the record
-                  back to the active applicants list.
-                </BodyText>
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 p-5 border-t border-blue-100 bg-gray-50">
-              <OutlineButton
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 rounded-t-xl">
+              <button
                 onClick={() => setRestoreModal({ show: false, applicantId: null })}
-              >
-                Cancel
-              </OutlineButton>
-              <GradientButton
-                onClick={handleRestore}
-                loading={restoreMutation.isPending}
+                className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/20 transition-colors"
                 disabled={restoreMutation.isPending}
               >
-                <Check className="w-4 h-4" /> Restore Applicant
-              </GradientButton>
+                <X className="w-4 h-4 text-white" />
+              </button>
+
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                  <RotateCcw className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Restore Applicant</h2>
+                  <p className="text-blue-100 text-xs">Move back to active list</p>
+                </div>
+              </div>
             </div>
-          </Card>
+
+            <div className="p-5">
+              <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg mb-5">
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Info className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-blue-700 leading-relaxed">
+                    This applicant will be restored to the active applicants list. You can
+                    archive it again if needed.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setRestoreModal({ show: false, applicantId: null })}
+                  disabled={restoreMutation.isPending}
+                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRestore}
+                  disabled={restoreMutation.isPending}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                >
+                  {restoreMutation.isPending ? (
+                    <>
+                      <svg
+                        className="animate-spin h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Restoring...
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw className="w-4 h-4" />
+                      Restore
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </PageContainer>

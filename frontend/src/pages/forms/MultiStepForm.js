@@ -110,7 +110,7 @@ const MultiStepForm = () => {
   const closeCancelModal = () => setCancelModal({ show: false });
   const confirmCancel = () => {
     closeCancelModal();
-    navigate("/register-applicant");
+    navigate(-1);
   };
 
   const StepComponent = [Step1, Step2, Step3, PreviewStep][step - 1];
