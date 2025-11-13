@@ -1,15 +1,24 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FileDown, ArrowLeft, ClipboardList, Award } from "lucide-react";
+import { FileDown, ArrowLeft, ClipboardList, Award, AlertTriangle } from "lucide-react";
 
 import logo from "../../assets/quickaid-text.png";
+
+// Import Design System Components
+import {
+  PageContainer,
+  Card,
+  AlertCard,
+  GradientButton,
+  OutlineButton,
+} from "../../components/DesignSystem";
 
 const PrintPage = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const applicant = state?.applicant;
 
-  // Core Logic: Set document title
+  // Core Logic: Set document title - KEPT UNCHANGED
   useEffect(() => {
     document.title = "QuickAid | Applicant Documents";
 
@@ -18,104 +27,125 @@ const PrintPage = () => {
     };
   }, []);
 
-  // Core Logic: Navigation guard
+  // Core Logic: Navigation guard - KEPT UNCHANGED
   if (!applicant) {
     navigate("/dashboard", { replace: true });
     return null;
   }
 
-  // Format the applicant's name for display
+  // Format Logic - KEPT UNCHANGED
   const applicantName =
     `${applicant.background_info.first_name} ${applicant.background_info.last_name}` ||
     "Applicant N/A";
 
   return (
-    // Reduced vertical padding and changed background to gray-100
-    <div className="min-h-screen bg-gray-100 py-8 px-2">
-      {/* Container for the document selection interface */}
-      <div className="bg-white shadow-xl rounded-xl overflow-hidden max-w-4xl mx-auto border border-gray-200">
-        {/* TOP BAR / BACK NAVIGATION */}
-        {/* Reduced padding */}
-        <div className="bg-white border-b border-gray-200 px-5 py-3 flex justify-between items-center sticky top-0 z-10">
-          <button
-            onClick={() => navigate(-1)}
-            // Reduced button padding
-            className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg font-medium flex items-center gap-2 text-sm hover:bg-gray-100 transition border"
-          >
-            <ArrowLeft size={14} /> Back
-          </button>
-          <img src={logo} alt="QuickAid Logo" className="w-24 opacity-80" />
+    <PageContainer>
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* REDESIGNED: Top Navigation Bar */}
+        <div className="flex justify-between items-center">
+          <OutlineButton onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-4 h-4" /> Back
+          </OutlineButton>
+          <img src={logo} alt="QuickAid Logo" className="w-28 opacity-90" />
         </div>
 
-        {/* DOCUMENT HEADER */}
-        {/* Reduced padding and font sizes, blue gradient background */}
-        <div className="px-6 py-6 bg-gradient-to-r from-blue-700 to-indigo-800 text-white">
-          <h1 className="text-2xl text-white font-bold tracking-tight">
-            Document Download Center
-          </h1>
-          <p className="text-base text-white mt-2">
-            <span className="text-white font-semibold">Applicant:</span> {applicantName}
-          </p>
-          <p className="text-xs text-blue-300 mt-1">
-            Generated Date: {new Date().toLocaleDateString()}
-          </p>
-        </div>
+        {/* REDESIGNED: Document Header Card */}
+        <Card className="border-blue-200">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+              <FileDown className="w-8 h-8 text-white" />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                Document Download Center
+              </h1>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-semibold text-gray-600">Applicant:</span>
+                  <span className="text-gray-800 font-medium">{applicantName}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-semibold text-gray-600">Generated:</span>
+                  <span className="text-gray-800">{new Date().toLocaleDateString()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
 
-        {/* MAIN ACTION AREA */}
-        {/* Reduced padding and section title size */}
-        <div className="p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-6 border-b pb-2">
+        {/* REDESIGNED: Available Documents Section */}
+        <Card>
+          <h2 className="text-xl font-bold text-gray-800 mb-6 pb-3 border-b border-gray-200">
             Available Documents
           </h2>
 
-          <div className="flex flex-col md:flex-row justify-center gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Intake Sheet Card */}
-            {/* Reduced card padding and content sizes, blue theme */}
-            <div className="flex-1 max-w-xs border border-blue-200 rounded-xl p-4 bg-blue-50 shadow-sm hover:shadow-md transition duration-300">
-              <ClipboardList className="text-blue-600 mb-2" size={24} />
-              <h3 className="text-lg font-bold text-blue-800 mb-1">General Intake Sheet</h3>
-              <p className="text-xs text-gray-600 mb-3">
-                Full record of the applicant's initial registration details and background.
-              </p>
-              {/* Reduced button padding */}
-              <button
-                onClick={() => navigate(`/print/intake`, { state: { applicant: applicant } })}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-blue-700 transition"
-              >
-                <FileDown size={16} /> Download
-              </button>
-            </div>
+            <Card className="bg-blue-50 border-blue-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex flex-col h-full">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                  <ClipboardList className="text-white" size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-blue-800 mb-2">General Intake Sheet</h3>
+                <p className="text-sm text-gray-600 mb-4 flex-grow">
+                  Full record of the applicant's initial registration details and background.
+                </p>
+                <GradientButton
+                  onClick={() =>
+                    navigate(`/print/intake`, { state: { applicant: applicant } })
+                  }
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                >
+                  <FileDown size={16} /> Download Intake Sheet
+                </GradientButton>
+              </div>
+            </Card>
 
             {/* Certificate Card */}
-            {/* Reduced card padding and content sizes, green theme */}
-            <div className="flex-1 max-w-xs border border-green-200 rounded-xl p-4 bg-green-50 shadow-sm hover:shadow-md transition duration-300">
-              <Award className="text-green-600 mb-2" size={24} />
-              <h3 className="text-lg font-bold text-green-800 mb-1">
-                Certificate of Eligibility
-              </h3>
-              <p className="text-xs text-gray-600 mb-3">
-                Official document certifying the applicant's final qualification status.
-              </p>
-              {/* Reduced button padding */}
-              <button
-                onClick={() =>
-                  navigate(`/print/certificate`, { state: { applicant: applicant } })
-                }
-                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-green-700 transition"
-              >
-                <FileDown size={16} /> Download
-              </button>
-            </div>
+            <Card className="bg-green-50 border-green-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex flex-col h-full">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                  <Award className="text-white" size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-green-800 mb-2">
+                  Certificate of Eligibility
+                </h3>
+                <p className="text-sm text-gray-600 mb-4 flex-grow">
+                  Official document certifying the applicant's final qualification status.
+                </p>
+                <GradientButton
+                  onClick={() =>
+                    navigate(`/print/certificate`, { state: { applicant: applicant } })
+                  }
+                  className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                >
+                  <FileDown size={16} /> Download Certificate
+                </GradientButton>
+              </div>
+            </Card>
           </div>
-        </div>
+        </Card>
 
-        {/* FOOTER */}
-        {/* Reduced vertical padding and font size */}
-        <div className="border-t border-gray-200 text-center text-[10px] text-gray-500 py-3">
-          &copy; {new Date().getFullYear()} QuickAid. All rights reserved.
+        {/* REDESIGNED: Footer with Warning */}
+        <div className="space-y-3">
+          {/* Small Warning Alert */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-yellow-800">
+              <span className="font-semibold">Important:</span> These documents are only
+              accessible during this session. Please download or print all required documents
+              before leaving this page.
+            </p>
+          </div>
+
+          <Card className="text-center">
+            <p className="text-xs text-gray-500">
+              &copy; {new Date().getFullYear()} QuickAid. All rights reserved.
+            </p>
+          </Card>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

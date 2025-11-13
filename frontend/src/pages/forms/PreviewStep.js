@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { submitApplicant } from "../../services/api";
 import toast, { Toaster } from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
+import { useQueryClient } from "@tanstack/react-query";
 
 const PreviewStep = ({ formData, prevStep, staffRef }) => {
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [errorModal, setErrorModal] = useState({ show: false, message: "" });
@@ -17,12 +19,14 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
     setIsSubmitting(true);
     try {
       const data = await submitApplicant({ ...formData, staff_ref_code: staffRef });
+      console.log(formData);
       setSubmitSuccess(true);
       navigate("/print", { state: { applicant: data } });
       toast.custom(t => <CustomToast t={t} type="submit" />, {
         duration: 4000,
         position: "top-center",
       });
+      queryClient.invalidateQueries(["applicants"]);
     } catch (error) {
       console.error("Submission Error:", error);
       let errorMessage = "Submission failed: ";
@@ -299,7 +303,9 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
                     Valid ID Presented
                   </div>
                   <div className="text-base font-medium text-gray-800">
-                    {formData.valid_id_presented}
+                    {formData.valid_id_presented === "Others"
+                      ? formData.other_valid_id
+                      : formData.valid_id_presented}
                   </div>
                 </div>
                 <div className="space-y-1">
