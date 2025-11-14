@@ -34,52 +34,15 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
 
   const { isSidebarMinimized } = useOutletContext();
 
+  // REDESIGNED: DataRow component - Now fully stacked (label on top, value below)
   const DataRow = ({ label, value }) => {
-    const longLabels = ["City/Municipality", "Contact Number", "Valid ID Presented"];
-    const isLongLabel = longLabels.includes(label);
-
-    let labelWidthClass = "sm:w-1/3 min-w-[120px]";
-    let valueWidthClass = "sm:w-2/3";
-    let labelWrapClass = "whitespace-nowrap";
-    let valuePositionClass = "";
-
-    const labelPaddingClass = "pr-4";
-
-    if (isLongLabel) {
-      labelWidthClass = "sm:w-2/5 min-w-[120px]";
-      valueWidthClass = "sm:w-3/5";
-
-      if (isSidebarMinimized) {
-        labelWrapClass = "whitespace-normal";
-        valuePositionClass = "sm:pl-2";
-      }
-
-      if (!isSidebarMinimized) {
-        labelWrapClass = "truncate";
-        valuePositionClass = "sm:pl-1";
-      }
-    }
-
     return (
-      <div className="flex flex-col sm:flex-row sm:justify-between py-2.5 border-b border-blue-100 last:border-b-0">
-        <div
-          className={clsx(
-            "font-medium text-blue-800 w-full mb-1 sm:mb-0 text-sm",
-            labelWidthClass,
-            labelWrapClass,
-            labelPaddingClass
-          )}
-        >
+      <div className="py-3 border-b border-blue-100 last:border-b-0">
+        <div className="font-semibold text-blue-700 text-xs uppercase tracking-wide mb-1.5">
           {label}
         </div>
-        <div
-          className={clsx(
-            "text-blue-800 w-full break-words text-left font-normal text-sm",
-            valueWidthClass,
-            valuePositionClass
-          )}
-        >
-          {value || <span className="text-blue-400 italic">N/A</span>}
+        <div className="text-gray-800 text-sm break-words">
+          {value || <span className="text-gray-400 italic">N/A</span>}
         </div>
       </div>
     );
@@ -95,7 +58,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
       <h3 className="text-lg font-bold text-blue-900 border-b pb-2.5 mb-3 border-blue-300/70">
         {title}
       </h3>
-      <div className="space-y-0.5">{children}</div>
+      <div className="space-y-0">{children}</div>
     </div>
   );
 
@@ -134,7 +97,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
 
         {/* Modal Body */}
         <div className="p-6 space-y-6 overflow-y-auto bg-blue-50/30">
-          {/* 2-Column Grid Sections */}
+          {/* REDESIGNED: 2-Column Grid for section cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Personal Info */}
             <SectionCard title="Personal Information">
@@ -199,7 +162,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
               />
             </SectionCard>
 
-            {/* Representative Info - Same Grid */}
+            {/* Representative Info */}
             {representative && (
               <SectionCard title="Representative Information">
                 <DataRow label="Full Name" value={repFullName} />
@@ -269,7 +232,6 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                     <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">
                       Batch File
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold">Notes</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-blue-100">
@@ -284,7 +246,6 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                         </td>
                         <td className="px-4 py-3 text-blue-800">{a.approved_by || "N/A"}</td>
                         <td className="px-4 py-3 text-blue-800">{a.batch_file || "N/A"}</td>
-                        <td className="px-4 py-3 text-blue-800">{a.notes || "—"}</td>
                       </tr>
                     ))
                   ) : (
