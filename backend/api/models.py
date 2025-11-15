@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from opencage.geocoder import OpenCageGeocode
 import os
 import uuid
@@ -96,7 +97,7 @@ class Applicant(models.Model):
     type_of_assistance = models.CharField(max_length=50, choices=ASSISTANCE_TYPES)
     longitude = models.FloatField(blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
-    date_filled = models.DateTimeField(auto_now_add=True)
+    date_filled = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(null=True, blank=True)
     is_archived = models.BooleanField(default=False)
 
