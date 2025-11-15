@@ -18,6 +18,10 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  BarChart,
+  Bar,
+  Legend,
+  Area,
 } from "recharts";
 import toast from "react-hot-toast";
 
@@ -59,18 +63,19 @@ const Dashboard = () => {
   // Fetch Logic
   const fetcher = async url => (await api.get(url)).data;
 
-  const {
-    data: summary,
-    isLoading: summaryLoading,
-    error: summaryErr,
-  } = useQuery({
-    queryKey: ["dashboardSummary"],
-    queryFn: () => fetcher("/analytics/dashboard/summary/"),
-  });
-
   const { data: growth, isLoading: growthLoading } = useQuery({
     queryKey: ["growthRate"],
     queryFn: () => fetcher("/analytics/dashboard/growth-rate/"),
+  });
+
+  const { data: forecastData, isLoading: forecastLoading } = useQuery({
+    queryKey: ["forecast"],
+    queryFn: () => fetcher("/analytics/dashboard/application-forecast/"),
+  });
+
+  const { data: assistanceTrend, isLoading: assistanceLoading } = useQuery({
+    queryKey: ["assistanceTrend"],
+    queryFn: () => fetcher("/analytics/trends/assistance-type-trend/"),
   });
 
   const { data: monthlyTrend, isLoading: trendLoading } = useQuery({
@@ -88,10 +93,7 @@ const Dashboard = () => {
     queryFn: () => fetcher("/recent_applicants/"),
   });
 
-  if (summaryErr)
-    toast.error("Failed to load dashboard data.", {
-      style: { background: "#1e293b", color: "#f1f5f9" },
-    });
+  console.log("Forecast Data:", forecastData);
 
   // Data Processing
   const daily = monthlyTrend?.daily ?? 0;
@@ -105,6 +107,15 @@ const Dashboard = () => {
       ]
     : [];
 
+  const assistanceLineData = assistanceTrend
+    ? assistanceTrend.labels.map((label, index) => ({
+        date: label,
+        medical: assistanceTrend.medical[index] ?? 0,
+        educational: assistanceTrend.educational[index] ?? 0,
+        burial: assistanceTrend.burial[index] ?? 0,
+      }))
+    : [];
+
   // Calculate growth percentage
   const growthPercentage = growth
     ? growth.previous_month > 0
@@ -113,6 +124,32 @@ const Dashboard = () => {
         )
       : 0
     : 0;
+
+  const combinedForecastData = [];
+
+  if (forecastData?.historical?.dates) {
+    forecastData.historical.dates.forEach((d, i) => {
+      combinedForecastData.push({
+        date: d,
+        actual: forecastData.historical.counts?.[i] ?? 0,
+        forecast: null,
+        upper: null,
+        lower: null,
+      });
+    });
+  }
+
+  if (forecastData?.forecast?.dates) {
+    forecastData.forecast.dates.forEach((d, i) => {
+      combinedForecastData.push({
+        date: d,
+        actual: null,
+        forecast: forecastData.forecast.counts?.[i] ?? 0,
+        upper: forecastData.forecast.upper?.[i] ?? 0,
+        lower: forecastData.forecast.lower?.[i] ?? 0,
+      });
+    });
+  }
 
   return (
     <PageContainer>
@@ -150,6 +187,110 @@ const Dashboard = () => {
             isLoading={trendLoading}
           />
         </AnalyticsGrid>
+        <AnalyticsChartCard
+          icon={LineChart}
+          title="Assistance Type Volume (This Month)"
+          subtitle="Medical vs Educational vs Burial"
+          isLoading={assistanceLoading}
+        >
+          <ChartContainer height={350}>
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsLineChart
+                data={assistanceLineData}
+                margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" vertical={false} />
+                <XAxis dataKey="date" stroke="#6b7280" tick={{ fill: "#4b5563" }} />
+                <YAxis stroke="#6b7280" tick={{ fill: "#4b5563" }} />
+                <Tooltip />
+                <Legend verticalAlign="bottom" height={36} />
+
+                <Line
+                  type="monotone"
+                  dataKey="medical"
+                  name="Medical"
+                  stroke="#ef4444"
+                  strokeWidth={3}
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="educational"
+                  name="Educational"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="burial"
+                  name="Burial"
+                  stroke="#f59e0b"
+                  strokeWidth={3}
+                  dot={false}
+                />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </AnalyticsChartCard>
+
+        <AnalyticsChartCard
+          icon={TrendingUp}
+          title="Applicant Trend + 7-Day Forecast"
+          subtitle="Includes prediction confidence range"
+          isLoading={forecastLoading}
+        >
+          <ChartContainer height={400}>
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsLineChart data={combinedForecastData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+
+                <XAxis dataKey="date" tick={{ fill: "#4b5563", fontSize: 11 }} />
+                <YAxis tick={{ fill: "#4b5563", fontSize: 11 }} />
+                <Tooltip />
+
+                {/* Confidence range shading */}
+                <Area
+                  type="monotone"
+                  dataKey="upper"
+                  stroke="none"
+                  fill="#10b98122"
+                  activeDot={false}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="lower"
+                  stroke="none"
+                  fill="#10b98122"
+                  activeDot={false}
+                />
+
+                {/* Actual Data */}
+                <Line
+                  type="monotone"
+                  dataKey="actual"
+                  name="Actual"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                  connectNulls={true}
+                />
+
+                {/* Forecast Line */}
+                <Line
+                  type="monotone"
+                  dataKey="forecast"
+                  name="Forecast"
+                  stroke="#10b981"
+                  strokeDasharray="5 5"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                  connectNulls={true}
+                />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </AnalyticsChartCard>
 
         <AnalyticsChartCard
           icon={TrendingUp}
@@ -159,18 +300,20 @@ const Dashboard = () => {
         >
           <ChartContainer height={350}>
             <ResponsiveContainer width="100%" height="100%">
-              <RechartsLineChart
+              <BarChart
                 data={growthChartData}
-                margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
+                margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+
                 <XAxis
                   dataKey="name"
                   stroke="#6b7280"
-                  padding={{ left: 30, right: 30 }}
-                  tick={{ fill: "#4b5563" }}
+                  tick={{ fill: "#4b5563", fontSize: 12 }}
                 />
-                <YAxis stroke="#6b7280" tick={{ fill: "#4b5563" }} />
+
+                <YAxis stroke="#6b7280" tick={{ fill: "#4b5563", fontSize: 12 }} />
+
                 <Tooltip
                   contentStyle={{
                     borderRadius: "8px",
@@ -180,15 +323,9 @@ const Dashboard = () => {
                   }}
                   labelStyle={{ fontWeight: "bold", color: "#1f2937" }}
                 />
-                <Line
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  dot={{ r: 6, fill: "#3b82f6", stroke: "#fff", strokeWidth: 2 }}
-                  activeDot={{ r: 8 }}
-                />
-              </RechartsLineChart>
+
+                <Bar dataKey="count" fill="#6366f1" radius={[6, 6, 0, 0]} barSize={60} />
+              </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
         </AnalyticsChartCard>
