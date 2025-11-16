@@ -4,5 +4,7 @@ export const getStaffFormLink = () => {
   if (!user) return null;
   const encoded = btoa(user.ref_code);
 
-  return `/apply?k=${encoded}`;
+  const baseURL = window.location.origin;
+
+  return `${baseURL}/apply?k=${encoded}`;
 };

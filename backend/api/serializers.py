@@ -98,10 +98,13 @@ class RepresentativeBackgroundInfoSerializer(serializers.ModelSerializer):
 
 class RepresentativeSerializer(serializers.ModelSerializer):
     background_info = RepresentativeBackgroundInfoSerializer()
+    contact_number = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
 
     class Meta:
         model = Representative
-        fields = ["id", "background_info", "relationship"]
+        fields = ["id", "background_info", "relationship", "contact_number"]
 
     def create(self, validated_data):
         bg_data = validated_data.pop("background_info")
@@ -132,14 +135,7 @@ class ApplicantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Applicant
-        fields = [
-            "id", "staff", "staff_ref_code",
-            "background_info", "contact_number",
-            "valid_id_presented", "other_valid_id",
-            "applicant_type", "type_of_assistance",
-            "representative", "longitude", "latitude",
-            "city", "date_filled", "created_at", "is_archived", "approvals", "approval_count"
-        ]
+        fields = "__all__"
         read_only_fields = ["id", "staff", "staff_ref_code", "longitude", "latitude", "date_filled"]
 
     def create(self, validated_data):
@@ -223,6 +219,7 @@ class ApplicantSerializer(serializers.ModelSerializer):
                 defaults={
                     "background_info": rep_bg,
                     "relationship": rep_data["relationship"],
+                    "contact_number": rep_data.get("contact_number"), 
                 },
             )
 
@@ -261,7 +258,7 @@ class ApplicantSerializer(serializers.ModelSerializer):
             else:
                 # Create new representative if it doesn't exist
                 rep_serializer = RepresentativeSerializer(context={"applicant": instance})
-                rep_serializer.create({**rep_data, "applicant": instance})
+                rep_serializer.create({**rep_data, "applicant": instance, "contact_number": rep_data.get("contact_number")})
 
         # Update regular fields of the Applicant
         for attr, value in validated_data.items():

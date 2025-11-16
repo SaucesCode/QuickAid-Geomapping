@@ -175,6 +175,7 @@ export const submitApplicant = async data => {
     if (data.applicant_type === "Representative") {
       payload.representative = {
         relationship: data.rep_relationship,
+        contact_number: data.rep_contact_number,
         background_info: {
           first_name: data.rep_first_name,
           middle_initial: data.rep_middle_initial,

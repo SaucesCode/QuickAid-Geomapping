@@ -56,7 +56,7 @@ const createColoredIcon = color =>
 L.Marker.prototype.options.icon = DefaultIcon;
 
 // Default center (Quezon Province)
-const defaultCenter = [13.938, 121.508];
+const defaultCenter = [13.918, 121.575];
 
 // Colors (UNCHANGED as per request)
 const assistanceColors = {
@@ -101,12 +101,14 @@ const MapComponent = () => {
   const [availableBarangays, setAvailableBarangays] = useState([]);
   const [mapCenter] = useState(defaultCenter);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [resetTrigger, setResetTrigger] = useState(false);
   const togglePanel = () => setPanelOpen(prev => !prev);
   const getColor = type => assistanceColors[type] || "#f87171";
   const resetFilters = () => {
     setTypeFilter("");
     setCityFilter("");
     setBarangayFilter("");
+    setResetTrigger(prev => !prev);
   };
 
   const cityGeoFileName = cityFilter
@@ -117,7 +119,17 @@ const MapComponent = () => {
     document.title = "QuickAid | Geolocation Map";
   }, []);
 
-  // React Query for Locations
+  /// React Query for ALL Locations (for barangay list)
+  const { data: allLocationsData } = useQuery({
+    queryKey: ["allLocations"],
+    queryFn: async () => {
+      const res = await api.get("/applicant-locations/");
+      return res.data.filter(loc => loc.latitude && loc.longitude && !isNaN(loc.latitude));
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  // React Query for Filtered Locations
   const {
     data: locations = [],
     isFetching: isLocationLoading,
@@ -191,12 +203,11 @@ const MapComponent = () => {
         style: { color: "#3b82f6", weight: 3, fillOpacity: 0.15 },
       }).addTo(map);
 
-      // Fit map bounds
+      // Fit map bounds - removed maxZoom to let it auto-fit perfectly
       const bounds = layer.getBounds();
       if (bounds.isValid()) {
-        map.fitBounds(bounds.pad(0.01), {
-          padding: [20, 20],
-          maxZoom: 15,
+        map.fitBounds(bounds.pad(0.1), {
+          padding: [50, 50],
           animate: true,
           duration: 0.3,
         });
@@ -211,12 +222,54 @@ const MapComponent = () => {
     return null;
   };
 
+  // Zoom to barangay markers when barangay is selected
+  const BarangayZoom = ({ locations, barangayFilter }) => {
+    const map = useMap();
+
+    useEffect(() => {
+      if (!barangayFilter || locations.length === 0) return;
+
+      // Get all marker positions for the selected barangay
+      const positions = locations.map(loc => [loc.latitude, loc.longitude]);
+
+      if (positions.length > 0) {
+        const bounds = L.latLngBounds(positions);
+        map.fitBounds(bounds.pad(0.2), {
+          padding: [50, 50],
+          animate: true,
+          duration: 0.3,
+        });
+      }
+    }, [barangayFilter, locations, map]);
+
+    return null;
+  };
+
   useEffect(() => {
-    const brgys = validLocations
+    if (!allLocationsData) return;
+
+    const brgys = allLocationsData
       .filter(loc => (cityFilter ? loc.city === cityFilter : true))
       .map(loc => loc.barangay);
     setAvailableBarangays([...new Set(brgys)].sort());
-  }, [validLocations, cityFilter]);
+
+    // Reset barangay filter when city changes
+    setBarangayFilter("");
+  }, [allLocationsData, cityFilter]);
+
+  const MapReset = ({ trigger }) => {
+    const map = useMap();
+
+    useEffect(() => {
+      if (trigger) {
+        map.setView(defaultCenter, 11, {
+          animate: true,
+        });
+      }
+    }, [trigger]);
+
+    return null;
+  };
 
   return (
     // Updated background to a softer monochromatic blue gradient
@@ -232,11 +285,13 @@ const MapComponent = () => {
           <MapContainer
             center={mapCenter}
             zoom={11}
-            minZoom={8}
-            maxZoom={13}
+            minZoom={11}
+            maxZoom={17}
             className="w-full h-[calc(100vh-2rem)]"
             scrollWheelZoom={true}
           >
+            <MapReset trigger={resetTrigger} />
+            <BarangayZoom locations={validLocations} barangayFilter={barangayFilter} />
             <TileLayer
               attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -456,7 +511,7 @@ const MapComponent = () => {
                   onClick={resetFilters}
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  Reset Filters
+                  Reset Filters/Reset Zoom
                 </button>
               </div>
 
