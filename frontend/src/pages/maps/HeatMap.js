@@ -50,7 +50,7 @@ const DistrictBounds = ({ geoData }) => {
     if (geoData) {
       try {
         const bounds = L.geoJSON(geoData).getBounds();
-        map.fitBounds(bounds.pad(0.05), { maxZoom: 50, padding: [20, 20] });
+        map.fitBounds(bounds.pad(0.05), { maxZoom: 15, padding: [20, 20] });
         map.setMaxBounds(bounds.pad(0.05));
       } catch (error) {
         console.error("Error setting map bounds:", error);
@@ -71,7 +71,7 @@ const HeatLayer = ({ points }) => {
     const heatLayer = window.L.heatLayer(heatData, {
       radius: 30,
       blur: 20,
-      maxZoom: 15,
+      maxZoom: 13,
       gradient: BLUE_HEAT_GRADIENT,
     }).addTo(map);
 
@@ -218,17 +218,19 @@ const Geographic = () => {
               <div className="relative z-0 h-full">
                 <MapContainer
                   center={[13.9, 121.475]}
-                  zoom={12}
+                  zoom={11}
+                  minZoom={11}
+                  maxZoom={17}
                   className="w-full h-full z-0"
-                  minZoom={10}
                   scrollWheelZoom
                   zoomControl
                   preferCanvas={true}
                 >
                   <TileLayer
-                    attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                    attribution="&copy; OpenStreetMap contributors"
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
+                  s
                   {districtGeo && (
                     <>
                       <GeoJSON
@@ -268,7 +270,7 @@ const Geographic = () => {
               <span className="text-xs text-gray-700 font-medium">Low Concentration</span>
               <span className="text-xs text-gray-700 font-medium">High Concentration</span>
             </div>
-            <div className="h-4 rounded-full bg-gradient-to-r from-sky-300 via-blue-500 via-indigo-600 to-purple-700 shadow-sm"></div>
+            <div className="h-4 rounded-full bg-gradient-to-r from-sky-300 via-blue-500via-indigo-600 to-purple-700 shadow-sm"></div>
           </div>
         </AnalyticsCard>
       </AnalyticsStack>

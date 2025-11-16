@@ -36,6 +36,7 @@ const initialFormData = {
   rep_middle_initial: "",
   rep_last_name: "",
   rep_suffix: "",
+  rep_contact_number: "",
   rep_address: "",
   rep_birthday: "",
   rep_gender: "",

@@ -122,6 +122,7 @@ class Representative(models.Model):
     applicant = models.OneToOneField(Applicant, on_delete=models.CASCADE)
     background_info = models.ForeignKey(BackgroundInfo, on_delete=models.CASCADE)
     relationship = models.CharField(max_length=100)
+    contact_number = models.CharField(max_length=15, blank=True, null=True)
 
     def __str__(self):
         return f"{self.background_info.first_name} - Representative of {self.applicant}"

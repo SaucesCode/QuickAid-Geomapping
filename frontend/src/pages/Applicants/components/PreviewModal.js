@@ -166,6 +166,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
             {representative && (
               <SectionCard title="Representative Information">
                 <DataRow label="Full Name" value={repFullName} />
+                <DataRow label="Contact Number" value={repInfo.contact_number} />
                 <DataRow label="Relationship" value={repInfo.relationship} />
                 <DataRow label="Address" value={repFullAddress} />
               </SectionCard>
