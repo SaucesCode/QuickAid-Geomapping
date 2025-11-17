@@ -18,6 +18,8 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.conf.urls.static import static
 
+
+
 # ✅ Simple root endpoint to confirm the backend is running
 def home(request):
     return JsonResponse({

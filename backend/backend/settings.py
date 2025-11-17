@@ -20,6 +20,8 @@ DEBUG = os.environ.get("DEBUG")
 # ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -57,9 +59,42 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
+# backend/settings.py (excerpt)
+
+# CSRF Trusted Origins
+raw_csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")  # comma-separated
+CSRF_TRUSTED_ORIGINS = []
+
+for origin in raw_csrf_origins.split(","):
+    origin = origin.strip()
+    if origin:
+        # Add scheme if missing
+        if not origin.startswith("http://") and not origin.startswith("https://"):
+            origin = "https://" + origin  # default to https
+        CSRF_TRUSTED_ORIGINS.append(origin)
+
+# If you want a default for local development
+if not CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1"]
+
+# CORS Allowed Origins
+raw_cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
+CORS_ALLOWED_ORIGINS = []
+
+for origin in raw_cors_origins.split(","):
+    origin = origin.strip()
+    if origin:
+        if not origin.startswith("http://") and not origin.startswith("https://"):
+            origin = "https://" + origin
+        CORS_ALLOWED_ORIGINS.append(origin)
+
+# Default for local dev
+if not CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]  # adjust if your frontend runs on a different port
+
 
 CORS_ALLOWED_ORIGINS = [
-    os.environ.get('CORS_ALLOWED_ORIGINS'),  # React frontend URL
+    os.environ.get('CORS_ALLOWED_ORIGINS'),
 ]
 
 
@@ -103,7 +138,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 if os.getenv("DJANGO_ENV") == "production":
     DATABASES = {
         'default': dj_database_url.config(
-            efault=os.getenv('DATABASE_URL'),
+            default=os.getenv('DATABASE_URL'),
             conn_max_age=600,
             ssl_require=False
         )
