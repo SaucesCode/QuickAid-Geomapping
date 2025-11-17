@@ -9,31 +9,31 @@ const ActivityLogs = ({ token }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const { data: logs = [], isLoading } = useQuery({
-    queryKey: ["activityLogs"],
+  // -------------------------------
+  //     Fetch with SERVER PAGINATION
+  // -------------------------------
+  const { data, isLoading } = useQuery({
+    queryKey: ["activityLogs", currentPage, itemsPerPage],
     queryFn: async () => {
       const res = await api.get("/users/staff-activity/", {
+        params: {
+          limit: itemsPerPage,
+          offset: (currentPage - 1) * itemsPerPage,
+        },
         headers: { Authorization: `Bearer ${token}` },
       });
-      return res.data.results;
+      return res.data; // contains count, next, previous, results
     },
+    keepPreviousData: true,
   });
 
-  // ✅ Pagination logic
-  const totalPages = Math.ceil(logs.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentLogs = logs.slice(indexOfFirstItem, indexOfLastItem);
+  const logs = data?.results || [];
+  const totalItems = data?.count || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const handlePageChange = page => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
-  };
-
-  const handleItemsPerPageChange = e => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
-
+  // -------------------------------
+  //     Helpers
+  // -------------------------------
   const formatDate = dateString => {
     const date = new Date(dateString);
     return date.toLocaleString("en-US", {
@@ -46,9 +46,12 @@ const ActivityLogs = ({ token }) => {
     });
   };
 
+  const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
+  const indexOfLastItem = indexOfFirstItem + logs.length;
+
   return (
     <Card>
-      {/* --- Header --- */}
+      {/* HEADER */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
           <Activity className="w-5 h-5 text-white" />
@@ -59,14 +62,15 @@ const ActivityLogs = ({ token }) => {
         </div>
       </div>
 
-      {/* --- Logs Table or Loader --- */}
+      {/* LOADING */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center h-40">
           <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mb-3" />
           <p className="text-gray-500 text-sm">Loading activity logs...</p>
         </div>
-      ) : currentLogs.length > 0 ? (
+      ) : logs.length > 0 ? (
         <>
+          {/* TABLE */}
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
@@ -79,14 +83,15 @@ const ActivityLogs = ({ token }) => {
                   </th>
                 </tr>
               </thead>
+
               <tbody>
-                {currentLogs.map((log, index) => (
+                {logs.map((log, index) => (
                   <tr
-                    key={index}
+                    key={log.id}
                     className="border-b border-gray-100 hover:bg-blue-50/40 transition-colors"
                   >
                     <td className="px-4 py-4 font-semibold text-gray-800">
-                      {log.staff_member || "—"}
+                      {log.staff_member}
                     </td>
                     <td className="px-4 py-4 text-gray-700">{log.action}</td>
                     <td className="px-4 py-4 text-gray-500">{log.details}</td>
@@ -99,16 +104,19 @@ const ActivityLogs = ({ token }) => {
             </table>
           </div>
 
-          {/* ✅ Pagination */}
+          {/* PAGINATION */}
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            handlePageChange={handlePageChange}
+            handlePageChange={setCurrentPage}
             itemsPerPage={itemsPerPage}
-            handleItemsPerPageChange={handleItemsPerPageChange}
-            totalItems={logs.length}
+            handleItemsPerPageChange={e => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            totalItems={totalItems}
             indexOfFirstItem={indexOfFirstItem}
-            indexOfLastItem={indexOfLastItem}
+            indexOfLastItem={indexOfFirstItem + logs.length}
           />
         </>
       ) : (

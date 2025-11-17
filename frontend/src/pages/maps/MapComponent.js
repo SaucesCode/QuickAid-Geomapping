@@ -150,8 +150,8 @@ const MapComponent = () => {
       valid.forEach(loc => {
         const key = loc.id || loc.full_name;
         offsets[key] = {
-          latOffset: (Math.random() - 0.5) * 0.0005,
-          lngOffset: (Math.random() - 0.5) * 0.0005,
+          latOffset: (Math.random() - 0.5) * 0.0001,
+          lngOffset: (Math.random() - 0.5) * 0.0001,
         };
       });
 

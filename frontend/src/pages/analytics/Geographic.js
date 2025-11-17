@@ -45,6 +45,7 @@ import {
   AnalyticsStack,
   ChartContainer,
   Badge,
+  InsightCard,
 } from "../../components/AnalyticsComponents";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -210,6 +211,22 @@ const Geographic = () => {
       initializeHeatmap(validLocations);
     }
   }, [validLocations]);
+
+  const dominantBarangayCount =
+    Array.isArray(topBarangays) && topBarangays.length > 0 ? topBarangays[0]?.count : 0;
+
+  const inactiveCount = inactiveApplicants?.length || 0;
+
+  const topAssistanceType =
+    barangayByType.length > 0
+      ? Object.entries(
+          barangayByType.reduce((acc, curr) => {
+            const type = curr.type_of_assistance || "Unknown";
+            acc[type] = (acc[type] || 0) + (curr.count || 0);
+            return acc;
+          }, {})
+        ).sort((a, b) => b[1] - a[1])[0]?.[0]
+      : "N/A";
 
   return (
     <PageContainer>
@@ -399,7 +416,7 @@ const Geographic = () => {
         >
           <ChartContainer height={350}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
+              <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
                 <XAxis
                   dataKey="barangay"
@@ -442,48 +459,26 @@ const Geographic = () => {
           </div>
         </AnalyticsChartCard>
 
-        {inactiveApplicants.length > 0 && (
-          <AnalyticsAlertCard
-            icon={Clock}
-            title="Geographic Distribution Alert"
-            description={`${inactiveApplicants.length} applicants from various locations haven't submitted new applications in over 6 months.`}
-            variant="warning"
-          >
-            <AnalyticsGrid cols={{ default: 1, sm: 2, md: 3 }} gap="sm">
-              {inactiveApplicants.slice(0, 3).map(applicant => (
-                <AnalyticsCard
-                  key={applicant.id}
-                  className="hover:-translate-y-0.5 transition-all cursor-pointer"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-gray-900 text-sm truncate mb-1">
-                        {applicant.name}
-                      </div>
-                      <div className="text-xs text-gray-600 flex items-center gap-1">
-                        <Clock className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">
-                          Last: {new Date(applicant.last_application).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                    <Badge variant="warning" className="flex-shrink-0">
-                      Inactive
-                    </Badge>
-                  </div>
-                </AnalyticsCard>
-              ))}
-            </AnalyticsGrid>
-            {inactiveApplicants.length > 3 && (
-              <div className="mt-3 flex items-center justify-center gap-2 text-orange-700 bg-orange-50 rounded-lg p-2">
-                <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-semibold">
-                  +{inactiveApplicants.length - 3} more inactive applicants
-                </span>
-              </div>
-            )}
-          </AnalyticsAlertCard>
-        )}
+        <AnalyticsAlertCard
+          icon={MapPin}
+          title="Key Geographic Insights"
+          description="Summary of the most notable geographic patterns from the mapped data."
+          variant="info"
+        >
+          <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="sm">
+            <InsightCard title="Top Barangay" isLoading={loading}>
+              {topBarangay} has the highest number of applications ({dominantBarangayCount})
+            </InsightCard>
+
+            <InsightCard title="Average Approval Rate" isLoading={loading}>
+              {avgApprovalRate}% across mapped locations.
+            </InsightCard>
+
+            <InsightCard title="Inactive Applicants" isLoading={loading}>
+              {inactiveCount} applicants haven't submitted applications in over 6 months.
+            </InsightCard>
+          </AnalyticsGrid>
+        </AnalyticsAlertCard>
       </AnalyticsStack>
     </PageContainer>
   );

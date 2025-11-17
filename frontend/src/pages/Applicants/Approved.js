@@ -8,7 +8,6 @@ import {
   ChevronUp,
   CheckCircle,
   BarChart3,
-  Loader2,
   AlertCircle,
   FileSpreadsheet,
   Filter,
@@ -22,7 +21,6 @@ import {
   PageHeader,
   Card,
   GradientButton,
-  OutlineButton,
   LoadingState,
   H2,
   BodyText,
@@ -183,8 +181,7 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
                       "Barangay",
                       "Municipal",
                       "Assistance",
-                      "Amount",
-                      "Approved At",
+                      "Amount (PHP)",
                     ].map((header, i) => (
                       <th
                         key={i}
@@ -213,8 +210,7 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
                           {app.type_of_assistance}
                         </span>
                       </td>
-                      <td className="px-5 py-3 font-semibold text-green-700">₱{app.amount}</td>
-                      <td className="px-5 py-3">{formatDate(app.approved_at)}</td>
+                      <td className="px-5 py-3 font-semibold text-green-700">{app.amount}</td>
                     </tr>
                   ))}
                 </tbody>

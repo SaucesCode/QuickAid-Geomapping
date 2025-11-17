@@ -265,12 +265,12 @@ export const AnalyticsStack = ({ children, spacing = "md", className }) => (
 // Heatmap Cell Component with 12-hour time format
 export const HeatmapCell = ({ hour, count, intensity, label }) => {
   const getIntensityColor = intensity => {
-    if (intensity === 0) return "#F3F4F6";
-    if (intensity < 20) return "#E0F2FE";
-    if (intensity < 40) return "#93C5FD";
-    if (intensity < 60) return "#3B82F6";
-    if (intensity < 80) return "#1D4ED8";
-    return "#B91C1C";
+    if (intensity === 0) return "#F3F4F6"; // very light gray
+    if (intensity < 20) return "#EFF6FF"; // ultra-light blue
+    if (intensity < 40) return "#BFDBFE"; // light blue
+    if (intensity < 60) return "#60A5FA"; // medium-light blue
+    if (intensity < 80) return "#2563EB"; // medium blue
+    return "#1D4ED8"; // slightly darker blue for peak, still not too dark
   };
 
   // Convert 24-hour to 12-hour format
@@ -308,15 +308,19 @@ export const HeatmapLegend = ({ className }) => (
       <span>Low (0)</span>
     </div>
     <div className="flex items-center gap-1.5">
-      <div className="w-4 h-4 bg-blue-400 rounded"></div>
+      <div className="w-4 h-4 bg-blue-100 rounded"></div>
+      <span>Low-Medium</span>
+    </div>
+    <div className="flex items-center gap-1.5">
+      <div className="w-4 h-4 bg-blue-300 rounded"></div>
       <span>Medium</span>
     </div>
     <div className="flex items-center gap-1.5">
-      <div className="w-4 h-4 bg-blue-600 rounded"></div>
+      <div className="w-4 h-4 bg-blue-500 rounded"></div>
       <span>High</span>
     </div>
     <div className="flex items-center gap-1.5">
-      <div className="w-4 h-4 bg-red-700 rounded shadow-sm"></div>
+      <div className="w-4 h-4 bg-blue-700 rounded shadow-sm"></div>
       <span>Peak</span>
     </div>
   </div>
