@@ -222,25 +222,66 @@ const ArchiveApplicants = () => {
                           a.background_info?.last_name || ""
                         }`}
                       </td>
-
-                      <td className="px-6 py-4">{a.background_info?.barangay || "—"}</td>
-
-                      <td className="px-6 py-4">
-                        {a.background_info?.barangay_details?.city_name || "—"}
+                      <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                          <span className="truncate">
+                            {a.background_info?.barangay || "—"}
+                          </span>
+                        </div>
                       </td>
-
-                      <td className="px-6 py-4">{a.type_of_assistance}</td>
-
-                      <td className="px-6 py-4">{formatDateReadable(a.date_filled)}</td>
-
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => setRestoreModal({ show: true, applicantId: a.id })}
-                          className="px-3 py-1 rounded-lg bg-green-50 text-green-700 border border-green-300 hover:bg-green-100"
-                        >
-                          <RotateCcw className="w-4 h-4 inline mr-1" />
-                          Restore
-                        </button>
+                      <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                          <span className="truncate">
+                            {a.background_info?.barangay_details?.city_name || "—"}
+                          </span>z
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 align-middle">
+                        <div className="flex items-center justify-center">
+                          <span
+                            className={`inline-flex px-2 py-1 rounded-xl text-xs font-semibold shadow-md whitespace-nowrap
+            ${
+              a.type_of_assistance?.toLowerCase() === "educational"
+                ? "bg-green-100 text-green-800"
+                : a.type_of_assistance?.toLowerCase() === "medical"
+                ? "bg-blue-100 text-blue-800"
+                : a.type_of_assistance?.toLowerCase() === "burial"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+                          >
+                            {a.type_of_assistance}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                          <span className="truncate">{formatDateReadable(a.date_filled)}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 align-middle">
+                        <div className="flex flex-wrap items-center gap-1">
+                          <button
+                            onClick={() => {
+                              setPreviewApplicant(a);
+                              setPreviewView(true);
+                            }}
+                            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-300"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View
+                          </button>
+                          <GradientButton
+                            onClick={() => setRestoreModal({ show: true, applicantId: a.id })}
+                            disabled={restoreMutation.isPending}
+                            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors border border-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <RotateCcw className="w-4 h-4" /> Restore
+                          </GradientButton>
+                        </div>
                       </td>
                     </tr>
                   ))}

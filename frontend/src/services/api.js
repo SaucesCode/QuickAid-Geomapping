@@ -7,7 +7,10 @@ export const api = axios.create({
   baseURL: API_URL,
 });
 
-// ✅ Store tokens
+// =============================
+// TOKEN MANAGEMENT
+// =============================
+
 const storeTokens = (access, refresh) => {
   localStorage.setItem("accessToken", access);
   localStorage.setItem("refreshToken", refresh);
@@ -23,17 +26,18 @@ const isTokenExpired = token => {
   }
 };
 
-// ✅ Logout user cleanly
 export const logoutUser = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("userData");
 };
 
-// ✅ Refresh token function
+// =============================
+// REFRESH TOKEN
+// =============================
+
 export const refreshAccessToken = async () => {
   const refreshToken = localStorage.getItem("refreshToken");
-
   if (!refreshToken) return null;
 
   try {
@@ -53,7 +57,10 @@ export const refreshAccessToken = async () => {
   }
 };
 
-// ✅ Axios request interceptor
+// =============================
+// AXIOS INTERCEPTORS
+// =============================
+
 let isRefreshing = false;
 let refreshSubscribers = [];
 
@@ -70,7 +77,6 @@ api.interceptors.request.use(
   async config => {
     let accessToken = localStorage.getItem("accessToken");
 
-    // 🔹 Refresh if expired
     if (accessToken && isTokenExpired(accessToken)) {
       if (!isRefreshing) {
         isRefreshing = true;
@@ -85,7 +91,6 @@ api.interceptors.request.use(
       }
     }
 
-    // 🔹 Attach token to headers
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -95,12 +100,14 @@ api.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-// ✅ Response interceptor (handle global 401)
+// =============================
+// 401 Handler
+// =============================
+
 api.interceptors.response.use(
   response => response,
   async error => {
     if (error.response?.status === 401) {
-      console.warn("🚫 Unauthorized request, redirecting to login...");
       logoutUser();
       window.location.href = "/login";
     }
@@ -108,7 +115,10 @@ api.interceptors.response.use(
   }
 );
 
-// ✅ Login
+// =============================
+// LOGIN (FIXED PATH)
+// =============================
+
 export const loginStaff = async (username, password) => {
   try {
     const response = await api.post(`/token/`, { username, password });
@@ -120,16 +130,14 @@ export const loginStaff = async (username, password) => {
       return response.data;
     }
   } catch (error) {
-    console.error("Login Error:", error.response?.data);
+    console.error("Login Error:", error.response?.data || error);
     throw new Error("Login failed");
   }
 };
 
-// ✅ Check token validity (optional auto-logout)
-export const checkTokenValidity = () => {
-  const token = localStorage.getItem("accessToken");
-  if (!token || isTokenExpired(token)) logoutUser();
-};
+// =============================
+// SUBMIT APPLICANT
+// =============================
 
 // ✅ Submit Applicant
 export const submitApplicant = async data => {
