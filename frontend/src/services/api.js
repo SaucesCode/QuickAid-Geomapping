@@ -1,13 +1,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-// =============================
-// ENV VARIABLE (FIXED)
-// =============================
-export const API_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:8000/api";
-
-console.log("🚀 Loaded API URL =", API_URL);
+export const API_URL = process.env.REACT_APP_API_URL;
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -22,7 +16,8 @@ const storeTokens = (access, refresh) => {
   localStorage.setItem("refreshToken", refresh);
 };
 
-const isTokenExpired = (token) => {
+// ✅ Decode and check expiration
+const isTokenExpired = token => {
   try {
     const { exp } = jwtDecode(token);
     return Date.now() >= exp * 1000;
@@ -74,12 +69,12 @@ function subscribeTokenRefresh(cb) {
 }
 
 function onRefreshed(token) {
-  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers.map(cb => cb(token));
   refreshSubscribers = [];
 }
 
 api.interceptors.request.use(
-  async (config) => {
+  async config => {
     let accessToken = localStorage.getItem("accessToken");
 
     if (accessToken && isTokenExpired(accessToken)) {
@@ -89,7 +84,8 @@ api.interceptors.request.use(
         isRefreshing = false;
         onRefreshed(accessToken);
       } else {
-        accessToken = await new Promise((resolve) => {
+        // Wait until refresh finishes
+        accessToken = await new Promise(resolve => {
           subscribeTokenRefresh(resolve);
         });
       }
@@ -101,7 +97,7 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error)
 );
 
 // =============================
@@ -109,8 +105,8 @@ api.interceptors.request.use(
 // =============================
 
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
+  response => response,
+  async error => {
     if (error.response?.status === 401) {
       logoutUser();
       window.location.href = "/login";
@@ -143,10 +139,20 @@ export const loginStaff = async (username, password) => {
 // SUBMIT APPLICANT
 // =============================
 
-export const submitApplicant = async (data) => {
+// ✅ Submit Applicant
+export const submitApplicant = async data => {
   try {
     const urlParams = new URLSearchParams(window.location.search);
-    const staffRefCode = urlParams.get("staff_ref_code");
+    let staffRefCode = data.staff_ref_code || urlParams.get("staff_ref_code");
+
+    const encoded = urlParams.get("k");
+    if (!staffRefCode && encoded) {
+      try {
+        staffRefCode = atob(encoded);
+      } catch (e) {
+        console.error("Invalid encoded staff code:", e);
+      }
+    }
 
     const background_info = {
       first_name: data.first_name,
@@ -177,6 +183,7 @@ export const submitApplicant = async (data) => {
     if (data.applicant_type === "Representative") {
       payload.representative = {
         relationship: data.rep_relationship,
+        contact_number: data.rep_contact_number,
         background_info: {
           first_name: data.rep_first_name,
           middle_initial: data.rep_middle_initial,
@@ -197,6 +204,6 @@ export const submitApplicant = async (data) => {
     return response.data;
   } catch (error) {
     console.error("Submission Error:", error.response?.data);
-    throw error.response?.data || "Submission failed";
+    throw error;
   }
 };

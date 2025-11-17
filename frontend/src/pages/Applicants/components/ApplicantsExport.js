@@ -12,6 +12,8 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import FilterGroup from "./FilterGroup";
+import toast, { Toaster } from "react-hot-toast";
+import CustomToast from "../../../components/CustomToast";
 
 const ApplicantExport = () => {
   const [startDate, setStartDate] = useState("");
@@ -93,16 +95,31 @@ const ApplicantExport = () => {
   // Mutation for CSV export
   const csvMutation = useMutation({
     mutationFn: exportCSV,
-    onSuccess: () => alert("✅ CSV exported successfully!"),
+    onSuccess: () => {
+      toast.custom(t => <CustomToast t={t} type="applicantExport" />, {
+        duration: 4000,
+        position: "top-right",
+      });
+    },
     onError: err => {
       console.error("CSV export failed:", err);
-      alert("❌ CSV export failed. Please try again.");
+      toast.error("CSV export failed. Please try again.", {
+        duration: 5000,
+        position: "top-right",
+      });
     },
   });
 
   // Handle export button click
   const handleCSVExport = () => {
-    if (dateError) return alert("⚠ Please fix the date range first.");
+    if (dateError) {
+      toast.error("⚠ Please fix the date range first.", {
+        duration: 4000,
+        position: "top-right",
+      });
+      return;
+    }
+
     csvMutation.mutate({
       startDate,
       endDate,

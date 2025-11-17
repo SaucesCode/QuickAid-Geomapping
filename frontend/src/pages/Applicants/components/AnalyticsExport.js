@@ -15,6 +15,8 @@ import {
   BarChart3,
 } from "lucide-react";
 import FilterGroup from "./FilterGroup";
+import toast, { Toaster } from "react-hot-toast";
+import CustomToast from "../../../components/CustomToast";
 
 const AnalyticsExport = () => {
   // Form state
@@ -94,11 +96,13 @@ const AnalyticsExport = () => {
   const analyticsMutation = useMutation({
     mutationFn: exportAnalytics,
     onSuccess: () => {
-      alert("✅ Analytics report exported successfully!");
+      toast.custom(t => <CustomToast t={t} type="analyticsExport" />, { duration: 4000 });
     },
     onError: err => {
       console.error("Analytics export failed:", err);
-      alert(`❌ Analytics export failed: ${err.message}`);
+      toast.error(`Analytics export failed: ${err.message}`, {
+        duration: 5000,
+      });
     },
   });
 

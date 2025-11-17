@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../../../services/api";
 import { Activity, Loader2 } from "lucide-react";
 import Pagination from "../../../components/Pagination";
+import { Card } from "../../../components/DesignSystem";
 
-const ActivityLogs = ({ theme, token }) => {
+const ActivityLogs = ({ token }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -46,10 +47,10 @@ const ActivityLogs = ({ theme, token }) => {
   };
 
   return (
-    <div className={`bg-${theme.surface} shadow-lg rounded-2xl p-6 border border-gray-200`}>
+    <Card>
       {/* --- Header --- */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 text-white bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-xl shadow-md">
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
           <Activity className="w-5 h-5 text-white" />
         </div>
         <div>
@@ -61,7 +62,7 @@ const ActivityLogs = ({ theme, token }) => {
       {/* --- Logs Table or Loader --- */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center h-40">
-          <Loader2 className="w-8 h-8 text-teal-600 animate-spin mb-3" />
+          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mb-3" />
           <p className="text-gray-500 text-sm">Loading activity logs...</p>
         </div>
       ) : currentLogs.length > 0 ? (
@@ -82,7 +83,7 @@ const ActivityLogs = ({ theme, token }) => {
                 {currentLogs.map((log, index) => (
                   <tr
                     key={index}
-                    className="border-b border-gray-100 hover:bg-green-50 transition-colors"
+                    className="border-b border-gray-100 hover:bg-blue-50/40 transition-colors"
                   >
                     <td className="px-4 py-4 font-semibold text-gray-800">
                       {log.staff_member || "—"}
@@ -116,7 +117,7 @@ const ActivityLogs = ({ theme, token }) => {
           <p className="text-gray-500">No activity logs found.</p>
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 

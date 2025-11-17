@@ -27,6 +27,8 @@ import {
   H2,
   BodyText,
 } from "../../components/DesignSystem";
+import toast, { Toaster } from "react-hot-toast";
+import CustomToast from "../../components/CustomToast";
 
 // --- API Helpers ---
 const fetchBatches = async () => {
@@ -242,9 +244,24 @@ const Approved = () => {
 
   const uploadMutation = useMutation({
     mutationFn: uploadApprovedFile,
-    onSuccess: () => {
+    onSuccess: data => {
       queryClient.invalidateQueries(["approved-batches"]);
       setFile(null);
+      toast.custom(
+        t => (
+          <CustomToast
+            t={t}
+            type="upload"
+            customMessage={`Processed ${data.total_processed || 0} records, ${
+              data.total_approved || 0
+            } approved.`}
+          />
+        ),
+        { duration: 4000 }
+      );
+    },
+    onError: error => {
+      toast.error(error?.message || "Upload failed. Please try again.");
     },
   });
 

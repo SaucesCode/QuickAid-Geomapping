@@ -8,20 +8,18 @@ const checkboxClass = "form-checkbox text-blue-600 rounded focus:ring-blue-500 w
 const radioClass = "form-radio text-blue-600 focus:ring-blue-500 w-3 h-3";
 
 const ChecklistItem = React.memo(({ label, recordName, isOther = false, checkedRecords, handleRecordChange }) => (
-  <div className="flex items-center space-x-1 text-[8px] leading-[1] h-[14px]">
+  <div className="flex items-center space-x-1 text-[9px]">
     <input
       type="checkbox"
       className={checkboxClass}
       checked={checkedRecords[recordName]}
       onChange={(e) => handleRecordChange(recordName, e.target.checked)}
     />
-    
-    <label className="text-[8px] font-medium text-gray-800 leading-none">
+    <label className="text-[7px] font-medium text-gray-800 flex items-center">
       {label}
     </label>
-
     {isOther && (
-      <span className="w-[40px] border-b border-gray-400 text-[8px] ml-1 inline-block leading-none">
+      <span className="flex-1 min-w-[30px] border-b border-gray-400 outline-none px-1 text-[7px] bg-transparent">
         (Specify)
       </span>
     )}

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from opencage.geocoder import OpenCageGeocode
 import os
 import uuid
@@ -96,7 +97,7 @@ class Applicant(models.Model):
     type_of_assistance = models.CharField(max_length=50, choices=ASSISTANCE_TYPES)
     longitude = models.FloatField(blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
-    date_filled = models.DateTimeField(auto_now_add=True)
+    date_filled = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(null=True, blank=True)
     is_archived = models.BooleanField(default=False)
 
@@ -121,6 +122,7 @@ class Representative(models.Model):
     applicant = models.OneToOneField(Applicant, on_delete=models.CASCADE)
     background_info = models.ForeignKey(BackgroundInfo, on_delete=models.CASCADE)
     relationship = models.CharField(max_length=100)
+    contact_number = models.CharField(max_length=15, blank=True, null=True)
 
     def __str__(self):
         return f"{self.background_info.first_name} - Representative of {self.applicant}"

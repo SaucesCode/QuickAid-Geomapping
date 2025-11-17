@@ -33,6 +33,7 @@ import {
   H2,
   BodyText,
 } from "../../components/DesignSystem";
+import { useQueryClient } from "@tanstack/react-query";
 
 // --- Skeleton Row ---
 const SkeletonRow = () => (
@@ -66,6 +67,7 @@ const SkeletonRow = () => (
 
 const Applicants = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     city: "",
@@ -206,6 +208,7 @@ const Applicants = () => {
       await api.delete(`/applicants/${archiveModal.applicantId}/`);
       toast.custom(t => <CustomToast t={t} type="archive" />);
       refetch();
+      queryClient.invalidateQueries(["archived-applicants"]);
       setArchiveModal({ show: false, applicantId: null });
     } catch (err) {
       console.error("Archive failed:", err);
@@ -230,6 +233,7 @@ const Applicants = () => {
         (info.first_name || "").toLowerCase().includes(term) ||
         (info.last_name || "").toLowerCase().includes(term) ||
         (info.barangay || "").toLowerCase().includes(term) ||
+        (info.barangay_details?.city_name || "").toLowerCase().includes(term) ||
         (a.type_of_assistance || "").toLowerCase().includes(term) ||
         (formatDate(a.date_filled) || "").toLowerCase().includes(term)
       );
@@ -304,8 +308,6 @@ const Applicants = () => {
 
   return (
     <PageContainer>
-      <Toaster position="top-center" reverseOrder={false} />
-
       {/* Header */}
       <PageHeader
         icon={UserPlus}

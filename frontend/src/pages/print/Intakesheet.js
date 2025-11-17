@@ -176,6 +176,7 @@ export default function GeneralIntakeSheet({ applicant }) {
     };
 
     const renderCheckbox = checked => {
+        // MODIFICATION: Reduced checkbox size
         return (
             <span className="form-checkbox text-blue-600 rounded text-[10px]">{checked ? "[✔]" : "[ ]"}</span>
         );

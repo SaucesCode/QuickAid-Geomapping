@@ -9,179 +9,76 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
+  ResponsiveContainer,
 } from "recharts";
 import {
   Clock,
   Users,
   Trophy,
   Activity,
-  Target,
   Timer,
   UserCheck,
   Calendar,
+  Target,
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 
-// --- Consistent Design Constants and Helpers ---
-const BLUE_DARK = "#1D4ED8"; // Primary Blue for highlights
-const BLUE_MEDIUM = "#3B82F6"; // Medium Blue
-const DANGER_RED = "#EF4444"; // For poor performance/critical points
+// Import Analytics Components
+import {
+  PageContainer,
+  PageHeader,
+  AnalyticsStatCard,
+  AnalyticsChartCard,
+  AnalyticsAlertCard,
+  AnalyticsGrid,
+  AnalyticsStack,
+  ChartContainer,
+  InsightCard,
+  AnalyticsTable,
+  TableHeader,
+  TableHeaderCell,
+  TableBody,
+  TableRow,
+  TableCell,
+  Badge,
+} from "../../components/AnalyticsComponents";
+
+// Color Constants
+const BLUE_DARK = "#1D4ED8";
+const BLUE_MEDIUM = "#3B82F6";
+const DANGER_RED = "#EF4444";
 const SUCCESS_GREEN = "#10B981";
-const WARNING_YELLOW = "#FACC15"; // Keep green for success/good status in StatCards
-
-// **NEW COLOR CONSTANTS FOR DIVERSE CHART VISUALS**
-const TEAL = "#14B8A6"; // Tailwind teal-500
-const PURPLE = "#8B5CF6"; // Tailwind violet-500
-const ORANGE = "#F97316"; // Tailwind orange-500
-const GRAY_OUT = "#E5E7EB"; // Tailwind gray-200 (for 0% values)
-const BURIAL_YELLOW = "#FDE68A"; // Tailwind yellow-300 for Burial type
-
-// **MAPPING FOR ASSISTANCE TYPE (Bar Chart) - Not critical for Pie Chart fix, but good practice**
+const WARNING_YELLOW = "#FACC15";
+const TEAL = "#14B8A6";
+const PURPLE = "#8B5CF6";
+const ORANGE = "#F97316";
+const GRAY_OUT = "#E5E7EB";
 const EDUCATION_GREEN = SUCCESS_GREEN;
 const MEDICALS_BLUE = BLUE_MEDIUM;
+const BURIAL_YELLOW = "#FDE68A";
 
-// **FIXED COLOR LOGIC:** Update CHART_COLORS for Distribution Pie Chart
-// This directly maps colors to the data index (0, 1, 2, 3, 4) in the pie chart
-const CHART_COLORS = [
-  TEAL, // Index 0 (40% in image) -> Teal
-  PURPLE, // Index 1 (40% in image) -> Purple
-  GRAY_OUT, // Index 2 (0% in image) -> Gray
-  ORANGE, // Index 3 (20% in image) -> Orange
-  GRAY_OUT, // Index 4 (0% in image) -> Gray
-  BLUE_DARK,
-  DANGER_RED,
-];
+const CHART_COLORS = [TEAL, PURPLE, GRAY_OUT, ORANGE, GRAY_OUT, BLUE_DARK, DANGER_RED];
 
-// **LOGIC CHANGE:** Now uses Blue for good, Yellow for warning (default), and Red for poor.
-// Used for Processing Time by Assistance Type (Bar Chart)
-// const getTimeColor = minutes => {
-//   if (minutes < 60) return BLUE_MEDIUM; // Good is now Blue
-//   if (minutes < 120) return WARNING_YELLOW; // Warning is Yellow
-//   return DANGER_RED; // Poor is Red
-// };
-
-// **LOGIC CHANGE:** Now uses Blue for high, Yellow for medium (default), and Red for low.
-// Used for Staff Productivity (Bar Chart)
 const getProductivityColor = count => {
-  if (count > 50) return BLUE_MEDIUM; // High is now Blue
-  if (count > 25) return WARNING_YELLOW; // Medium is Yellow
-  return DANGER_RED; // Low is Red
+  if (count > 50) return BLUE_MEDIUM;
+  if (count > 25) return WARNING_YELLOW;
+  return DANGER_RED;
 };
 
-// **NEW HELPER FUNCTION for Pie Chart Color based on Category Type/Bucket**
-// This is used for the legend/tooltip if the data uses names like "0-30" instead of indices
-// const getTypeColor = type => {
-//   const normalizedType = (type || "").toUpperCase();
-
-//   // Logic to handle potential named buckets (e.g., "0-30")
-//   if (normalizedType.includes("0-30")) return TEAL;
-//   if (normalizedType.includes("31-60")) return PURPLE;
-//   if (normalizedType.includes("61-120")) return ORANGE;
-//   if (normalizedType.includes(">120")) return DANGER_RED;
-
-//   // Logic to handle assistance types (e.g., "Medical") - secondary use case for this function
-//   if (normalizedType.includes("EDUCATIONAL")) return EDUCATION_GREEN;
-//   if (normalizedType.includes("MEDICAL")) return MEDICALS_BLUE;
-//   if (normalizedType.includes("BURIAL")) return BURIAL_YELLOW;
-
-//   // Final Fallback
-//   return BLUE_DARK;
-// };
-
-// --- UI Components (StatCard is kept the same as no new color constant was provided for WARNING_YELLOW) ---
-const MinimalChartLoader = ({ height = 300 }) => (
-  <div className={`animate-pulse bg-gray-100 rounded-xl p-4`} style={{ height }}>
-    <div className="h-full w-full bg-gray-200 rounded-lg"></div>
-  </div>
-);
-
-const StatCard = ({ icon: Icon, title, value, subtitle, color, badge, isLoading }) => {
-  // Simplified getGradientColors inline, keeping only necessary logic
-  let gradientClass = "from-gray-500 to-gray-700";
-  let borderClass = "border-gray-200";
-  let textClass = "from-gray-600 to-gray-700";
-
-  // **LOGIC CHANGE:** Mapped StatCard colors to new scheme
-  switch (color) {
-    case BLUE_MEDIUM: // Primary Blue
-      gradientClass = "from-blue-500 to-blue-700";
-      borderClass = "border-blue-200";
-      textClass = "from-blue-600 to-indigo-700";
-      break;
-    case SUCCESS_GREEN:
-      gradientClass = "from-green-500 to-green-700";
-      borderClass = "border-green-200";
-      textClass = "from-green-600 to-green-700";
-      break;
-    // NOTE: WARING_YELLOW is still used here for the Trophy card
-    case WARNING_YELLOW:
-      gradientClass = "from-yellow-500 to-orange-500";
-      borderClass = "border-yellow-200";
-      textClass = "from-orange-600 to-yellow-700";
-      break;
-    case BLUE_DARK: // Used PURPLE slot, now uses darker blue
-      gradientClass = "from-indigo-500 to-indigo-700";
-      borderClass = "border-indigo-200";
-      textClass = "from-indigo-600 to-indigo-700";
-      break;
-    default:
-      break;
-  }
-
-  return (
-    <div
-      className={`group bg-white bg-opacity-80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border ${borderClass} hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative`}
-    >
-      {badge && (
-        <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-800 px-2 py-1 rounded-full text-xs font-bold">
-          {badge}
-        </div>
-      )}
-      <div className="flex items-center gap-3">
-        <div
-          className={`w-14 h-14 bg-gradient-to-br ${gradientClass} rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
-        >
-          <Icon className="w-7 h-7 text-white" />
-        </div>
-        <div>
-          <p className="text-sm text-gray-600 font-semibold">{title}</p>
-          {isLoading ? (
-            <div className="h-8 w-20 bg-gray-300 rounded mt-1 animate-pulse"></div>
-          ) : (
-            <>
-              <h2
-                className={`text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r ${textClass}`}
-              >
-                {value}
-              </h2>
-              {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- Main Component ---
 const Performance = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
 
   const fetchData = async endpoint => {
     const params = new URLSearchParams();
-
     if (filters.start) params.append("start_date", filters.start);
     if (filters.end) params.append("end_date", filters.end);
     if (filters.type) params.append("type", filters.type);
-
     const query = params.toString() ? `?${params.toString()}` : "";
     const res = await api.get(`${endpoint}${query}`).catch(err => {
-      // Catch network/API errors at the data fetching level
       setError(err);
       throw err;
     });
@@ -224,13 +121,6 @@ const Performance = () => {
     keepPreviousData: true,
   });
 
-  const { data: staffHeatmap = [], isLoading: loadingHeatmap } = useQuery({
-    queryKey: ["performance", "staff-heatmap", filters],
-    queryFn: () => fetchData(`/analytics/performance/staff-heatmap/`),
-    keepPreviousData: true,
-  });
-
-  // Transforms - kept mostly as you had them but safer
   const transformProcessingByType = (data = []) => {
     return data.map(item => ({
       type: item.type,
@@ -300,30 +190,6 @@ const Performance = () => {
     });
   };
 
-  const transformHeatmapData = (data = []) => {
-    const hours = Array.from({ length: 24 }, (_, i) => ({
-      hour: i,
-      label: `${i.toString().padStart(2, "0")}:00`,
-      count: 0,
-      intensity: 0,
-    }));
-
-    (data || []).forEach(item => {
-      const hourIndex = Number(item.hour);
-      if (!Number.isNaN(hourIndex) && hourIndex >= 0 && hourIndex < 24) {
-        hours[hourIndex].count = item.count ?? 0;
-      }
-    });
-
-    const maxCount = Math.max(...hours.map(h => h.count));
-    hours.forEach(hour => {
-      hour.intensity = maxCount > 0 ? (hour.count / maxCount) * 100 : 0;
-    });
-
-    return hours;
-  };
-
-  // Stats calculation (safe guards)
   const calculateStats = () => {
     const processedProductivity = !loadingProductivity
       ? transformStaffProductivity(staffProductivity)
@@ -351,41 +217,12 @@ const Performance = () => {
     };
   };
 
-  // Error screen (kept error handling logic intact)
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-red-50 to-indigo-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-red-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        </div>
-        <div className="relative z-10 bg-white p-10 rounded-3xl shadow-2xl border border-red-200 max-w-md w-full mx-4">
-          {/* <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl mx-auto mb-6 shadow-lg">
-            <AlertCircle className="h-10 w-10 text-white" />
-          </div> */}
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">Error Loading Data</h3>
-          <p className="text-gray-600 mb-6 leading-relaxed">
-            {error.message || "Failed to fetch trends data. Please try again later."}
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Transformed datasets
   const transformedProcessingByType = transformProcessingByType(avgProcessingTimeByType);
   const transformedStaffProductivity = transformStaffProductivity(staffProductivity);
   const transformedStaffLeaderboard = transformStaffLeaderboard(staffLeaderboard);
   const transformedStaffActivity = transformStaffActivity(staffActivity);
-  // const transformedHeatmapData = staffHeatmap ? transformHeatmapData(staffHeatmap) : [];
   const stats = calculateStats();
 
-  // Loading guards
   const isAvgProcessingTimeLoaded = !loadingAvg && !!avgProcessingTime;
   const isLeaderboardLoaded =
     !loadingLeaderboard && Array.isArray(staffLeaderboard) && staffLeaderboard.length > 0;
@@ -393,45 +230,19 @@ const Performance = () => {
     !loadingProductivity && Array.isArray(staffProductivity) && staffProductivity.length > 0;
   const isTotalProcessedLoaded = isProductivityLoaded;
 
-  // Header (single)
-  const HeaderComponent = (
-    <header className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl border border-blue-200 p-8">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
-            <Trophy className="w-8 h-8 text-white" />
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800">
-              Performance Analytics Dashboard
-            </h1>
-            <p className="text-gray-600 text-lg mt-1">
-              Staff productivity, processing efficiency, and operational performance metrics
-            </p>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-
-  // Render
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 relative py-6">
-      {/* Reduced background noise */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/2 -right-24 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-      </div>
+    <PageContainer>
+      <AnalyticsStack spacing="lg">
+        <PageHeader
+          icon={Trophy}
+          title="Performance Analytics Dashboard"
+          subtitle="Staff productivity, processing efficiency, and operational performance metrics"
+        />
 
-      <div className="relative z-10 p-6 max-w-7xl mx-auto space-y-6">
-        {HeaderComponent}
-
-        {/* Filters component */}
         <AnalyticsFilter onFilterChange={setFilters} />
 
-        {/* Stat cards */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
+        <AnalyticsGrid cols={{ default: 1, sm: 2, lg: 4 }} gap="md">
+          <AnalyticsStatCard
             icon={Timer}
             title="Avg Processing Time"
             value={
@@ -440,52 +251,47 @@ const Performance = () => {
                 : "—"
             }
             subtitle="Per application"
-            color={BLUE_MEDIUM} // Use Blue
+            color="blue"
             isLoading={!isAvgProcessingTimeLoaded}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={Users}
             title="Staff Productivity"
             value={isProductivityLoaded ? stats.averageProductivity : "—"}
-            color={BLUE_MEDIUM} // Keep Green for this positive metric
+            color="green"
             isLoading={loadingProductivity}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={Trophy}
             title="Top Performer"
             value={isLeaderboardLoaded ? stats.topPerformer?.staff || "N/A" : "—"}
             subtitle={
               isLeaderboardLoaded ? `${stats.topPerformer?.count || 0} applications` : ""
             }
-            color={BLUE_MEDIUM} // Keep Yellow/Gold for Trophy
+            color="yellow"
             badge="🏆"
             isLoading={loadingLeaderboard}
           />
-          <StatCard
+          <AnalyticsStatCard
             icon={Activity}
             title="Total Processed"
             value={
               isTotalProcessedLoaded ? (stats.totalStaffProcessed || 0).toLocaleString() : "—"
             }
             subtitle="By all staff"
-            color={BLUE_MEDIUM} // Use Darker Blue
+            color="purple"
             isLoading={loadingProductivity}
           />
-        </section>
+        </AnalyticsGrid>
 
-        {/* Processing Performance */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <Clock className="mr-2 h-5 w-5 text-blue-600" />
-                Processing Time by Assistance Type
-              </h2>
-            </div>
-            {loadingType ? (
-              <MinimalChartLoader />
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
+        <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+          <AnalyticsChartCard
+            icon={Clock}
+            title="Processing Time by Assistance Type"
+            isLoading={loadingType}
+          >
+            <ChartContainer height={300}>
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={transformedProcessingByType}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
@@ -502,16 +308,14 @@ const Performance = () => {
                   <Tooltip formatter={value => [`${value} min`, "Processing Time"]} />
                   <Bar dataKey="avgMinutes" radius={[4, 4, 0, 0]}>
                     {transformedProcessingByType.map((entry, index) => {
-                      let fillColor = "#94a3b8"; // default (gray)
-
+                      let fillColor = "#94a3b8";
                       if (entry.type.toLowerCase().includes("educational")) {
-                        fillColor = EDUCATION_GREEN; // green
+                        fillColor = EDUCATION_GREEN;
                       } else if (entry.type.toLowerCase().includes("medical")) {
-                        fillColor = MEDICALS_BLUE; // blue
+                        fillColor = MEDICALS_BLUE;
                       } else if (entry.type.toLowerCase().includes("burial")) {
-                        fillColor = BURIAL_YELLOW; // yellow
+                        fillColor = BURIAL_YELLOW;
                       }
-
                       return (
                         <Cell key={`type-cell-${index}-${entry.type}`} fill={fillColor} />
                       );
@@ -519,27 +323,22 @@ const Performance = () => {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            )}
-          </div>
+            </ChartContainer>
+          </AnalyticsChartCard>
 
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <Target className="mr-2 h-5 w-5 text-green-600" />
-                Processing Time Distribution
-              </h2>
-            </div>
-            {loadingDistribution ? (
-              <MinimalChartLoader />
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
+          <AnalyticsChartCard
+            icon={Target}
+            title="Processing Time Distribution"
+            isLoading={loadingDistribution}
+          >
+            <ChartContainer height={300}>
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={processingDistribution}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    // Changed label to use 'bucket' which seems to hold the time range index (0, 1, etc.)
                     label={({ bucket, percent }) =>
                       `${bucket ?? ""} (${(percent * 100).toFixed(0)}%)`
                     }
@@ -549,7 +348,6 @@ const Performance = () => {
                     {processingDistribution.map((entry, index) => (
                       <Cell
                         key={`dist-cell-${index}-${entry.bucket ?? index}`}
-                        // **FIXED COLOR IMPLEMENTATION:** Use the predefined CHART_COLORS based on index
                         fill={CHART_COLORS[index % CHART_COLORS.length]}
                       />
                     ))}
@@ -558,23 +356,18 @@ const Performance = () => {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
-            )}
-          </div>
-        </div>
+            </ChartContainer>
+          </AnalyticsChartCard>
+        </AnalyticsGrid>
 
-        {/* Staff Performance */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <Calendar className="mr-2 h-5 w-5 text-orange-600" />
-                Staff Productivity (Top 10)
-              </h2>
-            </div>
-            {loadingProductivity ? (
-              <MinimalChartLoader height={350} />
-            ) : (
-              <ResponsiveContainer width="100%" height={350}>
+        <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+          <AnalyticsChartCard
+            icon={Calendar}
+            title="Staff Productivity (Top 10)"
+            isLoading={loadingProductivity}
+          >
+            <ChartContainer height={350}>
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={transformedStaffProductivity}
                   margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
@@ -593,169 +386,120 @@ const Performance = () => {
                     {transformedStaffProductivity.map((entry, index) => (
                       <Cell
                         key={`prod-cell-${index}-${entry.staff}`}
-                        // **LOGIC CHANGE:** Uses getProductivityColor (now maps High to Blue)
                         fill={getProductivityColor(entry.count)}
                       />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            )}
-          </div>
+            </ChartContainer>
+          </AnalyticsChartCard>
 
-          <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <Trophy className="mr-2 h-5 w-5 text-yellow-600" />
-                Staff Leaderboard
-              </h2>
-            </div>
-            {loadingLeaderboard ? (
-              // Replaced SkeletonLoader type="list"
-              <div className="space-y-3 max-h-80 overflow-y-auto">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse"></div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {transformedStaffLeaderboard.map((staff, index) => (
-                  <div
-                    key={`${staff.staff ?? "unknown"}-${staff.rank}-${index}`}
-                    className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all hover:shadow-md ${
-                      index < 3
-                        ? "bg-gradient-to-r from-yellow-50 to-amber-100 border-amber-300"
-                        : "bg-gray-50 border-gray-200"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="text-2xl">{staff.medal}</div>
-                      <div>
-                        <p className="font-semibold text-gray-800">{staff.staff}</p>
-                        <p className="text-sm text-gray-600">Rank #{staff.rank}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-800">{staff.count}</p>
-                      <p className="text-xs text-gray-600">applications</p>
+          <AnalyticsChartCard
+            icon={Trophy}
+            title="Staff Leaderboard"
+            isLoading={loadingLeaderboard}
+          >
+            <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+              {transformedStaffLeaderboard.map((staff, index) => (
+                <div
+                  key={`${staff.staff ?? "unknown"}-${staff.rank}-${index}`}
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-all hover:shadow-md ${
+                    index < 3
+                      ? "bg-gradient-to-r from-yellow-50 to-amber-50 border-amber-200"
+                      : "bg-gray-50 border-gray-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="text-xl">{staff.medal}</div>
+                    <div>
+                      <p className="font-semibold text-gray-800 text-sm">{staff.staff}</p>
+                      <p className="text-xs text-gray-500">Rank #{staff.rank}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Recent Activity Table (kept the table version) */}
-        <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center">
-              <UserCheck className="mr-2 h-5 w-5 text-green-600" />
-              Recent Staff Activity
-            </h2>
-          </div>
-          {loadingActivity ? (
-            // Replaced SkeletonLoader type="list"
-            <div className="space-y-3 max-h-80 overflow-y-auto">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-10 bg-gray-100 rounded-lg animate-pulse"></div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-gray-800">{staff.count}</p>
+                    <p className="text-xs text-gray-500">apps</p>
+                  </div>
+                </div>
               ))}
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 rounded-tl-lg">
-                      Staff Member
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Action</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Timestamp
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 rounded-tr-lg">
-                      Time Ago
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transformedStaffActivity.slice(0, 10).map(activity => (
-                    <tr
-                      key={activity.id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="py-3 px-4 font-medium text-gray-800">{activity.staff}</td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            activity.action === "CREATE"
-                              ? "bg-green-100 text-green-800"
-                              : activity.action === "UPDATE"
-                              ? "bg-blue-100 text-blue-800"
-                              : activity.action === "LOGIN"
-                              ? "bg-indigo-100 text-indigo-800" // **COLOR CHANGE:** Login is now indigo/purple
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {activity.action}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-gray-600 text-sm">{activity.timestamp}</td>
-                      <td className="py-3 px-4 text-gray-500 text-sm">{activity.timeAgo}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+          </AnalyticsChartCard>
+        </AnalyticsGrid>
 
-        {/* Insights (kept minimal insights) */}
-        <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-3xl shadow-xl p-6 border border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Performance Insights</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* **COLOR CHANGE:** Insights now consistently use Blue/Green/Indigo hues */}
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <h3 className="font-semibold text-blue-800 mb-2">Processing Efficiency</h3>
-              <p className="text-blue-700 text-sm">
-                Average processing time of{" "}
-                <span className="font-bold">
-                  {(stats.processingEfficiency ?? 0).toFixed(1)} minutes
-                </span>{" "}
-                indicates
-                {(stats.processingEfficiency ?? 0) < 60
-                  ? " excellent"
-                  : (stats.processingEfficiency ?? 0) < 120
-                  ? " good"
-                  : " room for improvement"}{" "}
-                in efficiency.
-              </p>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-              <h3 className="font-semibold text-green-800 mb-2">Staff Performance</h3>
-              <p className="text-green-700 text-sm">
-                <span className="font-bold">
-                  {stats.topPerformer?.staff || "Top performer"}
-                </span>{" "}
-                leads with{" "}
-                <span className="font-bold">
-                  {stats.topPerformer?.count || 0} processed applications
-                </span>
-                , showing strong productivity.
-              </p>
-            </div>
-            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-              <h3 className="font-semibold text-indigo-800 mb-2">Workload Distribution</h3>
-              <p className="text-indigo-700 text-sm">
-                Average productivity of{" "}
-                <span className="font-bold">{stats.averageProductivity}</span> applications per
-                staff member indicates workload balance.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        <AnalyticsChartCard
+          icon={UserCheck}
+          title="Recent Staff Activity"
+          isLoading={loadingActivity}
+        >
+          <AnalyticsTable>
+            <TableHeader>
+              <TableHeaderCell>Staff Member</TableHeaderCell>
+              <TableHeaderCell>Action</TableHeaderCell>
+              <TableHeaderCell>Timestamp</TableHeaderCell>
+              <TableHeaderCell>Time Ago</TableHeaderCell>
+            </TableHeader>
+            <TableBody>
+              {transformedStaffActivity.slice(0, 10).map(activity => (
+                <TableRow key={activity.id}>
+                  <TableCell className="font-medium text-gray-800">{activity.staff}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        activity.action === "CREATE"
+                          ? "success"
+                          : activity.action === "UPDATE"
+                          ? "info"
+                          : activity.action === "LOGIN"
+                          ? "default"
+                          : "default"
+                      }
+                    >
+                      {activity.action}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-gray-600">{activity.timestamp}</TableCell>
+                  <TableCell className="text-gray-500">{activity.timeAgo}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </AnalyticsTable>
+        </AnalyticsChartCard>
+
+        <AnalyticsAlertCard icon={Activity} title="Performance Insights" variant="info">
+          <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="sm">
+            <InsightCard title="Processing Efficiency">
+              Average processing time of{" "}
+              <span className="font-bold">
+                {(stats.processingEfficiency ?? 0).toFixed(1)} minutes
+              </span>{" "}
+              indicates
+              {(stats.processingEfficiency ?? 0) < 60
+                ? " excellent"
+                : (stats.processingEfficiency ?? 0) < 120
+                ? " good"
+                : " room for improvement"}{" "}
+              in efficiency.
+            </InsightCard>
+
+            <InsightCard title="Staff Performance">
+              <span className="font-bold">{stats.topPerformer?.staff || "Top performer"}</span>{" "}
+              leads with{" "}
+              <span className="font-bold">
+                {stats.topPerformer?.count || 0} processed applications
+              </span>
+              , showing strong productivity.
+            </InsightCard>
+
+            <InsightCard title="Workload Distribution">
+              Average productivity of{" "}
+              <span className="font-bold">{stats.averageProductivity}</span> applications per
+              staff member indicates workload balance.
+            </InsightCard>
+          </AnalyticsGrid>
+        </AnalyticsAlertCard>
+      </AnalyticsStack>
+    </PageContainer>
   );
 };
 

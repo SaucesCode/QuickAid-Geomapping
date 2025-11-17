@@ -217,6 +217,7 @@ export default function PrintCertificate() {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color-adjust: exact !important;
+<<<<<<< HEAD
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
@@ -227,10 +228,12 @@ export default function PrintCertificate() {
             max-width: 100%;
             height: auto;
           }
-          
+ zz         
           .certificate-container * {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+=======
+>>>>>>> 3206257e48a6cad548c5a415042f3914719729b9
           }
         `}
       </style>

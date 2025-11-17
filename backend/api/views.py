@@ -4,6 +4,7 @@ import datetime
 import json
 import requests
 import pandas as pd
+import numpy as np
 import base64
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta, date
@@ -1190,6 +1191,74 @@ def applicant_growth_rate(request):
     })
 
 
+@api_view(["GET"])
+def applicant_forecast(request):
+    today = now().date()
+    start_date = today.replace(day=1)
+
+    daily_data = (
+        Applicant.objects.filter(date_filled__date__gte=start_date)
+        .extra(select={'day': "date(date_filled)"})
+        .values('day')
+        .annotate(count=Count('id'))
+        .order_by('day')
+    )
+
+
+    days = []
+    counts = []
+
+    for row in daily_data:
+        days.append(row["day"])
+        counts.append(row["count"])
+
+    # Safety
+    if len(counts) < 2:
+        return Response({
+            "historical": {"dates": [], "counts": []},
+            "forecast": {"dates": [], "counts": [], "upper": [], "lower": []},
+        })
+
+    # 1. Smooth the data (moving average)
+    smooth = []
+    for i in range(len(counts)):
+        window = counts[max(0, i-2):i+1]
+        smooth.append(int(sum(window)/len(window)))
+
+    # 2. Linear regression on smoothed data
+    x = np.arange(len(smooth))
+    y = np.array(smooth)
+    slope, intercept = np.polyfit(x, y, 1)
+
+    # 3. Forecast next 7 days
+    preds = []
+    for i in range(1, 8):
+        pred = slope * (len(smooth) + i) + intercept
+        preds.append(max(int(pred), 0))
+
+    # Confidence bounds ±20%
+    upper = [int(p * 1.2) for p in preds]
+    lower = [max(int(p * 0.8), 0) for p in preds]
+
+    # Forecast dates
+    forecast_dates = [(today + timedelta(days=i)).isoformat() for i in range(1, 8)]
+
+    data = {
+        "historical": {
+            "dates": [d.isoformat() for d in days],
+            "counts": counts,
+        },
+        "forecast": {
+            "dates": forecast_dates,
+            "counts": preds,
+            "upper": upper,
+            "lower": lower,
+        }
+    }
+
+
+    return Response(data)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def repeat_applicants(request):
@@ -1383,7 +1452,7 @@ def inactive_applicants(request):
     # Annotate latest application date for each person
     inactive_qs = (
         BackgroundInfo.objects.annotate(last_app=Max("applicant__date_filled"))
-        .filter(Q(last_app__lt=cutoff) | Q(last_app__isnull=True))
+        .filter(Q(last_app__lt=cutoff), applicant__isnull=False)
         .select_related()  # lightweight optimization
         .order_by("last_app")
     )
@@ -1645,6 +1714,40 @@ def assistance_type_trend(request):
 
     qs = qs.values("type_of_assistance").annotate(count=Count("id")).order_by("-count")
     return Response(list(qs))
+    
+@api_view(["GET"])
+def assistance_type_linetrend(request):
+    today = now().date()
+    start_date = today.replace(day=1)
+
+    queryset = Applicant.objects.filter(date_filled__date__gte=start_date)
+
+    days = (today - start_date).days + 1
+    labels = [(start_date + timedelta(days=i)).isoformat() for i in range(days)]
+
+    medical = [0] * days
+    educational = [0] * days
+    burial = [0] * days
+
+    for app in queryset:
+        idx = (app.date_filled.date() - start_date).days
+        if idx >= 0 and idx < days:
+            t = app.type_of_assistance.lower()
+            if "medical" in t:
+                medical[idx] += 1
+            elif "educational" in t:
+                educational[idx] += 1
+            elif "burial" in t:
+                burial[idx] += 1
+                
+    data = {
+        "labels": labels,
+        "medical": medical,
+        "educational": educational,
+        "burial": burial
+    }
+
+    return Response(data)
 
 
 @api_view(['GET'])
