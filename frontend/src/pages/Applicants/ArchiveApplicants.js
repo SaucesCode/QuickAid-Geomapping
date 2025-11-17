@@ -235,7 +235,8 @@ const ArchiveApplicants = () => {
                           <Building2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
                           <span className="truncate">
                             {a.background_info?.barangay_details?.city_name || "—"}
-                          </span>z
+                          </span>
+                          z
                         </div>
                       </td>
                       <td className="px-4 py-4 align-middle">
@@ -274,13 +275,13 @@ const ArchiveApplicants = () => {
                             <Eye className="w-4 h-4" />
                             View
                           </button>
-                          <GradientButton
+                          <button
                             onClick={() => setRestoreModal({ show: true, applicantId: a.id })}
                             disabled={restoreMutation.isPending}
                             className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors border border-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <RotateCcw className="w-4 h-4" /> Restore
-                          </GradientButton>
+                          </button>
                         </div>
                       </td>
                     </tr>

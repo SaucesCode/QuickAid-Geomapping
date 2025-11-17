@@ -1,5 +1,5 @@
 // Navbar.js
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Clock, MapPin, Phone, Menu, X, LogIn } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +11,6 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,9 +47,7 @@ const Navbar = () => {
                 <img
                   src={qaText}
                   alt="QuickAid Text"
-                  className={`transition-all duration-300 ${
-                    isScrolled ? "w-28" : "w-32"
-                  }`}
+                  className={`transition-all duration-300 ${isScrolled ? "w-28" : "w-32"}`}
                 />
               </div>
 
@@ -134,7 +131,6 @@ const Navbar = () => {
                     Services
                   </NavLink>
                 </li>
-                
               </ul>
 
               {/* Buttons (Apply + Staff Login) */}
@@ -145,14 +141,6 @@ const Navbar = () => {
                 >
                   Apply Now
                 </button>
-
-                <button
-                  onClick={() => navigate("/login")}
-                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-5 py-2 rounded-full font-semibold shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-200"
-                >
-                  <LogIn className="w-5 h-5" />
-                  Staff Login
-                </button>
               </div>
 
               {/* Mobile Menu Button */}
@@ -160,11 +148,7 @@ const Navbar = () => {
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="md:hidden p-2 hover:bg-blue-800 rounded-lg transition-colors duration-200"
               >
-                {isMobileMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
@@ -210,17 +194,6 @@ const Navbar = () => {
                     className="block w-full text-left font-medium py-2 text-white hover:text-blue-200"
                   >
                     Apply Now
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      navigate("/login");
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left font-medium py-2 text-white hover:text-blue-200 flex items-center gap-2"
-                  >
-                    <LogIn className="w-5 h-5" />
-                    Staff Login
                   </button>
                 </div>
               </motion.div>

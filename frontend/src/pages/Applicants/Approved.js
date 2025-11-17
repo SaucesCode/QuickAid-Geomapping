@@ -24,6 +24,7 @@ import {
   LoadingState,
   H2,
   BodyText,
+  OutlineButton,
 } from "../../components/DesignSystem";
 import toast, { Toaster } from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";

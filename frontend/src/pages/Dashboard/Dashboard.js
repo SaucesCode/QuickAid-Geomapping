@@ -93,8 +93,6 @@ const Dashboard = () => {
     queryFn: () => fetcher("/recent_applicants/"),
   });
 
-  console.log("Forecast Data:", forecastData);
-
   // Data Processing
   const daily = monthlyTrend?.daily ?? 0;
   const weekly = monthlyTrend?.weekly ?? 0;

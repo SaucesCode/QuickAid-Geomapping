@@ -1477,34 +1477,171 @@ class PDFReportGenerator:
 
 
 class ExcelReportGenerator:
-    """Enhanced Excel with charts, conditional formatting, dashboard"""
+    """Enhanced Excel with 6 professional sheets for analytics reporting"""
     
     def __init__(self, data, insights, charts, branding, filters):
         self.data = data
         self.insights = insights
-        self.charts = charts  # Not used for Excel, but keep for consistency
+        self.charts = charts
         self.branding = branding
         self.filters = filters
         self.wb = Workbook()
         
         # Professional colors
         self.primary_color = self.branding.get('primary_color', '0066cc').replace('#', '')
+        self.secondary_color = '003366'
+        self.accent_color = '00cc66'
         self.light_blue = 'e3f2fd'
+        self.light_gray = 'f5f5f5'
         
-        # Styles
+        # Define all styles
+        self._setup_styles()
+    
+    def _setup_styles(self):
+        """Setup professional Excel styles"""
+        # Fonts
         self.title_font = Font(name='Calibri', size=18, bold=True, color=self.primary_color)
         self.header_font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
         self.subheader_font = Font(name='Calibri', size=11, bold=True, color=self.primary_color)
+        self.body_font = Font(name='Calibri', size=10)
+        self.metric_font = Font(name='Calibri', size=28, bold=True, color=self.primary_color)
         
+        # Fills
         self.header_fill = PatternFill(start_color=self.primary_color, end_color=self.primary_color, fill_type='solid')
         self.light_fill = PatternFill(start_color=self.light_blue, end_color=self.light_blue, fill_type='solid')
+        self.accent_fill = PatternFill(start_color=self.accent_color, end_color=self.accent_color, fill_type='solid')
+        self.gray_fill = PatternFill(start_color=self.light_gray, end_color=self.light_gray, fill_type='solid')
         
+        # Borders
         self.thin_border = Border(
             left=Side(style='thin', color='BDBDBD'),
             right=Side(style='thin', color='BDBDBD'),
             top=Side(style='thin', color='BDBDBD'),
             bottom=Side(style='thin', color='BDBDBD')
         )
+        self.thick_border = Border(
+            left=Side(style='medium', color=self.primary_color),
+            right=Side(style='medium', color=self.primary_color),
+            top=Side(style='medium', color=self.primary_color),
+            bottom=Side(style='medium', color=self.primary_color)
+        )
+        
+        # Alignments
+        self.center_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        self.left_align = Alignment(horizontal='left', vertical='center', wrap_text=True)
+        self.right_align = Alignment(horizontal='right', vertical='center')
+
+
+    def _add_report_header(self, ws, title):
+        """Add professional header to each sheet"""
+        # Merge cells for title
+        ws.merge_cells('A1:H1')
+        title_cell = ws['A1']
+        title_cell.value = self.branding.get('organization_name', 'DSWD Analytics Report')
+        title_cell.font = Font(name='Calibri', size=14, bold=True, color=self.secondary_color)
+        title_cell.alignment = self.center_align
+        title_cell.fill = self.gray_fill
+        
+        # Sheet title
+        ws.merge_cells('A2:H2')
+        subtitle_cell = ws['A2']
+        subtitle_cell.value = title
+        subtitle_cell.font = self.title_font
+        subtitle_cell.alignment = self.center_align
+        
+        # Date range
+        ws.merge_cells('A3:H3')
+        date_cell = ws['A3']
+        start = self.filters.get('start_date', 'All Records')
+        end = self.filters.get('end_date', 'Present')
+        date_cell.value = f"Report Period: {start} to {end}"
+        date_cell.font = Font(name='Calibri', size=9, italic=True, color='666666')
+        date_cell.alignment = self.center_align
+        
+        ws.row_dimensions[1].height = 25
+        ws.row_dimensions[2].height = 30
+        ws.row_dimensions[3].height = 20
+        
+        return 5  # Return next available row
+    
+    def _create_kpi_card(self, ws, row, col, title, value, color='primary'):
+        """Create a KPI card visual"""
+        # Determine color
+        if color == 'primary':
+            card_color = self.primary_color
+        elif color == 'accent':
+            card_color = self.accent_color
+        elif color == 'red':
+            card_color = 'f44336'
+        else:
+            card_color = color
+        
+        # Title cell
+        title_cell = ws.cell(row=row, column=col)
+        title_cell.value = title
+        title_cell.font = Font(name='Calibri', size=10, bold=True, color='666666')
+        title_cell.alignment = self.center_align
+        title_cell.fill = self.gray_fill
+        title_cell.border = self.thin_border
+        
+        # Value cell
+        value_cell = ws.cell(row=row + 1, column=col)
+        value_cell.value = value
+        value_cell.font = Font(name='Calibri', size=20, bold=True, color=card_color)
+        value_cell.alignment = self.center_align
+        value_cell.border = self.thin_border
+        
+        # Merge if needed for wider cards
+        ws.merge_cells(start_row=row, start_column=col, end_row=row, end_column=col+1)
+        ws.merge_cells(start_row=row+1, start_column=col, end_row=row+1, end_column=col+1)
+        
+        ws.row_dimensions[row + 1].height = 40
+    
+    def _create_data_table(self, ws, start_row, headers, data, col_widths=None):
+        """Create a professional data table"""
+        # Add headers
+        for col_idx, header in enumerate(headers, start=1):
+            cell = ws.cell(row=start_row, column=col_idx, value=header)
+            cell.font = self.header_font
+            cell.fill = self.header_fill
+            cell.alignment = self.center_align
+            cell.border = self.thin_border
+        
+        # Add data with alternating row colors
+        for row_idx, row_data in enumerate(data, start=start_row + 1):
+            for col_idx, value in enumerate(row_data, start=1):
+                cell = ws.cell(row=row_idx, column=col_idx, value=value)
+                cell.border = self.thin_border
+                cell.alignment = self.left_align if col_idx == 1 else self.right_align
+                
+                # Zebra striping
+                if (row_idx - start_row) % 2 == 0:
+                    cell.fill = self.light_fill
+        
+        # Set column widths
+        if col_widths:
+            for col_idx, width in enumerate(col_widths, start=1):
+                ws.column_dimensions[get_column_letter(col_idx)].width = width
+        else:
+            # Auto-fit columns
+            for col_idx in range(1, len(headers) + 1):
+                ws.column_dimensions[get_column_letter(col_idx)].width = 20
+        
+        # Add conditional formatting for numeric columns (if applicable)
+        if len(data) > 0 and len(data[0]) >= 2:
+            try:
+                ws.conditional_formatting.add(
+                    f'B{start_row + 1}:B{start_row + len(data)}',
+                    ColorScaleRule(
+                        start_type='min', start_color='FFFFFF',
+                        mid_type='percentile', mid_value=50, mid_color=self.light_blue,
+                        end_type='max', end_color=self.primary_color
+                    )
+                )
+            except:
+                pass
+        
+        return start_row + len(data) + 2  # Return next available row
     
     def _create_dashboard_sheet(self):
         """NEW: Executive dashboard with KPIs"""
@@ -1625,73 +1762,6 @@ class ExcelReportGenerator:
                     pass
             ws.column_dimensions[column_letter].width = min(max_length + 3, 60)
 
-    def _add_summary_sheet(self):
-        """Add executive summary sheet"""
-        ws = self.wb.active
-        ws.title = "Executive Summary"
-        
-        # Title
-        ws['A1'] = self.branding.get('organization_name', 'Analytics Report')
-        ws['A1'].font = Font(bold=True, size=18)
-        ws.merge_cells('A1:D1')
-        
-        ws['A2'] = "Comprehensive Analytics Report"
-        ws['A2'].font = Font(size=12)
-        ws.merge_cells('A2:D2')
-        
-        # Metadata
-        row = 4
-        ws[f'A{row}'] = "Report Period:"
-        ws[f'B{row}'] = f"{self.filters.get('start_date', 'All')} to {self.filters.get('end_date', 'All')}"
-        row += 1
-        ws[f'A{row}'] = "Generated:"
-        ws[f'B{row}'] = datetime.now().strftime('%B %d, %Y at %H:%M')
-        row += 2
-        
-        # Key metrics
-        ws[f'A{row}'] = "Key Metrics"
-        ws[f'A{row}'].font = self.title_font
-        row += 1
-        
-        summary = self.data['summary']
-        metrics = [
-            ['Metric', 'Value'],
-            ['Total Applicants', summary['total_applicants']],
-            ['Avg Processing Time (min)', summary['avg_processing_minutes']],
-            ['Growth Rate (%)', summary['growth_rate']],
-            ['Most Common Type', summary['most_common_type']],
-            ['Top Barangay', summary['top_barangay']],
-        ]
-        
-        for metric_row in metrics:
-            ws.append(metric_row)
-        
-        # Style header row
-        for cell in ws[row]:
-            cell.fill = self.header_fill
-            cell.font = self.header_font
-            cell.border = self.thin_border
-        
-        # Style data rows
-        for r in range(row + 1, row + len(metrics)):
-            for cell in ws[r]:
-                cell.border = self.thin_border
-        
-        # Executive summary text
-        row += len(metrics) + 2
-        ws[f'A{row}'] = "Executive Summary"
-        ws[f'A{row}'].font = self.title_font
-        row += 1
-        ws[f'A{row}'] = self.insights['executive_summary']
-        ws[f'A{row}'].alignment = Alignment(wrap_text=True)
-        ws.merge_cells(f'A{row}:D{row + 3}')
-        
-        # Adjust column widths
-        ws.column_dimensions['A'].width = 25
-        ws.column_dimensions['B'].width = 30
-        ws.column_dimensions['C'].width = 20
-        ws.column_dimensions['D'].width = 20
-    
     def _add_data_sheet(self, sheet_name, data, headers):
         """Generic method to add data sheet"""
         ws = self.wb.create_sheet(sheet_name)
@@ -1725,244 +1795,886 @@ class ExcelReportGenerator:
                     pass
             adjusted_width = min(max_length + 2, 50)
             ws.column_dimensions[column_letter].width = adjusted_width
-    
-    def _add_geographic_sheet(self):
-        """Add geographic data sheet"""
-        geo = self.data['geographic']
-        
-        # Top barangays
-        data = [[item['background_info__barangay__name'], item['count']] 
-                for item in geo['top_barangays']]
-        self._add_data_sheet('Geographic - Barangays', data, ['Barangay', 'Applications'])
-        
-        # By city
-        data = [[item['background_info__barangay__city__name'], item['count']] 
-                for item in geo['by_city']]
-        self._add_data_sheet('Geographic - Cities', data, ['City', 'Applications'])
-    
-    def _add_demographic_sheet(self):
-        """Add demographic data sheet"""
-        demo = self.data['demographics']
-        
-        # Gender
-        data = [[item['background_info__sex'], item['count']] 
-                for item in demo['by_gender']]
-        self._add_data_sheet('Demographics - Gender', data, ['Gender', 'Count'])
-        
-        # Age groups
-        data = [[k, v] for k, v in demo['age_groups'].items()]
-        self._add_data_sheet('Demographics - Age', data, ['Age Group', 'Count'])
-        
-        # Civil status
-        data = [[item['background_info__civil_status'], item['count']] 
-                for item in demo['by_civil_status']]
-        self._add_data_sheet('Demographics - Civil Status', data, ['Civil Status', 'Count'])
-    
-    def _add_trends_sheet(self):
-        """Add trends data sheet"""
-        trends = self.data['trends']
-        
-        # Monthly trends
-        data = [[item['month'].strftime('%Y-%m') if hasattr(item['month'], 'strftime') else str(item['month']), 
-                item['count']] 
-                for item in trends['monthly']]
-        self._add_data_sheet('Trends - Monthly', data, ['Month', 'Applications'])
-        
-        # By assistance type
-        data = [[item['type_of_assistance'], item['count']] 
-                for item in trends['by_assistance']]
-        self._add_data_sheet('Trends - Assistance Types', data, ['Type', 'Applications'])
-    
-    def _add_performance_sheet(self):
-        """Add performance data sheet"""
-        perf = self.data['performance']
-        
-        # Staff productivity
-        data = [[item['staff__username'], item['count']] 
-                for item in perf['staff_productivity']]
-        self._add_data_sheet('Performance - Staff', data, ['Staff Member', 'Applications Processed'])
-        
-        # Processing time by type
-        data = [[item['type_of_assistance'], item.get('avg_minutes', 0)] 
-                for item in perf['processing_by_type']]
-        self._add_data_sheet('Performance - Processing Time', data, ['Type', 'Avg Time (min)'])
-    
-    def _add_insights_sheet(self):
-        """Add insights sheet"""
-        ws = self.wb.create_sheet("Insights & Recommendations")
-        
-        row = 1
-        
-        # Geographic insights
-        ws[f'A{row}'] = "Geographic Insights"
-        ws[f'A{row}'].font = self.title_font
-        row += 1
-        for insight in self.insights['geographic']:
-            ws[f'A{row}'] = insight
-            row += 1
-        row += 1
-        
-        # Demographic insights
-        ws[f'A{row}'] = "Demographic Insights"
-        ws[f'A{row}'].font = self.title_font
-        row += 1
-        for insight in self.insights['demographic']:
-            ws[f'A{row}'] = insight
-            row += 1
-        row += 1
-        
-        # Trend insights
-        ws[f'A{row}'] = "Trend Insights"
-        ws[f'A{row}'].font = self.title_font
-        row += 1
-        for insight in self.insights['trends']:
-            ws[f'A{row}'] = insight
-            row += 1
-        row += 1
-        
-        # Performance insights
-        ws[f'A{row}'] = "Performance Insights"
-        ws[f'A{row}'].font = self.title_font
-        row += 1
-        for insight in self.insights['performance']:
-            ws[f'A{row}'] = insight
-            row += 1
-        row += 2
-        
-        # Recommendations
-        ws[f'A{row}'] = "Recommendations"
-        ws[f'A{row}'].font = self.title_font
-        row += 1
-        for rec in self.insights['recommendations']:
-            ws[f'A{row}'] = rec
-            row += 1
-        
-        ws.column_dimensions['A'].width = 100
-        for cell in ws['A']:
-            cell.alignment = Alignment(wrap_text=True)      
-    
-    def generate(self, output_path):
-        """Generate enhanced Excel report with unified chart-based sheets"""
-        # 1️⃣ Create Dashboard Sheet
-        self._create_dashboard_sheet()
 
-        # 2️⃣ Geographic Sheets
+    def _create_summary_sheet(self):
+        """Sheet 1: Executive Summary with KPIs and paragraph"""
+        ws = self.wb.active
+        ws.title = "1. Summary"
+        
+        # Add header
+        current_row = self._add_report_header(ws, "EXECUTIVE SUMMARY")
+        
+        summary = self.data['summary']
+        
+        # KPI Cards Row 1
+        self._create_kpi_card(ws, current_row, 1, "Total Applicants", f"{summary['total_applicants']:,}", 'primary')
+        self._create_kpi_card(ws, current_row, 3, "Avg Processing Time", f"{summary['avg_processing_minutes']:.1f} min", 'accent')
+        self._create_kpi_card(ws, current_row, 5, "This Month", f"{summary['this_month']:,}", 'primary')
+        self._create_kpi_card(ws, current_row, 7, "Last Month", f"{summary['last_month']:,}", 'primary')
+        
+        current_row += 3
+        
+        # KPI Cards Row 2
+        growth_color = 'accent' if summary['growth_rate'] > 0 else 'red'
+        growth_symbol = "↑" if summary['growth_rate'] > 0 else "↓"
+        self._create_kpi_card(ws, current_row, 1, "Monthly Growth", 
+                             f"{growth_symbol} {abs(summary['growth_rate']):.1f}%", growth_color)
+        
+        # Most common type
+        ws.merge_cells(f'C{current_row}:D{current_row+1}')
+        type_cell = ws.cell(row=current_row, column=3)
+        type_cell.value = f"Most Common:\n{summary['most_common_type']}"
+        type_cell.font = Font(name='Calibri', size=11, bold=True)
+        type_cell.alignment = self.center_align
+        type_cell.fill = self.light_fill
+        type_cell.border = self.thin_border
+        
+        # Top barangay
+        ws.merge_cells(f'E{current_row}:F{current_row+1}')
+        barangay_cell = ws.cell(row=current_row, column=5)
+        barangay_cell.value = f"Top Barangay:\n{summary['top_barangay']}"
+        barangay_cell.font = Font(name='Calibri', size=11, bold=True)
+        barangay_cell.alignment = self.center_align
+        barangay_cell.fill = self.light_fill
+        barangay_cell.border = self.thin_border
+        
+        current_row += 4
+        
+        # Executive Summary Paragraph
+        ws.merge_cells(f'A{current_row}:H{current_row}')
+        para_title = ws.cell(row=current_row, column=1)
+        para_title.value = "Executive Summary"
+        para_title.font = self.subheader_font
+        para_title.alignment = self.left_align
+        
+        current_row += 1
+        ws.merge_cells(f'A{current_row}:H{current_row+6}')
+        para_cell = ws.cell(row=current_row, column=1)
+        para_cell.value = self.insights.get('executive_summary', '')
+        para_cell.font = self.body_font
+        para_cell.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+        para_cell.border = self.thin_border
+        
+        ws.row_dimensions[current_row].height = 150
+        
+        # Set column widths
+        for col in range(1, 9):
+            ws.column_dimensions[get_column_letter(col)].width = 15
+
+    def _create_geographic_sheet(self):
+        """Sheet 2: Geographic Analysis - Combined view"""
+        ws = self.wb.create_sheet("2. Geographic")
+        
+        current_row = self._add_report_header(ws, "GEOGRAPHIC ANALYSIS")
+        
         geo = self.data['geographic']
+        
+        # Section 1: Top Barangays
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        section1 = ws.cell(row=current_row, column=1)
+        section1.value = "Top 10 Barangays by Application Volume"
+        section1.font = self.subheader_font
+        section1.alignment = self.left_align
+        
+        current_row += 1
+        
         if geo['top_barangays']:
-            barangay_data = [[item['background_info__barangay__name'], item['count']]
-                            for item in geo['top_barangays']]
-            self._add_data_sheet_with_chart(
-                '📍 Top Barangays', barangay_data, ['Barangay', 'Applications'], 'bar'
-            )
-
+            barangay_data = [[item['background_info__barangay__name'], item['count']] 
+                            for item in geo['top_barangays'][:10]]
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Barangay', 'Applications'], 
+                                                  barangay_data, [30, 15])
+            
+            # Add bar chart
+            chart = BarChart()
+            chart.title = "Top Barangays"
+            chart.style = 10
+            chart.height = 10
+            chart.width = 20
+            
+            data_ref = Reference(ws, min_col=2, min_row=current_row-len(barangay_data)-1, 
+                               max_row=current_row-2)
+            cats_ref = Reference(ws, min_col=1, min_row=current_row-len(barangay_data), 
+                               max_row=current_row-2)
+            chart.add_data(data_ref, titles_from_data=True)
+            chart.set_categories(cats_ref)
+            
+            ws.add_chart(chart, f'F{current_row-len(barangay_data)-1}')
+        
+        current_row += 2
+        
+        # Section 2: Applications by City
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        section2 = ws.cell(row=current_row, column=1)
+        section2.value = "Applications by City"
+        section2.font = self.subheader_font
+        section2.alignment = self.left_align
+        
+        current_row += 1
+        
         if geo['by_city']:
-            city_data = [[item['background_info__barangay__city__name'], item['count']]
+            city_data = [[item['background_info__barangay__city__name'], item['count']] 
                         for item in geo['by_city']]
-            self._add_data_sheet_with_chart(
-                '🏙️ Applications by City', city_data, ['City', 'Applications'], 'bar'
-            )
-
-        # 3️⃣ Demographic Sheets
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['City', 'Applications'], 
+                                                  city_data, [30, 15])
+            
+            # Add pie chart
+            pie = PieChart()
+            pie.title = "City Distribution"
+            pie.height = 10
+            pie.width = 20
+            
+            data_ref = Reference(ws, min_col=2, min_row=current_row-len(city_data)-1, 
+                               max_row=current_row-2)
+            cats_ref = Reference(ws, min_col=1, min_row=current_row-len(city_data), 
+                               max_row=current_row-2)
+            pie.add_data(data_ref, titles_from_data=True)
+            pie.set_categories(cats_ref)
+            
+            ws.add_chart(pie, f'F{current_row-len(city_data)-1}')
+        
+        current_row += 2
+        
+        # Section 3: Approval Rates by Location
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        section3 = ws.cell(row=current_row, column=1)
+        section3.value = "Approval Rates by Location"
+        section3.font = self.subheader_font
+        section3.alignment = self.left_align
+        
+        current_row += 1
+        
+        if geo['approval_by_location']:
+            approval_data = []
+            for item in geo['approval_by_location']:
+                city = item['background_info__barangay__city__name']
+                total = item['total']
+                approved = item['approved']
+                rate = (approved / total * 100) if total > 0 else 0
+                approval_data.append([city, total, approved, f"{rate:.1f}%"])
+            
+            current_row = self._create_data_table(ws, current_row,
+                                                  ['City', 'Total', 'Approved', 'Rate'],
+                                                  approval_data, [25, 12, 12, 12])   
+    
+    def _create_demographics_economics_sheet(self):
+        """Sheet 3: Demographics & Economics - Combined"""
+        ws = self.wb.create_sheet("3. Demographics & Economics")
+        
+        current_row = self._add_report_header(ws, "DEMOGRAPHICS & ECONOMICS")
+        
         demo = self.data['demographics']
-
+        econ = self.data['economics']
+        
+        # ===== DEMOGRAPHICS SECTION =====
+        ws.merge_cells(f'A{current_row}:H{current_row}')
+        demo_header = ws.cell(row=current_row, column=1)
+        demo_header.value = "DEMOGRAPHIC ANALYSIS"
+        demo_header.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
+        demo_header.fill = self.header_fill
+        demo_header.alignment = self.center_align
+        
+        current_row += 2
+        
+        # Gender Distribution
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        gender_title = ws.cell(row=current_row, column=1)
+        gender_title.value = "Gender Distribution"
+        gender_title.font = self.subheader_font
+        
+        current_row += 1
+        
         if demo['by_gender']:
-            gender_data = [[item['background_info__sex'], item['count']]
-                        for item in demo['by_gender']]
-            self._add_data_sheet_with_chart(
-                '👥 Gender Distribution', gender_data, ['Gender', 'Applicants'], 'bar'
-            )
-
-        if demo['by_civil_status']:
-            civil_data = [[item['background_info__civil_status'], item['count']]
-                        for item in demo['by_civil_status']]
-            self._add_data_sheet_with_chart(
-                '💍 Civil Status', civil_data, ['Civil Status', 'Applicants'], 'bar'
-            )
-
+            gender_data = [[item['background_info__sex'], item['count']] 
+                          for item in demo['by_gender']]
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Gender', 'Count'], 
+                                                  gender_data, [20, 15])
+            
+            # Pie chart
+            pie = PieChart()
+            pie.title = "Gender Distribution"
+            pie.height = 8
+            pie.width = 12
+            data_ref = Reference(ws, min_col=2, min_row=current_row-len(gender_data)-1, max_row=current_row-2)
+            cats_ref = Reference(ws, min_col=1, min_row=current_row-len(gender_data), max_row=current_row-2)
+            pie.add_data(data_ref, titles_from_data=True)
+            pie.set_categories(cats_ref)
+            ws.add_chart(pie, f'F{current_row-len(gender_data)-1}')
+        
+        current_row += 2
+        
+        # Age Groups
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        age_title = ws.cell(row=current_row, column=1)
+        age_title.value = "Age Group Distribution"
+        age_title.font = self.subheader_font
+        
+        current_row += 1
+        
         if demo['age_groups']:
             age_data = [[group, count] for group, count in demo['age_groups'].items()]
-            self._add_data_sheet_with_chart(
-                '📊 Age Groups', age_data, ['Age Group', 'Applicants'], 'bar'
-            )
-
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Age Group', 'Count'], 
+                                                  age_data, [20, 15])
+            
+            # Bar chart
+            chart = BarChart()
+            chart.title = "Age Distribution"
+            chart.height = 8
+            chart.width = 12
+            data_ref = Reference(ws, min_col=2, min_row=current_row-len(age_data)-1, max_row=current_row-2)
+            cats_ref = Reference(ws, min_col=1, min_row=current_row-len(age_data), max_row=current_row-2)
+            chart.add_data(data_ref, titles_from_data=True)
+            chart.set_categories(cats_ref)
+            ws.add_chart(chart, f'F{current_row-len(age_data)-1}')
+        
+        current_row += 2
+        
+        # Civil Status
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        civil_title = ws.cell(row=current_row, column=1)
+        civil_title.value = "Civil Status Distribution"
+        civil_title.font = self.subheader_font
+        
+        current_row += 1
+        
+        if demo['by_civil_status']:
+            civil_data = [[item['background_info__civil_status'], item['count']] 
+                         for item in demo['by_civil_status']]
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Civil Status', 'Count'], 
+                                                  civil_data, [20, 15])
+        
+        current_row += 2
+        
+        # Top Occupations
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        occ_title = ws.cell(row=current_row, column=1)
+        occ_title.value = "Top 10 Occupations"
+        occ_title.font = self.subheader_font
+        
+        current_row += 1
+        
         if demo['by_occupation']:
-            occupation_data = [[item['background_info__occupation'], item['count']]
-                            for item in demo['by_occupation']]
-            self._add_data_sheet_with_chart(
-                '💼 Occupations', occupation_data, ['Occupation', 'Applicants'], 'bar'
-            )
-
-        # 4️⃣ Economic Sheet
-        econ = self.data['economics']
+            occ_data = [[item['background_info__occupation'], item['count']] 
+                       for item in demo['by_occupation'][:10]]
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Occupation', 'Count'], 
+                                                  occ_data, [30, 15])
+        
+        current_row += 3
+        
+        # ===== ECONOMICS SECTION =====
+        ws.merge_cells(f'A{current_row}:H{current_row}')
+        econ_header = ws.cell(row=current_row, column=1)
+        econ_header.value = "ECONOMIC ANALYSIS"
+        econ_header.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
+        econ_header.fill = PatternFill(start_color=self.accent_color, end_color=self.accent_color, fill_type='solid')
+        econ_header.alignment = self.center_align
+        
+        current_row += 2
+        
+        # Income Distribution
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        income_title = ws.cell(row=current_row, column=1)
+        income_title.value = "Monthly Income Distribution"
+        income_title.font = self.subheader_font
+        
+        current_row += 1
+        
         if econ['income_distribution']:
-            income_data = [[item['range'], item['count']]
-                        for item in econ['income_distribution']]
-            self._add_data_sheet_with_chart(
-                '💰 Income Distribution', income_data, ['Income Range', 'Applicants'], 'bar'
-            )
-
-        # 5️⃣ Trends Sheet
-        trends = self.data['trends']
-        if trends['monthly']:
-            monthly_data = [[item['month'].strftime("%B %Y") if item['month'] else "N/A", item['count']]
-                            for item in trends['monthly']]
-            self._add_data_sheet_with_chart(
-                '📈 Monthly Trends', monthly_data, ['Month', 'Applications'], 'bar'
-            )
-
-        if trends['yearly']:
-            yearly_data = [[item['year'], item['count']]
-                        for item in trends['yearly']]
-            self._add_data_sheet_with_chart(
-                '📆 Yearly Trends', yearly_data, ['Year', 'Applications'], 'bar'
-            )
-
-        if trends['by_assistance']:
-            assistance_data = [[item['type_of_assistance'], item['count']]
-                            for item in trends['by_assistance']]
-            self._add_data_sheet_with_chart(
-                '🩺 Assistance Types', assistance_data, ['Assistance Type', 'Applications'], 'bar'
-            )
-
-        # 6️⃣ Performance Sheet
-        perf = self.data['performance']
-        if perf['staff_productivity']:
-            staff_data = [[item['staff__username'], item['count']]
-                        for item in perf['staff_productivity']]
-            self._add_data_sheet_with_chart(
-                '🧑‍💼 Staff Productivity', staff_data, ['Staff', 'Applications'], 'bar'
-            )
-
-        if perf['processing_by_type']:
-            proc_data = [[item['type_of_assistance'], item.get('avg_minutes', 0)]
-                        for item in perf['processing_by_type']]
-            self._add_data_sheet_with_chart(
-                '⚙️ Avg Processing Time', proc_data, ['Assistance Type', 'Minutes'], 'bar'
-            )
-
-        if perf['activity_heatmap']:
-            heat_data = [[f"{item['hour']}:00", item['count']]
-                        for item in perf['activity_heatmap']]
-            self._add_data_sheet_with_chart(
-                '⏰ Activity Heatmap', heat_data, ['Hour', 'Applications'], 'bar'
-            )
-
-        # 7️⃣ Insights Sheet (recommendations, summary)
-        insights = self.insights
-        insights_data = [
-            ["Executive Summary", insights.get('executive_summary', '')],
-            ["Top Insights (Geographic)", "\n".join(insights.get('geographic', []))],
-            ["Demographic Insights", "\n".join(insights.get('demographic', []))],
-            ["Trend Insights", "\n".join(insights.get('trends', []))],
-            ["Performance Insights", "\n".join(insights.get('performance', []))],
-            ["Recommendations", "\n".join(insights.get('recommendations', []))],
+            income_data = [[item['range'], item['count']] 
+                          for item in econ['income_distribution']]
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Income Range (PHP)', 'Applicants'], 
+                                                  income_data, [25, 15])
+            
+            # Bar chart
+            chart = BarChart()
+            chart.title = "Income Distribution"
+            chart.height = 10
+            chart.width = 15
+            data_ref = Reference(ws, min_col=2, min_row=current_row-len(income_data)-1, max_row=current_row-2)
+            cats_ref = Reference(ws, min_col=1, min_row=current_row-len(income_data), max_row=current_row-2)
+            chart.add_data(data_ref, titles_from_data=True)
+            chart.set_categories(cats_ref)
+            ws.add_chart(chart, f'F{current_row-len(income_data)-1}')
+        
+        current_row += 2
+        
+        # Additional Economic Indicators
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        additional_title = ws.cell(row=current_row, column=1)
+        additional_title.value = "Economic Indicators"
+        additional_title.font = self.subheader_font
+        
+        current_row += 1
+        
+        # Calculate additional indicators
+        base_qs = self.data['demographics']  # Using demographics as proxy
+        total_applicants = self.data['summary']['total_applicants']
+        
+        # Sample additional indicators
+        indicators_data = [
+            ["Below Poverty Threshold (<10k)", 
+             econ['income_distribution'][0]['count'] if econ['income_distribution'] else 0],
+            ["Middle Income (20k-50k)", 
+             sum(item['count'] for item in econ['income_distribution'][2:5]) if len(econ['income_distribution']) >= 5 else 0],
+            ["Above Average (>50k)", 
+             sum(item['count'] for item in econ['income_distribution'][5:]) if len(econ['income_distribution']) > 5 else 0],
         ]
-        self._add_data_sheet_with_chart(
-            '🧭 Insights & Recommendations', insights_data, ['Category', 'Details'], 'bar'
-        )
+        
+        current_row = self._create_data_table(ws, current_row, 
+                                              ['Economic Indicator', 'Count'], 
+                                              indicators_data, [30, 15])
 
-        # ✅ Save workbook
-        self.wb.save(output_path)
+
+    def _create_trends_sheet(self):
+        """Sheet 4: Trends Analysis"""
+        ws = self.wb.create_sheet("4. Trends")
+        
+        current_row = self._add_report_header(ws, "TRENDS ANALYSIS")
+        
+        trends = self.data['trends']
+        
+        # Monthly Trends
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        monthly_title = ws.cell(row=current_row, column=1)
+        monthly_title.value = "Monthly Application Trends (Last 12 Months)"
+        monthly_title.font = self.subheader_font
+        
+        current_row += 1
+        
+        if trends['monthly']:
+            monthly_data = [[item['month'].strftime('%b %Y') if item['month'] else 'N/A', 
+                           item['count']] for item in trends['monthly']]
+            
+            table_start = current_row
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Month', 'Applications'], 
+                                                  monthly_data, [20, 15])
+            
+            # Line chart
+            line_chart = LineChart()
+            line_chart.title = "Monthly Trend"
+            line_chart.style = 12
+            line_chart.height = 10
+            line_chart.width = 20
+            
+            data_ref = Reference(ws, min_col=2, min_row=table_start, max_row=table_start+len(monthly_data))
+            cats_ref = Reference(ws, min_col=1, min_row=table_start+1, max_row=table_start+len(monthly_data))
+            line_chart.add_data(data_ref, titles_from_data=True)
+            line_chart.set_categories(cats_ref)
+            
+            ws.add_chart(line_chart, f'F{table_start}')
+        
+        current_row += 2
+        
+        # Yearly Trends
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        yearly_title = ws.cell(row=current_row, column=1)
+        yearly_title.value = "Yearly Application Trends"
+        yearly_title.font = self.subheader_font
+        
+        current_row += 1
+        
+        if trends['yearly']:
+            yearly_data = [[item['year'], item['count']] for item in trends['yearly']]
+            
+            table_start = current_row
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Year', 'Applications'], 
+                                                  yearly_data, [20, 15])
+            
+            # Bar chart
+            bar_chart = BarChart()
+            bar_chart.title = "Yearly Comparison"
+            bar_chart.height = 8
+            bar_chart.width = 15
+            
+            data_ref = Reference(ws, min_col=2, min_row=table_start, max_row=table_start+len(yearly_data))
+            cats_ref = Reference(ws, min_col=1, min_row=table_start+1, max_row=table_start+len(yearly_data))
+            bar_chart.add_data(data_ref, titles_from_data=True)
+            bar_chart.set_categories(cats_ref)
+            
+            ws.add_chart(bar_chart, f'F{table_start}')
+        
+        current_row += 2
+        
+        # Assistance Type Distribution
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        assist_title = ws.cell(row=current_row, column=1)
+        assist_title.value = "Applications by Assistance Type"
+        assist_title.font = self.subheader_font
+        
+        current_row += 1
+        
+        if trends['by_assistance']:
+            assist_data = [[item['type_of_assistance'], item['count']] 
+                          for item in trends['by_assistance']]
+            
+            table_start = current_row
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Assistance Type', 'Applications'], 
+                                                  assist_data, [35, 15])
+            
+            # Combo chart (bar + line)
+            bar_chart = BarChart()
+            bar_chart.title = "Assistance Type Distribution"
+            bar_chart.height = 12
+            bar_chart.width = 20
+            
+            data_ref = Reference(ws, min_col=2, min_row=table_start, max_row=table_start+len(assist_data))
+            cats_ref = Reference(ws, min_col=1, min_row=table_start+1, max_row=table_start+len(assist_data))
+            bar_chart.add_data(data_ref, titles_from_data=True)
+            bar_chart.set_categories(cats_ref)
+            
+            ws.add_chart(bar_chart, f'F{table_start}')
+        
+        current_row += 2
+        
+        # Assistance Types Over Time (if data available)
+        if trends.get('assistance_over_time'):
+            ws.merge_cells(f'A{current_row}:D{current_row}')
+            overtime_title = ws.cell(row=current_row, column=1)
+            overtime_title.value = "Assistance Types Trend Over Time"
+            overtime_title.font = self.subheader_font
+            
+            current_row += 1
+
+    def _create_performance_sheet(self):
+        """Sheet 5: Performance Metrics"""
+        ws = self.wb.create_sheet("5. Performance")
+        
+        current_row = self._add_report_header(ws, "PERFORMANCE METRICS")
+        
+        perf = self.data['performance']
+        
+        # Staff Productivity
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        staff_title = ws.cell(row=current_row, column=1)
+        staff_title.value = "Staff Productivity (Top 10)"
+        staff_title.font = self.subheader_font
+        
+        current_row += 1
+        
+        if perf['staff_productivity']:
+            staff_data = [[item['staff__username'], item['count']] 
+                         for item in perf['staff_productivity'][:10]]
+            
+            table_start = current_row
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Staff Member', 'Applications Processed'], 
+                                                  staff_data, [25, 20])
+            
+            # Highlight top and bottom performers
+            # Top performer (green)
+            top_row = table_start + 1
+            for col in range(1, 3):
+                ws.cell(row=top_row, column=col).fill = PatternFill(
+                    start_color='C8E6C9', end_color='C8E6C9', fill_type='solid'
+                )
+                ws.cell(row=top_row, column=col).font = Font(bold=True, color='2E7D32')
+            
+            # Bottom performer (light red) if more than 3 staff
+            if len(staff_data) > 3:
+                bottom_row = table_start + len(staff_data)
+                for col in range(1, 3):
+                    ws.cell(row=bottom_row, column=col).fill = PatternFill(
+                        start_color='FFCCBC', end_color='FFCCBC', fill_type='solid'
+                    )
+            
+            # Bar chart
+            chart = BarChart()
+            chart.title = "Staff Productivity Comparison"
+            chart.height = 12
+            chart.width = 18
+            
+            data_ref = Reference(ws, min_col=2, min_row=table_start, max_row=table_start+len(staff_data))
+            cats_ref = Reference(ws, min_col=1, min_row=table_start+1, max_row=table_start+len(staff_data))
+            chart.add_data(data_ref, titles_from_data=True)
+            chart.set_categories(cats_ref)
+            
+            ws.add_chart(chart, f'F{table_start}')
+        
+        current_row += 2
+        
+        # Processing Time by Assistance Type
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        process_title = ws.cell(row=current_row, column=1)
+        process_title.value = "Average Processing Time by Assistance Type"
+        process_title.font = self.subheader_font
+        
+        current_row += 1
+        
+        if perf['processing_by_type']:
+            process_data = [[item['type_of_assistance'], 
+                           f"{item.get('avg_minutes', 0):.1f}"] 
+                          for item in perf['processing_by_type']]
+            
+            table_start = current_row
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Assistance Type', 'Avg Time (minutes)'], 
+                                                  process_data, [35, 20])
+            
+            # Highlight fastest (green) and slowest (red)
+            if len(process_data) > 1:
+                # Find fastest and slowest
+                times = [float(item[1]) for item in process_data]
+                fastest_idx = times.index(min(times))
+                slowest_idx = times.index(max(times))
+                
+                # Fastest (green)
+                fastest_row = table_start + 1 + fastest_idx
+                for col in range(1, 3):
+                    ws.cell(row=fastest_row, column=col).fill = PatternFill(
+                        start_color='C8E6C9', end_color='C8E6C9', fill_type='solid'
+                    )
+                    ws.cell(row=fastest_row, column=col).font = Font(bold=True, color='2E7D32')
+                
+                # Slowest (red)
+                slowest_row = table_start + 1 + slowest_idx
+                for col in range(1, 3):
+                    ws.cell(row=slowest_row, column=col).fill = PatternFill(
+                        start_color='FFCCBC', end_color='FFCCBC', fill_type='solid'
+                    )
+                    ws.cell(row=slowest_row, column=col).font = Font(bold=True, color='C62828')
+            
+            # Bar chart
+            chart = BarChart()
+            chart.title = "Processing Time Comparison"
+            chart.height = 10
+            chart.width = 18
+            
+            data_ref = Reference(ws, min_col=2, min_row=table_start, max_row=table_start+len(process_data))
+            cats_ref = Reference(ws, min_col=1, min_row=table_start+1, max_row=table_start+len(process_data))
+            chart.add_data(data_ref, titles_from_data=True)
+            chart.set_categories(cats_ref)
+            
+            ws.add_chart(chart, f'F{table_start}')
+        
+        current_row += 2
+        
+        # Activity Heatmap
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        heat_title = ws.cell(row=current_row, column=1)
+        heat_title.value = "Application Activity by Hour of Day"
+        heat_title.font = self.subheader_font
+        
+        current_row += 1
+        
+        if perf['activity_heatmap']:
+            heat_data = [[f"{item['hour']:02d}:00", item['count']] 
+                        for item in perf['activity_heatmap']]
+            
+            table_start = current_row
+            current_row = self._create_data_table(ws, current_row, 
+                                                  ['Hour of Day', 'Applications'], 
+                                                  heat_data, [20, 15])
+            
+            # Apply heatmap color scale
+            max_count = max(item['count'] for item in perf['activity_heatmap'])
+            for idx, item in enumerate(perf['activity_heatmap'], start=1):
+                intensity = item['count'] / max_count if max_count > 0 else 0
+                color_val = int(255 - (intensity * 200))  # Darker blue for higher values
+                color_hex = f"{color_val:02x}{color_val:02x}ff"
+                
+                ws.cell(row=table_start+idx, column=2).fill = PatternFill(
+                    start_color=color_hex, end_color=color_hex, fill_type='solid'
+                )
+                if intensity > 0.5:
+                    ws.cell(row=table_start+idx, column=2).font = Font(color='FFFFFF', bold=True)
+            
+            # Line chart
+            line_chart = LineChart()
+            line_chart.title = "Hourly Activity Pattern"
+            line_chart.height = 10
+            line_chart.width = 18
+            
+            data_ref = Reference(ws, min_col=2, min_row=table_start, max_row=table_start+len(heat_data))
+            cats_ref = Reference(ws, min_col=1, min_row=table_start+1, max_row=table_start+len(heat_data))
+            line_chart.add_data(data_ref, titles_from_data=True)
+            line_chart.set_categories(cats_ref)
+            
+            ws.add_chart(line_chart, f'F{table_start}')
+        
+        current_row += 2
+        
+        # Performance Summary KPIs
+        ws.merge_cells(f'A{current_row}:H{current_row}')
+        kpi_header = ws.cell(row=current_row, column=1)
+        kpi_header.value = "Performance Summary"
+        kpi_header.font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+        kpi_header.fill = self.accent_fill
+        kpi_header.alignment = self.center_align
+        
+        current_row += 2
+        
+        # Calculate performance KPIs
+        avg_processing = self.data['summary']['avg_processing_minutes']
+        total_staff = len(perf['staff_productivity']) if perf['staff_productivity'] else 0
+        total_processed = sum(item['count'] for item in perf['staff_productivity']) if perf['staff_productivity'] else 0
+        avg_per_staff = total_processed / total_staff if total_staff > 0 else 0
+        
+        peak_hour = max(perf['activity_heatmap'], key=lambda x: x['count'])['hour'] if perf['activity_heatmap'] else 0
+        
+        kpi_summary = [
+            ["Metric", "Value", "Status"],
+            ["Average Processing Time", f"{avg_processing:.1f} min", 
+             "✓ Good" if avg_processing < 10 else "⚠ Needs Improvement"],
+            ["Total Staff Active", total_staff, ""],
+            ["Avg Applications per Staff", f"{avg_per_staff:.1f}", ""],
+            ["Peak Activity Hour", f"{peak_hour:02d}:00", ""],
+        ]
+        
+        current_row = self._create_data_table(ws, current_row, 
+                                              kpi_summary[0], 
+                                              kpi_summary[1:], [30, 20, 25])
+
+    def _create_insights_recommendations_sheet(self):
+        """Sheet 6: Insights and Recommendations"""
+        ws = self.wb.create_sheet("6. Insights & Recommendations")
+        
+        current_row = self._add_report_header(ws, "INSIGHTS & RECOMMENDATIONS")
+        
+        insights = self.insights
+        
+        # Geographic Insights
+        ws.merge_cells(f'A{current_row}:H{current_row}')
+        geo_header = ws.cell(row=current_row, column=1)
+        geo_header.value = "GEOGRAPHIC INSIGHTS"
+        geo_header.font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+        geo_header.fill = self.header_fill
+        geo_header.alignment = self.center_align
+        
+        current_row += 2
+        
+        if insights.get('geographic'):
+            for insight in insights['geographic']:
+                ws.merge_cells(f'A{current_row}:H{current_row}')
+                cell = ws.cell(row=current_row, column=1)
+                cell.value = insight
+                cell.font = self.body_font
+                cell.alignment = self.left_align
+                cell.border = self.thin_border
+                
+                # Add bullet styling
+                if insight.strip().startswith('•'):
+                    cell.fill = self.light_fill
+                
+                ws.row_dimensions[current_row].height = 25
+                current_row += 1
+        
+        current_row += 1
+        
+        # Demographic Insights
+        ws.merge_cells(f'A{current_row}:H{current_row}')
+        demo_header = ws.cell(row=current_row, column=1)
+        demo_header.value = "DEMOGRAPHIC INSIGHTS"
+        demo_header.font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+        demo_header.fill = self.header_fill
+        demo_header.alignment = self.center_align
+        
+        current_row += 2
+        
+        if insights.get('demographic'):
+            for insight in insights['demographic']:
+                ws.merge_cells(f'A{current_row}:H{current_row}')
+                cell = ws.cell(row=current_row, column=1)
+                cell.value = insight
+                cell.font = self.body_font
+                cell.alignment = self.left_align
+                cell.border = self.thin_border
+                
+                if insight.strip().startswith('•'):
+                    cell.fill = self.light_fill
+                
+                ws.row_dimensions[current_row].height = 25
+                current_row += 1
+        
+        current_row += 1
+        
+        # Trend Insights
+        ws.merge_cells(f'A{current_row}:H{current_row}')
+        trend_header = ws.cell(row=current_row, column=1)
+        trend_header.value = "TREND INSIGHTS"
+        trend_header.font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+        trend_header.fill = self.header_fill
+        trend_header.alignment = self.center_align
+        
+        current_row += 2
+        
+        if insights.get('trends'):
+            for insight in insights['trends']:
+                ws.merge_cells(f'A{current_row}:H{current_row}')
+                cell = ws.cell(row=current_row, column=1)
+                cell.value = insight
+                cell.font = self.body_font
+                cell.alignment = self.left_align
+                cell.border = self.thin_border
+                
+                if insight.strip().startswith('•'):
+                    cell.fill = self.light_fill
+                
+                ws.row_dimensions[current_row].height = 25
+                current_row += 1
+        
+        current_row += 1
+        
+        # Performance Insights
+        ws.merge_cells(f'A{current_row}:H{current_row}')
+        perf_header = ws.cell(row=current_row, column=1)
+        perf_header.value = "PERFORMANCE INSIGHTS"
+        perf_header.font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+        perf_header.fill = self.header_fill
+        perf_header.alignment = self.center_align
+        
+        current_row += 2
+        
+        if insights.get('performance'):
+            for insight in insights['performance']:
+                ws.merge_cells(f'A{current_row}:H{current_row}')
+                cell = ws.cell(row=current_row, column=1)
+                cell.value = insight
+                cell.font = self.body_font
+                cell.alignment = self.left_align
+                cell.border = self.thin_border
+                
+                if insight.strip().startswith('•'):
+                    cell.fill = self.light_fill
+                
+                ws.row_dimensions[current_row].height = 25
+                current_row += 1
+        
+        current_row += 2
+        
+        # Recommendations Section (Priority-based)
+        ws.merge_cells(f'A{current_row}:H{current_row}')
+        rec_header = ws.cell(row=current_row, column=1)
+        rec_header.value = "ACTIONABLE RECOMMENDATIONS"
+        rec_header.font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
+        rec_header.fill = PatternFill(start_color='f44336', end_color='f44336', fill_type='solid')
+        rec_header.alignment = self.center_align
+        
+        current_row += 2
+        
+        # Add priority levels to recommendations
+        if insights.get('recommendations'):
+            # Create table with priority levels
+            rec_table_headers = ["Priority", "Recommendation", "Impact"]
+            
+            ws.cell(row=current_row, column=1, value=rec_table_headers[0]).font = self.header_font
+            ws.cell(row=current_row, column=1).fill = self.header_fill
+            ws.cell(row=current_row, column=1).alignment = self.center_align
+            ws.cell(row=current_row, column=1).border = self.thin_border
+            
+            ws.merge_cells(f'B{current_row}:G{current_row}')
+            ws.cell(row=current_row, column=2, value=rec_table_headers[1]).font = self.header_font
+            ws.cell(row=current_row, column=2).fill = self.header_fill
+            ws.cell(row=current_row, column=2).alignment = self.center_align
+            ws.cell(row=current_row, column=2).border = self.thin_border
+            
+            ws.cell(row=current_row, column=8, value=rec_table_headers[2]).font = self.header_font
+            ws.cell(row=current_row, column=8).fill = self.header_fill
+            ws.cell(row=current_row, column=8).alignment = self.center_align
+            ws.cell(row=current_row, column=8).border = self.thin_border
+            
+            current_row += 1
+            
+            # Assign priorities (you can customize logic)
+            priorities = ["HIGH", "HIGH", "MEDIUM"]
+            impacts = ["High", "High", "Medium"]
+            
+            for idx, rec in enumerate(insights['recommendations']):
+                priority = priorities[idx] if idx < len(priorities) else "LOW"
+                impact = impacts[idx] if idx < len(impacts) else "Low"
+                
+                # Priority cell
+                priority_cell = ws.cell(row=current_row, column=1, value=priority)
+                priority_cell.font = Font(name='Calibri', size=10, bold=True, color='FFFFFF')
+                priority_cell.alignment = self.center_align
+                priority_cell.border = self.thin_border
+                
+                if priority == "HIGH":
+                    priority_cell.fill = PatternFill(start_color='f44336', end_color='f44336', fill_type='solid')
+                elif priority == "MEDIUM":
+                    priority_cell.fill = PatternFill(start_color='ff9800', end_color='ff9800', fill_type='solid')
+                else:
+                    priority_cell.fill = PatternFill(start_color='4caf50', end_color='4caf50', fill_type='solid')
+                
+                # Recommendation cell
+                ws.merge_cells(f'B{current_row}:G{current_row}')
+                rec_cell = ws.cell(row=current_row, column=2, value=rec)
+                rec_cell.font = self.body_font
+                rec_cell.alignment = self.left_align
+                rec_cell.border = self.thin_border
+                ws.row_dimensions[current_row].height = 35
+                
+                # Impact cell
+                impact_cell = ws.cell(row=current_row, column=8, value=impact)
+                impact_cell.font = self.body_font
+                impact_cell.alignment = self.center_align
+                impact_cell.border = self.thin_border
+                
+                current_row += 1
+        
+        current_row += 2
+        
+        # Data Sources & Methodology
+        ws.merge_cells(f'A{current_row}:H{current_row}')
+        method_header = ws.cell(row=current_row, column=1)
+        method_header.value = "DATA SOURCES & METHODOLOGY"
+        method_header.font = Font(name='Calibri', size=11, bold=True, color='666666')
+        method_header.fill = self.gray_fill
+        method_header.alignment = self.center_align
+        
+        current_row += 2
+        
+        methodology_text = f"""
+Data Source: DSWD Applicant Management System
+Analysis Period: {self.filters.get('start_date', 'All Records')} to {self.filters.get('end_date', 'Present')}
+Total Records Analyzed: {self.data['summary']['total_applicants']:,} applicants
+Methodology: Statistical analysis using Python analytics engine with Django ORM queries
+Filters Applied: {'Cities: ' + ', '.join(self.filters.get('cities', [])) if self.filters.get('cities') else 'All Cities'} | {'Assistance Types: ' + ', '.join(self.filters.get('assistance_types', [])) if self.filters.get('assistance_types') else 'All Types'}
+        """.strip()
+        
+        ws.merge_cells(f'A{current_row}:H{current_row+4}')
+        method_cell = ws.cell(row=current_row, column=1)
+        method_cell.value = methodology_text
+        method_cell.font = Font(name='Calibri', size=9, italic=True, color='666666')
+        method_cell.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+        method_cell.border = self.thin_border
+        ws.row_dimensions[current_row].height = 80
+        
+        # Set column widths
+        ws.column_dimensions['A'].width = 12
+        for col in range(2, 8):
+            ws.column_dimensions[get_column_letter(col)].width = 15
+        ws.column_dimensions['H'].width = 12
+
+    def generate(self, output_path):
+        """Generate the complete 6-sheet Excel report"""
+        try:
+            # Create all 6 sheets in order
+            self._create_summary_sheet()
+            self._create_geographic_sheet()
+            self._create_demographics_economics_sheet()
+            self._create_trends_sheet()
+            self._create_performance_sheet()
+            self._create_insights_recommendations_sheet()
+            
+            # Save workbook
+            self.wb.save(output_path)
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error generating Excel report: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return False
 
 
 
@@ -2065,14 +2777,8 @@ class ExportOrchestrator:
                 excel_buffer = BytesIO()
                 excel_gen = ExcelReportGenerator(data, insights, charts, self.branding, self.filters)
                 
-                excel_gen._add_summary_sheet()
-                excel_gen._add_geographic_sheet()
-                excel_gen._add_demographic_sheet()
-                excel_gen._add_trends_sheet()
-                excel_gen._add_performance_sheet()
-                excel_gen._add_insights_sheet()
-                
-                excel_gen.wb.save(excel_buffer)
+                # Generate all sheets
+                excel_gen.generate(excel_buffer)
                 
                 # Convert to base64
                 excel_buffer.seek(0)
@@ -2085,6 +2791,7 @@ class ExportOrchestrator:
                 }
                 
                 excel_buffer.close()
+
             
             # Close all matplotlib figures
             plt.close('all')
