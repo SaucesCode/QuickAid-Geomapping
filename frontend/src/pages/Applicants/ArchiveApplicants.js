@@ -7,46 +7,34 @@ import {
   RotateCcw,
   Eye,
   X,
-  Check,
   AlertCircle,
-  FileText,
   Info,
   Users,
   MapPin,
   Building2,
   Calendar,
+  FileText,
 } from "lucide-react";
 import PreviewModal from "./components/PreviewModal";
 import Pagination from "../../components/Pagination";
 import ApplicantsFilter from "./components/ApplicantFilter";
+
 import {
   PageContainer,
   PageHeader,
   Card,
-  GradientButton,
-  OutlineButton,
   LoadingState,
   H2,
   BodyText,
 } from "../../components/DesignSystem";
-import toast, { Toaster } from "react-hot-toast";
-import CustomToast from "../../components/CustomToast";
 
-// --- Skeleton Loader ---
-const SkeletonRow = () => (
-  <tr className="border-b border-gray-100 animate-pulse">
-    {Array(7)
-      .fill(0)
-      .map((_, i) => (
-        <td key={i} className="px-6 py-4">
-          <div className="h-4 bg-gray-200 rounded w-full"></div>
-        </td>
-      ))}
-  </tr>
-);
+import toast from "react-hot-toast";
+import CustomToast from "../../components/CustomToast";
 
 const ArchiveApplicants = () => {
   const queryClient = useQueryClient();
+
+  // Filters + UI state
   const [filters, setFilters] = useState({
     city: "",
     barangay: "",
@@ -54,22 +42,29 @@ const ArchiveApplicants = () => {
     start: "",
     end: "",
   });
+
   const [searchTerm, setSearchTerm] = useState("");
   const [previewView, setPreviewView] = useState(false);
   const [previewApplicant, setPreviewApplicant] = useState(null);
   const [restoreModal, setRestoreModal] = useState({ show: false, applicantId: null });
+
+  // Server pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // --- Fetch archived applicants ---
-  const {
-    data: archivedApplicants = [],
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["archived-applicants", filters],
+  // -----------------------------
+  //  FETCH FROM BACKEND WITH PAGINATION
+  // -----------------------------
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["archived-applicants", filters, searchTerm, currentPage, itemsPerPage],
     queryFn: async () => {
       const params = new URLSearchParams();
+
+      // backend pagination:
+      params.append("limit", itemsPerPage);
+      params.append("offset", (currentPage - 1) * itemsPerPage);
+
+      // filters
       if (filters.city) params.append("city", filters.city);
       if (filters.barangay) params.append("barangay", filters.barangay);
       if (filters.type) params.append("type", filters.type);
@@ -77,61 +72,51 @@ const ArchiveApplicants = () => {
         params.append("start_date", filters.start);
         params.append("end_date", filters.end);
       }
+
+      // search
+      if (searchTerm) params.append("search", searchTerm);
+
       const res = await api.get(`/list-archived-applicants/?${params.toString()}`);
-      return res.data.results || [];
+      return res.data;
     },
+    keepPreviousData: true,
     staleTime: 1000 * 60 * 5,
   });
 
-  // --- Restore Mutation ---
+  const archivedApplicants = data?.results || [];
+  const totalItems = data?.count || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // -----------------------------
+  //  RESTORE MUTATION
+  // -----------------------------
   const restoreMutation = useMutation({
     mutationFn: async id => api.post(`/restore-applicant/${id}/`),
     onSuccess: () => {
       queryClient.invalidateQueries(["archived-applicants"]);
       setRestoreModal({ show: false, applicantId: null });
 
-      // ✅ Custom restore toast
       toast.custom(t => <CustomToast t={t} type="restore" />, {
         duration: 4000,
       });
     },
     onError: () => {
-      toast.error("Failed to restore applicant. Please try again.", {
-        duration: 5000,
-        position: "top-right",
-      });
+      toast.error("Failed to restore applicant.");
     },
   });
 
   const handleRestore = () => {
-    if (restoreModal.applicantId) restoreMutation.mutate(restoreModal.applicantId);
+    if (restoreModal.applicantId) {
+      restoreMutation.mutate(restoreModal.applicantId);
+    }
   };
 
-  // --- Computed filtered applicants ---
-  const filteredApplicants = useMemo(() => {
-    const term = searchTerm.toLowerCase();
-    return archivedApplicants.filter(a => {
-      const info = a.background_info || {};
-      return (
-        (info.first_name || "").toLowerCase().includes(term) ||
-        (info.last_name || "").toLowerCase().includes(term) ||
-        (info.barangay || "").toLowerCase().includes(term) ||
-        (info.barangay_details?.city_name || "").toLowerCase().includes(term) ||
-        (a.type_of_assistance || "").toLowerCase().includes(term)
-      );
-    });
-  }, [archivedApplicants, searchTerm]);
-
-  // --- Pagination ---
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredApplicants.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredApplicants.length / itemsPerPage);
-
+  // -----------------------------
+  //  UI HELPERS
+  // -----------------------------
   const formatDateReadable = dateStr => {
     if (!dateStr) return "N/A";
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-PH", {
+    return new Date(dateStr).toLocaleDateString("en-PH", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -144,19 +129,24 @@ const ArchiveApplicants = () => {
 
   return (
     <PageContainer>
-      {/* Header */}
       <PageHeader
         icon={Archive}
         title="Archived Applicants"
-        subtitle="Manage and restore archived applicant records"
+        subtitle="View and restore archived records"
       />
 
-      {/* Filter Section */}
+      {/* Filters */}
       <Card>
-        <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
+        <ApplicantsFilter
+          filters={filters}
+          onFilterChange={f => {
+            setFilters(f);
+            setCurrentPage(1); // reset page
+          }}
+        />
       </Card>
 
-      {/* Search Section */}
+      {/* Search Bar */}
       <Card>
         <div className="flex items-center gap-4">
           <div className="relative flex-1">
@@ -165,14 +155,18 @@ const ArchiveApplicants = () => {
               type="text"
               placeholder="Search archived applicants..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-gray-50 placeholder-gray-400 text-sm outline-none shadow-sm"
+              onChange={e => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl"
             />
           </div>
+
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
-              className="p-3 rounded-xl text-gray-500 hover:text-indigo-700 hover:bg-indigo-100"
+              className="p-3 text-gray-500 hover:bg-indigo-100 rounded-xl"
             >
               <X className="w-5 h-5" />
             </button>
@@ -180,142 +174,73 @@ const ArchiveApplicants = () => {
         </div>
       </Card>
 
-      {/* Table Section */}
+      {/* Table */}
       <Card className="p-0 overflow-hidden">
         {isLoading ? (
           <LoadingState message="Loading archived applicants..." />
         ) : isError ? (
-          <div className="p-8 text-center text-red-600">
+          <div className="p-10 text-center text-red-600">
             <AlertCircle className="w-6 h-6 mx-auto mb-2" />
-            Failed to load archived applicants.
+            Failed to load data.
           </div>
-        ) : filteredApplicants.length === 0 ? (
+        ) : archivedApplicants.length === 0 ? (
           <div className="p-10 text-center text-blue-700 bg-blue-50">
             No archived applicants found.
           </div>
         ) : (
           <>
+            {/* Table */}
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-blue-100 text-sm align-middle">
-                <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
+              <table className="min-w-full divide-y divide-blue-100 text-sm">
+                <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                   <tr>
                     <th className="px-3 py-4 text-center w-[50px]">No.</th>
-                    <th className="px-6 py-4 text-left">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        Full Name
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-left">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        Barangay
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-left">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4" />
-                        City/Municipality
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-left">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        Assistance
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-left">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        Date Filled
-                      </div>
-                    </th>
+                    <th className="px-6 py-4 text-left">Full Name</th>
+                    <th className="px-6 py-4 text-left">Barangay</th>
+                    <th className="px-6 py-4 text-left">City</th>
+                    <th className="px-6 py-4 text-left">Assistance</th>
+                    <th className="px-6 py-4 text-left">Date Filled</th>
                     <th className="px-6 py-4 text-left">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-blue-100 text-gray-800">
-                  {currentItems.map((a, index) => (
-                    <tr
-                      key={a.id}
-                      className="hover:bg-blue-50/50 transition-all duration-150 group"
-                    >
-                      <td className="px-3 py-4 align-middle">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors font-semibold text-gray-600">
-                          {indexOfFirstItem + index + 1}
-                        </div>
+
+                <tbody className="divide-y divide-blue-100">
+                  {archivedApplicants.map((a, index) => (
+                    <tr key={a.id} className="hover:bg-blue-50 transition-colors">
+                      <td className="px-3 py-4 text-center">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
+
                       <td
+                        className="px-6 py-4 font-bold cursor-pointer hover:text-indigo-600"
                         onClick={() => {
                           setPreviewApplicant(a);
                           setPreviewView(true);
                         }}
-                        className="px-6 py-4 align-middle font-semibold text-gray-900 cursor-pointer group-hover:text-indigo-600 break-words"
                       >
                         {`${a.background_info?.first_name || ""} ${
                           a.background_info?.last_name || ""
                         }`}
                       </td>
-                      <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                          <span className="truncate">
-                            {a.background_info?.barangay || "—"}
-                          </span>
-                        </div>
+
+                      <td className="px-6 py-4">{a.background_info?.barangay || "—"}</td>
+
+                      <td className="px-6 py-4">
+                        {a.background_info?.barangay_details?.city_name || "—"}
                       </td>
-                      <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                          <span className="truncate">
-                            {a.background_info?.barangay_details?.city_name || "—"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 align-middle">
-                        <div className="flex items-center justify-center">
-                          <span
-                            className={`inline-flex px-2 py-1 rounded-xl text-xs font-semibold shadow-md whitespace-nowrap
-            ${
-              a.type_of_assistance?.toLowerCase() === "educational"
-                ? "bg-green-100 text-green-800"
-                : a.type_of_assistance?.toLowerCase() === "medical"
-                ? "bg-blue-100 text-blue-800"
-                : a.type_of_assistance?.toLowerCase() === "burial"
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-                          >
-                            {a.type_of_assistance}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                          <span className="truncate">{formatDateReadable(a.date_filled)}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 align-middle">
-                        <div className="flex flex-wrap items-center gap-1">
-                          <button
-                            onClick={() => {
-                              setPreviewApplicant(a);
-                              setPreviewView(true);
-                            }}
-                            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-300"
-                          >
-                            <Eye className="w-4 h-4" />
-                            View
-                          </button>
-                          <button
-                            onClick={() => setRestoreModal({ show: true, applicantId: a.id })}
-                            disabled={restoreMutation.isPending}
-                            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors border border-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <RotateCcw className="w-4 h-4" />
-                            Restore
-                          </button>
-                        </div>
+
+                      <td className="px-6 py-4">{a.type_of_assistance}</td>
+
+                      <td className="px-6 py-4">{formatDateReadable(a.date_filled)}</td>
+
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => setRestoreModal({ show: true, applicantId: a.id })}
+                          className="px-3 py-1 rounded-lg bg-green-50 text-green-700 border border-green-300 hover:bg-green-100"
+                        >
+                          <RotateCcw className="w-4 h-4 inline mr-1" />
+                          Restore
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -323,6 +248,7 @@ const ArchiveApplicants = () => {
               </table>
             </div>
 
+            {/* Pagination */}
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -332,15 +258,13 @@ const ArchiveApplicants = () => {
                 setItemsPerPage(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              totalItems={filteredApplicants.length}
-              indexOfFirstItem={indexOfFirstItem}
-              indexOfLastItem={indexOfLastItem}
+              totalItems={totalItems}
             />
           </>
         )}
       </Card>
 
-      {/* Modals */}
+      {/* PREVIEW MODAL */}
       {previewView && (
         <PreviewModal
           previewApplicant={previewApplicant}
@@ -349,85 +273,38 @@ const ArchiveApplicants = () => {
         />
       )}
 
+      {/* RESTORE MODAL */}
       {restoreModal.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 rounded-t-xl">
-              <button
-                onClick={() => setRestoreModal({ show: false, applicantId: null })}
-                className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/20 transition-colors"
-                disabled={restoreMutation.isPending}
-              >
-                <X className="w-4 h-4 text-white" />
+            <div className="bg-indigo-600 px-6 py-4 rounded-t-xl text-white font-bold flex justify-between">
+              Restore Applicant
+              <button onClick={() => setRestoreModal({ show: false, applicantId: null })}>
+                <X className="w-5 h-5" />
               </button>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <RotateCcw className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-white">Restore Applicant</h2>
-                  <p className="text-blue-100 text-xs">Move back to active list</p>
-                </div>
-              </div>
             </div>
 
-            <div className="p-5">
-              <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg mb-5">
-                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Info className="w-4 h-4 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-blue-700 leading-relaxed">
-                    This applicant will be restored to the active applicants list. You can
-                    archive it again if needed.
-                  </p>
-                </div>
+            <div className="p-6">
+              <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
+                <Info className="w-5 h-5 text-blue-700" />
+                <p className="text-sm text-blue-800">
+                  This applicant will be moved back to the active list.
+                </p>
               </div>
 
               <div className="flex gap-3">
                 <button
+                  className="flex-1 py-2 border rounded-lg"
                   onClick={() => setRestoreModal({ show: false, applicantId: null })}
-                  disabled={restoreMutation.isPending}
-                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
                   Cancel
                 </button>
+
                 <button
+                  className="flex-1 py-2 bg-indigo-600 text-white rounded-lg"
                   onClick={handleRestore}
-                  disabled={restoreMutation.isPending}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
                 >
-                  {restoreMutation.isPending ? (
-                    <>
-                      <svg
-                        className="animate-spin h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Restoring...
-                    </>
-                  ) : (
-                    <>
-                      <RotateCcw className="w-4 h-4" />
-                      Restore
-                    </>
-                  )}
+                  Restore Applicant
                 </button>
               </div>
             </div>

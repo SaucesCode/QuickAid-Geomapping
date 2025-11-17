@@ -295,12 +295,12 @@ const Dashboard = () => {
         <AnalyticsChartCard
           icon={TrendingUp}
           title="Monthly Application Growth"
-          subtitle="Comparison of previous and current month"
+          subtitle="Previous vs Current Month"
           isLoading={growthLoading}
         >
           <ChartContainer height={350}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart
+              <RechartsLineChart
                 data={growthChartData}
                 margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
               >
@@ -324,8 +324,14 @@ const Dashboard = () => {
                   labelStyle={{ fontWeight: "bold", color: "#1f2937" }}
                 />
 
-                <Bar dataKey="count" fill="#6366f1" radius={[6, 6, 0, 0]} barSize={60} />
-              </BarChart>
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#6366f1"
+                  strokeWidth={3}
+                  dot={{ r: 5 }}
+                />
+              </RechartsLineChart>
             </ResponsiveContainer>
           </ChartContainer>
         </AnalyticsChartCard>

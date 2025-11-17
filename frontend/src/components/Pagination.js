@@ -8,20 +8,21 @@ const Pagination = ({
   itemsPerPage,
   handleItemsPerPageChange,
   totalItems,
-  indexOfFirstItem,
-  indexOfLastItem,
 }) => {
+  // Compute starting and ending item numbers
+  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-blue-100 bg-gradient-to-r from-gray-50 to-blue-50">
       {/* Left Section: Items Info & Per Page Selector */}
       <div className="flex items-center gap-3 text-sm">
         <span className="text-gray-600 font-medium">
-          Showing <span className="font-bold text-gray-800">{indexOfFirstItem + 1}</span> to{" "}
-          <span className="font-bold text-gray-800">
-            {Math.min(indexOfLastItem, totalItems)}
-          </span>{" "}
-          of <span className="font-bold text-gray-800">{totalItems}</span> entries
+          Showing <span className="font-bold text-gray-800">{startItem}</span> to{" "}
+          <span className="font-bold text-gray-800">{endItem}</span> of{" "}
+          <span className="font-bold text-gray-800">{totalItems}</span> entries
         </span>
+
         <div className="relative">
           <select
             value={itemsPerPage}
@@ -53,21 +54,20 @@ const Pagination = ({
 
       {/* Right Section: Pagination Controls */}
       <div className="flex items-center gap-1.5">
-        {/* First Page Button */}
+        {/* First Page */}
         <button
           onClick={() => handlePageChange(1)}
           disabled={currentPage === 1}
-          className="inline-flex items-center justify-center w-8 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-300 transition-all"
-          title="First page"
+          className="inline-flex items-center justify-center w-8 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
         >
           <ChevronsLeft className="w-4 h-4" />
         </button>
 
-        {/* Previous Button */}
+        {/* Previous */}
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="inline-flex items-center gap-1 px-3 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-300 transition-all font-medium"
+          className="inline-flex items-center gap-1 px-3 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all font-medium"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Previous</span>
@@ -115,22 +115,21 @@ const Pagination = ({
             );
           })}
 
-        {/* Next Button */}
+        {/* Next */}
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="inline-flex items-center gap-1 px-3 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-300 transition-all font-medium"
+          className="inline-flex items-center gap-1 px-3 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all font-medium"
         >
           <span className="hidden sm:inline">Next</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
 
-        {/* Last Page Button */}
+        {/* Last Page */}
         <button
           onClick={() => handlePageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="inline-flex items-center justify-center w-8 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-gray-300 transition-all"
-          title="Last page"
+          className="inline-flex items-center justify-center w-8 h-8 text-sm border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
         >
           <ChevronsRight className="w-4 h-4" />
         </button>
