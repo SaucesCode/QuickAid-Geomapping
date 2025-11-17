@@ -1,5 +1,5 @@
 // GeneralIntakeSheet.jsx
-import React, { useState, useRef, useEffect } from "react"; // <-- ADDED useEffect HERE
+import React, { useState, useRef, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import dswdLogo from "../../assets/dswd-logo.png";
@@ -100,35 +100,29 @@ export default function GeneralIntakeSheet({ applicant }) {
         typeOfAssistance: applicant?.type_of_assistance || "",
         applicantType: applicant?.applicant_type || "",
         familyMembers: applicant?.family_composition || [],
-        approvingAuthorityName: "", // The name only
-        approvingAuthorityDesignation: "SWAD TEAM LEADER", // The designation
+        approvingAuthorityName: "",
+        approvingAuthorityDesignation: "SWAD TEAM LEADER",
         fundSource: "PSP 2023",
     };
 
     // State initialization
     const [formData, setFormData] = useState(initialFormData);
 
-    // CORE LOGIC: REMOVE PRINT FOOTER
     useEffect(() => {
         const originalTitle = document.title;
-        // Set a document title for the browser tab while viewing
         document.title = "QuickAid | General Intake Sheet";
 
         const handleBeforePrint = () => {
-            // Clear the title just before the print dialog opens
             document.title = "";
         };
 
         const handleAfterPrint = () => {
-            // Restore the title after the print dialog closes
             document.title = "QuickAid | General Intake Sheet";
         };
 
-        // Add listeners for browser printing events
         window.addEventListener('beforeprint', handleBeforePrint);
         window.addEventListener('afterprint', handleAfterPrint);
 
-        // Cleanup function: restore the original title and remove listeners on unmount
         return () => {
             document.title = originalTitle;
             window.removeEventListener('beforeprint', handleBeforePrint);
@@ -136,10 +130,8 @@ export default function GeneralIntakeSheet({ applicant }) {
         };
     }, []);
 
-    // New handler for top-level form fields (like Approving Authority Name)
     const handleGeneralChange = (field, value) => {
         let newValue = value;
-        // Force uppercase for the Approving Authority Name
         if (field === 'approvingAuthorityName') {
             newValue = value.toUpperCase();
         }
@@ -151,14 +143,12 @@ export default function GeneralIntakeSheet({ applicant }) {
     };
 
     const contentRef = useRef();
-    // Handler to update an existing row's input field
+    
     const handleFamilyMemberChange = (index, field, value) => {
         let newValue = value;
 
-        // Apply Title Case conversion for the name field
         if (field === 'name') {
             newValue = toTitleCase(value);
-        // Apply full uppercase conversion for all other text fields
         } else if (['relationship', 'occupation', 'monthly_income'].includes(field)) {
             newValue = value.toUpperCase();
         }
@@ -174,8 +164,6 @@ export default function GeneralIntakeSheet({ applicant }) {
         });
     };
 
-    // Helper functions remain the same
-    // MODIFICATION: Reduced padding and font size for data spans
     const spanClass = "w-full px-2 py-1 text-[10px]";
     const placeholderSpanClass = "w-full px-2 py-1 text-[10px] text-gray-400";
 
@@ -195,20 +183,15 @@ export default function GeneralIntakeSheet({ applicant }) {
     };
 
     return (
-        // MODIFICATION: Reduced outer padding
         <div className="min-h-screen bg-gray-50 p-2 font-sans print:p-0">
-            {/* MODIFICATION: Applied COE's max-w-[200mm] for a wide, print-friendly container */}
             <div className="max-w-[200mm] mx-auto bg-white shadow-xl print:shadow-none border border-blue-100 print:border-0">
-                {/* MODIFICATION: Reduced inner padding from p-6 to p-2 */}
                 <div className="p-2"> 
                     {/* Header row */}
-                    {/* MODIFICATION: Reduced margin and logo size */}
                     <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center space-x-2">
                             <img src={dswdLogo} alt="DSWD Logo" className="w-32 object-contain" />
                         </div>
 
-                        {/* MODIFICATION: Reduced header text sizes */}
                         <div className="text-right text-[8px] leading-tight">
                             <div className="font-bold uppercase text-blue-800 tracking-wider">
                                 CRISIS INTERVENTION SECTION
@@ -223,7 +206,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                     </div>
 
                     {/* Title */}
-                    {/* MODIFICATION: Reduced title font size and spacing */}
                     <div className="text-center mb-2">
                         <h1 className="text-lg font-black tracking-widest uppercase text-blue-900">
                             GENERAL INTAKE SHEET
@@ -234,7 +216,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                     </div>
 
                     {/* QN PCN Time Date */}
-                    {/* MODIFICATION: Reduced font sizes and spacing */}
                     <div className="flex items-center justify-between mb-2 pb-1 border-b border-blue-200 text-xs">
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1">
@@ -250,7 +231,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                                         .map((_, i) => (
                                             <span
                                                 key={i}
-                                                // MODIFICATION: Smaller PCN boxes to match COE
                                                 className="w-4 h-5 text-center border border-gray-300 rounded-sm text-[8px]"
                                             ></span>
                                         ))}
@@ -258,7 +238,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                             </div>
                         </div>
 
-                        {/* Reduced outer gap and used text-[10px] for values */}
                         <div className="flex items-center gap-4 text-xs">
                             <div className="flex items-center gap-1">
                                 <label className="font-bold text-blue-700 text-[10px]">Time Start:</label>
@@ -275,7 +254,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                     </div>
 
                     {/* Client type / Walk-in / Referral / Off-site */}
-                    {/* MODIFICATION: Reduced font sizes and spacing */}
                     <div className="flex gap-4 items-center text-[10px] mb-2 pb-1 border-b border-blue-100">
                         <label className="flex items-center gap-1 text-blue-800 font-medium">
                             {renderCheckbox(formData.applicantType === "new")}
@@ -287,7 +265,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                             <span>Returning</span>
                         </label>
                         <div className="h-3 w-px bg-gray-300 mx-1"></div>
-                        {/* Placeholder for walkInType, Referral, etc. to match COE's Client Status block structure */}
                         <span className="font-semibold text-blue-800">Walk-In Type:</span>
                         <span className="text-[10px] font-medium"></span>
                         <div className="h-3 w-px bg-gray-300 mx-1"></div>
@@ -296,12 +273,10 @@ export default function GeneralIntakeSheet({ applicant }) {
                     </div>
 
                     {/* Beneficiary Section */}
-                    {/* MODIFICATION: Reduced font size, padding, and margin */}
                     <div className="bg-blue-700 text-white text-[10px] px-2 py-1 mb-1 uppercase font-bold tracking-wider rounded-t-lg shadow-md">
                         Impormasyon ng Benepisyaryo (Beneficiary's Identifying Information)
                     </div>
 
-                    {/* MODIFICATION: Reduced gap and font size */}
                     <div className="grid grid-cols-4 gap-2 mb-1 text-[10px]">
                         {renderValue(formData.beneficiary.lastName, "Apelyido (Last Name)")}
                         {renderValue(formData.beneficiary.firstName, "Unang Pangalan (First Name)")}
@@ -309,7 +284,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                         {renderValue(formData.beneficiary.suffix, "Ext. (Sr./Jr./II)")}
                     </div>
 
-                    {/* MODIFICATION: Reduced gap and font size */}
                     <div className="grid grid-cols-5 gap-2 mb-1 text-[10px]">
                         {renderValue(formData.beneficiary.houseNo, "House No./Street/Purok")}
                         {renderValue(formData.beneficiary.barangay, "Barangay")}
@@ -318,7 +292,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                         {renderValue(formData.beneficiary.region, "Region")}
                     </div>
 
-                    {/* MODIFICATION: Reduced gap and font size */}
                     <div className="grid grid-cols-7 gap-1 mb-2 text-[10px]">
                         {renderValue(formData.beneficiary.mobileNo, "Numero ng Telepono")}
                         {renderValue(formData.beneficiary.birthdate, "Kapanganakan (MM/DD/YYYY)")}
@@ -330,12 +303,10 @@ export default function GeneralIntakeSheet({ applicant }) {
                     </div>
 
                     {/* Representative Section */}
-                    {/* MODIFICATION: Reduced font size, padding, and margin */}
                     <div className="bg-blue-700 text-white text-[10px] px-2 py-1 mb-1 uppercase font-bold tracking-wider rounded-t-lg shadow-md">
                         Impormasyon ng Kinatawan (Representative's Identifying Information)
                     </div>
 
-                    {/* MODIFICATION: Reduced gap and font size */}
                     <div className="grid grid-cols-4 gap-2 mb-1 text-[10px]">
                         {renderValue(formData.representative.lastName, "Apelyido (Last Name)")}
                         {renderValue(formData.representative.firstName, "Unang Pangalan (First Name)")}
@@ -343,7 +314,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                         {renderValue(formData.representative.suffix, "Ext. (Sr./Jr./II)")}
                     </div>
 
-                    {/* MODIFICATION: Reduced gap and font size */}
                     <div className="grid grid-cols-5 gap-2 mb-1 text-[10px]">
                         {renderValue(formData.representative.houseNo, "House No./Street/Purok")}
                         {renderValue(formData.representative.barangay, "Barangay")}
@@ -352,7 +322,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                         {renderValue(formData.representative.region, "Region")}
                     </div>
 
-                    {/* MODIFICATION: Reduced gap and font size */}
                     <div className="grid grid-cols-7 gap-1 mb-1 text-[10px]">
                         {renderValue(formData.representative.mobileNo, "Numero ng Telepono")}
                         {renderValue(formData.representative.birthdate, "Kapanganakan (MM/DD/YYYY)")}
@@ -363,7 +332,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                         {renderValue(formData.representative.monthlySalary, "Buwanang Kita")}
                     </div>
 
-                    {/* MODIFICATION: Reduced margin and font size */}
                     <div className="mb-2 text-[10px]">
                         {renderValue(
                             formData.representative.relationship,
@@ -372,38 +340,32 @@ export default function GeneralIntakeSheet({ applicant }) {
                     </div>
 
                     {/* Time End placement (right aligned) */}
-                    {/* MODIFICATION: Reduced margin and font size */}
                     <div className="flex justify-end mb-3 text-[10px]">
                         <div className="flex items-center gap-1">
                             <label className="font-bold text-blue-700">Time End:</label>
-                            {/* Added placeholder for consistency */}
                             <span className="w-20 border-b border-gray-400 text-center"></span>
                         </div>
                     </div>
 
                     {/* Page break visual */}
-                    {/* MODIFICATION: Reduced vertical margin */}
                     <div className="border-t-4 border-blue-900 my-3 opacity-75" />
 
-                    {/* DSWD Only Header (Lighter Blue for contrast) */}
-                    {/* MODIFICATION: Reduced font size and spacing */}
+                    {/* DSWD Only Header */}
                     <div className="bg-blue-100 italic text-[9px] px-2 py-1 mb-2 border border-blue-300 rounded-lg text-blue-800">
-                        Huwağ susulatan ang DSWD lamang ang pwede gumamit (Do not write below this part,
+                        Huwağ susulatan ang DSWD lamang ang pwede gumit (Do not write below this part,
                         for DSWD's use only)
                     </div>
 
                     {/* FAMILY COMPOSITION */}
-                    {/* MODIFICATION: Reduced font size, padding, and margin */}
                     <div className="bg-blue-700 text-white text-[10px] py-1 px-2 mb-2 uppercase font-bold tracking-wider rounded-t-lg shadow-md">
                         Komposisyon ng Pamilya (Family Composition)
                     </div>
 
-                    {/* MODIFICATION: Reduced vertical margin and table font/padding */}
+                    {/* Family Composition Table with 1 empty row */}
                     <div className="mb-2">
                         <table className="w-full text-[10px] border border-gray-400 border-collapse rounded-lg overflow-hidden">
                             <thead>
                                 <tr className="bg-blue-100 text-blue-800 font-semibold">
-                                    {/* Reduced py-2 to py-1 */}
                                     <th className="border-r border-b border-gray-400 px-2 py-1 text-left">
                                         Buong Pangalan (Complete Name)
                                     </th>
@@ -419,15 +381,21 @@ export default function GeneralIntakeSheet({ applicant }) {
                                     </th>
                                 </tr>
                             </thead>
+                            <tbody>
+                                <tr className="bg-white">
+                                    <td className="border-r border-b border-gray-400 px-2 py-2"></td>
+                                    <td className="border-r border-b border-gray-400 px-2 py-2"></td>
+                                    <td className="border-r border-b border-gray-400 px-2 py-2"></td>
+                                    <td className="border-r border-b border-gray-400 px-2 py-2"></td>
+                                    <td className="border-b border-gray-400 px-2 py-2"></td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
 
-
                     {/* SIGNATORIES */}
-                    {/* MODIFICATION: Reduced spacing */}
                     <div className="grid grid-cols-3 gap-8 mb-4">
                         <div className="text-center">
-                            {/* Reduced mt-8 to mt-4 and pt-2 to pt-1 and font sizes */}
                             <div className="border-t-2 border-blue-500 pt-1 mt-4">
                                 <p className="text-[10px] font-black uppercase text-blue-900">
                                     Buong Pangalan at Pirma
@@ -437,20 +405,15 @@ export default function GeneralIntakeSheet({ applicant }) {
                         </div>
 
                         <div className="text-center">
-                            {/* NOTE: This was previously py-12, reducing to py-8 (or py-4/py-5) is the primary fix for 2 pages. */}
                             <div className="w-full border-b-2 border-blue-500 text-center mb-1 py-8 text-sm font-bold text-blue-900 focus:border-blue-700 outline-none">
-                                {/* Social worker name */}
                             </div>
-                            {/* Reduced pt-2 to pt-1 and font sizes */}
                             <div className="pt-1">
                                 <p className="text-[10px] font-black uppercase text-blue-900">Social Worker</p>
                                 <p className="text-[8px] text-gray-500">(Signature over Printed Name)</p>
                             </div>
                         </div>
 
-                        {/* UPDATED Approving Authority Block with only ONE line */}
                         <div className="text-center mt-2">
-                            {/* Editable Name Field (Reduced font size) */}
                             <input
                                 type="text"
                                 value={formData.approvingAuthorityName}
@@ -459,8 +422,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                                 placeholder=" "
                             />
 
-                            {/* The single signature line and standard titles (Uses border-t-2) */}
-                            {/* Reduced pt-2 to pt-1 and font sizes */}
                             <div className="border-t-2 border-blue-500 pt-1">
                                 <p className="text-[10px] font-black uppercase text-blue-900">
                                     Approving Authority
@@ -468,7 +429,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                                 <p className="text-[8px] text-gray-500">(Signature over Printed Name)</p>
                             </div>
 
-                            {/* Designation (Smaller text: text-[8px]) - MOVED TO THE BOTTOM */}
                             <div className="text-[9px] font-semibold text-blue-800 uppercase mt-1">
                                 {formData.approvingAuthorityDesignation}
                             </div>
@@ -476,10 +436,8 @@ export default function GeneralIntakeSheet({ applicant }) {
                     </div>
 
                     <div className="text-gray-500 text-center pt-0 mt-0 overflow-hidden">
-                        {/* The scale-y-50 and scale-x-75 transform remains to make the footer "ultra small" for A4 fit */}
                         <div className="text-[8px] transform scale-y-50 scale-x-75 -translate-y-2 origin-bottom">
                             
-                            {/* E.O. NOTE - Now inside the scaled block */}
                             <div className="mt-0.5 text-right text-[8px] text-gray-500 mb-1">
                                 <p>*E.O 163 series 2022</p>
                             </div>
@@ -496,7 +454,6 @@ export default function GeneralIntakeSheet({ applicant }) {
                 </div>
 
                 {/* FINAL CLOSING BAR */}
-                {/* Reduced margin from mt-4 to mt-2 */}
                 <div className="bg-gradient-to-r from-blue-700 to-blue-900 h-2 mt-2"></div>
             </div>
         </div>

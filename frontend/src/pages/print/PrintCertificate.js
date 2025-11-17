@@ -1,8 +1,8 @@
-// PrintCertificate.js — Full Screen Display, Scaled Print to Single A4
+// PrintCertificate.js — Fixed alignment using modern-screenshot
 import React, { useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FileDown, Printer, ArrowLeft } from "lucide-react";
-import html2canvas from "html2canvas";
+import { domToPng } from "modern-screenshot";
 import jsPDF from "jspdf";
 import CertificateOfEligibility from "./CertificateOfEligibility";
 
@@ -21,63 +21,106 @@ export default function PrintCertificate() {
     const buttons = document.querySelectorAll(".no-print");
     buttons.forEach((btn) => (btn.style.display = "none"));
 
-    // Store original styles
-    const originalWidth = element.style.width;
-    const originalHeight = element.style.height;
-    const originalTransform = element.querySelector(".certificate-inner")?.style.transform;
-
     try {
       // Wait for fonts to load
       if (document.fonts && document.fonts.ready) {
         await document.fonts.ready;
       }
 
-      // Set exact A4 dimensions for capture
-      element.style.width = "794px"; // 210mm at 96dpi
-      element.style.height = "1123px"; // 297mm at 96dpi
+      // Wait for images to fully load
+      const images = element.querySelectorAll('img');
+      await Promise.all(
+        Array.from(images).map(img => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+            setTimeout(resolve, 3000);
+          });
+        })
+      );
 
-      const inner = element.querySelector(".certificate-inner");
-      if (inner) inner.style.transform = "scale(1)";
+      // Additional delay for complete render
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      console.log('Starting capture with modern-screenshot...');
 
-      const canvas = await html2canvas(element, {
-        scale: 3,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        foreignObjectRendering: false,
-        imageTimeout: 0,
-        scrollX: 0,
-        scrollY: 0,
-        width: 794,
-        height: 1123,
-        windowWidth: 794,
-        windowHeight: 1123,
-        logging: false,
+      // Capture with modern-screenshot - perfect pixel-for-pixel capture
+      const dataUrl = await domToPng(element, {
+        quality: 1,
+        scale: 3, // 3x for HD quality
+        backgroundColor: '#ffffff',
+        style: {
+          // Ensure everything is captured exactly as displayed
+          margin: '0',
+          padding: element.style.padding,
+        },
+        filter: (node) => {
+          // Exclude no-print elements
+          if (node.classList?.contains?.("no-print")) return false;
+          if (node.classList?.contains?.("button-wrapper")) return false;
+          return true;
+        },
       });
 
-      const imgData = canvas.toDataURL("image/png", 1.0);
-      const pdf = new jsPDF("p", "mm", "a4");
+      console.log('Capture complete, creating PDF...');
 
-      const pdfWidth = 210;
-      const pdfHeight = 297;
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
 
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      const img = new Image();
+      img.src = dataUrl;
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        setTimeout(reject, 10000);
+      });
+
+      console.log('Image loaded:', { width: img.width, height: img.height });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      // Calculate dimensions to fit page
+      const imgAspect = img.width / img.height;
+      const pageAspect = pdfWidth / pdfHeight;
+
+      let finalWidth, finalHeight;
+
+      if (imgAspect > pageAspect) {
+        // Image is wider - fit to width
+        finalWidth = pdfWidth;
+        finalHeight = pdfWidth / imgAspect;
+      } else {
+        // Image is taller - fit to height
+        finalHeight = pdfHeight;
+        finalWidth = finalHeight * imgAspect;
+      }
+
+      // Center on page
+      const xOffset = (pdfWidth - finalWidth) / 2;
+      const yOffset = (pdfHeight - finalHeight) / 2;
+
+      // Add image to PDF
+      pdf.addImage(img, "PNG", xOffset, yOffset, finalWidth, finalHeight);
 
       const filename = `Certificate_${(applicant.full_name || "Document")
         .replace(/\s+/g, "_")
         .trim()}.pdf`;
 
       pdf.save(filename);
+      
+      console.log('PDF generated successfully');
     } catch (err) {
       console.error("PDF generation failed:", err);
-      alert("Failed to generate PDF");
+      alert(`Failed to generate PDF: ${err.message || 'Unknown error'}`);
     } finally {
-      // Restore original styles
-      element.style.width = originalWidth;
-      element.style.height = originalHeight;
-      const inner = element.querySelector(".certificate-inner");
-      if (inner && originalTransform) inner.style.transform = originalTransform;
       buttons.forEach((btn) => (btn.style.display = ""));
     }
   };
@@ -174,6 +217,23 @@ export default function PrintCertificate() {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color-adjust: exact !important;
+<<<<<<< HEAD
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+          }
+          
+          .certificate-container img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+          }
+ zz         
+          .certificate-container * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+=======
+>>>>>>> 3206257e48a6cad548c5a415042f3914719729b9
           }
         `}
       </style>
@@ -191,6 +251,7 @@ export default function PrintCertificate() {
                 color: "#000000",
                 boxSizing: "border-box",
                 padding: "8mm",
+                overflow: "visible",
               }}
             >
               <div className="certificate-inner">
