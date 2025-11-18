@@ -223,7 +223,7 @@ const Applicants = () => {
 
       await savePromise;
 
-      toast.success("Applicant updated successfully", { id: "saving" });
+      toast.custom(t => <CustomToast t={t} type="editApplicant" />, { id: "saving" });
       setEditView(false);
       refetch();
     } catch (err) {

@@ -15,6 +15,7 @@ import {
   RotateCcw,
   FileSpreadsheet,
   BarChart3,
+  FileWarning,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -59,6 +60,14 @@ const toastVariants = {
     accent: "bg-purple-100 text-purple-600",
     icon: <Wand2 className="w-6 h-6" strokeWidth={2.5} />,
   },
+  editApplicant: {
+    title: "Applicant Updated Successfully",
+    message: "Your changes have been saved.",
+    color: "bg-purple-50",
+    text: "text-purple-900",
+    accent: "bg-purple-100 text-purple-600",
+    icon: <Wand2 className="w-6 h-6" strokeWidth={2.5} />,
+  },
   success: {
     title: "Action Completed",
     message: "Everything went smoothly!",
@@ -74,6 +83,14 @@ const toastVariants = {
     text: "text-green-900",
     accent: "bg-green-100 text-green-600",
     icon: <Upload className="w-6 h-6" strokeWidth={2.5} />,
+  },
+  uploadError: {
+    title: "Upload Failed!",
+    message: "There was an error processing your file.",
+    color: "bg-red-50",
+    text: "text-red-900",
+    accent: "bg-red-100 text-red-600",
+    icon: <FileWarning className="w-6 h-6" strokeWidth={2.5} />,
   },
   restore: {
     title: "Applicant Restored",

@@ -258,7 +258,10 @@ const Approved = () => {
       );
     },
     onError: error => {
-      toast.error(error?.message || "Upload failed. Please try again.");
+      toast.custom(
+        t => <CustomToast t={t} type="uploadError" customMessage={error.message} />,
+        { duration: 4000 }
+      );
     },
   });
 
@@ -355,26 +358,6 @@ const Approved = () => {
             <Upload className="w-5 h-5" /> Upload File
           </GradientButton>
         </div>
-
-        {/* Upload Result */}
-        {uploadMutation.data && (
-          <Card className="mt-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-            <H2 className="text-green-800 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              Upload Successful!
-            </H2>
-            <div className="grid grid-cols-2 gap-4 mt-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <BodyText>Approved: {uploadMutation.data.total_approved ?? 0}</BodyText>
-              </div>
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-blue-600" />
-                <BodyText>Processed: {uploadMutation.data.total_processed ?? 0}</BodyText>
-              </div>
-            </div>
-          </Card>
-        )}
 
         {uploadMutation.isError && (
           <Card className="mt-6 bg-red-50 border-red-200 text-red-800">

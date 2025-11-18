@@ -5,6 +5,7 @@ import os
 from datetime import date, datetime, timedelta
 from io import BytesIO
 from pathlib import Path
+from PIL import Image as PILImage
 
 import seaborn as sns
 from dateutil.relativedelta import relativedelta
@@ -891,8 +892,8 @@ class ChartGenerator:
 
 class PDFReportGenerator:
     """
-    Official DSWD Government Report Generator
-    Compliant with Philippine Government Standards
+    Professional Corporate PDF Report Generator
+    Matches 6-sheet Excel structure with clean, modern design
     """
     
     def __init__(self, data, insights, charts, branding, filters):
@@ -903,577 +904,1473 @@ class PDFReportGenerator:
         self.filters = filters
         
         # Document metadata
-        self.doc_ref_number = branding.get('doc_ref_number', f"DSWD-AICS-{datetime.now().strftime('%Y-%m-%d-%H%M')}")
-        self.office_name = branding.get('office_name', 'DPWH AICS')
-        self.prepared_by = branding.get('prepared_by', 'Data Analytics Unit')
-        self.reviewed_by = branding.get('reviewed_by', 'Division Chief')
-        self.approved_by = branding.get('approved_by', 'Regional Director')
-        self.effectivity_date = branding.get('effectivity_date', datetime.now().strftime('%B %d, %Y'))
+        self.doc_ref_number = branding.get('doc_ref_number', 
+                                          f"ANALYTICS-{datetime.now().strftime('%Y%m%d-%H%M')}")
+        self.office_name = branding.get('office_name', 'DSWD AICS Analytics')
+        self.prepared_by = branding.get('prepared_by', 'Data Analytics Team')
+        self.reviewed_by = branding.get('reviewed_by', 'Operations Manager')
+        self.approved_by = branding.get('approved_by', 'Director')
+        self.effectivity_date = branding.get('effectivity_date', 
+                                            datetime.now().strftime('%B %d, %Y'))
         
-        # Official colors
-        self.primary_color = '#0066cc'
-        self.secondary_color = '#003366'
+        # Corporate colors (light theme matching Excel)
+        self.primary_color = colors.HexColor('#0066cc')
+        self.secondary_color = colors.HexColor('#003366')
+        self.light_blue = colors.HexColor('#e3f2fd')
+        self.accent_color = colors.HexColor('#00cc66')
+        self.light_gray = colors.HexColor('#f5f5f5')
         
         self.styles = getSampleStyleSheet()
-        self._setup_government_styles()
+        self._setup_corporate_styles()
+        
+        # Page tracking
         self.page_count = 0
+
+    def _format_location_filter(self):
+        """Format location and assistance type filters for display"""
+        cities = self.filters.get('cities', [])
+        barangays = self.filters.get('barangays', [])
+        assistance_types = self.filters.get('assistance_types', [])
+        
+        location_parts = []
+        
+        # Cities
+        if cities:
+            if len(cities) == 1:
+                location_parts.append(f"City: {cities[0]}")
+            elif len(cities) <= 3:
+                location_parts.append(f"Cities: {', '.join(cities)}")
+            else:
+                location_parts.append(f"Cities: {', '.join(cities[:3])} and {len(cities) - 3} more")
+        
+        # Barangays
+        if barangays:
+            if len(barangays) == 1:
+                location_parts.append(f"Barangay: {barangays[0]}")
+            elif len(barangays) <= 3:
+                location_parts.append(f"Barangays: {', '.join(barangays)}")
+            else:
+                location_parts.append(f"Barangays: {', '.join(barangays[:3])} and {len(barangays) - 3} more")
+        
+        # Assistance Types
+        if assistance_types:
+            if len(assistance_types) == 1:
+                location_parts.append(f"Type: {assistance_types[0]}")
+            elif len(assistance_types) <= 3:
+                location_parts.append(f"Types: {', '.join(assistance_types)}")
+            else:
+                location_parts.append(f"Types: {', '.join(assistance_types[:2])} and {len(assistance_types) - 2} more")
+        
+        if not cities and not barangays and not assistance_types:
+            return "All Locations, All Types"
+        
+        return " | ".join(location_parts)
     
-    def _setup_government_styles(self):
-        """Setup official government document styles"""
+    def _setup_corporate_styles(self):
+        """Setup clean corporate document styles"""
         
-        # Government Title
-        self.styles.add(ParagraphStyle(
-            name='GovTitle',
+        # Helper function to safely add or update styles
+        def add_or_update_style(name, **kwargs):
+            if name in self.styles:
+                # Update existing style
+                style = self.styles[name]
+                for key, value in kwargs.items():
+                    setattr(style, key, value)
+            else:
+                # Add new style
+                self.styles.add(ParagraphStyle(name=name, **kwargs))
+        
+        # Title Style
+        add_or_update_style(
+            'CorporateTitle',
             parent=self.styles['Heading1'],
-            fontSize=18,
-            textColor=colors.HexColor(self.secondary_color),
-            spaceAfter=6,
+            fontSize=20,
+            textColor=self.primary_color,
+            spaceAfter=10,
             alignment=TA_CENTER,
             fontName='Helvetica-Bold',
-            leading=22
-        ))
+            leading=24
+        )
         
-        # Official Header
-        self.styles.add(ParagraphStyle(
-            name='OfficialHeader',
-            parent=self.styles['Normal'],
-            fontSize=11,
-            textColor=colors.HexColor(self.secondary_color),
-            alignment=TA_CENTER,
-            fontName='Helvetica-Bold',
-            spaceBefore=2,
-            spaceAfter=2
-        ))
-        
-        # Section Header (Numbered)
-        self.styles.add(ParagraphStyle(
-            name='GovSectionHeader',
+        # Section Header
+        add_or_update_style(
+            'SectionHeader',
             parent=self.styles['Heading2'],
             fontSize=14,
-            textColor=colors.HexColor(self.primary_color),
+            textColor=self.primary_color,
             spaceAfter=12,
-            spaceBefore=16,
+            spaceBefore=20,
             fontName='Helvetica-Bold',
             borderWidth=1,
-            borderColor=colors.HexColor(self.primary_color),
-            borderPadding=8,
-            backColor=colors.HexColor('#e3f2fd'),
+            borderColor=self.primary_color,
+            borderPadding=6,
+            backColor=self.light_blue,
             leading=18
-        ))
+        )
         
         # Subsection
-        self.styles.add(ParagraphStyle(
-            name='GovSubSection',
+        add_or_update_style(
+            'SubSection',
             parent=self.styles['Heading3'],
             fontSize=12,
-            textColor=colors.HexColor(self.secondary_color),
+            textColor=self.secondary_color,
             spaceAfter=8,
-            spaceBefore=10,
+            spaceBefore=12,
             fontName='Helvetica-Bold',
             leading=16
-        ))
+        )
         
-        # Body Text (A4, Double-spaced)
-        self.styles.add(ParagraphStyle(
-            name='GovBodyText',
+        # Body Text (use unique name)
+        add_or_update_style(
+            'CorporateBody',  # Changed from 'BodyText'
             parent=self.styles['Normal'],
-            fontSize=11,
-            spaceAfter=12,
+            fontSize=10,
+            spaceAfter=8,
             alignment=TA_JUSTIFY,
-            leading=22,  # Double spacing (2 x font size)
+            leading=14,
             fontName='Helvetica',
-            firstLineIndent=0.5*inch
-        ))
+            textColor=colors.HexColor('#333333')
+        )
         
         # Bullet Points
-        self.styles.add(ParagraphStyle(
-            name='GovBulletPoint',
+        add_or_update_style(
+            'CorporateBullet',  # Changed from 'BulletPoint'
             parent=self.styles['Normal'],
-            fontSize=11,
-            spaceAfter=10,
-            leftIndent=0.5*inch,
-            bulletIndent=0.25*inch,
-            leading=20,
+            fontSize=10,
+            spaceAfter=6,
+            leftIndent=20,
+            bulletIndent=10,
+            leading=14,
             fontName='Helvetica'
-        ))
+        )
         
-        # Legal Text
-        self.styles.add(ParagraphStyle(
-            name='GovLegalText',
+        # Small Text
+        add_or_update_style(
+            'CorporateSmall',  # Changed from 'SmallText'
             parent=self.styles['Normal'],
-            fontSize=9,
+            fontSize=8,
             textColor=colors.HexColor('#666666'),
-            alignment=TA_JUSTIFY,
-            leading=12,
+            alignment=TA_LEFT,
+            leading=10,
             fontName='Helvetica'
-        ))
+        )
         
         # Signature Block
-        self.styles.add(ParagraphStyle(
-            name='GovSignatureBlock',
+        add_or_update_style(
+            'SignatureBlock',
             parent=self.styles['Normal'],
-            fontSize=11,
+            fontSize=10,
             spaceAfter=4,
-            alignment=TA_LEFT,
+            alignment=TA_CENTER,
             fontName='Helvetica'
-        ))
-    
-    def _official_header_footer(self, canvas, doc):
-        """Official government header and footer on every page"""
+        )
+        
+        # Table Cell Style
+        add_or_update_style(
+            'CorporateTableCell',  # Changed from 'TableCell'
+            parent=self.styles['Normal'],
+            fontSize=9,
+            leading=12,
+            fontName='Helvetica'
+        )
+
+    def _corporate_header_footer(self, canvas, doc):
+        """Clean corporate header and footer on every page"""
         canvas.saveState()
         width, height = A4
         
         # ==================== HEADER ====================
-        # Header background
-        canvas.setFillColor(colors.HexColor(self.primary_color))
-        canvas.rect(0, height - 0.9*inch, width, 0.9*inch, fill=True, stroke=False)
+        # Simple header bar
+        canvas.setFillColor(self.light_blue)
+        canvas.rect(0, height - 0.6*inch, width, 0.6*inch, fill=True, stroke=False)
         
-        # Logo placeholder (left side) - if logo is provided
-        logo_path = self.branding.get('logo_path')
-        if logo_path:
-            try:
-                canvas.drawImage(logo_path, 0.5*inch, height - 0.85*inch, 
-                               width=0.6*inch, height=0.6*inch, mask='auto')
-            except:
-                pass
-        
-        # Header text (center)
-        canvas.setFillColor(colors.white)
-        canvas.setFont('Helvetica-Bold', 10)
-        canvas.drawCentredString(width/2, height - 0.35*inch, 
-                                "Republic of the Philippines")
+        # Organization name (left)
+        canvas.setFillColor(self.primary_color)
         canvas.setFont('Helvetica-Bold', 12)
-        canvas.drawCentredString(width/2, height - 0.52*inch,
-                                "DEPARTMENT OF SOCIAL WELFARE AND DEVELOPMENT")
-        canvas.setFont('Helvetica', 9)
-        canvas.drawCentredString(width/2, height - 0.68*inch,
-                                self.office_name)
+        canvas.drawString(0.5*inch, height - 0.35*inch, 
+                         self.branding.get('organization_name', 'DSWD Analytics Report'))
         
-        # Classification (right side)
-        canvas.setFont('Helvetica-Bold', 8)
+        # Document reference (right)
+        canvas.setFont('Helvetica', 9)
+        canvas.setFillColor(self.secondary_color)
         canvas.drawRightString(width - 0.5*inch, height - 0.35*inch,
+                              f"Ref: {self.doc_ref_number}")
+        
+        # Classification (right, below ref)
+        canvas.setFont('Helvetica-Bold', 8)
+        canvas.drawRightString(width - 0.5*inch, height - 0.5*inch,
                               "OFFICIAL USE ONLY")
         
-        # Document reference (right side)
-        canvas.setFont('Helvetica', 8)
-        canvas.drawRightString(width - 0.5*inch, height - 0.5*inch,
-                              f"Doc Ref: {self.doc_ref_number}")
-        
         # ==================== FOOTER ====================
-        # Footer background
-        canvas.setFillColor(colors.HexColor('#f5f5f5'))
-        canvas.rect(0, 0, width, 0.7*inch, fill=True, stroke=False)
-        
-        # Footer divider line
-        canvas.setStrokeColor(colors.HexColor(self.primary_color))
+        # Footer line
+        canvas.setStrokeColor(self.light_blue)
         canvas.setLineWidth(2)
-        canvas.line(0.5*inch, 0.65*inch, width - 0.5*inch, 0.65*inch)
+        canvas.line(0.5*inch, 0.6*inch, width - 0.5*inch, 0.6*inch)
         
         # Generation info (left)
         canvas.setFillColor(colors.HexColor('#666666'))
         canvas.setFont('Helvetica', 8)
-        canvas.drawString(0.5*inch, 0.45*inch,
+        canvas.drawString(0.5*inch, 0.4*inch,
                          f"Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}")
-        canvas.drawString(0.5*inch, 0.3*inch,
-                         f"Valid until: {self.effectivity_date}")
         
         # Page number (center)
-        canvas.setFont('Helvetica-Bold', 10)
-        canvas.drawCentredString(width/2, 0.35*inch,
+        canvas.setFont('Helvetica', 9)
+        canvas.drawCentredString(width/2, 0.4*inch,
                                 f"Page {doc.page}")
         
-        # Contact info (right)
+        # Version info (right)
         canvas.setFont('Helvetica', 8)
-        canvas.drawRightString(width - 0.5*inch, 0.45*inch,
-                              "DSWD Analytics System")
-        canvas.drawRightString(width - 0.5*inch, 0.3*inch,
-                              "analytics@dswd.gov.ph")
+        canvas.drawRightString(width - 0.5*inch, 0.4*inch,
+                              f"Valid until: {self.effectivity_date}")
         
         canvas.restoreState()
     
-    def _create_official_table(self, data, col_widths=None, has_header=True, zebra=True):
-        """Create official government-style table"""
+    def _create_table(self, data, col_widths=None, has_header=True, zebra=True):
+        """Create clean corporate table with light styling"""
         table = Table(data, colWidths=col_widths)
         
         style_list = [
-            # Header row
-            ('BACKGROUND', (0, 0), (-1, 0 if has_header else -1), colors.HexColor(self.primary_color)),
-            ('TEXTCOLOR', (0, 0), (-1, 0 if has_header else -1), colors.white),
+            # Header row (light blue, not too bold)
+            ('BACKGROUND', (0, 0), (-1, 0 if has_header else -1), self.light_blue),
+            ('TEXTCOLOR', (0, 0), (-1, 0 if has_header else -1), self.secondary_color),
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('FONTNAME', (0, 0), (-1, 0 if has_header else -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0 if has_header else -1), 11),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-            ('TOPPADDING', (0, 0), (-1, -1), 10),
-            ('LEFTPADDING', (0, 0), (-1, -1), 8),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ('FONTSIZE', (0, 0), (-1, 0 if has_header else -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
             
-            # Grid
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
-            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor(self.primary_color)),
+            # Light grid
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dddddd')),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.5, self.primary_color),
             
             # Data rows
             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
         ]
         
-        # Zebra striping
+        # Light zebra striping
         if zebra and len(data) > 1:
             style_list.append(
                 ('ROWBACKGROUNDS', (0, 1), (-1, -1), 
-                 [colors.white, colors.HexColor('#f8f9fa')])
+                 [colors.white, self.light_gray])
             )
         
         table.setStyle(TableStyle(style_list))
         return table
     
-    def _create_official_cover_page(self):
-        """Official government cover page with all required elements"""
+    def _save_chart_as_image(self, fig, temp_prefix='chart'):
+        """Save matplotlib figure as BytesIO buffer for PDF inclusion"""
+        if fig is None:
+            return None
+        
+        # Save to BytesIO
+        img_buffer = BytesIO()
+        fig.savefig(img_buffer, format='png', dpi=150, bbox_inches='tight', 
+                facecolor='white', edgecolor='none')
+        img_buffer.seek(0)
+        
+        # Close matplotlib figure
+        plt.close(fig)
+        
+        return img_buffer  # Return buffer, not ImageReader
+    
+    def _add_chart_to_story(self, story, chart_fig, caption, width=5*inch):
+        """Add chart with caption to story"""
+        if chart_fig is None:
+            return
+        
+        # Save figure to BytesIO buffer
+        img_buffer = BytesIO()
+        chart_fig.savefig(img_buffer, format='png', dpi=150, bbox_inches='tight', 
+                        facecolor='white', edgecolor='none')
+        img_buffer.seek(0)
+        
+        # Calculate height maintaining aspect ratio
+        # Get image dimensions using PIL
+        from PIL import Image as PILImage
+        pil_img = PILImage.open(img_buffer)
+        img_width, img_height = pil_img.size
+        aspect = img_height / float(img_width)
+        height = width * aspect
+        
+        # Reset buffer position
+        img_buffer.seek(0)
+        
+        # Create ReportLab Image directly from buffer
+        chart_image = Image(img_buffer, width=width, height=height)
+        
+        # Add caption
+        caption_para = Paragraph(
+            f"<i>{caption}</i>", 
+            self.styles['CorporateSmall']
+        )
+        
+        story.append(chart_image)
+        story.append(caption_para)
+        story.append(Spacer(1, 0.15*inch))
+        
+        # Close matplotlib figure
+        plt.close(chart_fig)
+    
+    
+    
+    def _create_cover_page(self):
+        """Simple corporate cover page with signature blocks"""
         elements = []
         
-        # Top margin
-        elements.append(Spacer(1, 1*inch))
+        # Top spacing
+        elements.append(Spacer(1, 1.5*inch))
         
-        # Logo placeholder
+        # Organization header
         elements.append(Paragraph(
-            "<para alignment='center'>[DSWD OFFICIAL SEAL]</para>",
-            ParagraphStyle('Seal', parent=self.styles['Normal'], 
-                          fontSize=10, textColor=colors.HexColor('#999999'))
+            self.branding.get('organization_name', 'DSWD Analytics Report'),
+            ParagraphStyle('OrgName', parent=self.styles['Normal'], 
+                          fontSize=14, textColor=self.secondary_color,
+                          alignment=TA_CENTER, fontName='Helvetica-Bold')
         ))
-        elements.append(Spacer(1, 0.3*inch))
+        elements.append(Spacer(1, 0.2*inch))
         
-        # Official header
-        elements.append(Paragraph(
-            "Republic of the Philippines",
-            self.styles['OfficialHeader']
-        ))
-        elements.append(Paragraph(
-            "DEPARTMENT OF SOCIAL WELFARE AND DEVELOPMENT",
-            self.styles['GovTitle']
-        ))
         elements.append(Paragraph(
             self.office_name,
-            self.styles['OfficialHeader']
+            ParagraphStyle('Office', parent=self.styles['Normal'], 
+                          fontSize=11, textColor=colors.HexColor('#666666'),
+                          alignment=TA_CENTER, fontName='Helvetica')
+        ))
+        elements.append(Spacer(1, 0.8*inch))
+        
+        # Report Title
+        elements.append(Paragraph(
+            "<b>COMPREHENSIVE ANALYTICS REPORT</b>",
+            self.styles['CorporateTitle']
+        ))
+        
+        elements.append(Paragraph(
+            "Applicant Assistance Analysis",
+            ParagraphStyle('Subtitle', parent=self.styles['Normal'], 
+                          fontSize=12, textColor=self.secondary_color,
+                          alignment=TA_CENTER, fontName='Helvetica')
         ))
         elements.append(Spacer(1, 0.5*inch))
         
-        # Document title
-        elements.append(Paragraph(
-            "<para alignment='center'><b>COMPREHENSIVE ANALYTICS REPORT</b></para>",
-            ParagraphStyle('Title', parent=self.styles['Heading1'], 
-                          fontSize=16, textColor=colors.HexColor(self.primary_color),
-                          alignment=TA_CENTER, spaceAfter=10)
-        ))
-        
-        elements.append(Paragraph(
-            f"<para alignment='center'>Report Type: Applicant Assistance Analytics</para>",
-            self.styles['OfficialHeader']
-        ))
-        elements.append(Spacer(1, 0.4*inch))
-        
-        # Document metadata table
+        # Metadata box      
         metadata = [
-            [Paragraph("<b>Document Information</b>", self.styles['Normal']), ""],
-            [Paragraph("Document Reference:", self.styles['Normal']), 
-             Paragraph(self.doc_ref_number, self.styles['Normal'])],
-            [Paragraph("Report Period:", self.styles['Normal']),
-             Paragraph(f"{self.filters.get('start_date', 'All Records')} to {self.filters.get('end_date', 'Present')}", 
-                      self.styles['Normal'])],
-            [Paragraph("Date Generated:", self.styles['Normal']),
-             Paragraph(datetime.now().strftime('%B %d, %Y'), self.styles['Normal'])],
-            [Paragraph("Effectivity Date:", self.styles['Normal']),
-             Paragraph(self.effectivity_date, self.styles['Normal'])],
-            [Paragraph("Classification:", self.styles['Normal']),
-             Paragraph("<b>OFFICIAL USE ONLY</b>", self.styles['Normal'])],
-            [Paragraph("Total Applicants Covered:", self.styles['Normal']),
-             Paragraph(f"<b>{self.data['summary']['total_applicants']:,}</b>", self.styles['Normal'])],
+            [Paragraph("<b>Report Information</b>", self.styles['CorporateTableCell']), ""],
+            [Paragraph("Document Reference:", self.styles['CorporateTableCell']), 
+            Paragraph(self.doc_ref_number, self.styles['CorporateTableCell'])],
+            [Paragraph("Report Period:", self.styles['CorporateTableCell']),
+            Paragraph(f"{self.filters.get('start_date', 'All Records')} to {self.filters.get('end_date', 'Present')}", 
+                    self.styles['CorporateTableCell'])],
+            [Paragraph("Location Coverage:", self.styles['CorporateTableCell']),
+            Paragraph(self._format_location_filter(), self.styles['CorporateTableCell'])],
+            [Paragraph("Date Generated:", self.styles['CorporateTableCell']),
+            Paragraph(datetime.now().strftime('%B %d, %Y'), self.styles['CorporateTableCell'])],
+            [Paragraph("Effectivity Date:", self.styles['CorporateTableCell']),
+            Paragraph(self.effectivity_date, self.styles['CorporateTableCell'])],
+            [Paragraph("Classification:", self.styles['CorporateTableCell']),
+            Paragraph("<b>OFFICIAL USE ONLY</b>", self.styles['CorporateTableCell'])],
+            [Paragraph("Total Applicants:", self.styles['CorporateTableCell']),
+            Paragraph(f"<b>{self.data['summary']['total_applicants']:,}</b>", self.styles['CorporateTableCell'])],
         ]
         
-        table = self._create_official_table(metadata, col_widths=[3*inch, 3.5*inch], has_header=False, zebra=False)
+        table = self._create_table(metadata, col_widths=[2.5*inch, 3*inch], 
+                                   has_header=False, zebra=False)
         elements.append(table)
         
-        elements.append(Spacer(1, 0.5*inch))
+        elements.append(Spacer(1, 0.6*inch))
         
         # Signature blocks
-        sig_table = [
-            [Paragraph("<b>Prepared by:</b>", self.styles['GovSignatureBlock']),
-             Paragraph("<b>Reviewed by:</b>", self.styles['GovSignatureBlock']),
-             Paragraph("<b>Approved by:</b>", self.styles['GovSignatureBlock'])],
+        sig_data = [
+            [Paragraph("<b>Prepared by:</b>", self.styles['SignatureBlock']),
+             Paragraph("<b>Reviewed by:</b>", self.styles['SignatureBlock']),
+             Paragraph("<b>Approved by:</b>", self.styles['SignatureBlock'])],
             ["", "", ""],
             ["_____________________", "_____________________", "_____________________"],
-            [Paragraph(self.prepared_by, self.styles['GovSignatureBlock']),
-             Paragraph(self.reviewed_by, self.styles['GovSignatureBlock']),
-             Paragraph(self.approved_by, self.styles['GovSignatureBlock'])],
-            [Paragraph("Data Analyst", self.styles['GovLegalText']),
-             Paragraph("Division Chief", self.styles['GovLegalText']),
-             Paragraph("Regional Director", self.styles['GovLegalText'])],
+            [Paragraph(self.prepared_by, self.styles['SignatureBlock']),
+             Paragraph(self.reviewed_by, self.styles['SignatureBlock']),
+             Paragraph(self.approved_by, self.styles['SignatureBlock'])],
+            [Paragraph("<i>Data Analyst</i>", self.styles['CorporateSmall']),
+             Paragraph("<i>Operations Manager</i>", self.styles['CorporateSmall']),
+             Paragraph("<i>Director</i>", self.styles['CorporateSmall'])],
         ]
         
-        sig_style = TableStyle([
+        sig_table = Table(sig_data, colWidths=[2*inch, 2*inch, 2*inch])
+        sig_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 5),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ])
-        
-        sig_table_obj = Table(sig_table, colWidths=[2*inch, 2*inch, 2*inch])
-        sig_table_obj.setStyle(sig_style)
-        elements.append(sig_table_obj)
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        elements.append(sig_table)
         
         elements.append(Spacer(1, 0.3*inch))
         
-        # Distribution list
+        # Version control
         elements.append(Paragraph(
-            "<b>Distribution:</b> Regional Office, Provincial Office, Field Offices",
-            self.styles['GovLegalText']
+            f"<b>Version:</b> 1.0 | <b>Revision Date:</b> {datetime.now().strftime('%Y-%m-%d')}",
+            self.styles['CorporateSmall']
         ))
         
         elements.append(PageBreak())
         return elements
-    
-    def _create_document_control_page(self):
-        """Document control and revision history"""
-        elements = []
-        
-        elements.append(Paragraph("DOCUMENT CONTROL", self.styles['GovSectionHeader']))
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # Revision history
-        elements.append(Paragraph("1.1 Revision History", self.styles['GovSubSection']))
-        
-        revision_data = [
-            [Paragraph("<b>Version</b>", self.styles['Normal']),
-             Paragraph("<b>Date</b>", self.styles['Normal']),
-             Paragraph("<b>Changes</b>", self.styles['Normal']),
-             Paragraph("<b>Author</b>", self.styles['Normal'])],
-            [Paragraph("1.0", self.styles['Normal']),
-             Paragraph(datetime.now().strftime('%Y-%m-%d'), self.styles['Normal']),
-             Paragraph("Initial Release", self.styles['Normal']),
-             Paragraph(self.prepared_by, self.styles['Normal'])],
-        ]
-        
-        table = self._create_official_table(revision_data, 
-                                           col_widths=[1*inch, 1.5*inch, 2.5*inch, 1.5*inch])
-        elements.append(table)
-        elements.append(Spacer(1, 0.3*inch))
-        
-        # Abbreviations
-        elements.append(Paragraph("1.2 Abbreviations and Definitions", self.styles['GovSubSection']))
-        
-        abbrev_data = [
-            [Paragraph("<b>Term</b>", self.styles['Normal']),
-             Paragraph("<b>Definition</b>", self.styles['Normal'])],
-            [Paragraph("DSWD", self.styles['Normal']),
-             Paragraph("Department of Social Welfare and Development", self.styles['Normal'])],
-            [Paragraph("AICS", self.styles['Normal']),
-             Paragraph("Assistance to Individuals in Crisis Situation", self.styles['Normal'])],
-            [Paragraph("DPWH", self.styles['Normal']),
-             Paragraph("Department of Public Works and Highways", self.styles['Normal'])],
-            [Paragraph("KPI", self.styles['Normal']),
-             Paragraph("Key Performance Indicator", self.styles['Normal'])],
-        ]
-        
-        table = self._create_official_table(abbrev_data, col_widths=[2*inch, 4.5*inch])
-        elements.append(table)
-        
-        elements.append(PageBreak())
-        return elements
-    
+
     def _create_table_of_contents(self):
-        """Table of contents"""
+        """Auto-generated table of contents"""
         elements = []
         
-        elements.append(Paragraph("TABLE OF CONTENTS", self.styles['GovSectionHeader']))
-        elements.append(Spacer(1, 0.2*inch))
+        elements.append(Paragraph("TABLE OF CONTENTS", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.15*inch))
         
         toc_data = [
-            [Paragraph("<b>Section</b>", self.styles['Normal']),
-             Paragraph("<b>Page</b>", self.styles['Normal'])],
-            [Paragraph("1.0 Executive Summary", self.styles['Normal']), "4"],
-            [Paragraph("2.0 Geographic Analysis", self.styles['Normal']), "5"],
-            [Paragraph("3.0 Demographic Analysis", self.styles['Normal']), "7"],
-            [Paragraph("4.0 Economic Analysis", self.styles['Normal']), "9"],
-            [Paragraph("5.0 Trends Analysis", self.styles['Normal']), "10"],
-            [Paragraph("6.0 Performance Metrics", self.styles['Normal']), "12"],
-            [Paragraph("7.0 Findings and Recommendations", self.styles['Normal']), "14"],
+            [Paragraph("<b>Section</b>", self.styles['CorporateTableCell']),
+             Paragraph("<b>Page</b>", self.styles['CorporateTableCell'])],
+            [Paragraph("1. Executive Summary", self.styles['CorporateTableCell']), "3"],
+            [Paragraph("2. Geographic Analysis", self.styles['CorporateTableCell']), "5"],
+            [Paragraph("3. Demographics & Economics", self.styles['CorporateTableCell']), "7"],
+            [Paragraph("4. Trends Analysis", self.styles['CorporateTableCell']), "9"],
+            [Paragraph("5. Performance Metrics", self.styles['CorporateTableCell']), "11"],
+            [Paragraph("6. Insights & Recommendations", self.styles['CorporateTableCell']), "13"],
+            [Paragraph("Appendix A: List of Figures", self.styles['CorporateTableCell']), "15"],
+            [Paragraph("Appendix B: List of Tables", self.styles['CorporateTableCell']), "16"],
+            [Paragraph("Appendix C: Methodology", self.styles['CorporateTableCell']), "17"],
         ]
         
-        table = self._create_official_table(toc_data, col_widths=[5*inch, 1.5*inch])
-        elements.append(table)
-        
-        elements.append(Spacer(1, 0.3*inch))
-        
-        # List of tables
-        elements.append(Paragraph("LIST OF TABLES", self.styles['GovSubSection']))
-        
-        lot_data = [
-            [Paragraph("<b>Table</b>", self.styles['Normal']),
-             Paragraph("<b>Title</b>", self.styles['Normal']),
-             Paragraph("<b>Page</b>", self.styles['Normal'])],
-            [Paragraph("1", self.styles['Normal']),
-             Paragraph("Key Performance Indicators", self.styles['Normal']), "4"],
-            [Paragraph("2", self.styles['Normal']),
-             Paragraph("Top Barangays by Application Volume", self.styles['Normal']), "6"],
-            [Paragraph("3", self.styles['Normal']),
-             Paragraph("Demographic Distribution Summary", self.styles['Normal']), "8"],
-        ]
-        
-        table = self._create_official_table(lot_data, col_widths=[1*inch, 4*inch, 1.5*inch])
+        table = self._create_table(toc_data, col_widths=[5*inch, 1*inch])
         elements.append(table)
         
         elements.append(PageBreak())
         return elements
     
-    def _create_executive_summary_page(self):
-        """Separate executive summary page"""
+    def _create_executive_summary(self):
+        """Section 1: Executive Summary (matches Excel Sheet 1)"""
         elements = []
         
-        elements.append(Paragraph("EXECUTIVE SUMMARY", self.styles['GovSectionHeader']))
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # Summary narrative
-        elements.append(Paragraph(self.insights['executive_summary'], self.styles['GovBodyText']))
-        elements.append(Spacer(1, 0.3*inch))
-        
-        # KPI Table
-        elements.append(Paragraph("Table 1: Key Performance Indicators", self.styles['GovSubSection']))
+        elements.append(Paragraph("1. EXECUTIVE SUMMARY", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.1*inch))
         
         summary = self.data['summary']
+        
+        # KPI Summary Table
+        elements.append(Paragraph("1.1 Key Performance Indicators", self.styles['SubSection']))
+        
         kpi_data = [
-            [Paragraph("<b>Indicator</b>", self.styles['Normal']),
-             Paragraph("<b>Value</b>", self.styles['Normal']),
-             Paragraph("<b>Comparison</b>", self.styles['Normal'])],
-            [Paragraph("Total Applicants Processed", self.styles['Normal']),
-             Paragraph(f"{summary['total_applicants']:,}", self.styles['Normal']),
-             Paragraph(f"Growth: {summary['growth_rate']:+.1f}%", self.styles['Normal'])],
-            [Paragraph("Average Processing Time", self.styles['Normal']),
-             Paragraph(f"{summary['avg_processing_minutes']:.1f} minutes", self.styles['Normal']),
-             Paragraph("Target: <10 min", self.styles['Normal'])],
-            [Paragraph("Most Common Assistance Type", self.styles['Normal']),
-             Paragraph(summary['most_common_type'], self.styles['Normal']),
-             Paragraph("Primary Service", self.styles['Normal'])],
-            [Paragraph("Top Service Location", self.styles['Normal']),
-             Paragraph(summary['top_barangay'], self.styles['Normal']),
-             Paragraph("Highest Volume", self.styles['Normal'])],
+            [Paragraph("<b>Metric</b>", self.styles['CorporateTableCell']),
+             Paragraph("<b>Value</b>", self.styles['CorporateTableCell']),
+             Paragraph("<b>Status/Comparison</b>", self.styles['CorporateTableCell'])],
+            [Paragraph("Total Applicants Processed", self.styles['CorporateTableCell']),
+             Paragraph(f"{summary['total_applicants']:,}", self.styles['CorporateTableCell']),
+             Paragraph(f"Growth: {summary['growth_rate']:+.1f}%", self.styles['CorporateTableCell'])],
+            [Paragraph("Average Processing Time", self.styles['CorporateTableCell']),
+             Paragraph(f"{summary['avg_processing_minutes']:.1f} minutes", self.styles['CorporateTableCell']),
+             Paragraph("Target: <10 min", self.styles['CorporateTableCell'])],
+            [Paragraph("Most Common Assistance Type", self.styles['CorporateTableCell']),
+             Paragraph(summary['most_common_type'], self.styles['CorporateTableCell']),
+             Paragraph("Primary Service", self.styles['CorporateTableCell'])],
+            [Paragraph("Top Service Location", self.styles['CorporateTableCell']),
+             Paragraph(summary['top_barangay'], self.styles['CorporateTableCell']),
+             Paragraph("Highest Volume", self.styles['CorporateTableCell'])],
+            [Paragraph("This Month Applications", self.styles['CorporateTableCell']),
+             Paragraph(f"{summary['this_month']:,}", self.styles['CorporateTableCell']),
+             Paragraph(f"vs Last Month: {summary['last_month']:,}", self.styles['CorporateTableCell'])],
         ]
         
-        table = self._create_official_table(kpi_data, col_widths=[2.5*inch, 2*inch, 2*inch])
+        table = self._create_table(kpi_data, col_widths=[2.3*inch, 1.7*inch, 2*inch])
+        elements.append(table)
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # Executive Summary Narrative
+        elements.append(Paragraph("1.2 Summary Overview", self.styles['SubSection']))
+        elements.append(Paragraph(
+            self.insights.get('executive_summary', ''),
+            self.styles['CorporateBody']
+        ))
+        
+        elements.append(PageBreak())
+        return elements
+
+    def _create_geographic_analysis(self):
+        """Section 2: Geographic Analysis (matches Excel Sheet 2)"""
+        elements = []
+        
+        elements.append(Paragraph("2. GEOGRAPHIC ANALYSIS", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.1*inch))
+        
+        geo = self.data['geographic']
+        
+        # 2.1 Top Barangays
+        elements.append(Paragraph("2.1 Top Barangays by Application Volume", self.styles['SubSection']))
+        
+        if geo['top_barangays']:
+            # Table with top 10
+            barangay_data = [
+                [Paragraph("<b>Rank</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Barangay</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Applications</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Percentage</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            total = sum(item['count'] for item in geo['top_barangays'])
+            for idx, item in enumerate(geo['top_barangays'][:10], start=1):
+                percentage = (item['count'] / total * 100) if total > 0 else 0
+                barangay_data.append([
+                    Paragraph(str(idx), self.styles['CorporateTableCell']),
+                    Paragraph(item['background_info__barangay__name'], self.styles['CorporateTableCell']),
+                    Paragraph(f"{item['count']:,}", self.styles['CorporateTableCell']),
+                    Paragraph(f"{percentage:.1f}%", self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(barangay_data, col_widths=[0.6*inch, 2.5*inch, 1.3*inch, 1*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.1*inch))
+        
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # 2.2 Applications by City
+        elements.append(Paragraph("2.2 Applications by City", self.styles['SubSection']))
+        
+        if geo['by_city']:
+            city_data = [
+                [Paragraph("<b>City</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Applications</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Percentage</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            total = sum(item['count'] for item in geo['by_city'])
+            for item in geo['by_city']:
+                percentage = (item['count'] / total * 100) if total > 0 else 0
+                city_data.append([
+                    Paragraph(item['background_info__barangay__city__name'], self.styles['CorporateTableCell']),
+                    Paragraph(f"{item['count']:,}", self.styles['CorporateTableCell']),
+                    Paragraph(f"{percentage:.1f}%", self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(city_data, col_widths=[3*inch, 1.5*inch, 1.5*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.1*inch))
+        
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # 2.3 Approval Rates by Location
+        elements.append(Paragraph("2.3 Approval Rates by Location", self.styles['SubSection']))
+        
+        if geo['approval_by_location']:
+            approval_data = [
+                [Paragraph("<b>City</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Total</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Approved</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Approval Rate</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            for item in geo['approval_by_location'][:10]:
+                city = item['background_info__barangay__city__name']
+                total = item['total']
+                approved = item['approved']
+                rate = (approved / total * 100) if total > 0 else 0
+                
+                approval_data.append([
+                    Paragraph(city, self.styles['CorporateTableCell']),
+                    Paragraph(str(total), self.styles['CorporateTableCell']),
+                    Paragraph(str(approved), self.styles['CorporateTableCell']),
+                    Paragraph(f"{rate:.1f}%", self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(approval_data, col_widths=[2.5*inch, 1*inch, 1*inch, 1.5*inch])
+            elements.append(table)
+        
+        # Geographic Insights
+        elements.append(Spacer(1, 0.2*inch))
+        elements.append(Paragraph("2.4 Geographic Insights", self.styles['SubSection']))
+        
+        if self.insights.get('geographic'):
+            for insight in self.insights['geographic']:
+                elements.append(Paragraph(
+                    insight,
+                    self.styles['CorporateBullet']
+                ))
+        
+        elements.append(PageBreak())
+        return elements
+    
+    def _create_demographics_economics(self):
+        """Section 3: Demographics & Economics (matches Excel Sheet 3)"""
+        elements = []
+        
+        elements.append(Paragraph("3. DEMOGRAPHICS & ECONOMICS", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.1*inch))
+        
+        demo = self.data['demographics']
+        econ = self.data['economics']
+        
+        # ===== DEMOGRAPHICS =====
+        elements.append(Paragraph("3.1 Demographic Analysis", self.styles['SubSection']))
+        
+        # 3.1.1 Gender Distribution
+        elements.append(Paragraph("3.1.1 Gender Distribution", 
+                                 ParagraphStyle('SubSubSection', parent=self.styles['CorporateBody'],
+                                              fontSize=10, fontName='Helvetica-Bold',
+                                              spaceAfter=6, spaceBefore=8)))
+        
+        if demo['by_gender']:
+            gender_data = [
+                [Paragraph("<b>Gender</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Count</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Percentage</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            total = sum(item['count'] for item in demo['by_gender'])
+            for item in demo['by_gender']:
+                percentage = (item['count'] / total * 100) if total > 0 else 0
+                gender_data.append([
+                    Paragraph(item['background_info__sex'], self.styles['CorporateTableCell']),
+                    Paragraph(f"{item['count']:,}", self.styles['CorporateTableCell']),
+                    Paragraph(f"{percentage:.1f}%", self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(gender_data, col_widths=[2*inch, 2*inch, 2*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.15*inch))
+        
+        # 3.1.2 Age Groups
+        elements.append(Paragraph("3.1.2 Age Group Distribution", 
+                                 ParagraphStyle('SubSubSection', parent=self.styles['CorporateBody'],
+                                              fontSize=10, fontName='Helvetica-Bold',
+                                              spaceAfter=6, spaceBefore=8)))
+        
+        if demo['age_groups']:
+            age_data = [
+                [Paragraph("<b>Age Group</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Count</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Percentage</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            total = sum(demo['age_groups'].values())
+            for group, count in demo['age_groups'].items():
+                percentage = (count / total * 100) if total > 0 else 0
+                age_data.append([
+                    Paragraph(group, self.styles['CorporateTableCell']),
+                    Paragraph(f"{count:,}", self.styles['CorporateTableCell']),
+                    Paragraph(f"{percentage:.1f}%", self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(age_data, col_widths=[2*inch, 2*inch, 2*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.15*inch))
+        
+        # 3.1.3 Civil Status
+        elements.append(Paragraph("3.1.3 Civil Status Distribution", 
+                                 ParagraphStyle('SubSubSection', parent=self.styles['CorporateBody'],
+                                              fontSize=10, fontName='Helvetica-Bold',
+                                              spaceAfter=6, spaceBefore=8)))
+        
+        if demo['by_civil_status']:
+            civil_data = [
+                [Paragraph("<b>Civil Status</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Count</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Percentage</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            total = sum(item['count'] for item in demo['by_civil_status'])
+            for item in demo['by_civil_status']:
+                percentage = (item['count'] / total * 100) if total > 0 else 0
+                civil_data.append([
+                    Paragraph(item['background_info__civil_status'], self.styles['CorporateTableCell']),
+                    Paragraph(f"{item['count']:,}", self.styles['CorporateTableCell']),
+                    Paragraph(f"{percentage:.1f}%", self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(civil_data, col_widths=[2*inch, 2*inch, 2*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.15*inch))
+        
+        # 3.1.4 Top Occupations
+        elements.append(Paragraph("3.1.4 Top 10 Occupations", 
+                                 ParagraphStyle('SubSubSection', parent=self.styles['CorporateBody'],
+                                              fontSize=10, fontName='Helvetica-Bold',
+                                              spaceAfter=6, spaceBefore=8)))
+        
+        if demo['by_occupation']:
+            occ_data = [
+                [Paragraph("<b>Occupation</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Count</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            for item in demo['by_occupation'][:10]:
+                occ_data.append([
+                    Paragraph(item['background_info__occupation'], self.styles['CorporateTableCell']),
+                    Paragraph(f"{item['count']:,}", self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(occ_data, col_widths=[4*inch, 2*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.15*inch))
+        
+        # Demographic Insights
+        elements.append(Paragraph("3.1.5 Demographic Insights", 
+                                 ParagraphStyle('SubSubSection', parent=self.styles['CorporateBody'],
+                                              fontSize=10, fontName='Helvetica-Bold',
+                                              spaceAfter=6, spaceBefore=8)))
+        
+        if self.insights.get('demographic'):
+            for insight in self.insights['demographic']:
+                elements.append(Paragraph(insight, self.styles['CorporateBullet']))
+        
+        elements.append(Spacer(1, 0.2*inch))
+        
+        # ===== ECONOMICS =====
+        elements.append(Paragraph("3.2 Economic Analysis", self.styles['SubSection']))
+        
+        # 3.2.1 Income Distribution
+        elements.append(Paragraph("3.2.1 Monthly Income Distribution", 
+                                 ParagraphStyle('SubSubSection', parent=self.styles['CorporateBody'],
+                                              fontSize=10, fontName='Helvetica-Bold',
+                                              spaceAfter=6, spaceBefore=8)))
+        
+        if econ['income_distribution']:
+            income_data = [
+                [Paragraph("<b>Income Range (PHP)</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Applicants</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Percentage</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            total = sum(item['count'] for item in econ['income_distribution'])
+            for item in econ['income_distribution']:
+                percentage = (item['count'] / total * 100) if total > 0 else 0
+                income_data.append([
+                    Paragraph(item['range'], self.styles['CorporateTableCell']),
+                    Paragraph(f"{item['count']:,}", self.styles['CorporateTableCell']),
+                    Paragraph(f"{percentage:.1f}%", self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(income_data, col_widths=[2.5*inch, 1.5*inch, 1.5*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.15*inch))
+        
+        # 3.2.2 Economic Indicators
+        elements.append(Paragraph("3.2.2 Economic Indicators", 
+                                 ParagraphStyle('SubSubSection', parent=self.styles['CorporateBody'],
+                                              fontSize=10, fontName='Helvetica-Bold',
+                                              spaceAfter=6, spaceBefore=8)))
+        
+        if econ['income_distribution']:
+            # Calculate indicators
+            below_poverty = econ['income_distribution'][0]['count'] if len(econ['income_distribution']) > 0 else 0
+            middle_income = sum(item['count'] for item in econ['income_distribution'][2:5]) if len(econ['income_distribution']) >= 5 else 0
+            above_average = sum(item['count'] for item in econ['income_distribution'][5:]) if len(econ['income_distribution']) > 5 else 0
+            
+            total_economic = below_poverty + middle_income + above_average
+            
+            indicators_data = [
+                [Paragraph("<b>Indicator</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Count</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Percentage</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            indicators = [
+                ("Below Poverty Threshold (<10k)", below_poverty),
+                ("Middle Income (20k-50k)", middle_income),
+                ("Above Average (>50k)", above_average)
+            ]
+            
+            for indicator, count in indicators:
+                percentage = (count / total_economic * 100) if total_economic > 0 else 0
+                indicators_data.append([
+                    Paragraph(indicator, self.styles['CorporateTableCell']),
+                    Paragraph(f"{count:,}", self.styles['CorporateTableCell']),
+                    Paragraph(f"{percentage:.1f}%", self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(indicators_data, col_widths=[3*inch, 1.5*inch, 1.5*inch])
+            elements.append(table)
+        
+        elements.append(PageBreak())
+        return elements
+
+    def _create_trends_analysis(self):
+        """Section 4: Trends Analysis (matches Excel Sheet 4)"""
+        elements = []
+        
+        elements.append(Paragraph("4. TRENDS ANALYSIS", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.1*inch))
+        
+        trends = self.data['trends']
+        
+        # 4.1 Monthly Trends
+        elements.append(Paragraph("4.1 Monthly Application Trends (Last 12 Months)", self.styles['SubSection']))
+        
+        if trends['monthly']:
+            monthly_data = [
+                [Paragraph("<b>Month</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Applications</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Change</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            for idx, item in enumerate(trends['monthly']):
+                month_str = item['month'].strftime('%B %Y') if item['month'] else 'N/A'
+                count = item['count']
+                
+                # Calculate change from previous month
+                if idx > 0:
+                    prev_count = trends['monthly'][idx - 1]['count']
+                    change = count - prev_count
+                    change_pct = (change / prev_count * 100) if prev_count > 0 else 0
+                    change_str = f"{change:+,} ({change_pct:+.1f}%)"
+                else:
+                    change_str = "—"
+                
+                monthly_data.append([
+                    Paragraph(month_str, self.styles['CorporateTableCell']),
+                    Paragraph(f"{count:,}", self.styles['CorporateTableCell']),
+                    Paragraph(change_str, self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(monthly_data, col_widths=[2.5*inch, 1.5*inch, 2*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.15*inch))
+        
+        # 4.2 Yearly Trends
+        elements.append(Paragraph("4.2 Yearly Application Trends", self.styles['SubSection']))
+        
+        if trends['yearly']:
+            yearly_data = [
+                [Paragraph("<b>Year</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Applications</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Year-over-Year Change</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            for idx, item in enumerate(trends['yearly']):
+                year = item['year']
+                count = item['count']
+                
+                # Calculate YoY change
+                if idx > 0:
+                    prev_count = trends['yearly'][idx - 1]['count']
+                    change = count - prev_count
+                    change_pct = (change / prev_count * 100) if prev_count > 0 else 0
+                    change_str = f"{change:+,} ({change_pct:+.1f}%)"
+                else:
+                    change_str = "—"
+                
+                yearly_data.append([
+                    Paragraph(str(year), self.styles['CorporateTableCell']),
+                    Paragraph(f"{count:,}", self.styles['CorporateTableCell']),
+                    Paragraph(change_str, self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(yearly_data, col_widths=[2*inch, 2*inch, 2*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.15*inch))
+        
+        # 4.3 Assistance Type Distribution
+        elements.append(Paragraph("4.3 Applications by Assistance Type", self.styles['SubSection']))
+        
+        if trends['by_assistance']:
+            assist_data = [
+                [Paragraph("<b>Assistance Type</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Applications</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Percentage</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            total = sum(item['count'] for item in trends['by_assistance'])
+            for item in trends['by_assistance']:
+                percentage = (item['count'] / total * 100) if total > 0 else 0
+
+                assistance_type = item.get('type_of_assistance') or 'Unknown Type'
+
+                assist_data.append([
+                    Paragraph(str(assistance_type), self.styles['CorporateTableCell']),
+                    Paragraph(f"{item['count']:,}", self.styles['CorporateTableCell']),
+                    Paragraph(f"{percentage:.1f}%", self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(assist_data, col_widths=[3*inch, 1.5*inch, 1.5*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.15*inch))
+        
+        # Trend Insights
+        elements.append(Paragraph("4.4 Trend Insights", self.styles['SubSection']))
+        
+        if self.insights.get('trends'):
+            for insight in self.insights['trends']:
+                elements.append(Paragraph(insight, self.styles['CorporateBullet']))
+        
+        elements.append(PageBreak())
+        return elements
+
+    def _create_performance_metrics(self):
+        """Section 5: Performance Metrics (matches Excel Sheet 5)"""
+        elements = []
+        
+        elements.append(Paragraph("5. PERFORMANCE METRICS", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.1*inch))
+        
+        perf = self.data['performance']
+        
+        # 5.1 Staff Productivity
+        elements.append(Paragraph("5.1 Staff Productivity (Top 10)", self.styles['SubSection']))
+        
+        if perf['staff_productivity']:
+            staff_data = [
+                [Paragraph("<b>Rank</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Staff Member</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Applications Processed</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Performance</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            total_apps = sum(item['count'] for item in perf['staff_productivity'])
+            avg_per_staff = total_apps / len(perf['staff_productivity']) if perf['staff_productivity'] else 0
+            
+            for idx, item in enumerate(perf['staff_productivity'][:10], start=1):
+                count = item['count']
+                performance = "Above Avg" if count > avg_per_staff else "Below Avg"
+
+                username = item.get('staff__username') or 'Unknown Staff'
+                
+                staff_data.append([
+                    Paragraph(str(idx), self.styles['CorporateTableCell']),
+                    Paragraph(str(username), self.styles['CorporateTableCell']),
+                    Paragraph(f"{count:,}", self.styles['CorporateTableCell']),
+                    Paragraph(performance, self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(staff_data, col_widths=[0.6*inch, 2.5*inch, 1.8*inch, 1.5*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.15*inch))
+        
+        # 5.2 Processing Time by Assistance Type
+        elements.append(Paragraph("5.2 Average Processing Time by Assistance Type", self.styles['SubSection']))
+        
+        if perf['processing_by_type']:
+            proc_data = [
+                [Paragraph("<b>Assistance Type</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Avg Time (min)</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Status</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            for item in perf['processing_by_type']:
+                avg_min = item.get('avg_minutes', 0)
+                status = "Fast" if avg_min < 10 else "Needs Improvement"
+
+                assistance_type = item.get('type_of_assistance') or 'Unknown Type'
+                
+                proc_data.append([
+                    Paragraph(str(assistance_type), self.styles['CorporateTableCell']),
+                    Paragraph(f"{avg_min:.1f}", self.styles['CorporateTableCell']),
+                    Paragraph(status, self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(proc_data, col_widths=[3*inch, 1.5*inch, 1.5*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.15*inch))
+        
+        # 5.3 Activity Heatmap
+        elements.append(Paragraph("5.3 Application Activity by Hour of Day", self.styles['SubSection']))
+        
+        if perf['activity_heatmap']:
+            # Group by time periods for readability
+            heat_data = [
+                [Paragraph("<b>Time Period</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Hour Range</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Applications</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Activity Level</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            max_count = max(item['count'] for item in perf['activity_heatmap'])
+            
+            # Group into periods
+            periods = [
+                ("Morning", "06:00 - 11:59", [6, 7, 8, 9, 10, 11]),
+                ("Afternoon", "12:00 - 17:59", [12, 13, 14, 15, 16, 17]),
+                ("Evening", "18:00 - 23:59", [18, 19, 20, 21, 22, 23]),
+            ]
+            
+            for period_name, hour_range, hours in periods:
+                period_count = sum(item['count'] for item in perf['activity_heatmap'] 
+                                 if item['hour'] in hours)
+                
+                if period_count > 0:
+                    activity_level = "High" if period_count > (max_count * 0.6) else "Medium" if period_count > (max_count * 0.3) else "Low"
+                    
+                    heat_data.append([
+                        Paragraph(period_name, self.styles['CorporateTableCell']),
+                        Paragraph(hour_range, self.styles['CorporateTableCell']),
+                        Paragraph(f"{period_count:,}", self.styles['CorporateTableCell']),
+                        Paragraph(activity_level, self.styles['CorporateTableCell'])
+                    ])
+            
+            table = self._create_table(heat_data, col_widths=[1.5*inch, 1.8*inch, 1.5*inch, 1.5*inch])
+            elements.append(table)
+            elements.append(Spacer(1, 0.15*inch))
+        
+        # 5.4 Performance Summary
+        elements.append(Paragraph("5.4 Performance Summary", self.styles['SubSection']))
+        
+        avg_processing = self.data['summary']['avg_processing_minutes']
+        total_staff = len(perf['staff_productivity']) if perf['staff_productivity'] else 0
+        total_processed = sum(item['count'] for item in perf['staff_productivity']) if perf['staff_productivity'] else 0
+        avg_per_staff = total_processed / total_staff if total_staff > 0 else 0
+        
+        peak_hour = max(perf['activity_heatmap'], key=lambda x: x['count'])['hour'] if perf['activity_heatmap'] else 0
+        
+        summary_data = [
+            [Paragraph("<b>Metric</b>", self.styles['CorporateTableCell']),
+             Paragraph("<b>Value</b>", self.styles['CorporateTableCell']),
+             Paragraph("<b>Assessment</b>", self.styles['CorporateTableCell'])],
+            [Paragraph("Average Processing Time", self.styles['CorporateTableCell']),
+             Paragraph(f"{avg_processing:.1f} minutes", self.styles['CorporateTableCell']),
+             Paragraph("Good" if avg_processing < 10 else "Needs Improvement", self.styles['CorporateTableCell'])],
+            [Paragraph("Total Active Staff", self.styles['CorporateTableCell']),
+             Paragraph(str(total_staff), self.styles['CorporateTableCell']),
+             Paragraph("—", self.styles['CorporateTableCell'])],
+            [Paragraph("Avg Applications per Staff", self.styles['CorporateTableCell']),
+             Paragraph(f"{avg_per_staff:.1f}", self.styles['CorporateTableCell']),
+             Paragraph("—", self.styles['CorporateTableCell'])],
+            [Paragraph("Peak Activity Hour", self.styles['CorporateTableCell']),
+             Paragraph(f"{peak_hour:02d}:00", self.styles['CorporateTableCell']),
+             Paragraph("—", self.styles['CorporateTableCell'])],
+        ]
+        
+        table = self._create_table(summary_data, col_widths=[2.5*inch, 1.8*inch, 1.7*inch])
+        elements.append(table)
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # Performance Insights
+        elements.append(Paragraph("5.5 Performance Insights", self.styles['SubSection']))
+        
+        if self.insights.get('performance'):
+            for insight in self.insights['performance']:
+                elements.append(Paragraph(insight, self.styles['CorporateBullet']))
+        
+        elements.append(PageBreak())
+        return elements
+
+    def _create_insights_recommendations(self):
+        """Section 6: Insights & Recommendations (matches Excel Sheet 6)"""
+        elements = []
+        
+        elements.append(Paragraph("6. INSIGHTS & RECOMMENDATIONS", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.1*inch))
+        
+        insights = self.insights
+        
+        # 6.1 Geographic Insights
+        elements.append(Paragraph("6.1 Geographic Insights", self.styles['SubSection']))
+        
+        if insights.get('geographic'):
+            for insight in insights['geographic']:
+                elements.append(Paragraph(insight, self.styles['CorporateBullet']))
+        else:
+            elements.append(Paragraph("No significant geographic insights available.", self.styles['CorporateBody']))
+        
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # 6.2 Demographic Insights
+        elements.append(Paragraph("6.2 Demographic Insights", self.styles['SubSection']))
+        
+        if insights.get('demographic'):
+            for insight in insights['demographic']:
+                elements.append(Paragraph(insight, self.styles['CorporateBullet']))
+        else:
+            elements.append(Paragraph("No significant demographic insights available.", self.styles['CorporateBody']))
+        
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # 6.3 Trend Insights
+        elements.append(Paragraph("6.3 Trend Insights", self.styles['SubSection']))
+        
+        if insights.get('trends'):
+            for insight in insights['trends']:
+                elements.append(Paragraph(insight, self.styles['CorporateBullet']))
+        else:
+            elements.append(Paragraph("No significant trend insights available.", self.styles['CorporateBody']))
+        
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # 6.4 Performance Insights
+        elements.append(Paragraph("6.4 Performance Insights", self.styles['SubSection']))
+        
+        if insights.get('performance'):
+            for insight in insights['performance']:
+                elements.append(Paragraph(insight, self.styles['CorporateBullet']))
+        else:
+            elements.append(Paragraph("No significant performance insights available.", self.styles['CorporateBody']))
+        
+        elements.append(Spacer(1, 0.2*inch))
+        
+        # 6.5 Actionable Recommendations (Priority-based)
+        elements.append(Paragraph("6.5 Actionable Recommendations", self.styles['SubSection']))
+        
+        if insights.get('recommendations'):
+            # Create priority-based table
+            rec_data = [
+                [Paragraph("<b>Priority</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Recommendation</b>", self.styles['CorporateTableCell']),
+                 Paragraph("<b>Impact</b>", self.styles['CorporateTableCell'])]
+            ]
+            
+            # Assign priorities (customize logic as needed)
+            priorities = ["HIGH", "HIGH", "MEDIUM", "LOW", "LOW"]
+            impacts = ["High", "High", "Medium", "Low", "Low"]
+            
+            for idx, rec in enumerate(insights['recommendations']):
+                priority = priorities[idx] if idx < len(priorities) else "LOW"
+                impact = impacts[idx] if idx < len(impacts) else "Low"
+                
+                rec_data.append([
+                    Paragraph(f"<b>{priority}</b>", self.styles['CorporateTableCell']),
+                    Paragraph(rec.replace('•', '').strip(), self.styles['CorporateTableCell']),
+                    Paragraph(impact, self.styles['CorporateTableCell'])
+                ])
+            
+            table = self._create_table(rec_data, col_widths=[1*inch, 3.8*inch, 1*inch])
+            elements.append(table)
+        else:
+            elements.append(Paragraph("No specific recommendations at this time.", self.styles['CorporateBody']))
+        
+        elements.append(PageBreak())
+        return elements
+
+    def _create_figures_appendix(self):
+        """Appendix A: List of Figures"""
+        elements = []
+        
+        elements.append(Paragraph("APPENDIX A: LIST OF FIGURES", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # Chart sections
+        elements.append(Paragraph("Geographic Analysis Charts", self.styles['SubSection']))
+        
+        geo_charts = []
+        if 'top_barangays' in self.charts:
+            geo_charts.append("Figure 2.1: Top 10 Barangays by Application Volume")
+        if 'by_city' in self.charts:
+            geo_charts.append("Figure 2.2: Applications by City Distribution")
+        
+        if geo_charts:
+            for chart in geo_charts:
+                elements.append(Paragraph(f"• {chart}", self.styles['CorporateBullet']))
+        else:
+            elements.append(Paragraph("No geographic charts available.", self.styles['CorporateBody']))
+        
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # Demographics charts
+        elements.append(Paragraph("Demographics & Economics Charts", self.styles['SubSection']))
+        
+        demo_charts = []
+        if 'by_gender' in self.charts:
+            demo_charts.append("Figure 3.1: Gender Distribution")
+        if 'age_groups' in self.charts:
+            demo_charts.append("Figure 3.2: Age Group Distribution")
+        if 'civil_status' in self.charts:
+            demo_charts.append("Figure 3.3: Civil Status Distribution")
+        if 'income' in self.charts:
+            demo_charts.append("Figure 3.4: Monthly Income Distribution")
+        
+        if demo_charts:
+            for chart in demo_charts:
+                elements.append(Paragraph(f"• {chart}", self.styles['CorporateBullet']))
+        else:
+            elements.append(Paragraph("No demographic/economic charts available.", self.styles['CorporateBody']))
+        
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # Trends charts
+        elements.append(Paragraph("Trends Analysis Charts", self.styles['SubSection']))
+        
+        trend_charts = []
+        if 'monthly_trend' in self.charts:
+            trend_charts.append("Figure 4.1: Monthly Application Trends")
+        if 'yearly_trend' in self.charts:
+            trend_charts.append("Figure 4.2: Yearly Application Trends")
+        if 'assistance_types' in self.charts:
+            trend_charts.append("Figure 4.3: Applications by Assistance Type")
+        
+        if trend_charts:
+            for chart in trend_charts:
+                elements.append(Paragraph(f"• {chart}", self.styles['CorporateBullet']))
+        else:
+            elements.append(Paragraph("No trend charts available.", self.styles['CorporateBody']))
+        
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # Performance charts
+        elements.append(Paragraph("Performance Metrics Charts", self.styles['SubSection']))
+        
+        perf_charts = []
+        if 'staff_productivity' in self.charts:
+            perf_charts.append("Figure 5.1: Staff Productivity Comparison")
+        if 'processing_time' in self.charts:
+            perf_charts.append("Figure 5.2: Average Processing Time by Type")
+        if 'activity_heatmap' in self.charts:
+            perf_charts.append("Figure 5.3: Hourly Activity Pattern")
+        
+        if perf_charts:
+            for chart in perf_charts:
+                elements.append(Paragraph(f"• {chart}", self.styles['CorporateBullet']))
+        else:
+            elements.append(Paragraph("No performance charts available.", self.styles['CorporateBody']))
+        
+        elements.append(PageBreak())
+        return elements
+
+    def _create_tables_appendix(self):
+        """Appendix B: List of Tables"""
+        elements = []
+        
+        elements.append(Paragraph("APPENDIX B: LIST OF TABLES", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.15*inch))
+        
+        tables_list = [
+            ("Table 1.1", "Key Performance Indicators"),
+            ("Table 2.1", "Top 10 Barangays by Application Volume"),
+            ("Table 2.2", "Applications by City"),
+            ("Table 2.3", "Approval Rates by Location"),
+            ("Table 3.1", "Gender Distribution"),
+            ("Table 3.2", "Age Group Distribution"),
+            ("Table 3.3", "Civil Status Distribution"),
+            ("Table 3.4", "Top 10 Occupations"),
+            ("Table 3.5", "Monthly Income Distribution"),
+            ("Table 3.6", "Economic Indicators"),
+            ("Table 4.1", "Monthly Application Trends"),
+            ("Table 4.2", "Yearly Application Trends"),
+            ("Table 4.3", "Applications by Assistance Type"),
+            ("Table 5.1", "Staff Productivity Rankings"),
+            ("Table 5.2", "Average Processing Time by Assistance Type"),
+            ("Table 5.3", "Application Activity by Time Period"),
+            ("Table 5.4", "Performance Summary Metrics"),
+            ("Table 6.1", "Actionable Recommendations with Priority Levels"),
+        ]
+        
+        table_data = [
+            [Paragraph("<b>Table Number</b>", self.styles['CorporateTableCell']),
+             Paragraph("<b>Table Title</b>", self.styles['CorporateTableCell'])]
+        ]
+        
+        for table_num, table_title in tables_list:
+            table_data.append([
+                Paragraph(table_num, self.styles['CorporateTableCell']),
+                Paragraph(table_title, self.styles['CorporateTableCell'])
+            ])
+        
+        table = self._create_table(table_data, col_widths=[1.5*inch, 4.5*inch])
         elements.append(table)
         
         elements.append(PageBreak())
         return elements
-    
-    def _create_section(self, section_number, title, insights_list, data_key):
-        """Generic numbered section creator"""
+
+    def _create_methodology_appendix(self):
+        """Appendix C: Data Sources & Methodology"""
         elements = []
         
-        elements.append(Paragraph(f"{section_number} {title.upper()}", self.styles['GovSectionHeader']))
-        elements.append(Spacer(1, 0.2*inch))
+        elements.append(Paragraph("APPENDIX C: METHODOLOGY & DATA SOURCES", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.15*inch))
         
-        # Insights as bullet points
-        for insight in insights_list:
-            elements.append(Paragraph(f"• {insight}", self.styles['GovBulletPoint']))
+        # Data Sources
+        elements.append(Paragraph("C.1 Data Sources", self.styles['SubSection']))
         
-        elements.append(Spacer(1, 0.3*inch))
+        source_text = f"""
+This report is based on data extracted from the DSWD Applicant Management System. 
+All data has been anonymized and aggregated to protect individual privacy in compliance 
+with the Data Privacy Act of 2012 (RA 10173).
+        """.strip()
         
-        # Add relevant data tables based on section
-        # This is customizable per section
+        elements.append(Paragraph(source_text, self.styles['CorporateBody']))
+        elements.append(Spacer(1, 0.1*inch))
+        
+        # Analysis Period
+        elements.append(Paragraph("C.2 Analysis Period", self.styles['SubSection']))
+        
+        period_data = [
+            [Paragraph("<b>Parameter</b>", self.styles['CorporateTableCell']),
+             Paragraph("<b>Value</b>", self.styles['CorporateTableCell'])],
+            [Paragraph("Start Date", self.styles['CorporateTableCell']),
+             Paragraph(str(self.filters.get('start_date', 'All Records')), self.styles['CorporateTableCell'])],
+            [Paragraph("End Date", self.styles['CorporateTableCell']),
+             Paragraph(str(self.filters.get('end_date', 'Present')), self.styles['CorporateTableCell'])],
+            [Paragraph("Total Records Analyzed", self.styles['CorporateTableCell']),
+             Paragraph(f"{self.data['summary']['total_applicants']:,}", self.styles['CorporateTableCell'])],
+            [Paragraph("Report Generated", self.styles['CorporateTableCell']),
+             Paragraph(datetime.now().strftime('%B %d, %Y at %I:%M %p'), self.styles['CorporateTableCell'])],
+            [Paragraph("Generated By", self.styles['CorporateTableCell']),
+             Paragraph(self.prepared_by, self.styles['CorporateTableCell'])],
+        ]
+        
+        table = self._create_table(period_data, col_widths=[2.5*inch, 3.5*inch], zebra=False)
+        elements.append(table)
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # Filters Applied
+        elements.append(Paragraph("C.3 Filters Applied", self.styles['SubSection']))
+        
+        filters_applied = []
+        
+        if self.filters.get('cities'):
+            filters_applied.append(f"Cities: {', '.join(self.filters['cities'])}")
+        else:
+            filters_applied.append("Cities: All cities included")
+        
+        if self.filters.get('barangays'):
+            filters_applied.append(f"Barangays: {', '.join(self.filters['barangays'][:5])}{'...' if len(self.filters['barangays']) > 5 else ''}")
+        else:
+            filters_applied.append("Barangays: All barangays included")
+        
+        if self.filters.get('assistance_types'):
+            filters_applied.append(f"Assistance Types: {', '.join(self.filters['assistance_types'])}")
+        else:
+            filters_applied.append("Assistance Types: All types included")
+        
+        for filter_text in filters_applied:
+            elements.append(Paragraph(f"• {filter_text}", self.styles['CorporateBullet']))
+        
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # Methodology
+        elements.append(Paragraph("C.4 Statistical Methodology", self.styles['SubSection']))
+        
+        methodology_text = """
+The analysis employs descriptive statistics and trend analysis using Python-based analytics 
+with Django ORM queries. Key metrics include:
+
+- <b>Frequency Distribution:</b> Count and percentage calculations for categorical variables
+- <b>Central Tendency:</b> Average (mean) calculations for processing times
+- <b>Trend Analysis:</b> Month-over-month and year-over-year growth rates
+- <b>Comparative Analysis:</b> Geographic and demographic segmentation
+- <b>Performance Metrics:</b> Staff productivity and processing efficiency indicators
+
+All calculations exclude null values and archived records. Age calculations are based on 
+birthdates as of the report generation date.
+        """.strip()
+        
+        elements.append(Paragraph(methodology_text, self.styles['CorporateBody']))
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # Data Quality
+        elements.append(Paragraph("C.5 Data Quality & Limitations", self.styles['SubSection']))
+        
+        quality_text = """
+<b>Data Quality Assurance:</b>
+- All data validated against system integrity constraints
+- Duplicate records removed during processing
+- Incomplete records excluded from specific calculations
+
+<b>Known Limitations:</b>
+- Processing time calculations limited to records with complete timestamps
+- Income data may be self-reported and subject to verification
+- Historical data prior to system implementation may be incomplete
+- Approval rates subject to ongoing case processing and updates
+        """.strip()
+        
+        elements.append(Paragraph(quality_text, self.styles['CorporateBody']))
+        elements.append(Spacer(1, 0.15*inch))
+        
+        # Version Control
+        elements.append(Paragraph("C.6 Version Control", self.styles['SubSection']))
+        
+        version_data = [
+            [Paragraph("<b>Version</b>", self.styles['CorporateTableCell']),
+             Paragraph("<b>Date</b>", self.styles['CorporateTableCell']),
+             Paragraph("<b>Changes</b>", self.styles['CorporateTableCell']),
+             Paragraph("<b>Author</b>", self.styles['CorporateTableCell'])],
+            [Paragraph("1.0", self.styles['CorporateTableCell']),
+             Paragraph(datetime.now().strftime('%Y-%m-%d'), self.styles['CorporateTableCell']),
+             Paragraph("Initial Report Release", self.styles['CorporateTableCell']),
+             Paragraph(self.prepared_by, self.styles['CorporateTableCell'])],
+        ]
+        
+        table = self._create_table(version_data, col_widths=[0.8*inch, 1.2*inch, 2.5*inch, 1.5*inch])
+        elements.append(table)
         
         elements.append(PageBreak())
         return elements
-    
-    def _create_legal_compliance_page(self):
-        """Legal and compliance notices"""
+
+    def _create_charts_section(self):
+        """Create separate pages for all charts"""
         elements = []
         
-        elements.append(Paragraph("LEGAL AND COMPLIANCE NOTICES", self.styles['GovSectionHeader']))
-        elements.append(Spacer(1, 0.2*inch))
+        # Only add charts if they exist
+        chart_sections = [
+            ("GEOGRAPHIC ANALYSIS CHARTS", [
+                ('top_barangays', "Figure 2.1: Top 10 Barangays by Application Volume"),
+                ('by_city', "Figure 2.2: Applications by City Distribution"),
+            ]),
+            ("DEMOGRAPHICS & ECONOMICS CHARTS", [
+                ('by_gender', "Figure 3.1: Gender Distribution"),
+                ('age_groups', "Figure 3.2: Age Group Distribution"),
+                ('civil_status', "Figure 3.3: Civil Status Distribution"),
+                ('income', "Figure 3.4: Monthly Income Distribution"),
+            ]),
+            ("TRENDS ANALYSIS CHARTS", [
+                ('monthly_trend', "Figure 4.1: Monthly Application Trends"),
+                ('yearly_trend', "Figure 4.2: Yearly Application Trends"),
+                ('assistance_types', "Figure 4.3: Applications by Assistance Type"),
+                ('assistance_over_time', "Figure 4.4: Assistance Types Over Time"),
+            ]),
+            ("PERFORMANCE METRICS CHARTS", [
+                ('staff_productivity', "Figure 5.1: Staff Productivity Comparison"),
+                ('processing_time', "Figure 5.2: Average Processing Time by Type"),
+                ('activity_heatmap', "Figure 5.3: Hourly Activity Pattern"),
+            ]),
+        ]
         
-        # Data Privacy Act
-        elements.append(Paragraph("Data Privacy Act of 2012 Compliance", self.styles['GovSubSection']))
-        elements.append(Paragraph(
-            "This report has been prepared in compliance with Republic Act No. 10173, also known as the "
-            "Data Privacy Act of 2012. All personal data included in this report has been processed "
-            "lawfully, fairly, and in a transparent manner. Individual identities have been anonymized "
-            "and aggregated to protect privacy rights.",
-            self.styles['GovLegalText']
-        ))
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # Disclaimer
-        elements.append(Paragraph("Disclaimer", self.styles['GovSubSection']))
-        elements.append(Paragraph(
-            "The information contained in this report is based on data available as of the generation date. "
-            "While every effort has been made to ensure accuracy, DSWD does not guarantee the completeness "
-            "or accuracy of the information and accepts no liability for any errors or omissions. "
-            "This report is intended for official use only and should not be distributed without authorization.",
-            self.styles['GovLegalText']
-        ))
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # Confidentiality
-        elements.append(Paragraph("Confidentiality Notice", self.styles['GovSubSection']))
-        elements.append(Paragraph(
-            "This document contains confidential information intended solely for the use of authorized "
-            "DSWD personnel. Unauthorized disclosure, copying, distribution, or use of the contents "
-            "of this report is strictly prohibited and may be unlawful. If you have received this "
-            "report in error, please notify the sender immediately and destroy all copies.",
-            self.styles['GovLegalText']
-        ))
-        elements.append(Spacer(1, 0.2*inch))
-        
-        # Copyright
-        elements.append(Paragraph("Copyright and Ownership", self.styles['GovSubSection']))
-        elements.append(Paragraph(
-            f"© {datetime.now().year} Department of Social Welfare and Development. All rights reserved. "
-            "This report and its contents are the property of DSWD and may not be reproduced, "
-            "distributed, or transmitted in any form without prior written permission.",
-            self.styles['GovLegalText']
-        ))
+        for section_title, charts_list in chart_sections:
+            section_has_charts = any(chart_key in self.charts for chart_key, _ in charts_list)
+            
+            if section_has_charts:
+                elements.append(Paragraph(section_title, self.styles['SectionHeader']))
+                elements.append(Spacer(1, 0.15*inch))
+                
+                for chart_key, caption in charts_list:
+                    if chart_key in self.charts:
+                        self._add_chart_to_story(elements, self.charts[chart_key], 
+                                                caption, width=6*inch)
+                        elements.append(Spacer(1, 0.2*inch))
+                
+                elements.append(PageBreak())
         
         return elements
-    
+
     def generate(self, output_path):
-        """Generate official DSWD government report"""
-        # A4 size with government-standard margins
+        """Generate complete PDF report matching 6-sheet Excel structure"""
+        # Use A4 for international, Letter for US
+        page_size = A4  # or letter
+        
         doc = SimpleDocTemplate(
             output_path,
-            pagesize=A4,
-            rightMargin=1*inch,
-            leftMargin=1*inch,
-            topMargin=1.2*inch,  # Space for header
-            bottomMargin=1*inch  # Space for footer
+            pagesize=page_size,
+            rightMargin=0.75*inch,
+            leftMargin=0.75*inch,
+            topMargin=0.9*inch,   # Space for header
+            bottomMargin=0.8*inch  # Space for footer
         )
         
         story = []
         
-        # Build document structure
-        story.extend(self._create_official_cover_page())
-        story.extend(self._create_document_control_page())
-        story.extend(self._create_table_of_contents())
-        story.extend(self._create_executive_summary_page())
+        # Build document structure (matches 6 Excel sheets)
+        story.extend(self._create_cover_page())                    # Cover
+        story.extend(self._create_table_of_contents())            # TOC
+        story.extend(self._create_executive_summary())            # Sheet 1
+        story.extend(self._create_geographic_analysis())          # Sheet 2
+        story.extend(self._create_demographics_economics())       # Sheet 3
+        story.extend(self._create_trends_analysis())              # Sheet 4
+        story.extend(self._create_performance_metrics())          # Sheet 5
+        story.extend(self._create_insights_recommendations())     # Sheet 6
         
-        # Main content sections (numbered)
-        story.extend(self._create_section("2.0", "Geographic Analysis", 
-                                         self.insights['geographic'], 'geographic'))
-        story.extend(self._create_section("3.0", "Demographic Analysis",
-                                         self.insights['demographic'], 'demographics'))
-        story.extend(self._create_section("4.0", "Economic Analysis",
-                                         ["Income distribution analysis"], 'economics'))
-        story.extend(self._create_section("5.0", "Trends Analysis",
-                                         self.insights['trends'], 'trends'))
-        story.extend(self._create_section("6.0", "Performance Metrics",
-                                         self.insights['performance'], 'performance'))
-        story.extend(self._create_section("7.0", "Findings and Recommendations",
-                                         self.insights['recommendations'], None))
+        # Appendices
+        story.extend(self._create_figures_appendix())             # Appendix A
+        story.extend(self._create_tables_appendix())              # Appendix B
+        story.extend(self._create_methodology_appendix())         # Appendix C
         
-        # Legal compliance page
-        story.extend(self._create_legal_compliance_page())
+        # Charts section (separate pages, flexible sizing)
+        story.extend(self._create_charts_section())
         
-        # Build PDF with official headers and footers
+        # Build PDF with headers and footers
         doc.build(story, 
-                 onFirstPage=self._official_header_footer, 
-                 onLaterPages=self._official_header_footer)
+                 onFirstPage=self._corporate_header_footer, 
+                 onLaterPages=self._corporate_header_footer)
+        
+        return True
 
 
 class ExcelReportGenerator:
@@ -2726,39 +3623,37 @@ class ExportOrchestrator:
             if self.format_type in ['pdf', 'both']:
                 pdf_buffer = BytesIO()
                 pdf_gen = PDFReportGenerator(data, insights, charts, self.branding, self.filters)
-
+                
+                # Create document
                 doc = SimpleDocTemplate(
                     pdf_buffer,
-                    pagesize=letter,
+                    pagesize=A4,
                     rightMargin=0.75*inch,
                     leftMargin=0.75*inch,
-                    topMargin=0.75*inch,
-                    bottomMargin=0.75*inch
+                    topMargin=0.9*inch,
+                    bottomMargin=0.8*inch
                 )
-
+                
                 story = []
-                story.extend(pdf_gen._create_official_cover_page())
-                story.extend(pdf_gen._create_document_control_page())
+                
+                # Build all sections
+                story.extend(pdf_gen._create_cover_page())
                 story.extend(pdf_gen._create_table_of_contents())
-                story.extend(pdf_gen._create_executive_summary_page())
-
-                # Main numbered sections (match the generate() method)
-                story.extend(pdf_gen._create_section("2.0", "Geographic Analysis", insights['geographic'], 'geographic'))
-                story.extend(pdf_gen._create_section("3.0", "Demographic Analysis", insights['demographic'], 'demographics'))
-
-                if 'income' in charts:
-                    story.extend(pdf_gen._create_section("4.0", "Economic Analysis",
-                                                        ["Income distribution across applicant base"], 'economics'))
-                    story.append(PageBreak())
-
-                story.extend(pdf_gen._create_section("5.0", "Trends Analysis", insights['trends'], 'trends'))
-                story.extend(pdf_gen._create_section("6.0", "Performance Metrics", insights['performance'], 'performance'))
-                story.extend(pdf_gen._create_section("7.0", "Findings and Recommendations",
-                                                    insights['recommendations'], None))
-
-                story.extend(pdf_gen._create_legal_compliance_page())
-
-                doc.build(story, onFirstPage=pdf_gen._official_header_footer, onLaterPages=pdf_gen._official_header_footer)
+                story.extend(pdf_gen._create_executive_summary())
+                story.extend(pdf_gen._create_geographic_analysis())
+                story.extend(pdf_gen._create_demographics_economics())
+                story.extend(pdf_gen._create_trends_analysis())
+                story.extend(pdf_gen._create_performance_metrics())
+                story.extend(pdf_gen._create_insights_recommendations())
+                story.extend(pdf_gen._create_figures_appendix())
+                story.extend(pdf_gen._create_tables_appendix())
+                story.extend(pdf_gen._create_methodology_appendix())
+                story.extend(pdf_gen._create_charts_section())
+                
+                # Build PDF
+                doc.build(story, 
+                        onFirstPage=pdf_gen._corporate_header_footer, 
+                        onLaterPages=pdf_gen._corporate_header_footer)
                 
                 # Convert to base64
                 pdf_buffer.seek(0)
