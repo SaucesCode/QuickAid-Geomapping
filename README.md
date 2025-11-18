@@ -1,12 +1,12 @@
-    # QuickAid-Geomapping
+## QuickAid-Geomapping
 
-    ## Overview
+## Overview
 
 QuickAid-Geomapping is an **Applicant Management System (AMS)** with integrated **geomapping**, **analytics**, and **staff management** features. It streamlines the process of handling social assistance applications while providing powerful insights through mapping and interactive dashboards.
 
 The system allows organizations to track applicants, visualize geographic distribution, monitor trends, and manage staff activity — all in one unified platform.
 
-    ## Key Features
+## Key Features
 
 - 🧑‍💼 **Applicant Management:** Create, update, archive, and restore applicant records with complete background and representative details.
 - 🗺️ **Interactive Geomapping:** Plot applicant locations, toggle marker or heatmap view, and filter by city, barangay, date, or assistance type.
