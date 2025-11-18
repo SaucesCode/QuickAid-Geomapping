@@ -62,7 +62,14 @@ const ASSISTANCE_COLORS = {
   Burial: "#FDE68A",
 };
 
-const COLORS = ["#1e40af", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe"];
+const COLORS = [
+  "#EF4444", // Red
+  "#F59E0B", // Amber / Yellow
+  "#10B981", // Emerald / Green
+  "#3B82F6", // Blue
+  "#8B5CF6", // Purple
+  "#EC4899", // Pink
+];
 
 const Geographic = () => {
   const [error, setError] = useState(null);
@@ -195,7 +202,7 @@ const Geographic = () => {
 
   const processApprovalData = () => {
     if (!approvalRates.length) return [];
-    return approvalRates.slice(0, 5).map(item => ({
+    return approvalRates.slice(0, 6).map(item => ({
       name: item.location,
       value: item.approval_rate,
       total: item.total,
