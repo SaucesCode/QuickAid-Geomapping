@@ -915,7 +915,9 @@ def applicant_detail(request, applicant_id):
 
             return Response(serializer.data)
 
-        return Response(serializer.errors, status=400)
+        else:
+            return Response(serializer.errors, status=400)      
+
 
     elif request.method == 'DELETE':
         applicant.is_archived = True
