@@ -181,33 +181,65 @@ const Applicants = () => {
   };
 
   // ------------------------------------------------------------
-  // SAVE + EDIT
+  // SAVE + EDIT - FIXED VERSION
   // ------------------------------------------------------------
   const handleChange = e => {
     const { name, value } = e.target;
 
     setEditingApplicant(prev => {
+      if (!prev) return prev;
+
+      // shallow clone
       const updated = { ...prev };
 
-      if (
-        [
-          "first_name",
-          "middle_initial",
-          "last_name",
-          "suffix",
-          "sex",
-          "civil_status",
-          "street_address",
-        ].includes(name)
-      ) {
-        updated.background_info = {
-          ...prev.background_info,
-          [name]: value,
-        };
-      } else {
-        updated[name] = value;
+      // Representative fields use prefix rep_bg_ or rep_
+      if (name.startsWith("rep_bg_") || name.startsWith("rep_")) {
+        // ensure representative object exists
+        updated.representative = updated.representative ? { ...updated.representative } : {};
+        updated.representative.background_info = updated.representative.background_info
+          ? { ...updated.representative.background_info }
+          : {};
+
+        const key = name.replace(/^rep_bg_/, "").replace(/^rep_/, "");
+        // rep_contact_number or rep_relationship map directly to representative
+        if (key === "relationship" || key === "contact_number") {
+          updated.representative[key] = value;
+        } else {
+          updated.representative.background_info[key] = value;
+        }
+
+        return updated;
       }
 
+      // background_info nested fields
+      const bgFields = [
+        "first_name",
+        "middle_initial",
+        "last_name",
+        "suffix",
+        "sex",
+        "civil_status",
+        "street_address",
+        "birthday",
+        "occupation",
+        "monthly_income",
+      ];
+      if (bgFields.includes(name)) {
+        updated.background_info = { ...updated.background_info, [name]: value };
+        return updated;
+      }
+
+      // AddressDropdown sets barangay (string/psgc) via name 'barangay' in background_info
+      if (name === "barangay") {
+        updated.background_info = {
+          ...updated.background_info,
+          barangay: value,
+        };
+        return updated;
+      }
+
+      // top-level applicant fields
+      updated[name] = value;
       return updated;
     });
   };
@@ -219,14 +251,72 @@ const Applicants = () => {
     try {
       toast.loading("Saving changes...", { id: "saving" });
 
-      const savePromise = api.put(`/applicants/${editingApplicant.id}/`, editingApplicant);
+      // Build well-formed payload matching your serializers
+      const a = editingApplicant;
 
-      await savePromise;
+      // Ensure background_info exists
+      const bg = a.background_info || {};
+
+      const applicantBg = {
+        first_name: bg.first_name || "",
+        middle_initial: bg.middle_initial || "",
+        last_name: bg.last_name || "",
+        suffix: bg.suffix || "",
+        birthday: bg.birthday || "", // required by serializer
+        street_address: bg.street_address || "",
+        barangay: (bg.barangay_details && bg.barangay_details.psgc_code) || bg.barangay || "", // pass PSGC or name as string
+        sex: bg.sex || "",
+        civil_status: bg.civil_status || "",
+        occupation: bg.occupation || "",
+        monthly_income: bg.monthly_income || 0,
+      };
+
+      // Representative (if present)
+      let representativePayload = null;
+      if (a.representative) {
+        const rep = a.representative;
+        const repBg = rep.background_info || {};
+
+        // contact_number may be on rep or applicant depending on your UI; prefer rep.contact_number if present
+        const repContact = rep.contact_number || "";
+
+        representativePayload = {
+          relationship: rep.relationship || "",
+          contact_number: repContact,
+          background_info: {
+            first_name: repBg.first_name || "",
+            middle_initial: repBg.middle_initial || "",
+            last_name: repBg.last_name || "",
+            suffix: repBg.suffix || "",
+            birthday: repBg.birthday || "", // REQUIRED
+            street_address: repBg.street_address || "",
+            sex: repBg.sex || "",
+            civil_status: repBg.civil_status || "",
+            occupation: repBg.occupation || "",
+            monthly_income: repBg.monthly_income || 0,
+          },
+        };
+      }
+
+      // Build final payload
+      const payload = {
+        background_info: applicantBg,
+        representative: representativePayload,
+        contact_number: a.contact_number || "",
+        type_of_assistance: a.type_of_assistance || "",
+        valid_id_presented: a.valid_id_presented || "",
+        other_valid_id: a.other_valid_id || "",
+        applicant_type: a.applicant_type || "Self",
+      };
+
+      // Make request
+      await api.put(`/applicants/${a.id}/`, payload);
 
       toast.custom(t => <CustomToast t={t} type="editApplicant" />, { id: "saving" });
       setEditView(false);
       refetch();
     } catch (err) {
+      console.error("Update failed", err);
       toast.error("Failed to update applicant", { id: "saving" });
     }
   };
