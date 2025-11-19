@@ -93,6 +93,7 @@ class AnalyticsDataCollector:
         self.filters = filters
         self.start_date = filters.get('start_date')
         self.end_date = filters.get('end_date')
+        self.city = filters.get('city')
         self.cities = filters.get('cities', [])
         self.barangays = filters.get('barangays', [])
         self.assistance_types = filters.get('assistance_types', [])
@@ -105,6 +106,8 @@ class AnalyticsDataCollector:
             qs = qs.filter(date_filled__date__range=[self.start_date, self.end_date])
         if self.assistance_types:
             qs = qs.filter(type_of_assistance__in=self.assistance_types)
+        if self.city:
+            qs = qs.filter(background_info__barangay__city__name=self.city)
         if self.cities:
             qs = qs.filter(background_info__barangay__city__name__in=self.cities)
         if self.barangays:
@@ -928,43 +931,50 @@ class PDFReportGenerator:
 
     def _format_location_filter(self):
         """Format location and assistance type filters for display"""
+        city = self.filters.get('city')
         cities = self.filters.get('cities', [])
         barangays = self.filters.get('barangays', [])
         assistance_types = self.filters.get('assistance_types', [])
         
-        location_parts = []
+        result = []
         
-        # Cities
-        if cities:
+        # City/Cities
+        if city:
+            result.append(f"City: {city}")
+        elif cities:
             if len(cities) == 1:
-                location_parts.append(f"City: {cities[0]}")
+                result.append(f"City: {cities[0]}")
             elif len(cities) <= 3:
-                location_parts.append(f"Cities: {', '.join(cities)}")
+                result.append(f"Cities: {', '.join(cities)}")
             else:
-                location_parts.append(f"Cities: {', '.join(cities[:3])} and {len(cities) - 3} more")
+                result.append(f"Cities: {', '.join(cities[:3])} and {len(cities) - 3} more")
+        else:
+            result.append("Location: All Cities")
         
         # Barangays
         if barangays:
             if len(barangays) == 1:
-                location_parts.append(f"Barangay: {barangays[0]}")
+                result.append(f"Barangay: {barangays[0]}")
             elif len(barangays) <= 3:
-                location_parts.append(f"Barangays: {', '.join(barangays)}")
+                result.append(f"Barangays: {', '.join(barangays)}")
             else:
-                location_parts.append(f"Barangays: {', '.join(barangays[:3])} and {len(barangays) - 3} more")
+                result.append(f"Barangays: {', '.join(barangays[:3])} and {len(barangays) - 3} more")
+        else:
+            if city or cities:
+                result.append("Barangays: All Barangays")
         
         # Assistance Types
         if assistance_types:
             if len(assistance_types) == 1:
-                location_parts.append(f"Type: {assistance_types[0]}")
+                result.append(f"Type: {assistance_types[0]}")
             elif len(assistance_types) <= 3:
-                location_parts.append(f"Types: {', '.join(assistance_types)}")
+                result.append(f"Types: {', '.join(assistance_types)}")
             else:
-                location_parts.append(f"Types: {', '.join(assistance_types[:2])} and {len(assistance_types) - 2} more")
+                result.append(f"Types: {', '.join(assistance_types[:2])} and {len(assistance_types) - 2} more")
+        else:
+            result.append("Assistance Types: All Types")
         
-        if not cities and not barangays and not assistance_types:
-            return "All Locations, All Types"
-        
-        return " | ".join(location_parts)
+        return result
     
     def _setup_corporate_styles(self):
         """Setup clean corporate document styles"""
@@ -1222,7 +1232,7 @@ class PDFReportGenerator:
         elements = []
         
         # Top spacing
-        elements.append(Spacer(1, 1.5*inch))
+        elements.append(Spacer(1, 0.5*inch))
         
         # Organization header
         elements.append(Paragraph(
@@ -1254,27 +1264,38 @@ class PDFReportGenerator:
                           alignment=TA_CENTER, fontName='Helvetica')
         ))
         elements.append(Spacer(1, 0.5*inch))
+
+        location_filters = self._format_location_filter()
         
         # Metadata box      
         metadata = [
             [Paragraph("<b>Report Information</b>", self.styles['CorporateTableCell']), ""],
             [Paragraph("Document Reference:", self.styles['CorporateTableCell']), 
-            Paragraph(self.doc_ref_number, self.styles['CorporateTableCell'])],
+             Paragraph(self.doc_ref_number, self.styles['CorporateTableCell'])],
             [Paragraph("Report Period:", self.styles['CorporateTableCell']),
-            Paragraph(f"{self.filters.get('start_date', 'All Records')} to {self.filters.get('end_date', 'Present')}", 
-                    self.styles['CorporateTableCell'])],
-            [Paragraph("Location Coverage:", self.styles['CorporateTableCell']),
-            Paragraph(self._format_location_filter(), self.styles['CorporateTableCell'])],
-            [Paragraph("Date Generated:", self.styles['CorporateTableCell']),
-            Paragraph(datetime.now().strftime('%B %d, %Y'), self.styles['CorporateTableCell'])],
-            [Paragraph("Effectivity Date:", self.styles['CorporateTableCell']),
-            Paragraph(self.effectivity_date, self.styles['CorporateTableCell'])],
-            [Paragraph("Classification:", self.styles['CorporateTableCell']),
-            Paragraph("<b>OFFICIAL USE ONLY</b>", self.styles['CorporateTableCell'])],
-            [Paragraph("Total Applicants:", self.styles['CorporateTableCell']),
-            Paragraph(f"<b>{self.data['summary']['total_applicants']:,}</b>", self.styles['CorporateTableCell'])],
+             Paragraph(f"{self.filters.get('start_date', 'All Records')} to {self.filters.get('end_date', 'Present')}", 
+                      self.styles['CorporateTableCell'])],
         ]
         
+        # Add each location filter as separate row
+        for location_filter in location_filters:
+            label, value = location_filter.split(":", 1)
+            metadata.append([
+                Paragraph(f"{label.strip()}:", self.styles['CorporateTableCell']),
+                Paragraph(value.strip(), self.styles['CorporateTableCell'])
+            ])
+        
+        metadata.extend([
+            [Paragraph("Date Generated:", self.styles['CorporateTableCell']),
+             Paragraph(datetime.now().strftime('%B %d, %Y'), self.styles['CorporateTableCell'])],
+            [Paragraph("Effectivity Date:", self.styles['CorporateTableCell']),
+             Paragraph(self.effectivity_date, self.styles['CorporateTableCell'])],
+            [Paragraph("Classification:", self.styles['CorporateTableCell']),
+             Paragraph("<b>OFFICIAL USE ONLY</b>", self.styles['CorporateTableCell'])],
+            [Paragraph("Total Applicants:", self.styles['CorporateTableCell']),
+             Paragraph(f"<b>{self.data['summary']['total_applicants']:,}</b>", self.styles['CorporateTableCell'])],
+        ])
+
         table = self._create_table(metadata, col_widths=[2.5*inch, 3*inch], 
                                    has_header=False, zebra=False)
         elements.append(table)
@@ -1306,12 +1327,6 @@ class PDFReportGenerator:
         elements.append(sig_table)
         
         elements.append(Spacer(1, 0.3*inch))
-        
-        # Version control
-        elements.append(Paragraph(
-            f"<b>Version:</b> 1.0 | <b>Revision Date:</b> {datetime.now().strftime('%Y-%m-%d')}",
-            self.styles['CorporateSmall']
-        ))
         
         elements.append(PageBreak())
         return elements
@@ -2454,6 +2469,58 @@ class ExcelReportGenerator:
         date_cell.value = f"Report Period: {start} to {end}"
         date_cell.font = Font(name='Calibri', size=9, italic=True, color='666666')
         date_cell.alignment = self.center_align
+
+        current_row = 4 
+
+        city = self.filters.get('city')
+        cities = self.filters.get('cities', [])
+        barangays = self.filters.get('barangays', [])
+        assistance_types = self.filters.get('assistance_types', [])
+        
+        filter_info = []
+        
+        # City info
+        if city:
+            filter_info.append(f"City: {city}")
+        elif cities:
+            if len(cities) <= 3:
+                filter_info.append(f"Cities: {', '.join(cities)}")
+            else:
+                filter_info.append(f"Cities: {', '.join(cities[:3])} +{len(cities)-3} more")
+        else:
+            filter_info.append("Location: All Cities")
+        
+        # Barangay info
+        if barangays:
+            if len(barangays) <= 3:
+                filter_info.append(f"Barangays: {', '.join(barangays)}")
+            else:
+                filter_info.append(f"Barangays: {', '.join(barangays[:3])} +{len(barangays)-3} more")
+        
+        # Assistance types info
+        if assistance_types:
+            if len(assistance_types) <= 3:
+                filter_info.append(f"Types: {', '.join(assistance_types)}")
+            else:
+                filter_info.append(f"Types: {', '.join(assistance_types[:2])} +{len(assistance_types)-2} more")
+        else:
+            filter_info.append("Types: All Types")
+        
+        # Add filter info
+        if filter_info:
+            ws.merge_cells(f'A{current_row}:H{current_row}')
+            filter_cell = ws[f'A{current_row}']
+            filter_cell.value = " | ".join(filter_info)
+            filter_cell.font = Font(name='Calibri', size=9, italic=True, color='666666')
+            filter_cell.alignment = self.center_align
+            current_row += 1
+        
+        ws.row_dimensions[1].height = 25
+        ws.row_dimensions[2].height = 30
+        ws.row_dimensions[3].height = 20
+        ws.row_dimensions[current_row - 1].height = 20
+        
+        return current_row + 1
         
         ws.row_dimensions[1].height = 25
         ws.row_dimensions[2].height = 30

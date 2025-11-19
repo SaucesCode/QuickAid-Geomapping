@@ -15,14 +15,14 @@ import {
   BarChart3,
 } from "lucide-react";
 import FilterGroup from "./FilterGroup";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import CustomToast from "../../../components/CustomToast";
 
 const AnalyticsExport = () => {
   // Form state
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [selectedCities, setSelectedCities] = useState([]);
+  const [selectedCity, setSelectedCity] = useState("");
   const [selectedBarangays, setSelectedBarangays] = useState([]);
   const [selectedAssistanceTypes, setSelectedAssistanceTypes] = useState([]);
   const [exportFormat, setExportFormat] = useState("both");
@@ -33,9 +33,10 @@ const AnalyticsExport = () => {
 
   // Fetch available filter options
   const { data: filterOptions, isLoading: filtersLoading } = useQuery({
-    queryKey: ["analytics-filters"],
+    queryKey: ["analytics-filters", selectedCity],
     queryFn: async () => {
-      const response = await api.get("/export/filters/");
+      const cityParam = selectedCity ? `?city=${encodeURIComponent(selectedCity)}` : "";
+      const response = await api.get(`/export/filters/${cityParam}`);
       return response.data;
     },
   });
@@ -111,11 +112,24 @@ const AnalyticsExport = () => {
     setter(state.includes(item) ? state.filter(i => i !== item) : [...state, item]);
   };
 
+  // Handle city selection (single-select)
+  const handleCityToggle = city => {
+    if (selectedCity === city) {
+      // Deselect city
+      setSelectedCity("");
+      setSelectedBarangays([]);
+    } else {
+      // Select new city and clear barangays
+      setSelectedCity(city);
+      setSelectedBarangays([]);
+    }
+  };
+
   // Clear all filters
   const clearAllFilters = () => {
     setStartDate("");
     setEndDate("");
-    setSelectedCities([]);
+    setSelectedCity("");
     setSelectedBarangays([]);
     setSelectedAssistanceTypes([]);
   };
@@ -130,7 +144,7 @@ const AnalyticsExport = () => {
     const filters = {
       start_date: startDate || undefined,
       end_date: endDate || undefined,
-      cities: selectedCities.length > 0 ? selectedCities : undefined,
+      city: selectedCity || undefined,
       barangays: selectedBarangays.length > 0 ? selectedBarangays : undefined,
       assistance_types:
         selectedAssistanceTypes.length > 0 ? selectedAssistanceTypes : undefined,
@@ -148,9 +162,9 @@ const AnalyticsExport = () => {
   const hasActiveFilters =
     startDate ||
     endDate ||
-    selectedCities.length ||
-    selectedBarangays.length ||
-    selectedAssistanceTypes.length;
+    selectedCity ||
+    selectedBarangays.length > 0 ||
+    selectedAssistanceTypes.length > 0;
 
   return (
     <div className="space-y-6">
@@ -181,18 +195,16 @@ const AnalyticsExport = () => {
                 onClick={() => setExportFormat(option.value)}
                 className={`p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
                   isSelected
-                    ? `border-${option.color}-500 bg-${option.color}-50 shadow-md`
+                    ? "border-blue-500 bg-blue-50 shadow-md"
                     : "border-gray-200 hover:border-gray-300 bg-white"
                 }`}
               >
                 <Icon
-                  className={`w-6 h-6 ${
-                    isSelected ? `text-${option.color}-600` : "text-gray-400"
-                  }`}
+                  className={`w-6 h-6 ${isSelected ? "text-blue-600" : "text-gray-400"}`}
                 />
                 <span
                   className={`font-medium text-sm ${
-                    isSelected ? `text-${option.color}-700` : "text-gray-700"
+                    isSelected ? "text-blue-700" : "text-gray-700"
                   }`}
                 >
                   {option.label}
@@ -254,34 +266,41 @@ const AnalyticsExport = () => {
             )}
           </div>
 
-          {/* Cities */}
+          {/* City - Single Select (shows selected city in input) */}
           <FilterGroup
-            title="Cities"
+            title="City"
             items={filterOptions?.cities || []}
-            selected={selectedCities}
-            toggle={city => toggleItem(city, setSelectedCities, selectedCities)}
+            selected={selectedCity ? [selectedCity] : []}
+            toggle={handleCityToggle}
+            clearAll={() => {
+              setSelectedCity("");
+              setSelectedBarangays([]);
+            }}
             loading={filtersLoading}
-            color="blue"
+            singleSelect={true}
           />
 
-          {/* Barangays */}
+          {/* Barangays - Multi Select (with "All Barangays" option) */}
           <FilterGroup
             title="Barangays"
             items={filterOptions?.barangays || []}
-            selected={selectedBarangays}
+            selected={selectedBarangays || []}
             toggle={b => toggleItem(b, setSelectedBarangays, selectedBarangays)}
+            clearAll={() => setSelectedBarangays([])}
             loading={filtersLoading}
-            color="green"
+            disabled={!selectedCity}
+            showAllOption={true}
+            allOptionLabel="All Barangays"
           />
 
-          {/* Assistance Types */}
+          {/* Assistance Types - Multi Select */}
           <FilterGroup
             title="Assistance Types"
             items={filterOptions?.assistance_types || []}
-            selected={selectedAssistanceTypes}
+            selected={selectedAssistanceTypes || []}
             toggle={t => toggleItem(t, setSelectedAssistanceTypes, selectedAssistanceTypes)}
+            clearAll={() => setSelectedAssistanceTypes([])}
             loading={filtersLoading}
-            color="purple"
           />
 
           {/* Clear Filters */}
