@@ -12,13 +12,13 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import FilterGroup from "./FilterGroup";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import CustomToast from "../../../components/CustomToast";
 
 const ApplicantExport = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [selectedCities, setSelectedCities] = useState([]);
+  const [selectedCity, setSelectedCity] = useState("");
   const [selectedBarangays, setSelectedBarangays] = useState([]);
   const [selectedAssistanceTypes, setSelectedAssistanceTypes] = useState([]);
   const [dateError, setDateError] = useState("");
@@ -26,9 +26,10 @@ const ApplicantExport = () => {
 
   // Fetch filter options
   const { data: filters, isLoading: filtersLoading } = useQuery({
-    queryKey: ["export-filters"],
+    queryKey: ["export-filters", selectedCity],
     queryFn: async () => {
-      const res = await api.get("/export/filters/");
+      const cityParam = selectedCity ? `?city=${encodeURIComponent(selectedCity)}` : "";
+      const res = await api.get(`/export/filters/${cityParam}`);
       return res.data;
     },
   });
@@ -49,11 +50,24 @@ const ApplicantExport = () => {
     setter(state.includes(item) ? state.filter(i => i !== item) : [...state, item]);
   };
 
+  // Handle city selection (single-select)
+  const handleCityToggle = city => {
+    if (selectedCity === city) {
+      // Deselect city
+      setSelectedCity("");
+      setSelectedBarangays([]);
+    } else {
+      // Select new city and clear barangays
+      setSelectedCity(city);
+      setSelectedBarangays([]);
+    }
+  };
+
   // Clear all filters
   const clearFilters = () => {
     setStartDate("");
     setEndDate("");
-    setSelectedCities([]);
+    setSelectedCity("");
     setSelectedBarangays([]);
     setSelectedAssistanceTypes([]);
   };
@@ -62,19 +76,16 @@ const ApplicantExport = () => {
   const exportCSV = async ({
     startDate,
     endDate,
-    selectedCities,
+    selectedCity,
     selectedBarangays,
     selectedAssistanceTypes,
   }) => {
     const params = new URLSearchParams();
 
     if (startDate) params.append("start_date", startDate);
-    if (endDate) {
-      const adjustedEnd = new Date(endDate);
-      adjustedEnd.setDate(adjustedEnd.getDate() + 1);
-      params.append("end_date", adjustedEnd.toISOString().split("T")[0]);
-    }
-    selectedCities.forEach(city => params.append("cities", city));
+    if (endDate) params.append("end_date", endDate);
+    if (selectedCity) params.append("city", selectedCity);
+
     selectedBarangays.forEach(b => params.append("barangays", b));
     selectedAssistanceTypes.forEach(t => params.append("assistance_types", t));
 
@@ -82,6 +93,7 @@ const ApplicantExport = () => {
       responseType: "blob",
     });
 
+    // Download CSV
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
@@ -123,7 +135,7 @@ const ApplicantExport = () => {
     csvMutation.mutate({
       startDate,
       endDate,
-      selectedCities,
+      selectedCity,
       selectedBarangays,
       selectedAssistanceTypes,
     });
@@ -132,9 +144,9 @@ const ApplicantExport = () => {
   const hasActiveFilters =
     startDate ||
     endDate ||
-    selectedCities.length ||
-    selectedBarangays.length ||
-    selectedAssistanceTypes.length;
+    selectedCity ||
+    selectedBarangays.length > 0 ||
+    selectedAssistanceTypes.length > 0;
 
   return (
     <div className="space-y-6">
@@ -201,34 +213,41 @@ const ApplicantExport = () => {
             )}
           </div>
 
-          {/* Cities */}
+          {/* City - Single Select (shows selected city in input) */}
           <FilterGroup
-            title="Cities"
+            title="City"
             items={filters?.cities || []}
-            selected={selectedCities}
-            toggle={city => toggleItem(city, setSelectedCities, selectedCities)}
+            selected={selectedCity ? [selectedCity] : []}
+            toggle={handleCityToggle}
+            clearAll={() => {
+              setSelectedCity("");
+              setSelectedBarangays([]);
+            }}
             loading={filtersLoading}
-            color="blue"
+            singleSelect={true}
           />
 
-          {/* Barangays */}
+          {/* Barangays - Multi Select (with "All Barangays" option) */}
           <FilterGroup
             title="Barangays"
             items={filters?.barangays || []}
             selected={selectedBarangays}
             toggle={b => toggleItem(b, setSelectedBarangays, selectedBarangays)}
+            clearAll={() => setSelectedBarangays([])}
             loading={filtersLoading}
-            color="green"
+            disabled={!selectedCity}
+            showAllOption={true}
+            allOptionLabel="All Barangays"
           />
 
-          {/* Assistance Types */}
+          {/* Assistance Types - Multi Select */}
           <FilterGroup
             title="Assistance Types"
             items={filters?.assistance_types || []}
             selected={selectedAssistanceTypes}
             toggle={t => toggleItem(t, setSelectedAssistanceTypes, selectedAssistanceTypes)}
+            clearAll={() => setSelectedAssistanceTypes([])}
             loading={filtersLoading}
-            color="purple"
           />
 
           {/* Clear Filters */}

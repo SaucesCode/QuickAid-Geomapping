@@ -2270,40 +2270,48 @@ def export_history(request):
 @permission_classes([IsAuthenticated])
 def available_filters(request):
     """
-    Get available filter options for analytics export
-    Returns: cities, barangays, assistance types that have data
+    Returns:
+    - All cities
+    - Barangays limited to the selected city (if provided)
+    - Assistance types
     """
     try:
-        # Get all active applicants
         applicants = Applicant.objects.filter(is_archived=False)
-        
-        # Get unique cities
+
+        # Get distinct cities
         cities = list(
-            applicants.values_list('background_info__barangay__city__name', flat=True)
-            .distinct()
-            .order_by('background_info__barangay__city__name')
+            applicants.values_list(
+                'background_info__barangay__city__name', flat=True
+            ).distinct().order_by('background_info__barangay__city__name')
         )
-        
-        # Get unique barangays
-        barangays = list(
-            applicants.values_list('background_info__barangay__name', flat=True)
-            .distinct()
-            .order_by('background_info__barangay__name')
-        )
-        
-        # Get unique assistance types
+
+        # If city is selected, filter barangays by that city
+        selected_city = request.GET.get('city')
+
+        if selected_city:
+            barangays = list(
+                applicants.filter(
+                    background_info__barangay__city__name=selected_city
+                ).values_list(
+                    'background_info__barangay__name', flat=True
+                ).distinct().order_by('background_info__barangay__name')
+            )
+        else:
+            barangays = []  # Do not return barangays until a city is chosen
+
+        # Assistance types (unchanged)
         assistance_types = list(
             applicants.values_list('type_of_assistance', flat=True)
             .distinct()
             .order_by('type_of_assistance')
         )
-        
-        # Get date range
+
+        # Date range
         date_range = applicants.aggregate(
             earliest=Min('date_filled'),
             latest=Max('date_filled')
         )
-        
+
         return Response({
             'cities': [c for c in cities if c],
             'barangays': [b for b in barangays if b],
@@ -2312,10 +2320,7 @@ def available_filters(request):
                 'earliest': date_range['earliest'].date().isoformat() if date_range['earliest'] else None,
                 'latest': date_range['latest'].date().isoformat() if date_range['latest'] else None
             }
-        }, status=status.HTTP_200_OK)
-    
+        })
+
     except Exception as e:
-        return Response(
-            {"error": f"Failed to fetch filter options: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        return Response({"error": str(e)}, status=500)
