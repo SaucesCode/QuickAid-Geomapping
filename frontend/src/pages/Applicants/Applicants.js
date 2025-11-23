@@ -139,7 +139,6 @@ const Applicants = () => {
       },
     ],
     queryFn: fetchApplicants,
-    keepPreviousData: true,
   });
 
   const applicants = data?.results || [];
@@ -311,10 +310,9 @@ const Applicants = () => {
 
       // Make request
       await api.put(`/applicants/${a.id}/`, payload);
-
+      queryClient.invalidateQueries({ queryKey: ["applicants"] });
       toast.custom(t => <CustomToast t={t} type="editApplicant" />, { id: "saving" });
       setEditView(false);
-      refetch();
     } catch (err) {
       console.error("Update failed", err);
       toast.error("Failed to update applicant", { id: "saving" });
@@ -330,8 +328,8 @@ const Applicants = () => {
     try {
       await api.delete(`/applicants/${archiveModal.applicantId}/`);
       toast.custom(t => <CustomToast t={t} type="archive" />);
-      refetch();
-      queryClient.invalidateQueries(["archived-applicants"]);
+      queryClient.invalidateQueries({ queryKey: ["archived-applicants"] });
+      queryClient.invalidateQueries({ queryKey: ["applicants"] });
       setArchiveModal({ show: false, applicantId: null });
     } catch {
       toast.error("Failed to archive applicant");

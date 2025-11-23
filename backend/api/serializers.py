@@ -181,6 +181,36 @@ class ApplicantSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["id", "staff", "staff_ref_code",
                             "longitude", "latitude", "date_filled"]
+        
+    def create(self, validated_data):
+        # Extract background info (nested)
+        bg_data = validated_data.pop("background_info")
+        bg_instance = BackgroundInfoSerializer().create(bg_data)
+
+        # Extract representative data (nested) - optional
+        rep_data = validated_data.pop("representative", None)
+
+        # Create Applicant FIRST (without representative)
+        applicant = Applicant.objects.create(
+            background_info=bg_instance,
+            **validated_data
+        )
+
+        # If representative is included → create Representative and link it
+        if rep_data:
+            rep_bg_data = rep_data.pop("background_info")
+            rep_bg_instance = RepresentativeBackgroundInfoSerializer().create(rep_bg_data)
+
+            Representative.objects.create(
+                applicant=applicant,
+                background_info=rep_bg_instance,
+                relationship=rep_data.get("relationship"),
+                contact_number=rep_data.get("contact_number")
+            )
+
+        return applicant
+
+
 
     # ------------------------ UPDATE FIXED ------------------------
     def update(self, instance, validated_data):

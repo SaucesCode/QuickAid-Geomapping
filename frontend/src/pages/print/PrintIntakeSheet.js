@@ -27,7 +27,7 @@ export default function PrintIntake() {
     if (!element) return alert("Element not found");
 
     const buttons = document.querySelectorAll(".no-print");
-    buttons.forEach((btn) => (btn.style.display = "none"));
+    buttons.forEach(btn => (btn.style.display = "none"));
 
     try {
       // Wait for fonts to load
@@ -36,11 +36,11 @@ export default function PrintIntake() {
       }
 
       // Wait for images to fully load
-      const images = element.querySelectorAll('img');
+      const images = element.querySelectorAll("img");
       await Promise.all(
         Array.from(images).map(img => {
           if (img.complete) return Promise.resolve();
-          return new Promise((resolve) => {
+          return new Promise(resolve => {
             img.onload = resolve;
             img.onerror = resolve;
             setTimeout(resolve, 3000);
@@ -49,20 +49,20 @@ export default function PrintIntake() {
       );
 
       // Additional delay for complete render
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      console.log('Starting capture with modern-screenshot...');
+      console.log("Starting capture with modern-screenshot...");
 
       // Capture with modern-screenshot - perfect pixel-for-pixel capture
       const dataUrl = await domToPng(element, {
         quality: 1,
         scale: 3, // 3x for HD quality
-        backgroundColor: '#ffffff',
+        backgroundColor: "#ffffff",
         style: {
-          margin: '0',
+          margin: "0",
           padding: element.style.padding,
         },
-        filter: (node) => {
+        filter: node => {
           // Exclude no-print elements
           if (node.classList?.contains?.("no-print")) return false;
           if (node.classList?.contains?.("button-wrapper")) return false;
@@ -70,7 +70,7 @@ export default function PrintIntake() {
         },
       });
 
-      console.log('Capture complete, creating PDF...');
+      console.log("Capture complete, creating PDF...");
 
       // Create PDF
       const pdf = new jsPDF({
@@ -89,7 +89,7 @@ export default function PrintIntake() {
         setTimeout(reject, 10000);
       });
 
-      console.log('Image loaded:', { width: img.width, height: img.height });
+      console.log("Image loaded:", { width: img.width, height: img.height });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -122,13 +122,13 @@ export default function PrintIntake() {
         .trim()}.pdf`;
 
       pdf.save(fileName);
-      
-      console.log('PDF generated successfully');
+
+      console.log("PDF generated successfully");
     } catch (err) {
       console.error("PDF generation failed:", err);
-      alert(`Failed to generate PDF: ${err.message || 'Unknown error'}`);
+      alert(`Failed to generate PDF: ${err.message || "Unknown error"}`);
     } finally {
-      buttons.forEach((btn) => (btn.style.display = ""));
+      buttons.forEach(btn => (btn.style.display = ""));
     }
   };
 

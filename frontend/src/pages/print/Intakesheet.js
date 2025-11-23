@@ -17,7 +17,6 @@ const toTitleCase = str => {
 };
 
 export default function GeneralIntakeSheet({ applicant }) {
-  console.log(applicant);
   // Initial data derived from props or defaults
   const initialFormData = {
     beneficiary: {
@@ -60,7 +59,7 @@ export default function GeneralIntakeSheet({ applicant }) {
             region:
               applicant.representative.background_info?.barangay_details?.region_name ||
               "IV-A",
-            mobileNo: applicant.representative.contact_number || "",
+            mobileNo: applicant.representative.background_info?.contact_number || "",
             birthdate: applicant.representative.background_info?.birthday || "",
             age: applicant.representative.background_info?.birthday
               ? Math.floor(
@@ -348,9 +347,9 @@ export default function GeneralIntakeSheet({ applicant }) {
 
           {/* Time End placement (right aligned) */}
           <div className="flex justify-end mb-3 text-[10px]">
-            <div className="flex items-center gap-1">
+            <div className="flex items-end gap-1">
               <label className="font-bold text-blue-700">Time End:</label>
-              <span className="w-20 border-b border-gray-400 text-center"></span>
+              <span className="w-24 h-[10px] border-b border-gray-400"></span>
             </div>
           </div>
 

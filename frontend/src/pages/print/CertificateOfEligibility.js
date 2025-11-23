@@ -1,30 +1,27 @@
-// CertificateOfEligibility.js
+// CertificateOfEligibility.js - Fixed text overlay
 import React, { useState, useRef, useCallback } from "react";
 import dswdLogo from "../../assets/dswd-logo.png";
 
+const checkboxClass =
+  "form-checkbox text-blue-600 rounded focus:ring-blue-500 w-3 h-3 flex-shrink-0";
+const radioClass = "form-radio text-blue-600 focus:ring-blue-500 w-3 h-3 flex-shrink-0";
 
-
-const checkboxClass = "form-checkbox text-blue-600 rounded focus:ring-blue-500 w-3 h-3";
-const radioClass = "form-radio text-blue-600 focus:ring-blue-500 w-3 h-3";
-
-const ChecklistItem = React.memo(({ label, recordName, isOther = false, checkedRecords, handleRecordChange }) => (
-  <div className="flex items-center space-x-1 text-[9px]">
-    <input
-      type="checkbox"
-      className={checkboxClass}
-      checked={checkedRecords[recordName]}
-      onChange={(e) => handleRecordChange(recordName, e.target.checked)}
-    />
-    <label className="text-[7px] font-medium text-gray-800 flex items-center">
-      {label}
-    </label>
-    {isOther && (
-      <span className="flex-1 min-w-[30px] border-b border-gray-400 outline-none px-1 text-[7px] bg-transparent">
-        (Specify)
-      </span>
-    )}
-  </div>
-));
+const ChecklistItem = React.memo(
+  ({ label, recordName, isOther = false, checkedRecords, handleRecordChange }) => (
+    <div className="flex items-start space-x-1 text-[8px] leading-tight min-h-[16px]">
+      <input
+        type="checkbox"
+        className={checkboxClass}
+        checked={checkedRecords[recordName]}
+        onChange={e => handleRecordChange(recordName, e.target.checked)}
+      />
+      <label className="text-[8px] font-medium text-gray-800 leading-tight flex-1">
+        {label}
+        {isOther && <span className="ml-1 text-[7px] text-gray-500">(Specify)</span>}
+      </label>
+    </div>
+  )
+);
 
 const MainRadio = React.memo(({ label, name, checkedMainType, handleImageCheckboxChange }) => (
   <div className="flex items-center space-x-1">
@@ -34,39 +31,41 @@ const MainRadio = React.memo(({ label, name, checkedMainType, handleImageCheckbo
       name="main-assistance-type"
       className={radioClass}
       checked={checkedMainType === name}
-      onChange={(e) => handleImageCheckboxChange('main', name, e.target.checked)}
+      onChange={e => handleImageCheckboxChange("main", name, e.target.checked)}
     />
-    <label htmlFor={`main-${name}`} className="text-[9px] font-medium text-black">
+    <label
+      htmlFor={`main-${name}`}
+      className="text-[9px] font-medium text-black whitespace-nowrap"
+    >
       {label}
     </label>
   </div>
 ));
 
-const SubCheckbox = React.memo(({ label, name, checkedSubTypesImage, handleImageCheckboxChange }) => (
-  <div className="flex items-center space-x-1">
-    <input
-      type="checkbox"
-      id={`sub-${name}`}
-      className={checkboxClass}
-      checked={checkedSubTypesImage[name]}
-      onChange={(e) => handleImageCheckboxChange('sub', name, e.target.checked)}
-    />
-    <label htmlFor={`sub-${name}`} className="text-[9px] font-medium text-black">
-      {label}
-    </label>
-  </div>
-));
-
-// ===================================================================
-// MAIN COMPONENT
-// ===================================================================
+const SubCheckbox = React.memo(
+  ({ label, name, checkedSubTypesImage, handleImageCheckboxChange }) => (
+    <div className="flex items-center space-x-1">
+      <input
+        type="checkbox"
+        id={`sub-${name}`}
+        className={checkboxClass}
+        checked={checkedSubTypesImage[name]}
+        onChange={e => handleImageCheckboxChange("sub", name, e.target.checked)}
+      />
+      <label
+        htmlFor={`sub-${name}`}
+        className="text-[8px] font-medium text-black leading-tight"
+      >
+        {label}
+      </label>
+    </div>
+  )
+);
 
 export default function CertificateOfEligibility({ applicant }) {
-  // contentRef is now redundant here since it's passed from the parent, 
-  // but kept for compatibility if needed elsewhere.
-  const contentRef = useRef(null); 
-  
-  const getRepresentativeAddress = (rep) => {
+  const contentRef = useRef(null);
+
+  const getRepresentativeAddress = rep => {
     if (rep?.background_info?.barangay_details) {
       return {
         barangay: rep.background_info.barangay || "",
@@ -91,14 +90,15 @@ export default function CertificateOfEligibility({ applicant }) {
     };
   };
 
-  const repAddressDetails = applicant?.representative ? getRepresentativeAddress(applicant.representative) : {};
+  const repAddressDetails = applicant?.representative
+    ? getRepresentativeAddress(applicant.representative)
+    : {};
 
-  // Initialize form data once using a function to ensure a single calculation
   const [formData, setFormData] = useState(() => {
     return {
       qn: applicant?.id || "",
       timeStart: applicant?.date_filled
-        ? new Date(applicant.date_filled).toLocaleTimeString('en-US', {hour12: true})
+        ? new Date(applicant.date_filled).toLocaleTimeString("en-US", { hour12: true })
         : "",
       timeEnd: applicant?.time_end || "",
       date: {
@@ -115,7 +115,7 @@ export default function CertificateOfEligibility({ applicant }) {
         age: applicant?.background_info?.birthday
           ? Math.floor(
               (new Date() - new Date(applicant.background_info.birthday)) /
-              (1000 * 60 * 60 * 24 * 365.25)
+                (1000 * 60 * 60 * 24 * 365.25)
             )
           : "",
         address: applicant?.background_info?.street_address || "",
@@ -161,7 +161,7 @@ export default function CertificateOfEligibility({ applicant }) {
       assistancePurpose: "",
     };
   });
-  
+
   const initialMainType = formData.assistanceType || null;
   const [checkedMainType, setCheckedMainType] = useState(initialMainType);
 
@@ -195,51 +195,53 @@ export default function CertificateOfEligibility({ applicant }) {
     food: false,
   });
 
-  const handleRecordChange = useCallback((recordName, isChecked) => {
-    setCheckedRecords((prev) => ({
-      ...prev,
-      [recordName]: isChecked,
-    }));
+  const handleRecordChange = useCallback(
+    (recordName, isChecked) => {
+      setCheckedRecords(prev => ({
+        ...prev,
+        [recordName]: isChecked,
+      }));
 
-    if (recordName === 'medical') {
-      const type = "Medical Assistance";
-      if (isChecked) {
-        setFormData((prev) => ({
-          ...prev,
-          assistanceType: type,
-        }));
-        setCheckedMainType(type);
-      } else if (checkedMainType === type) {
-        setFormData((prev) => ({
-          ...prev,
-          assistanceType: "",
-        }));
-        setCheckedMainType(null);
+      if (recordName === "medical") {
+        const type = "Medical Assistance";
+        if (isChecked) {
+          setFormData(prev => ({
+            ...prev,
+            assistanceType: type,
+          }));
+          setCheckedMainType(type);
+        } else if (checkedMainType === type) {
+          setFormData(prev => ({
+            ...prev,
+            assistanceType: "",
+          }));
+          setCheckedMainType(null);
+        }
       }
-    }
-  }, [checkedMainType]);
+    },
+    [checkedMainType]
+  );
 
   const handleImageCheckboxChange = useCallback((type, name, isChecked) => {
-    if (type === 'main') {
+    if (type === "main") {
       setCheckedMainType(isChecked ? name : null);
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         assistanceType: isChecked ? name : "",
       }));
-      if (name === 'Medical Assistance') {
-        setCheckedRecords((prev) => ({
+      if (name === "Medical Assistance") {
+        setCheckedRecords(prev => ({
           ...prev,
           medical: isChecked,
         }));
       }
-    } else if (type === 'sub') {
-      setCheckedSubTypesImage((prev) => ({
+    } else if (type === "sub") {
+      setCheckedSubTypesImage(prev => ({
         ...prev,
         [name]: isChecked,
       }));
     }
   }, []);
-
 
   const renderPcnBoxes = () => {
     const boxCount = 15;
@@ -249,14 +251,11 @@ export default function CertificateOfEligibility({ applicant }) {
       <div
         key={index}
         className="w-4 h-5 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold text-blue-900"
-      >
-      </div>
+      ></div>
     ));
   };
 
-  // Determine the year for PSP. Using the current year of the form data or the current year as fallback.
-  const pspYear = formData.date.yyyy || (new Date().getFullYear());
-
+  const pspYear = formData.date.yyyy || new Date().getFullYear();
 
   return (
     <div className="min-h-screen bg-gray-50 p-2 font-sans print:p-0">
@@ -272,14 +271,15 @@ export default function CertificateOfEligibility({ applicant }) {
           }
         }
       `}</style>
-      
-      {/* Set max-w to full width minus margin for better fit */}
-      <div ref={contentRef} className="max-w-[200mm] mx-auto bg-white shadow-xl print:shadow-none border border-blue-100 print:border-0">
+
+      <div
+        ref={contentRef}
+        className="max-w-[200mm] mx-auto bg-white shadow-xl print:shadow-none border border-blue-100 print:border-0"
+      >
         <div className="p-2 print:p-2">
           {/* Header */}
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center space-x-2">
-              {/* IMAGE: The issue is likely here or in CORS/Server configuration */}
               <img src={dswdLogo} alt="DSWD Logo" className="w-32 object-contain" />
             </div>
             <div className="text-right text-[8px] leading-tight">
@@ -316,9 +316,7 @@ export default function CertificateOfEligibility({ applicant }) {
               </div>
               <div className="flex items-center gap-1">
                 <label className="text-xs font-bold text-blue-900 uppercase">PCN:</label>
-                <div className="flex gap-0.5">
-                  {renderPcnBoxes()}
-                </div>
+                <div className="flex gap-0.5">{renderPcnBoxes()}</div>
               </div>
             </div>
             <div className="flex flex-col items-end gap-1 text-[9px]">
@@ -368,13 +366,17 @@ export default function CertificateOfEligibility({ applicant }) {
 
               <div className="flex items-center gap-1 bg-white px-1 py-0 rounded border border-blue-200">
                 <span className="text-[8px] text-gray-600">Kasarian (Sex):</span>
-                <span className="text-xs font-semibold text-blue-900">{formData.beneficiary.sex}</span>
+                <span className="text-xs font-semibold text-blue-900">
+                  {formData.beneficiary.sex}
+                </span>
               </div>
 
               <div className="flex items-center gap-1">
                 <span className="text-[8px] font-semibold text-blue-800">Edad (Age):</span>
                 <div className="border-b-2 border-blue-500 w-8 text-center">
-                  <span className="text-xs font-bold text-blue-900">{formData.beneficiary.age}</span>
+                  <span className="text-xs font-bold text-blue-900">
+                    {formData.beneficiary.age}
+                  </span>
                 </div>
               </div>
             </div>
@@ -423,27 +425,128 @@ export default function CertificateOfEligibility({ applicant }) {
             <h3 className="text-[9px] font-bold text-blue-900 mb-0.5 pb-0.5 border-b border-blue-300 uppercase tracking-wider">
               Confidential Records Filed at CID
             </h3>
-            <div className="grid grid-cols-4 gap-y-0 gap-x-0.5 text-[9px] bg-gray-50 p-1 rounded"> 
-              <ChecklistItem label="General Intake Sheet" recordName="generalIntake" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Medical Certificate/Abstract" recordName="medical" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Discharge Summary" recordName="dischargeSummary" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Justification" recordName="justification" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Referral Letter from MSWO" recordName="referralMSWO" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Waiver of Confidentiality" recordName="waiverConfidentiality" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Valid I.D. Presented" recordName="validId" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Prescriptions" recordName="prescriptions" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Statement of Account" recordName="statementAccount" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="4Ps DSWD I.D." recordName="dswdId" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Treatment Protocol" recordName="treatmentProtocol" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Quotation" recordName="quotation" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Laboratory" recordName="laboratory" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Charge Slip" recordName="chargeSlip" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Funeral Contract" recordName="funeralContract" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Death Certificate" recordName="deathCertificate" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Death Summary" recordName="deathSummary" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Referral Letter" recordName="referralLetter" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Social Case Study Report" recordName="socialCaseStudy" checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
-              <ChecklistItem label="Others" recordName="others" isOther={true} checkedRecords={checkedRecords} handleRecordChange={handleRecordChange} />
+            <div className="grid grid-cols-4 gap-y-1 gap-x-1 text-[8px] bg-gray-50 p-1 rounded">
+              <ChecklistItem
+                label="General Intake Sheet"
+                recordName="generalIntake"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Medical Certificate/Abstract"
+                recordName="medical"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Discharge Summary"
+                recordName="dischargeSummary"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Justification"
+                recordName="justification"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Referral Letter from MSWO"
+                recordName="referralMSWO"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Waiver of Confidentiality"
+                recordName="waiverConfidentiality"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Valid I.D. Presented"
+                recordName="validId"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Prescriptions"
+                recordName="prescriptions"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Statement of Account"
+                recordName="statementAccount"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="4Ps DSWD I.D."
+                recordName="dswdId"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Treatment Protocol"
+                recordName="treatmentProtocol"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Quotation"
+                recordName="quotation"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Laboratory"
+                recordName="laboratory"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Charge Slip"
+                recordName="chargeSlip"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Funeral Contract"
+                recordName="funeralContract"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Death Certificate"
+                recordName="deathCertificate"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Death Summary"
+                recordName="deathSummary"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Referral Letter"
+                recordName="referralLetter"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Social Case Study Report"
+                recordName="socialCaseStudy"
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
+              <ChecklistItem
+                label="Others"
+                recordName="others"
+                isOther={true}
+                checkedRecords={checkedRecords}
+                handleRecordChange={handleRecordChange}
+              />
             </div>
           </div>
 
@@ -456,23 +559,60 @@ export default function CertificateOfEligibility({ applicant }) {
             </p>
 
             <div className="flex flex-wrap items-center gap-2 text-[9px] font-medium text-black mb-0.5">
-              <MainRadio label="Financial Assistance" name="Financial Assistance" checkedMainType={checkedMainType} handleImageCheckboxChange={handleImageCheckboxChange} />
-              <MainRadio label="Medical Assistance" name="Medical Assistance" checkedMainType={checkedMainType} handleImageCheckboxChange={handleImageCheckboxChange} />
-              <MainRadio label="Funeral Assistance" name="Funeral Assistance" checkedMainType={checkedMainType} handleImageCheckboxChange={handleImageCheckboxChange} />
+              <MainRadio
+                label="Financial Assistance"
+                name="Financial Assistance"
+                checkedMainType={checkedMainType}
+                handleImageCheckboxChange={handleImageCheckboxChange}
+              />
+              <MainRadio
+                label="Medical Assistance"
+                name="Medical Assistance"
+                checkedMainType={checkedMainType}
+                handleImageCheckboxChange={handleImageCheckboxChange}
+              />
+              <MainRadio
+                label="Funeral Assistance"
+                name="Funeral Assistance"
+                checkedMainType={checkedMainType}
+                handleImageCheckboxChange={handleImageCheckboxChange}
+              />
             </div>
 
             <div className="bg-white p-1.5 mb-1.5">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-[9px]">
-                <SubCheckbox label="Transportation Assistance" name="transportation" checkedSubTypesImage={checkedSubTypesImage} handleImageCheckboxChange={handleImageCheckboxChange} />
-                <SubCheckbox label="Cash Assistance for Support Services" name="cashSupport" checkedSubTypesImage={checkedSubTypesImage} handleImageCheckboxChange={handleImageCheckboxChange} />
-                <SubCheckbox label="Educational Assistance" name="educational" checkedSubTypesImage={checkedSubTypesImage} handleImageCheckboxChange={handleImageCheckboxChange} />
-                <SubCheckbox label="Food Assistance" name="food" checkedSubTypesImage={checkedSubTypesImage} handleImageCheckboxChange={handleImageCheckboxChange} />
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[8px]">
+                <SubCheckbox
+                  label="Transportation Assistance"
+                  name="transportation"
+                  checkedSubTypesImage={checkedSubTypesImage}
+                  handleImageCheckboxChange={handleImageCheckboxChange}
+                />
+                <SubCheckbox
+                  label="Cash Assistance for Support Services"
+                  name="cashSupport"
+                  checkedSubTypesImage={checkedSubTypesImage}
+                  handleImageCheckboxChange={handleImageCheckboxChange}
+                />
+                <SubCheckbox
+                  label="Educational Assistance"
+                  name="educational"
+                  checkedSubTypesImage={checkedSubTypesImage}
+                  handleImageCheckboxChange={handleImageCheckboxChange}
+                />
+                <SubCheckbox
+                  label="Food Assistance"
+                  name="food"
+                  checkedSubTypesImage={checkedSubTypesImage}
+                  handleImageCheckboxChange={handleImageCheckboxChange}
+                />
               </div>
             </div>
 
             <div className="bg-white p-1.5 ring-1 ring-blue-600">
               <div className="mb-0.5">
-                <span className="text-blue-700 font-semibold text-[9px]">In the amount of</span>
+                <span className="text-blue-700 font-semibold text-[9px]">
+                  In the amount of
+                </span>
                 <div className="flex items-end gap-1 mt-0.5">
                   <div className="flex-1 text-blue-900 text-center uppercase pb-0.5 font-semibold text-[9px]">
                     {formData.amountWords || " "}
@@ -489,7 +629,8 @@ export default function CertificateOfEligibility({ applicant }) {
               <div className="mb-0.5">
                 <span className="text-blue-700 font-semibold text-[9px]">Assistance for:</span>
                 <p className="text-[7px] text-gray-600 mt-0.5 mb-0.5">
-                  (Hospital bill/ Medicine/ Laboratory/ Household/ Chemotherapy/ Funeral Bill/ Daily Needs/ Dialysis/ Prosthesis/ Therapy/ School expenses)
+                  (Hospital bill/ Medicine/ Laboratory/ Household/ Chemotherapy/ Funeral Bill/
+                  Daily Needs/ Dialysis/ Prosthesis/ Therapy/ School expenses)
                 </p>
                 <div className="w-full text-blue-900 uppercase bg-transparent text-[9px] font-semibold pb-0.5">
                   {formData.assistancePurpose || ""}
@@ -498,8 +639,9 @@ export default function CertificateOfEligibility({ applicant }) {
               </div>
 
               <div className="mt-0.5 flex items-center">
-                <span className="text-blue-700 font-bold uppercase text-[8px] mr-1">CHARGEABLE AGAINST: PSP</span>
-                {/* FIXED: Dynamic PSP Year */}
+                <span className="text-blue-700 font-bold uppercase text-[8px] mr-1">
+                  CHARGEABLE AGAINST: PSP
+                </span>
                 <span className="w-10 pb-[1px] border-b border-blue-500 text-[9px] font-semibold text-blue-900 text-center">
                   {pspYear}
                 </span>
@@ -517,15 +659,21 @@ export default function CertificateOfEligibility({ applicant }) {
                 <p className="text-[8px] font-bold uppercase text-blue-900 text-center leading-none mb-0">
                   BENEFICIARY/REPRESENTATIVE
                 </p>
-                <p className="text-[6px] text-gray-500 text-center leading-none mt-0">(Signature over Printed Name)</p>
+                <p className="text-[6px] text-gray-500 text-center leading-none mt-0">
+                  (Signature over Printed Name)
+                </p>
               </div>
             </div>
             <div className="text-center">
               <p className="text-[8px] text-blue-700 mb-2">Prepared by:</p>
               <div className="border-t border-blue-500 mb-1"></div>
               <div className="flex flex-col justify-start pt-0.5">
-                <p className="text-[8px] font-bold uppercase text-blue-900 text-center leading-none mb-0">Social Worker</p>
-                <p className="text-[6px] text-gray-500 text-center leading-none mt-0">(Signature over Printed Name)</p>
+                <p className="text-[8px] font-bold uppercase text-blue-900 text-center leading-none mb-0">
+                  Social Worker
+                </p>
+                <p className="text-[6px] text-gray-500 text-center leading-none mt-0">
+                  (Signature over Printed Name)
+                </p>
               </div>
             </div>
             <div className="text-center">
@@ -555,41 +703,115 @@ export default function CertificateOfEligibility({ applicant }) {
                 Assistance Type Received:
               </p>
 
-              <div className="grid grid-cols-3 gap-y-0.5 gap-x-2 text-[9px] font-medium text-black">
+              <div className="grid grid-cols-3 gap-y-1 gap-x-2 text-[8px] font-medium text-black">
                 <div className="flex items-center space-x-1">
-                  <input type="checkbox" id="rec-financial" className={checkboxClass} checked={checkedMainType === "Financial Assistance"} onChange={(e) => handleImageCheckboxChange('main', 'Financial Assistance', e.target.checked)} />
-                  <label htmlFor="rec-financial" className="text-[8px]">Financial Assistance</label>
+                  <input
+                    type="checkbox"
+                    id="rec-financial"
+                    className={checkboxClass}
+                    checked={checkedMainType === "Financial Assistance"}
+                    onChange={e =>
+                      handleImageCheckboxChange(
+                        "main",
+                        "Financial Assistance",
+                        e.target.checked
+                      )
+                    }
+                  />
+                  <label htmlFor="rec-financial" className="text-[8px]">
+                    Financial Assistance
+                  </label>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <input type="checkbox" id="rec-medical" className={checkboxClass} checked={checkedMainType === "Medical Assistance"} onChange={(e) => handleImageCheckboxChange('main', 'Medical Assistance', e.target.checked)} />
-                  <label htmlFor="rec-medical" className="text-[8px]">Medical Assistance</label>
+                  <input
+                    type="checkbox"
+                    id="rec-medical"
+                    className={checkboxClass}
+                    checked={checkedMainType === "Medical Assistance"}
+                    onChange={e =>
+                      handleImageCheckboxChange("main", "Medical Assistance", e.target.checked)
+                    }
+                  />
+                  <label htmlFor="rec-medical" className="text-[8px]">
+                    Medical Assistance
+                  </label>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <input type="checkbox" id="rec-funeral" className={checkboxClass} checked={checkedMainType === "Funeral Assistance"} onChange={(e) => handleImageCheckboxChange('main', 'Funeral Assistance', e.target.checked)} />
-                  <label htmlFor="rec-funeral" className="text-[8px]">Funeral Assistance</label>
+                  <input
+                    type="checkbox"
+                    id="rec-funeral"
+                    className={checkboxClass}
+                    checked={checkedMainType === "Funeral Assistance"}
+                    onChange={e =>
+                      handleImageCheckboxChange("main", "Funeral Assistance", e.target.checked)
+                    }
+                  />
+                  <label htmlFor="rec-funeral" className="text-[8px]">
+                    Funeral Assistance
+                  </label>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <input type="checkbox" id="rec-transportation" className={checkboxClass} checked={checkedSubTypesImage.transportation} onChange={(e) => handleImageCheckboxChange('sub', 'transportation', e.target.checked)} />
-                  <label htmlFor="rec-transportation" className="text-[8px]">Transportation Assistance</label>
+                  <input
+                    type="checkbox"
+                    id="rec-transportation"
+                    className={checkboxClass}
+                    checked={checkedSubTypesImage.transportation}
+                    onChange={e =>
+                      handleImageCheckboxChange("sub", "transportation", e.target.checked)
+                    }
+                  />
+                  <label htmlFor="rec-transportation" className="text-[8px]">
+                    Transportation Assistance
+                  </label>
                 </div>
                 <div></div>
                 <div className="flex items-center space-x-1">
-                  <input type="checkbox" id="rec-cashsupport" className={checkboxClass} checked={checkedSubTypesImage.cashSupport} onChange={(e) => handleImageCheckboxChange('sub', 'cashSupport', e.target.checked)} />
-                  <label htmlFor="rec-cashsupport" className="text-[8px]">Cash Assistance for Support Services</label>
+                  <input
+                    type="checkbox"
+                    id="rec-cashsupport"
+                    className={checkboxClass}
+                    checked={checkedSubTypesImage.cashSupport}
+                    onChange={e =>
+                      handleImageCheckboxChange("sub", "cashSupport", e.target.checked)
+                    }
+                  />
+                  <label htmlFor="rec-cashsupport" className="text-[8px]">
+                    Cash Assistance for Support Services
+                  </label>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <input type="checkbox" id="rec-educational" className={checkboxClass} checked={checkedSubTypesImage.educational} onChange={(e) => handleImageCheckboxChange('sub', 'educational', e.target.checked)} />
-                  <label htmlFor="rec-educational" className="text-[8px]">Educational Assistance</label>
+                  <input
+                    type="checkbox"
+                    id="rec-educational"
+                    className={checkboxClass}
+                    checked={checkedSubTypesImage.educational}
+                    onChange={e =>
+                      handleImageCheckboxChange("sub", "educational", e.target.checked)
+                    }
+                  />
+                  <label htmlFor="rec-educational" className="text-[8px]">
+                    Educational Assistance
+                  </label>
                 </div>
                 <div></div>
                 <div className="flex items-center space-x-1">
-                  <input type="checkbox" id="rec-food" className={checkboxClass} checked={checkedSubTypesImage.food} onChange={(e) => handleImageCheckboxChange('sub', 'food', e.target.checked)} />
-                  <label htmlFor="rec-food" className="text-[8px]">Food Assistance</label>
+                  <input
+                    type="checkbox"
+                    id="rec-food"
+                    className={checkboxClass}
+                    checked={checkedSubTypesImage.food}
+                    onChange={e => handleImageCheckboxChange("sub", "food", e.target.checked)}
+                  />
+                  <label htmlFor="rec-food" className="text-[8px]">
+                    Food Assistance
+                  </label>
                 </div>
               </div>
 
               <div className="flex flex-col justify-end mt-1.5 text-left">
-                <span className="text-blue-700 font-semibold text-[9px] mt-1">In the amount of</span>
+                <span className="text-blue-700 font-semibold text-[9px] mt-1">
+                  In the amount of
+                </span>
                 <div className="flex items-end gap-1">
                   <div className="flex-1 w-full text-blue-900 uppercase bg-transparent text-[9px] font-semibold pb-0.5">
                     {formData.amountWords || ""}
@@ -613,51 +835,58 @@ export default function CertificateOfEligibility({ applicant }) {
                   <p className="text-[8px] font-bold uppercase text-center leading-none mb-0">
                     BENEFICIARY/REPRESENTATIVE
                   </p>
-                  <p className="text-[6px] text-gray-500 text-center leading-none mt-0">(Signature over Printed Name)</p>
+                  <p className="text-[6px] text-gray-500 text-center leading-none mt-0">
+                    (Signature over Printed Name)
+                  </p>
                 </div>
               </div>
               <div className="text-center flex flex-col justify-end">
                 <p className="text-[8px] font-semibold text-blue-700 mb-2">Binayaran ni:</p>
                 <div className="w-full border-b border-blue-500 mb-1"></div>
                 <div className="flex flex-col justify-start pt-0.5">
-                  <p className="text-[8px] font-bold uppercase text-center leading-none mb-0">RDO / SDO</p>
-                  <p className="text-[6px] text-gray-500 text-center leading-none mt-0">(Signature over Printed Name)</p>
+                  <p className="text-[8px] font-bold uppercase text-center leading-none mb-0">
+                    RDO / SDO
+                  </p>
+                  <p className="text-[6px] text-gray-500 text-center leading-none mt-0">
+                    (Signature over Printed Name)
+                  </p>
                 </div>
               </div>
               <div className="text-center flex flex-col justify-end">
                 <p className="text-[8px] font-semibold text-blue-700 mb-2">Sinaksihan ni:</p>
                 <div className="w-full border-b border-blue-500 mb-1"></div>
                 <div className="flex flex-col justify-start pt-0.5">
-                  <p className="text-[8px] font-bold uppercase text-center leading-none mb-0">SWO / ADMIN</p>
-                  <p className="text-[6px] text-gray-500 text-center leading-none mt-0">(Signature over Printed Name)</p>
+                  <p className="text-[8px] font-bold uppercase text-center leading-none mb-0">
+                    SWO / ADMIN
+                  </p>
+                  <p className="text-[6px] text-gray-500 text-center leading-none mt-0">
+                    (Signature over Printed Name)
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="text-gray-500 text-center pt-0 mt-0 overflow-hidden">
-  {/* The scale-y-50 and scale-x-75 transform keeps the footer compact for A4 fit */}
-  <div className="text-[8px] transform scale-y-50 scale-x-75 -translate-y-6 origin-bottom">
-    {/* E.O. NOTE - Inside the scaled block */}
-    <div className="mt-0.5 text-right text-[8px] text-gray-500 mb-1">
-      <p>*E.O 163 series 2022</p>
-    </div>
+            <div className="text-[8px] transform scale-y-50 scale-x-75 -translate-y-6 origin-bottom">
+              <div className="mt-0.5 text-right text-[8px] text-gray-500 mb-1">
+                <p>*E.O 163 series 2022</p>
+              </div>
 
-    <div className="text-center border-t border-blue-100 pt-0 mt-0">
-      <p className="leading-tight mb-0">Page 1 of 1</p>
-      <p className="leading-tight mt-0 mb-0">
-        Field Office IV-A (CALABARZON) Alabang, Muntinlupa, Philippines
-      </p>
-      <p className="leading-tight mt-0">
-        Website: http://www.dswd.gov.ph Tel No: 8842-1430
-      </p>
-    </div>
-  </div>
-</div>
-      
-                          {/* FINAL CLOSING BAR */}
+              <div className="text-center border-t border-blue-100 pt-0 mt-0">
+                <p className="leading-tight mb-0">Page 1 of 1</p>
+                <p className="leading-tight mt-0 mb-0">
+                  Field Office IV-A (CALABARZON) Alabang, Muntinlupa, Philippines
+                </p>
+                <p className="leading-tight mt-0">
+                  Website: http://www.dswd.gov.ph Tel No: 8842-1430
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* FINAL CLOSING BAR */}
           <div className="bg-gradient-to-r from-blue-700 to-blue-900 h-2 mt-2"></div>
-          {/* Note: I adjusted the closing bar to h-2 mt-2 to match the Intakesheet's final bar height/margin for consistency, as the original was h-1 mt-1 which looked too small. */}
         </div>
       </div>
     </div>
