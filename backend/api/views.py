@@ -468,7 +468,7 @@ def list_applicants(request):
     paginator.default_limit = 50
 
     applicants_qs = (
-        Applicant.objects.filter(is_archived=False)
+        Applicant.objects.filter(is_archived=False).all()
         .select_related(
             'background_info',
             'background_info__barangay',
@@ -903,8 +903,18 @@ def applicant_detail(request, applicant_id):
 
     elif request.method == 'PUT':
         serializer = ApplicantSerializer(applicant, data=request.data, context={"request": request})
+        
         if serializer.is_valid():
             serializer.save()
+
+            # 🔥 Reload object to refresh nested relations
+            applicant.refresh_from_db()
+            if applicant.background_info:
+                applicant.background_info.refresh_from_db()
+            if applicant.representative:
+                applicant.representative.refresh_from_db()
+            if applicant.representative and applicant.representative.background_info:
+                applicant.representative.background_info.refresh_from_db()
 
             log_staff_activity(
                 request.user,
@@ -913,15 +923,19 @@ def applicant_detail(request, applicant_id):
                 request
             )
 
-            return Response(serializer.data)
+            # 🔥 Re-serialize fresh object
+            fresh = ApplicantSerializer(applicant, context={"request": request})
+            return Response(fresh.data)
 
-        else:
-            return Response(serializer.errors, status=400)      
+        return Response(serializer.errors, status=400)
+     
 
 
     elif request.method == 'DELETE':
         applicant.is_archived = True
         applicant.save(update_fields=["is_archived"])
+
+        applicant.refresh_from_db()
 
         log_staff_activity(
             request.user,

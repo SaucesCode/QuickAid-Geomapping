@@ -1,4 +1,4 @@
-// PrintCertificate.js — Fixed alignment using modern-screenshot
+// PrintCertificate.js — Complete fixed code with text overlay prevention
 import React, { useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FileDown, Printer, ArrowLeft } from "lucide-react";
@@ -19,7 +19,7 @@ export default function PrintCertificate() {
     if (!element) return alert("Certificate not found");
 
     const buttons = document.querySelectorAll(".no-print");
-    buttons.forEach((btn) => (btn.style.display = "none"));
+    buttons.forEach(btn => (btn.style.display = "none"));
 
     try {
       // Wait for fonts to load
@@ -28,11 +28,11 @@ export default function PrintCertificate() {
       }
 
       // Wait for images to fully load
-      const images = element.querySelectorAll('img');
+      const images = element.querySelectorAll("img");
       await Promise.all(
         Array.from(images).map(img => {
           if (img.complete) return Promise.resolve();
-          return new Promise((resolve) => {
+          return new Promise(resolve => {
             img.onload = resolve;
             img.onerror = resolve;
             setTimeout(resolve, 3000);
@@ -41,31 +41,28 @@ export default function PrintCertificate() {
       );
 
       // Additional delay for complete render
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      console.log('Starting capture with modern-screenshot...');
+      console.log("Starting capture with modern-screenshot...");
 
-      // Capture with modern-screenshot - perfect pixel-for-pixel capture
+      // Capture with modern-screenshot
       const dataUrl = await domToPng(element, {
         quality: 1,
-        scale: 3, // 3x for HD quality
-        backgroundColor: '#ffffff',
+        scale: 3,
+        backgroundColor: "#ffffff",
         style: {
-          // Ensure everything is captured exactly as displayed
-          margin: '0',
+          margin: "0",
           padding: element.style.padding,
         },
-        filter: (node) => {
-          // Exclude no-print elements
+        filter: node => {
           if (node.classList?.contains?.("no-print")) return false;
           if (node.classList?.contains?.("button-wrapper")) return false;
           return true;
         },
       });
 
-      console.log('Capture complete, creating PDF...');
+      console.log("Capture complete, creating PDF...");
 
-      // Create PDF
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -82,32 +79,27 @@ export default function PrintCertificate() {
         setTimeout(reject, 10000);
       });
 
-      console.log('Image loaded:', { width: img.width, height: img.height });
+      console.log("Image loaded:", { width: img.width, height: img.height });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
-      // Calculate dimensions to fit page
       const imgAspect = img.width / img.height;
       const pageAspect = pdfWidth / pdfHeight;
 
       let finalWidth, finalHeight;
 
       if (imgAspect > pageAspect) {
-        // Image is wider - fit to width
         finalWidth = pdfWidth;
         finalHeight = pdfWidth / imgAspect;
       } else {
-        // Image is taller - fit to height
         finalHeight = pdfHeight;
         finalWidth = finalHeight * imgAspect;
       }
 
-      // Center on page
       const xOffset = (pdfWidth - finalWidth) / 2;
       const yOffset = (pdfHeight - finalHeight) / 2;
 
-      // Add image to PDF
       pdf.addImage(img, "PNG", xOffset, yOffset, finalWidth, finalHeight);
 
       const filename = `Certificate_${(applicant.full_name || "Document")
@@ -115,13 +107,13 @@ export default function PrintCertificate() {
         .trim()}.pdf`;
 
       pdf.save(filename);
-      
-      console.log('PDF generated successfully');
+
+      console.log("PDF generated successfully");
     } catch (err) {
       console.error("PDF generation failed:", err);
-      alert(`Failed to generate PDF: ${err.message || 'Unknown error'}`);
+      alert(`Failed to generate PDF: ${err.message || "Unknown error"}`);
     } finally {
-      buttons.forEach((btn) => (btn.style.display = ""));
+      buttons.forEach(btn => (btn.style.display = ""));
     }
   };
 
@@ -217,7 +209,6 @@ export default function PrintCertificate() {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color-adjust: exact !important;
-<<<<<<< HEAD
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
@@ -228,12 +219,35 @@ export default function PrintCertificate() {
             max-width: 100%;
             height: auto;
           }
- zz         
+          
+          /* Fix text overlay in checkboxes */
+          .certificate-container label {
+            display: inline-block;
+            vertical-align: top;
+            line-height: 1.2;
+          }
+
+          .certificate-container input[type="checkbox"],
+          .certificate-container input[type="radio"] {
+            flex-shrink: 0;
+            margin-right: 0.25rem;
+            vertical-align: top;
+          }
+
+          .certificate-container .flex.items-center {
+            align-items: flex-start;
+          }
+
+          /* Ensure proper spacing in grid */
+          .certificate-container .grid {
+            gap: 0.25rem;
+          }
+
           .certificate-container * {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-=======
->>>>>>> 3206257e48a6cad548c5a415042f3914719729b9
+            word-wrap: break-word;
+            overflow-wrap: break-word;
           }
         `}
       </style>
@@ -261,7 +275,6 @@ export default function PrintCertificate() {
           </div>
         </div>
 
-        {/* Buttons at bottom */}
         <div className="button-wrapper no-print">
           <div className="flex justify-center gap-4 max-w-4xl mx-auto">
             <button

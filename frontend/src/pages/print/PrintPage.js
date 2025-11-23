@@ -14,9 +14,9 @@ import {
 } from "../../components/DesignSystem";
 
 const PrintPage = () => {
-    const { state } = useLocation();
-    const navigate = useNavigate();
-    const applicant = state?.applicant;
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  const applicant = state?.applicant;
 
   // Core Logic: Set document title - KEPT UNCHANGED
   useEffect(() => {
