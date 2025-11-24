@@ -2365,3 +2365,17 @@ def available_filters(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+# GET WHO IS LOGIN
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_active_staff(request):
+    staff = CustomUser.objects.filter(is_active=True, is_staff=True).order_by('?').first()
+    if not staff:
+        return Response({"error": "No active staff found"}, status=404)
+    return Response({
+        "id": staff.id,
+        "username": staff.username,
+        "ref_code": staff.ref_code
+    })
+

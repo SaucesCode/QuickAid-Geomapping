@@ -26,6 +26,7 @@ urlpatterns = [
     path("contact-admin/", contact_admin, name="contact_admin"),
     path("support-messages/", list_support_messages, name="support_messages"),
     path("support-messages/<int:message_id>/resolve/", resolve_support_message, name="resolve_support_message"),
+    path("get-active-staff/", get_active_staff, name="get_active_staff"),
 
     # =============================================
     # APPLICANT MANAGEMENT

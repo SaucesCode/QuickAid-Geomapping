@@ -415,12 +415,15 @@ const MapComponent = () => {
             </div>
 
             <div
-              className={`bg-white rounded-xl shadow-md border border-blue-100 overflow-hidden transition-all duration-300 ${
+              className={`bg-white rounded-xl shadow-md border border-blue-100 transition-all duration-300 ${
                 panelOpen
-                  ? "p-4 max-h-[calc(100vh-3rem)] opacity-100"
-                  : "max-h-0 opacity-0 p-0"
+                  ? "p-4 max-h-[calc(100vh-8rem)] opacity-100 overflow-y-auto"
+                  : "max-h-0 opacity-0 p-0 overflow-hidden"
               }`}
-              style={{ scrollbarWidth: "thin", scrollbarColor: "#93c5fd transparent" }}
+              style={{
+                scrollbarWidth: "thin",
+                scrollbarColor: "#3b82f6 #e5e7eb",
+              }}
             >
               {/* Header */}
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-blue-100">
