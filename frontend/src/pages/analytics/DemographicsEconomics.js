@@ -398,30 +398,10 @@ const DemographicsEconomics = () => {
                   <YAxis tick={{ fill: "#4b5563" }} />
                   <Tooltip />
                   <Legend />
-                  <Bar
-                    dataKey="Under 18"
-                    stackId="a"
-                    fill={COLOR_PRIMARY}
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="18-35"
-                    stackId="a"
-                    fill={COLOR_SECONDARY}
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="36-60"
-                    stackId="a"
-                    fill={COLOR_TERTIARY}
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="Over 60"
-                    stackId="a"
-                    fill={COLOR_ACCENT}
-                    radius={[4, 4, 0, 0]}
-                  />
+                  <Bar dataKey="Under 18" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="18-35" stackId="a" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="36-60" stackId="a" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Over 60" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>

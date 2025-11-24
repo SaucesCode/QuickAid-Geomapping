@@ -101,6 +101,18 @@ class Applicant(models.Model):
     created_at = models.DateTimeField(null=True, blank=True)
     is_archived = models.BooleanField(default=False)
 
+    class Meta:
+        # Add these indexes for faster queries
+        indexes = [
+            models.Index(fields=['latitude', 'longitude'], name='lat_lng_idx'),
+            models.Index(fields=['type_of_assistance'], name='type_assist_idx'),
+            models.Index(fields=['is_archived', 'date_filled'], name='archived_date_idx'),
+            models.Index(fields=['-date_filled'], name='date_filled_desc_idx'),
+        ]
+        
+        # If you want to be extra optimized, add this:
+        ordering = ['-date_filled']
+
 
     def save(self, *args, **kwargs):
         if not self.latitude or not self.longitude:

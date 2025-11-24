@@ -47,20 +47,24 @@ import {
 } from "../../components/AnalyticsComponents";
 
 // Color Constants
-const BLUE_DARK = "#1D4ED8";
 const BLUE_MEDIUM = "#3B82F6";
 const DANGER_RED = "#EF4444";
 const SUCCESS_GREEN = "#10B981";
 const WARNING_YELLOW = "#FACC15";
-const TEAL = "#14B8A6";
-const PURPLE = "#8B5CF6";
-const ORANGE = "#F97316";
-const GRAY_OUT = "#E5E7EB";
 const EDUCATION_GREEN = SUCCESS_GREEN;
 const MEDICALS_BLUE = BLUE_MEDIUM;
 const BURIAL_YELLOW = "#FDE68A";
 
-const CHART_COLORS = [TEAL, PURPLE, GRAY_OUT, ORANGE, GRAY_OUT, BLUE_DARK, DANGER_RED];
+const CHART_COLORS = [
+  "#1D4ED8", // Blue
+  "#3B82F6", // Light Blue
+  "#10B981", // Green
+  "#F59E0B", // Amber
+  "#EF4444", // Red
+  "#8B5CF6", // Purple
+  "#14B8A6", // Teal
+  "#F97316", // Orange
+];
 
 const getProductivityColor = count => {
   if (count > 50) return BLUE_MEDIUM;
@@ -339,6 +343,7 @@ const Performance = () => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
+                    nameKey="bucket"
                     label={({ bucket, percent }) =>
                       `${bucket ?? ""} (${(percent * 100).toFixed(0)}%)`
                     }
