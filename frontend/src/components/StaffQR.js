@@ -1,8 +1,12 @@
+import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { getStaffFormLink } from "../utils/StaffUtils";
 
 const StaffQR = () => {
-  const staffLink = getStaffFormLink();
+  const [staffLink, setStaffLink] = useState(null);
+  useEffect(() => {
+    getStaffFormLink().then(setStaffLink);
+  }, []);
 
   if (!staffLink) {
     return (
