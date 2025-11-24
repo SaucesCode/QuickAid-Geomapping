@@ -1,14 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  Circle,
-  GeoJSON,
-  useMap,
-} from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { api } from "../../services/api";
@@ -58,7 +51,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 // Default center (Quezon Province)
 const defaultCenter = [13.918, 121.575];
 
-// Colors (UNCHANGED as per request)
+// Colors
 const assistanceColors = {
   Medical: "blue",
   Burial: "#fef08a",
@@ -85,7 +78,7 @@ const MapBounds = ({ cityGeoData }) => {
       } catch (err) {
         console.error("Error setting bounds:", err);
       }
-    }, 50); // short delay ensures old layer is cleared first
+    }, 50);
 
     return () => clearTimeout(timeout);
   }, [cityGeoData, map]);
@@ -102,6 +95,7 @@ const MapComponent = () => {
   const [mapCenter] = useState(defaultCenter);
   const [panelOpen, setPanelOpen] = useState(true);
   const [resetTrigger, setResetTrigger] = useState(false);
+  const [clusterEnabled, setClusterEnabled] = useState(true);
   const togglePanel = () => setPanelOpen(prev => !prev);
   const getColor = type => assistanceColors[type] || "#f87171";
   const resetFilters = () => {
@@ -119,56 +113,39 @@ const MapComponent = () => {
     document.title = "QuickAid | Geolocation Map";
   }, []);
 
-  /// React Query for ALL Locations (for barangay list)
-  const { data: allLocationsData } = useQuery({
+  // React Query for ALL Locations (loaded once, filtered client-side)
+  const { data: allLocationsData, isLoading: isLoadingLocations } = useQuery({
     queryKey: ["allLocations"],
     queryFn: async () => {
-      const res = await api.get("/applicant-locations/");
+      const res = await api.get("/applicant-locations/", {
+        params: { limit: 2000 },
+      });
       return res.data.filter(loc => loc.latitude && loc.longitude && !isNaN(loc.latitude));
     },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 15 * 60 * 1000, // Cache for 15 minutes
+    cacheTime: 30 * 60 * 1000,
   });
 
-  // React Query for Filtered Locations
-  const {
-    data: locations = [],
-    isFetching: isLocationLoading,
-    refetch: refetchLocations,
-  } = useQuery({
-    queryKey: ["locations", typeFilter, cityFilter, barangayFilter],
-    queryFn: async () => {
-      const res = await api.get("/applicant-locations/", {
-        params: { type: typeFilter, city: cityFilter, barangay: barangayFilter },
-      });
-      const data = res.data;
+  // Client-side filtering (instant performance)
+  const filteredLocations = useMemo(() => {
+    if (!allLocationsData) return [];
 
-      // Filter valid coordinates
-      const valid = data.filter(loc => loc.latitude && loc.longitude && !isNaN(loc.latitude));
+    return allLocationsData.filter(loc => {
+      if (typeFilter && loc.type_of_assistance !== typeFilter) return false;
+      if (cityFilter && loc.city !== cityFilter) return false;
+      if (barangayFilter && loc.barangay !== barangayFilter) return false;
+      return true;
+    });
+  }, [allLocationsData, typeFilter, cityFilter, barangayFilter]);
 
-      // Add marker offsets
-      const offsets = {};
-      valid.forEach(loc => {
-        const key = loc.id || loc.full_name;
-        offsets[key] = {
-          latOffset: (Math.random() - 0.5) * 0.0001,
-          lngOffset: (Math.random() - 0.5) * 0.0001,
-        };
-      });
-
-      // Compute type counts
-      const typeCounts = {};
-      assistanceTypes.forEach(t => {
-        typeCounts[t] = valid.filter(l => l.type_of_assistance === t).length;
-      });
-
-      return { valid, offsets, typeCounts };
-    },
-    staleTime: 0,
-  });
-
-  const validLocations = locations?.valid || [];
-  const markerOffsets = locations?.offsets || {};
-  const stats = locations?.typeCounts || {};
+  // Calculate stats from filtered data
+  const stats = useMemo(() => {
+    const counts = {};
+    assistanceTypes.forEach(t => {
+      counts[t] = filteredLocations.filter(l => l.type_of_assistance === t).length;
+    });
+    return counts;
+  }, [filteredLocations]);
 
   const { data: geoData, isFetching: isAllGeoLoading } = useQuery({
     queryKey: ["allCitiesGeoData"],
@@ -198,12 +175,10 @@ const MapComponent = () => {
     useEffect(() => {
       if (!cityGeoData) return;
 
-      // Create the GeoJSON layer
       const layer = L.geoJSON(cityGeoData, {
         style: { color: "#3b82f6", weight: 3, fillOpacity: 0.15 },
       }).addTo(map);
 
-      // Fit map bounds - removed maxZoom to let it auto-fit perfectly
       const bounds = layer.getBounds();
       if (bounds.isValid()) {
         map.fitBounds(bounds.pad(0.1), {
@@ -213,7 +188,6 @@ const MapComponent = () => {
         });
       }
 
-      // Cleanup previous layer when city changes
       return () => {
         map.removeLayer(layer);
       };
@@ -229,7 +203,6 @@ const MapComponent = () => {
     useEffect(() => {
       if (!barangayFilter || locations.length === 0) return;
 
-      // Get all marker positions for the selected barangay
       const positions = locations.map(loc => [loc.latitude, loc.longitude]);
 
       if (positions.length > 0) {
@@ -253,7 +226,6 @@ const MapComponent = () => {
       .map(loc => loc.barangay);
     setAvailableBarangays([...new Set(brgys)].sort());
 
-    // Reset barangay filter when city changes
     setBarangayFilter("");
   }, [allLocationsData, cityFilter]);
 
@@ -266,19 +238,70 @@ const MapComponent = () => {
           animate: true,
         });
       }
-    }, [trigger]);
+    }, [trigger, map]);
 
     return null;
   };
 
+  // Custom cluster icon creator
+  const createClusterCustomIcon = cluster => {
+    const markers = cluster.getAllChildMarkers();
+    const typeCounts = {};
+
+    markers.forEach(m => {
+      const type = m.options.assistanceType;
+      typeCounts[type] = (typeCounts[type] || 0) + 1;
+    });
+
+    // Determine dominant type
+    const dominantType = Object.keys(typeCounts).reduce((a, b) =>
+      typeCounts[a] > typeCounts[b] ? a : b
+    );
+
+    const color = getColor(dominantType);
+    const count = markers.length;
+
+    return L.divIcon({
+      html: `
+        <div style="
+          background: ${color};
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 14px;
+          border: 3px solid white;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        ">
+          ${count}
+        </div>
+      `,
+      className: "custom-cluster-icon",
+      iconSize: L.point(40, 40, true),
+    });
+  };
+
   return (
-    // Updated background to a softer monochromatic blue gradient
     <div className="relative w-full h-full bg-gradient-to-br from-blue-50 via-blue-50 to-blue-100 overflow-hidden">
       <style>{`
         .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         .leaflet-container { z-index: 0 !important; }
+        .custom-cluster-icon { background: transparent !important; border: none !important; }
       `}</style>
+
+      {isLoadingLocations && (
+        <div className="absolute inset-0 bg-blue-900/80 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-lg p-6 shadow-2xl flex flex-col items-center gap-3">
+            <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+            <span className="text-blue-900 font-semibold text-lg">Loading map data...</span>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col h-full">
         <div className="relative flex-1">
@@ -291,7 +314,7 @@ const MapComponent = () => {
             scrollWheelZoom={true}
           >
             <MapReset trigger={resetTrigger} />
-            <BarangayZoom locations={validLocations} barangayFilter={barangayFilter} />
+            <BarangayZoom locations={filteredLocations} barangayFilter={barangayFilter} />
             <TileLayer
               attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -301,6 +324,7 @@ const MapComponent = () => {
               attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
               url="https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
             />
+
             {isAllGeoLoading && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[999]">
                 <Loader2 className="w-10 h-10 text-blue-400 animate-spin" />
@@ -309,30 +333,39 @@ const MapComponent = () => {
                 </span>
               </div>
             )}
+
             <MapBounds cityGeoData={cityGeoData} />
+
             {geoData && (
               <GeoJSON
                 data={geoData}
                 style={{ color: "#3b82f6", weight: 2, fillOpacity: 0.05 }}
               />
             )}
+
             {cityGeoData && <CityPolygon cityGeoData={cityGeoData} />}
-            {validLocations.map((loc, i) => {
-              const key = loc.id || loc.full_name;
-              const offset = markerOffsets[key] || { latOffset: 0, lngOffset: 0 };
-              return (
-                <React.Fragment key={key || i}>
+
+            {clusterEnabled ? (
+              <MarkerClusterGroup
+                chunkedLoading
+                iconCreateFunction={createClusterCustomIcon}
+                maxClusterRadius={80}
+                spiderfyOnMaxZoom={true}
+                showCoverageOnHover={false}
+                zoomToBoundsOnClick={true}
+                animate={true}
+                animateAddingMarkers={true}
+              >
+                {filteredLocations.map(loc => (
                   <Marker
-                    position={[
-                      loc.latitude + offset.latOffset,
-                      loc.longitude + offset.lngOffset,
-                    ]}
+                    key={loc.id}
+                    position={[loc.latitude, loc.longitude]}
                     icon={createColoredIcon(getColor(loc.type_of_assistance))}
+                    assistanceType={loc.type_of_assistance}
                   >
                     <Popup>
                       <div className="p-2">
                         <h3 className="font-semibold text-blue-700 mb-1">{loc.full_name}</h3>
-                        {/* Changed text-gray-600 to text-blue-600 for monochromatic theme */}
                         <p className="text-sm text-blue-600 mb-2">{loc.address}</p>
                         <span
                           className="inline-block px-2 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
@@ -343,21 +376,30 @@ const MapComponent = () => {
                       </div>
                     </Popup>
                   </Marker>
-                  <Circle
-                    center={[
-                      loc.latitude + offset.latOffset,
-                      loc.longitude + offset.lngOffset,
-                    ]}
-                    radius={40}
-                    pathOptions={{
-                      color: getColor(loc.type_of_assistance),
-                      fillOpacity: 0.3,
-                      weight: 2,
-                    }}
-                  />
-                </React.Fragment>
-              );
-            })}
+                ))}
+              </MarkerClusterGroup>
+            ) : (
+              filteredLocations.map(loc => (
+                <Marker
+                  key={loc.id}
+                  position={[loc.latitude, loc.longitude]}
+                  icon={createColoredIcon(getColor(loc.type_of_assistance))}
+                >
+                  <Popup>
+                    <div className="p-2">
+                      <h3 className="font-semibold text-blue-700 mb-1">{loc.full_name}</h3>
+                      <p className="text-sm text-blue-600 mb-2">{loc.address}</p>
+                      <span
+                        className="inline-block px-2 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
+                        style={{ backgroundColor: getColor(loc.type_of_assistance) }}
+                      >
+                        {loc.type_of_assistance}
+                      </span>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))
+            )}
           </MapContainer>
 
           {/* ========== COLLAPSIBLE TOP-RIGHT PANEL ========== */}
@@ -378,6 +420,7 @@ const MapComponent = () => {
                   ? "p-4 max-h-[calc(100vh-3rem)] opacity-100"
                   : "max-h-0 opacity-0 p-0"
               }`}
+              style={{ scrollbarWidth: "thin", scrollbarColor: "#93c5fd transparent" }}
             >
               {/* Header */}
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-blue-100">
@@ -392,6 +435,37 @@ const MapComponent = () => {
 
               {/* Filters */}
               <div className="space-y-3 text-sm">
+                {/* Cluster Toggle */}
+                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`p-1.5 rounded-lg ${
+                        clusterEnabled ? "bg-blue-500" : "bg-gray-400"
+                      } transition-colors`}
+                    >
+                      <MapIcon className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">Cluster Mode</p>
+                      <p className="text-xs text-gray-500">
+                        {clusterEnabled ? "Groups nearby markers" : "Shows all pins"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setClusterEnabled(!clusterEnabled)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      clusterEnabled ? "bg-blue-600" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        clusterEnabled ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+
                 {/* Type Filter */}
                 <div className="flex flex-col">
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
@@ -563,7 +637,7 @@ const MapComponent = () => {
                       <MapIcon className="w-4 h-4" />
                       <p className="text-xs font-semibold opacity-90">Total Locations</p>
                     </div>
-                    <p className="text-2xl font-bold">{validLocations.length}</p>
+                    <p className="text-2xl font-bold">{filteredLocations.length}</p>
                   </div>
                 </div>
 

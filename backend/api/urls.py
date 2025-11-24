@@ -89,7 +89,7 @@ urlpatterns = [
     path("analytics/trends/over-time/", trends_over_time, name="analytics-trends-over"),
     path("analytics/trends/cumulative/", cumulative_applicants, name="analytics-trends-cumulative"),
     path("analytics/trends/assistance-type/", assistance_type_trend, name="analytics-trends-type"),
-    path("analytics/trends/assistance-type-trend/", assistance_type_linetrend, name="analytics-trends-type"),
+    path("analytics/trends/assistance-type-trend/", assistance_type_linetrend, name="analytics-trends-type-line"),
     path("analytics/trends/assistance-type-over-time/", assistance_type_over_time, name="analytics-trends-type-over"),
     path("analytics/trends/applicant-heatmap/", applicant_activity_heatmap, name="applicant_heatmap"),
 

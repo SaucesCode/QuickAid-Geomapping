@@ -8,6 +8,7 @@ import numpy as np
 import base64
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta, date
+from django.core.cache import cache
 
 # Django
 from django.contrib.auth import get_user_model
@@ -1016,17 +1017,45 @@ def restore_archived_applicant(request, pk):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_applicant_locations(request):
-    type_filter = request.GET.get("type")
-    city_filter = request.GET.get("city")
-    barangay_filter = request.GET.get("barangay")
+    """
+    Optimized endpoint for retrieving applicant locations with clustering support.
+    Uses Django cache to minimize database hits.
+    """
+    
+    # Get filter parameters (used for cache key)
+    type_filter = request.GET.get("type", "")
+    city_filter = request.GET.get("city", "")
+    barangay_filter = request.GET.get("barangay", "")
+    
+    # Get limit with protection
+    try:
+        limit = int(request.GET.get("limit", 2000))
+        if limit > 2000:  # Protect server from excessive requests
+            limit = 2000
+    except ValueError:
+        limit = 2000
 
-    applicants = Applicant.objects.select_related(
+    # Create cache key based on filters
+    cache_key = f"applicant_locations_{type_filter}_{city_filter}_{barangay_filter}_{limit}"
+    
+    # Try to get from cache first
+    cached_data = cache.get(cache_key)
+    if cached_data is not None:
+        return JsonResponse(cached_data, safe=False)
+
+    # Query database if not in cache
+    applicants = Applicant.objects.exclude(
+        latitude__isnull=True, 
+        longitude__isnull=True
+    ).select_related(
         'background_info',
         'background_info__barangay',
         'background_info__barangay__city'
-    ).exclude(latitude__isnull=True, longitude__isnull=True).filter(is_archived=False)
+    ).filter(
+        is_archived=False
+    )
 
-
+    # Apply filters
     if type_filter:
         applicants = applicants.filter(type_of_assistance=type_filter)
     if city_filter:
@@ -1034,23 +1063,16 @@ def get_applicant_locations(request):
     if barangay_filter:
         applicants = applicants.filter(background_info__barangay__name=barangay_filter)
 
-    # ✅ Optional: limit results for performance (configurable via ?limit=)
-    try:
-        limit = int(request.GET.get("limit", 500))
-        if limit > 2000:  # protect the server
-            limit = 2000
-    except ValueError:
-        limit = 500
-
+    # Order and limit
     applicants = applicants.order_by("-date_filled")[:limit]
 
-    # ✅ Use list comprehension for clean structure
+    # Build response data
     data = [
         {
             "id": app.id,
             "full_name": f"{app.background_info.first_name} {app.background_info.last_name}",
-            "latitude": app.latitude,
-            "longitude": app.longitude,
+            "latitude": float(app.latitude),
+            "longitude": float(app.longitude),
             "address": f"{app.background_info.street_address}, "
                        f"{app.background_info.barangay.name}, "
                        f"{app.background_info.barangay.city.name}",
@@ -1060,6 +1082,9 @@ def get_applicant_locations(request):
         }
         for app in applicants
     ]
+
+    # Cache for 15 minutes
+    cache.set(cache_key, data, 60 * 15)
 
     return JsonResponse(data, safe=False)
 
@@ -1367,7 +1392,7 @@ def top_barangays(request):
     """
     base_qs = Applicant.objects.select_related(
         "barangay_info",
-        "barangay_info__barangay__name",
+        "barangay_info__barangay",
         "barangay_info__barangay__city",
     ).filter(is_archived=False)
 
