@@ -155,7 +155,7 @@ const Sidebar = () => {
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-screen flex flex-col bg-gray-800 border-r border-gray-700 transition-all duration-300 ease-in-out z-50
-    ${collapsed ? "w-[4vw] min-w-[60px]" : "w-[15vw] min-w-[200px] max-w-[280px]"}
+    ${collapsed ? "w-14 sm:w-16" : "w-48 sm:w-56 md:w-60 lg:w-64"}
     ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
   `}
       >
@@ -635,26 +635,26 @@ const Sidebar = () => {
       {/* Main Content */}
       <main
         className={`flex-1 transition-all duration-300 ${
-          collapsed ? "md:ml-[4vw] ml-[4vw]" : "md:ml-[15vw] ml-[15vw]"
-        } z-30`}
+          collapsed ? "md:ml-14 lg:ml-16" : "md:ml-48 lg:ml-56 xl:ml-60 2xl:ml-64"
+        }`}
       >
         {/* Header */}
-        <header className="sticky top-0 z-[100] flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
-          <div className="sticky flex items-center gap-4 z-50">
+        <header className="sticky top-0 z-[100] flex items-center justify-between bg-white border-b border-gray-200 px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 shadow-sm">
+          <div className="flex items-center gap-4">
             {/* Mobile Menu Button (Remains) */}
             <button className="text-gray-600 md:hidden" onClick={toggleMobileMenu}>
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
             {/* The main title/page name */}
-            <h1 className="text-xl font-bold text-gray-900">{getPageTitle()}</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900">{getPageTitle()}</h1>
           </div>
 
           <div className="flex items-center gap-3"></div>
         </header>
 
         {/* Page Content */}
-        <div className="p-6">
+        <div className="px-2 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16 py-3 sm:py-4 md:py-5">
           <Outlet context={{ isSidebarMinimized: collapsed }} />
         </div>
       </main>

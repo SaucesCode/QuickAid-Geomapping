@@ -1,10 +1,10 @@
-// File: frontend/src/forms/PreviewStep.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { submitApplicant } from "../../services/api";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
 import { useQueryClient } from "@tanstack/react-query";
+import { formatDate } from "../../utils/FormatDate";
 
 const PreviewStep = ({ formData, prevStep, staffRef }) => {
   const queryClient = useQueryClient();
@@ -12,6 +12,8 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [errorModal, setErrorModal] = useState({ show: false, message: "" });
   const [cancelModal, setCancelModal] = useState({ show: false });
+  const [showConfirmModal, setShowConfirmModal] = useState(false); // Add this
+  const [confirmChecked, setConfirmChecked] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async e => {
@@ -62,6 +64,17 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleConfirmedSubmit = async () => {
+    setShowConfirmModal(false);
+    setConfirmChecked(false);
+    await handleSubmit({ preventDefault: () => {} });
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmModal(false);
+    setConfirmChecked(false);
   };
 
   const handleBack = () => {
@@ -168,7 +181,7 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
                     Birthday
                   </div>
                   <div className="text-base font-medium text-gray-800">
-                    {formData.birthday}
+                    {formatDate(formData.birthday)}
                   </div>
                 </div>
                 <div className="space-y-1">
@@ -455,8 +468,8 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
                 <span className="ml-2">Back</span>
               </button>
               <button
-                type="submit"
-                onClick={handleSubmit}
+                type="button"
+                onClick={() => setShowConfirmModal(true)}
                 // w-full on mobile, sm:w-auto on desktop, order-first on mobile
                 className={`group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl px-6 py-2.5 inline-flex items-center justify-center w-full sm:w-auto gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed text-base sm:text-sm sm:order-none order-first ${
                   !isSubmitting ? "hover:scale-[1.02] active:scale-[0.98]" : ""
@@ -495,7 +508,7 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
                   </>
                 ) : (
                   <>
-                    <span className="mr-1">Submit Application</span>
+                    <span className="mr-1 text-white">Submit Application</span>
                     <svg
                       className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1"
                       fill="none"
@@ -525,33 +538,126 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
         </div>
       </div>
 
-      {/* Error Modal (Reduced Header Size) */}
-      {errorModal.show && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full transform animate-scale-in">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 text-red-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-scale-in">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white">Confirm Submission</h3>
               </div>
-              <h3 className="text-xl font-bold text-gray-800">Error</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed">{errorModal.message}</p>
-            <div className="flex justify-end">
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <p className="text-gray-700 mb-4 leading-relaxed">
+                Please confirm that all information provided is accurate and correct before
+                submitting.
+              </p>
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                Pakikumpirma na ang lahat ng impormasyong ibinigay ay tumpak at tama bago
+                magsumite.
+              </p>
+
+              {/* Confirmation Checkbox */}
+              <label className="flex items-start gap-3 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={confirmChecked}
+                  onChange={e => setConfirmChecked(e.target.checked)}
+                  className="w-5 h-5 text-blue-500 rounded focus:ring-2 focus:ring-blue-500 mt-0.5"
+                />
+                <span className="text-sm text-gray-700 font-medium">
+                  I confirm that all information is accurate
+                  <br />
+                  <span className="text-gray-600">
+                    Kinukumpirma ko na ang lahat ng impormasyon ay tumpak
+                  </span>
+                </span>
+              </label>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex gap-3 px-6 pb-6">
               <button
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl px-5 py-2.5 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-red-500/30 text-sm"
+                type="button"
+                onClick={handleCancelConfirm}
+                className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmedSubmit}
+                disabled={!confirmChecked}
+                className={`flex-1 px-4 py-2.5 font-semibold rounded-xl transition-all duration-200 ${
+                  confirmChecked
+                    ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-[1.02] active:scale-95"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal (Reduced Header Size) */}
+      {/* Error Modal */}
+      {errorModal.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-scale-in">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white">Submission Error</h3>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                {errorModal.message}
+              </p>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end px-6 pb-6">
+              <button
+                type="button"
                 onClick={() => setErrorModal({ show: false, message: "" })}
+                className="px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-95 shadow-lg shadow-red-500/30"
               >
                 OK
               </button>
@@ -560,41 +666,56 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
         </div>
       )}
 
-      {/* Cancel Confirmation Modal (Reduced Header Size) */}
+      {/* Cancel Confirmation Modal */}
       {cancelModal.show && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full transform animate-scale-in">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 text-amber-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-scale-in">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-400 to-blue-500 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M11 17l-5-5m0 0l5-5m-5 5h12"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white">Go Back?</h3>
               </div>
-              <h3 className="text-xl font-bold text-gray-800">Confirm Cancellation</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-              Are you sure you want to go back? Any unsaved changes will be lost.
-            </p>
-            <div className="flex justify-end gap-3">
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <p className="text-gray-700 mb-3 leading-relaxed">
+                Are you sure you want to go back? You can still review your information.
+              </p>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Sigurado ka bang gusto mong bumalik? Maaari mo pa ring suriin ang iyong
+                impormasyon.
+              </p>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex gap-3 px-6 pb-6">
               <button
-                className="bg-white hover:bg-gray-100 text-gray-700 font-semibold border-2 border-gray-200 rounded-xl px-5 py-2.5 transition-all duration-200 hover:scale-105 active:scale-95 text-sm"
+                type="button"
                 onClick={() => setCancelModal({ show: false })}
+                className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-95"
               >
                 No, Stay Here
               </button>
               <button
-                className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-semibold rounded-xl px-5 py-2.5 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-teal-500/30 text-sm"
+                type="button"
                 onClick={confirmCancel}
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-95 shadow-lg shadow-blue-400/30"
               >
                 Yes, Go Back
               </button>

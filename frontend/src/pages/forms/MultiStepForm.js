@@ -1,10 +1,10 @@
-// File: frontend/src/forms/MultiStepForm.js (Steps are "Out of the Box")
 import React, { useState, useEffect, useCallback } from "react";
 import Step1 from "./Step1";
 import Step2 from "./Step2";
 import Step3 from "./Step3";
 import PreviewStep from "./PreviewStep";
 import { useNavigate } from "react-router-dom";
+import quickAidLogo from "../../assets/quickaid-text.png";
 
 const initialFormData = {
   // Step 1
@@ -129,21 +129,38 @@ const MultiStepForm = () => {
     <div className="relative w-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       {/* Unified Sticky Header (Title and Cancel) */}
       <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-800">Applicant Registration</h1>
+        {/* The main container now uses flex-col on mobile and switches to flex-row on 'sm' screens (usually 640px and up) */}
+        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between">
+          {/* 1. Logo and Title Container 
+      On mobile, we make this container take up the full width (w-full) and use flex-col.
+    */}
+          <div className="flex flex-col w-full sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+            {/* QuickAid Logo - This is the FIRST element in the mobile column stack */}
+            <div className="flex items-center gap-3 w-full sm:w-auto mb-2 sm:mb-0">
+              <img src={quickAidLogo} alt="QuickAid" className="h-6 w-auto" />
+            </div>
+
+            {/* Applicant Registration Title - This is the SECOND element in the mobile column stack (the bottom text) */}
+            <h1 className="text-xl font-bold text-gray-800 border-t border-gray-100 pt-2 sm:border-none sm:pt-0">
+              Applicant Registration
+            </h1>
+          </div>
+
           <button
             onClick={handleCancel}
-            className="px-3 py-1.5 text-sm bg-red-50 text-red-600 font-semibold rounded-md border border-red-200 hover:bg-red-100 transition-all duration-200"
+            className="absolute top-3 right-4 sm:relative sm:top-auto sm:right-auto px-3 py-1.5 text-sm bg-red-50 text-red-600 font-semibold rounded-md border border-red-200 hover:bg-red-100 transition-all duration-200"
           >
             Cancel
           </button>
         </div>
       </div>
+
       {/* END: Unified Sticky Header */}
 
       {/* NEW: Step Indicator (Out of the box and sticky below the header) */}
-      <div className="sticky top-[58px] z-40 bg-gray-50/90 py-4 shadow-inner">
-        <div className="flex items-center justify-center bg-white p-4 rounded-xl shadow-md border border-gray-100">
+      {/* Step Indicator */}
+      <div className="sticky top-[72px] z-40 bg-gray-50/90 py-4 shadow-inner">
+        <div className="max-w-10xl mx-auto flex items-center justify-center bg-white p-4 shadow-md border border-gray-100">
           {[1, 2, 3, 4].map(stepNum => (
             <React.Fragment key={stepNum}>
               <div className="flex flex-col items-center">
@@ -186,6 +203,7 @@ const MultiStepForm = () => {
           ))}
         </div>
       </div>
+
       {/* END: New Step Indicator */}
 
       {/* Main Content */}
@@ -193,27 +211,59 @@ const MultiStepForm = () => {
         {StepComponent && <StepComponent {...stepProps} />}
       </div>
 
-      {/* Cancel Modal - Retained structure */}
+      {/* Cancel Modal */}
       {cancelModal.show && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl w-11/12 max-w-xs p-5">
-            <h2 className="text-lg font-bold text-gray-800 text-center mb-2">
-              Cancel Application?
-            </h2>
-            <p className="text-gray-600 text-center mb-4 text-xs">
-              All entered information will be{" "}
-              <span className="font-bold text-red-600">permanently lost</span>.
-            </p>
-            <div className="flex gap-2">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-amber-300 to-amber-400 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white">Cancel Application?</h3>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <p className="text-gray-700 mb-3 leading-relaxed">
+                All entered information will be{" "}
+                <span className="font-bold text-amber-600">permanently lost</span>. Are you
+                sure you want to cancel?
+              </p>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Ang lahat ng impormasyong inilagay ay{" "}
+                <span className="font-bold text-amber-600">permanenteng mawawala</span>.
+                Sigurado ka bang gusto mong magkansel?
+              </p>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex gap-3 px-6 pb-6">
               <button
+                type="button"
                 onClick={closeCancelModal}
-                className="flex-1 px-3 py-1.5 text-sm rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold"
+                className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-95"
               >
                 No, Keep Editing
               </button>
               <button
+                type="button"
                 onClick={confirmCancel}
-                className="flex-1 px-3 py-1.5 text-sm rounded-lg bg-white hover:bg-gray-50 text-gray-700 font-semibold border border-gray-200"
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-amber-300 to-amber-400 hover:from-amber-400 hover:to-amber-500 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-95 shadow-lg shadow-amber-300/30"
               >
                 Yes, Cancel
               </button>

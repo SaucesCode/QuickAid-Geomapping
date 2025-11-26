@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FileDown, ArrowLeft, ClipboardList, Award, AlertTriangle } from "lucide-react";
+import { formatDate } from "../../utils/FormatDate";
 
 import logo from "../../assets/quickaid-text.png";
 
@@ -43,9 +44,12 @@ const PrintPage = () => {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* REDESIGNED: Top Navigation Bar */}
         <div className="flex justify-between items-center">
-          <OutlineButton onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-4 h-4" /> Back
-          </OutlineButton>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 text-base bg-white text-gray-700 font-semibold rounded-lg border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 inline-flex items-center gap-2 shadow-sm"
+          >
+            <ArrowLeft className="w-5 h-5" /> Fill Another Form
+          </button>
           <img src={logo} alt="QuickAid Logo" className="w-28 opacity-90" />
         </div>
 
@@ -66,7 +70,7 @@ const PrintPage = () => {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="font-semibold text-gray-600">Generated:</span>
-                  <span className="text-gray-800">{new Date().toLocaleDateString()}</span>
+                  <span className="text-gray-800">{formatDate(new Date())}</span>
                 </div>
               </div>
             </div>

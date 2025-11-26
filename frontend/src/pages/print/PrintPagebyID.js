@@ -20,6 +20,7 @@ import {
   OutlineButton,
   LoadingState,
 } from "../../components/DesignSystem";
+import { formatDate } from "../../utils/FormatDate";
 
 export default function PrintPageById() {
   const navigate = useNavigate();
@@ -108,9 +109,12 @@ export default function PrintPageById() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* REDESIGNED: Top Navigation Bar */}
         <div className="flex justify-between items-center">
-          <OutlineButton onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-4 h-4" /> Back
-          </OutlineButton>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 text-base bg-white text-gray-700 font-semibold rounded-lg border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 inline-flex items-center gap-2 shadow-sm"
+          >
+            <ArrowLeft className="w-5 h-5" /> Back
+          </button>
           <img src={logo} alt="QuickAid Logo" className="w-28 opacity-90" />
         </div>
 
@@ -131,7 +135,7 @@ export default function PrintPageById() {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="font-semibold text-blue-700">Generated:</span>
-                  <span className="text-gray-800">{new Date().toLocaleDateString()}</span>
+                  <span className="text-gray-800">{formatDate(new Date())}</span>
                 </div>
               </div>
             </div>
@@ -193,16 +197,6 @@ export default function PrintPageById() {
 
         {/* REDESIGNED: Footer with Warning */}
         <div className="space-y-3">
-          {/* Small Warning Alert */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-yellow-800">
-              <span className="font-semibold">Important:</span> These documents are only
-              accessible during this session. Please download or print all required documents
-              before leaving this page.
-            </p>
-          </div>
-
           <Card className="text-center">
             <p className="text-xs text-gray-500">
               Viewing documents for Applicant ID:{" "}
