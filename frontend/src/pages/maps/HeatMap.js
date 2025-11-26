@@ -69,7 +69,7 @@ const HeatLayer = ({ points }) => {
     const heatData = points.map(p => [p.latitude, p.longitude, 0.8]);
 
     const heatLayer = window.L.heatLayer(heatData, {
-      radius: 30,
+      radius: 25,
       blur: 20,
       maxZoom: 13,
       gradient: BLUE_HEAT_GRADIENT,

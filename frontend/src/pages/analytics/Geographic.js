@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MapContainer, TileLayer } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import {
@@ -325,6 +325,17 @@ const Geographic = () => {
               attributionControl={false}
             >
               <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+
+              {validLocations.slice(0, 200).map((loc, index) => (
+                <CircleMarker
+                  key={index}
+                  center={[loc.latitude, loc.longitude]}
+                  radius={4}
+                  fillOpacity={0.7}
+                  color="#2563eb" // soft blue
+                  stroke={false}
+                />
+              ))}
             </MapContainer>
           </div>
         </AnalyticsCard>

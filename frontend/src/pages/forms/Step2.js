@@ -279,7 +279,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     {formData.street_address && !errors.street_address && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
                         <svg
-                          className="w-4 h-4 text-green-500"
+                          className="w-4 h-4 text-blue-500"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -362,7 +362,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     {formData.birthday && !errors.birthday && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
                         <svg
-                          className="w-4 h-4 text-green-500"
+                          className="w-4 h-4 text-blue-500"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -559,7 +559,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     {formData.occupation && !errors.occupation && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
                         <svg
-                          className="w-4 h-4 text-green-500"
+                          className="w-4 h-4 text-blue-500"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -623,7 +623,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                       !errors.monthly_income && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
                           <svg
-                            className="w-4 h-4 text-green-500"
+                            className="w-4 h-4 text-blue-500"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -688,7 +688,7 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                 onClick={handleNext}
                 className="group relative inline-flex items-center justify-center sm:justify-end w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white font-semibold rounded-xl px-6 py-2.5 text-base shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] sm:order-none order-first"
               >
-                <span className="mr-2">{T.continue}</span>
+                <span className="mr-2 text-white">{T.continue}</span>
                 <svg
                   className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1"
                   fill="none"
@@ -708,9 +708,9 @@ const Step2 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
         </div>
 
         {/* Help Text */}
-        <div className="mt-3 text-center">
+        {/* <div className="mt-3 text-center">
           <p className="text-xs text-gray-500">{T.helpText}</p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import ArchiveModal from "./components/ArchiveModal";
 import ApplicantsFilter from "./components/ApplicantFilter";
 import toast from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
+import { useDebounce } from "../../hooks/useDebounce";
 import {
   AlertCircle,
   Search,
@@ -72,6 +73,7 @@ const Applicants = () => {
 
   // UI STATE
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const [filters, setFilters] = useState({
     city: "",
     barangay: "",
@@ -133,7 +135,7 @@ const Applicants = () => {
       "applicants",
       {
         filters,
-        search: searchTerm,
+        search: debouncedSearch,
         limit: itemsPerPage,
         offset: (currentPage - 1) * itemsPerPage,
       },

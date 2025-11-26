@@ -30,6 +30,8 @@ import {
 
 import toast from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
+import { useDebounce } from "../../hooks/useDebounce";
+import { formatDate } from "../../utils/FormatDate";
 
 const ArchiveApplicants = () => {
   const queryClient = useQueryClient();
@@ -44,6 +46,7 @@ const ArchiveApplicants = () => {
   });
 
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const [previewView, setPreviewView] = useState(false);
   const [previewApplicant, setPreviewApplicant] = useState(null);
   const [restoreModal, setRestoreModal] = useState({ show: false, applicantId: null });
@@ -56,7 +59,7 @@ const ArchiveApplicants = () => {
   //  FETCH FROM BACKEND WITH PAGINATION
   // -----------------------------
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["archived-applicants", filters, searchTerm, currentPage, itemsPerPage],
+    queryKey: ["archived-applicants", filters, debouncedSearch, currentPage, itemsPerPage],
     queryFn: async () => {
       const params = new URLSearchParams();
 
@@ -74,7 +77,7 @@ const ArchiveApplicants = () => {
       }
 
       // search
-      if (searchTerm) params.append("search", searchTerm);
+      if (debouncedSearch) params.append("search", debouncedSearch);
 
       const res = await api.get(`/list-archived-applicants/?${params.toString()}`);
       return res.data;
@@ -108,18 +111,6 @@ const ArchiveApplicants = () => {
     if (restoreModal.applicantId) {
       restoreMutation.mutate(restoreModal.applicantId);
     }
-  };
-
-  // -----------------------------
-  //  UI HELPERS
-  // -----------------------------
-  const formatDateReadable = dateStr => {
-    if (!dateStr) return "N/A";
-    return new Date(dateStr).toLocaleDateString("en-PH", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
   };
 
   useEffect(() => {
@@ -235,7 +226,6 @@ const ArchiveApplicants = () => {
                           <span className="truncate">
                             {a.background_info?.barangay_details?.city_name || "—"}
                           </span>
-                          z
                         </div>
                       </td>
                       <td className="px-4 py-4 align-middle">
@@ -259,7 +249,7 @@ const ArchiveApplicants = () => {
                       <td className="px-4 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                          <span className="truncate">{formatDateReadable(a.date_filled)}</span>
+                          <span className="truncate">{formatDate(a.date_filled)}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 align-middle">
@@ -310,7 +300,7 @@ const ArchiveApplicants = () => {
         <PreviewModal
           previewApplicant={previewApplicant}
           closePreviewView={() => setPreviewView(false)}
-          formatDate={formatDateReadable}
+          formatDate={formatDate}
         />
       )}
 

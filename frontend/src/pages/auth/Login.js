@@ -133,7 +133,7 @@ const Login = () => {
               <p className="text-sky-200 text-base opacity-80">Please enter your details.</p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6" noValidate>
+            <form onSubmit={handleLogin} className="space-y-6" noValidate autoComplete="off">
               {/* Username (E-mail for snippet match) */}
               <div>
                 <label

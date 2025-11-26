@@ -436,7 +436,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         {formData.rep_first_name && !errors.rep_first_name && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             <svg
-                              className="w-5 h-5 text-green-500"
+                              className="w-5 h-5 text-blue-500"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -495,7 +495,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         {formData.rep_last_name && !errors.rep_last_name && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             <svg
-                              className="w-5 h-5 text-green-500"
+                              className="w-5 h-5 text-blue-500"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -550,7 +550,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           });
                         }}
                         className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
-                        placeholder="Enter full middle name (optional)"
+                        placeholder="Enter full middle name "
                       />
                     </div>
 
@@ -637,13 +637,13 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           autoComplete="tel"
                           required
                         />
-                        {/* Green Checkmark - shown when valid */}
+                        {/* blue Checkmark - shown when valid */}
                         {formData.rep_contact_number &&
                           !errors.rep_contact_number &&
                           formData.rep_contact_number.length === 11 && (
                             <div className="absolute right-3 top-1/2 -translate-y-1/2">
                               <svg
-                                className="w-4 h-4 text-green-500"
+                                className="w-4 h-4 text-blue-500"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -749,7 +749,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           !formData.use_same_address && (
                             <div className="absolute right-3 top-1/2 -translate-y-1/2">
                               <svg
-                                className="w-5 h-5 text-green-500"
+                                className="w-5 h-5 text-blue-500"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -807,7 +807,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         {formData.rep_birthday && !errors.rep_birthday && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             <svg
-                              className="w-5 h-5 text-green-500"
+                              className="w-5 h-5 text-blue-500"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -1038,7 +1038,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         {formData.rep_relationship && !errors.rep_relationship && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             <svg
-                              className="w-5 h-5 text-green-500"
+                              className="w-5 h-5 text-blue-500"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -1101,7 +1101,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                 type="submit"
                 className="w-full sm:w-auto group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white font-semibold rounded-xl px-6 py-2.5 inline-flex items-center justify-center sm:justify-start gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-[1.02] active:scale-95"
               >
-                <span>Continue to Preview(Magpatuloy)</span>
+                <span className="text-white">Continue to Preview(Magpatuloy)</span>
                 <svg
                   className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1"
                   fill="none"
@@ -1121,12 +1121,12 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
         </div>
 
         {/* Footer */}
-        <div className="mt-6 text-center">
+        {/* <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
             Need help? Contact our support team for assistance. (Kailangan ng tulong? Kontakin
             ang aming support team.)
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
