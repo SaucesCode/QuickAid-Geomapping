@@ -3,6 +3,7 @@ from .models import Applicant, Representative, BackgroundInfo, Barangay, Approva
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from datetime import *
 from django.utils import timezone
+from .utils import log_staff_activity
 
 # ---------------------------------------------------------
 # JWT TOKEN SERIALIZER
@@ -23,6 +24,13 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         user.last_active = timezone.now()
         user.save(update_fields=['last_active'])
+
+        log_staff_activity(
+            user,
+            "LOGIN STAFF",
+            f"{user.username} logged in successfully",
+            request=self.context.get('request')
+        )
 
         data['staff_info'] = {
             'id': user.id,

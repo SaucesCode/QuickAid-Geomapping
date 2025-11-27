@@ -231,11 +231,11 @@ const AdminManagement = () => {
       {/* Edit Staff Modal */}
       {editData && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <AnalyticsCard className="w-full max-w-md">
+          <AnalyticsCard className="w-full max-w-lg scale-100 transform transition-all duration-300">
             {/* Modal Header */}
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-blue-100">
-              <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
-                <Edit3 className="w-4 h-4 text-white" />
+            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-blue-100">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                <Edit3 className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h2 className="text-base font-bold text-gray-800">Edit Staff Member</h2>
@@ -249,49 +249,63 @@ const AdminManagement = () => {
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                   Username
                 </label>
-                <input
-                  name="username"
-                  value={editData.username}
-                  onChange={e => setEditData({ ...editData, username: e.target.value })}
-                  placeholder="Username"
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm outline-none"
-                />
+                <div className="relative">
+                  <input
+                    name="username"
+                    value={editData.username}
+                    onChange={e => setEditData({ ...editData, username: e.target.value })}
+                    placeholder="Enter username"
+                    className="w-full p-2 pl-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm text-gray-800 transition-all hover:border-blue-400 outline-none"
+                  />
+                  <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                  First Name
-                </label>
-                <input
-                  name="first_name"
-                  value={editData.first_name}
-                  onChange={e => setEditData({ ...editData, first_name: e.target.value })}
-                  placeholder="First Name"
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                  Last Name
-                </label>
-                <input
-                  name="last_name"
-                  value={editData.last_name}
-                  onChange={e => setEditData({ ...editData, last_name: e.target.value })}
-                  placeholder="Last Name"
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm outline-none"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    First Name
+                  </label>
+                  <div className="relative">
+                    <input
+                      name="first_name"
+                      value={editData.first_name}
+                      onChange={e => setEditData({ ...editData, first_name: e.target.value })}
+                      placeholder="e.g., Jane"
+                      className="w-full p-2 pl-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm text-gray-800 transition-all hover:border-blue-400 outline-none"
+                    />
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Last Name
+                  </label>
+                  <div className="relative">
+                    <input
+                      name="last_name"
+                      value={editData.last_name}
+                      onChange={e => setEditData({ ...editData, last_name: e.target.value })}
+                      placeholder="e.g., Doe"
+                      className="w-full p-2 pl-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm text-gray-800 transition-all hover:border-blue-400 outline-none"
+                    />
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                   Email
                 </label>
-                <input
-                  name="email"
-                  value={editData.email}
-                  onChange={e => setEditData({ ...editData, email: e.target.value })}
-                  placeholder="Email"
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm outline-none"
-                />
+                <div className="relative">
+                  <input
+                    name="email"
+                    value={editData.email}
+                    onChange={e => setEditData({ ...editData, email: e.target.value })}
+                    placeholder="e.g., jane.doe@quickaid.com"
+                    className="w-full p-2 pl-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm text-gray-800 transition-all hover:border-blue-400 outline-none"
+                  />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
@@ -301,10 +315,11 @@ const AdminManagement = () => {
                   <input
                     name="password"
                     type={showEditPassword ? "text" : "password"}
-                    placeholder="New password (leave blank to keep current)"
+                    placeholder="Create a strong password"
                     onChange={e => setEditData({ ...editData, password: e.target.value })}
-                    className="w-full p-2 pr-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm outline-none"
+                    className="w-full p-2 pr-9 pl-9 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 text-sm text-gray-800 transition-all hover:border-blue-400 outline-none"
                   />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                   <button
                     type="button"
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
@@ -321,14 +336,14 @@ const AdminManagement = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex gap-2 mt-4 pt-3 border-t border-blue-100">
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-blue-100">
               <button
                 onClick={() => setEditData(null)}
-                className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-semibold transition-all hover:shadow-sm active:scale-[0.98] border border-gray-200"
+                className="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-semibold transition-all hover:shadow-sm active:scale-[0.98] border border-gray-200"
               >
                 Cancel
               </button>
-              <GradientButton onClick={handleUpdate} className="flex-1">
+              <GradientButton onClick={handleUpdate}>
                 <Save className="w-3.5 h-3.5" />
                 Save Changes
               </GradientButton>

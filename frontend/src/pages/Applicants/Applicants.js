@@ -143,6 +143,8 @@ const Applicants = () => {
     queryFn: fetchApplicants,
   });
 
+  console.log("Fetched applicants data:", data);
+
   const applicants = data?.results || [];
   const totalItems = data?.count || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -154,17 +156,8 @@ const Applicants = () => {
     if (!sortConfig.key) return applicants;
 
     return [...applicants].sort((a, b) => {
-      const getValue = (obj, key) => {
-        if (key === "full_name") {
-          return `${obj.background_info?.last_name || ""} ${
-            obj.background_info?.first_name || ""
-          }`.toLowerCase();
-        }
-        return obj[key];
-      };
-
-      const aValue = getValue(a, sortConfig.key);
-      const bValue = getValue(b, sortConfig.key);
+      const aValue = (a[sortConfig.key] || "").toString().toLowerCase();
+      const bValue = (b[sortConfig.key] || "").toString().toLowerCase();
 
       if (aValue < bValue) return sortConfig.direction === "ascending" ? -1 : 1;
       if (aValue > bValue) return sortConfig.direction === "ascending" ? 1 : -1;
@@ -439,12 +432,14 @@ const Applicants = () => {
               currentItems={sortedApplicants}
               sortConfig={sortConfig}
               handleSort={handleSort}
-              openPreviewView={app => {
-                setPreviewApplicant(app);
+              openPreviewView={async app => {
+                const res = await api.get(`/applicants/${app.id}/`);
+                setPreviewApplicant(res.data);
                 setPreviewView(true);
               }}
-              openEditView={app => {
-                setEditingApplicant(app);
+              openEditView={async app => {
+                const res = await api.get(`/applicants/${app.id}/`);
+                setEditingApplicant(res.data);
                 setEditView(true);
               }}
               openArchiveModal={id => setArchiveModal({ show: true, applicantId: id })}
