@@ -32,7 +32,7 @@ const ApplicantForm = () => {
     };
   }, []);
 
-  // Fetch applicants
+  // Fetch applicants (summary response)
   const {
     data: applicants = [],
     isLoading,
@@ -54,17 +54,18 @@ const ApplicantForm = () => {
       }),
   });
 
-  // Filter
+  // Search filter — updated to match backend summary fields
   const filteredApplicants = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return applicants;
+
     return applicants.filter(a => {
-      const info = a.background_info || {};
-      const fullName = `${info.first_name ?? ""} ${info.last_name ?? ""}`.toLowerCase();
-      const barangay = info.barangay?.toLowerCase() || "";
-      const city = info.barangay_details?.city_name?.toLowerCase() || "";
+      const fullName = a.full_name?.toLowerCase() || "";
+      const barangay = a.barangay?.toLowerCase() || "";
+      const city = a.city?.toLowerCase() || "";
       const assistance = a.type_of_assistance?.toLowerCase() || "";
-      const date = formatDate(a.created_at)?.toLowerCase() || "";
+      const date = formatDate(a.date_filled)?.toLowerCase() || "";
+
       return (
         fullName.includes(term) ||
         barangay.includes(term) ||
@@ -75,11 +76,12 @@ const ApplicantForm = () => {
     });
   }, [applicants, searchTerm]);
 
-  // Pagination logic
+  // Pagination
   const totalItems = filteredApplicants.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
   const currentApplicants = useMemo(
     () => filteredApplicants.slice(indexOfFirstItem, indexOfLastItem),
     [filteredApplicants, indexOfFirstItem, indexOfLastItem]
@@ -123,7 +125,6 @@ const ApplicantForm = () => {
 
   return (
     <PageContainer>
-      {/* Header */}
       <PageHeader
         icon={UserPlus}
         title="Applicant Registry"
@@ -187,25 +188,24 @@ const ApplicantForm = () => {
                   <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">Date Filled</th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-blue-50 text-gray-800">
                 {currentApplicants.map((a, i) => (
-                  <tr
-                    key={a.id || i}
-                    onClick={() => navigate(`/applicants/${a.id}`)}
-                    className="hover:bg-blue-50 cursor-pointer transition-all duration-150"
-                  >
+                  <tr className="hover:bg-blue-50 cursor-pointer transition-all duration-150">
                     <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-600">
                       {totalItems - (indexOfFirstItem + i)}
                     </td>
+
                     <td className="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-gray-900">
-                      {a.background_info?.first_name} {a.background_info?.last_name}
+                      {a.full_name}
                     </td>
+
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700">{a.barangay}</td>
+
                     <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700">
-                      {a.background_info?.barangay}
+                      {a.city || "N/A"}
                     </td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700">
-                      {a.background_info?.barangay_details?.city_name || "N/A"}
-                    </td>
+
                     <td className="px-4 sm:px-6 py-3 sm:py-4">
                       <span
                         className={`inline-flex px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-semibold ${
@@ -218,11 +218,12 @@ const ApplicantForm = () => {
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {a.type_of_assistance || "N/A"}
+                        {a.type_of_assistance}
                       </span>
                     </td>
+
                     <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700">
-                      {formatDate(a.created_at)}
+                      {formatDate(a.date_filled)}
                     </td>
                   </tr>
                 ))}

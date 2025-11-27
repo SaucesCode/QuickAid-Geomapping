@@ -97,12 +97,16 @@ const AnalyticsExport = () => {
   const analyticsMutation = useMutation({
     mutationFn: exportAnalytics,
     onSuccess: () => {
-      toast.custom(t => <CustomToast t={t} type="analyticsExport" />, { duration: 4000 });
+      toast.custom(t => <CustomToast t={t} type="analyticsExport" />, {
+        duration: 4000,
+        position: "top-right",
+      });
     },
     onError: err => {
       console.error("Analytics export failed:", err);
       toast.error(`Analytics export failed: ${err.message}`, {
-        duration: 5000,
+        duration: 4000,
+        position: "top-right",
       });
     },
   });
@@ -320,19 +324,38 @@ const AnalyticsExport = () => {
         <button
           onClick={handleExport}
           disabled={analyticsMutation.isPending || dateError || filtersLoading}
-          className="flex items-center gap-3 px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+          className="relative overflow-hidden flex items-center justify-center gap-3 px-8 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
         >
-          {analyticsMutation.isPending ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Generating Report...</span>
-            </>
-          ) : (
-            <>
-              <Download className="w-5 h-5" />
-              <span>Generate Report</span>
-            </>
+          {/* Progress bar background */}
+          {analyticsMutation.isPending && (
+            <div
+              className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-800 to-indigo-800"
+              style={{
+                animation: "progress 3s ease-out forwards",
+              }}
+            />
           )}
+
+          <style>{`
+    @keyframes progress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+  `}</style>
+
+          <span className="relative z-10 text-white flex items-center gap-3">
+            {analyticsMutation.isPending ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin text-white" />
+                <span className="text-white font-bold">Generating Report...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5 text-white" />
+                <span className="text-white font-bold">Generate Report</span>
+              </>
+            )}
+          </span>
         </button>
       </div>
     </div>

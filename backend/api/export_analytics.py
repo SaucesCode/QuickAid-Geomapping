@@ -1,11 +1,15 @@
 # Standard library
-import base64
 import io
 import os
-from datetime import date, datetime, timedelta
+import json
+import base64
+import hashlib
 from io import BytesIO
 from pathlib import Path
 from PIL import Image as PILImage
+from django.core.cache import cache
+from datetime import date, datetime, timedelta
+
 
 import seaborn as sns
 from dateutil.relativedelta import relativedelta
@@ -3644,6 +3648,24 @@ Filters Applied: {'Cities: ' + ', '.join(self.filters.get('cities', [])) if self
 
 class ExportOrchestrator:
     """Orchestrates the entire export process"""
+
+
+    def get_cached_result(self, filters: dict):
+        """
+        Caches analytics results for 5 minutes to avoid recomputing
+        """
+        key = "analytics_export_" + hashlib.md5(json.dumps(filters, sort_keys=True).encode()).hexdigest()
+
+        cached = cache.get(key)
+        if cached:
+            return cached
+
+        # Compute normally
+        result = self.compute_all_analytics()  # whatever method produces all metrics
+        cache.set(key, result, timeout=300)  # 5 minutes
+
+        return result
+
     
     def __init__(self, filters, user, format_type='both'):
         self.filters = filters

@@ -267,14 +267,38 @@ const ApplicantExport = () => {
         <button
           onClick={handleCSVExport}
           disabled={csvMutation.isPending || dateError}
-          className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+          className="relative overflow-hidden flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
         >
-          {csvMutation.isPending ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <Download className="w-5 h-5" />
+          {/* Progress bar background */}
+          {csvMutation.isPending && (
+            <div
+              className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-800 to-indigo-800"
+              style={{
+                animation: "progress 3s ease-out forwards",
+              }}
+            />
           )}
-          {csvMutation.isPending ? "Exporting..." : "Download CSV"}
+
+          <style>{`
+    @keyframes progress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+  `}</style>
+
+          <span className="relative z-10 text-white flex items-center gap-2">
+            {csvMutation.isPending ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin text-white" />
+                <span className="text-white font-bold">Exporting...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5 text-white" />
+                <span className="text-white font-bold">Download CSV</span>
+              </>
+            )}
+          </span>
         </button>
       </div>
     </div>

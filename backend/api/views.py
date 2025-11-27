@@ -24,7 +24,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.timezone import now, timedelta
-from .utils import apply_applicant_filters, apply_approval_filters, get_applicant_history
+from .utils import apply_applicant_filters, apply_approval_filters, get_applicant_history, log_staff_activity
 from .export_analytics import ExportOrchestrator
 from django.core.exceptions import ValidationError
 
@@ -460,57 +460,66 @@ def submit_applicant(request):
     return Response(ApplicantSerializer(applicant).data, status=201)
 
 
-# LIST APPLICANTS
-# Function to get all non-archived applicants
+# LIST APPLICANTS — HIGH PERFORMANCE VERSION
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_applicants(request):
     paginator = LimitOffsetPagination()
     paginator.default_limit = 50
 
+    # ---- ONLY PULL FIELDS USED IN TABLE ----
     applicants_qs = (
-        Applicant.objects.filter(is_archived=False).all()
+        Applicant.objects.filter(is_archived=False)
         .select_related(
             'background_info',
             'background_info__barangay',
             'background_info__barangay__city',
         )
-        .prefetch_related(
-            Prefetch(
-                'background_info__histories',
-                queryset=ApplicantHistory.objects.only(
-                    'id', 'type_of_assistance', 'applicant', 'date_applied'
-                ).order_by('-date_applied'),
-                to_attr='prefetched_history'
-            )
+        .only(
+            'id',
+            'type_of_assistance',
+            'date_filled',
+            'contact_number',
+
+            # background info
+            'background_info__first_name',
+            'background_info__middle_initial',
+            'background_info__last_name',
+            'background_info__suffix',
+            'background_info__barangay__name',
+            'background_info__barangay__city__name',
         )
+        .order_by('-date_filled')  # uses your index
     )
 
+    # ---- FILTERS APPLY HERE, STILL FAST BECAUSE OF INDEXES ----
     try:
         applicants_qs = apply_applicant_filters(applicants_qs, request)
     except ValueError as e:
         return Response({"error": str(e)}, status=400)
 
-    paginated_queryset = paginator.paginate_queryset(applicants_qs, request)
-    serializer = ApplicantSerializer(paginated_queryset, many=True, context={"request": request})
+    # ---- PAGINATE BEFORE SERIALIZATION ----
+    paginated = paginator.paginate_queryset(applicants_qs, request)
 
-    data = serializer.data
-    for idx, applicant in enumerate(paginated_queryset):
-        history_data = [
-            {
-                "id": h.id,
-                "type_of_assistance": h.type_of_assistance,
-                "applicant_id": h.applicant.id if h.applicant else None,
-                "date": h.date_applied,
-            }
-            for h in getattr(applicant.background_info, 'prefetched_history', [])
-        ]
-        data[idx]["application_history"] = history_data
+    # ---- MANUAL FLAT SERIALIZATION (FASTEST POSSIBLE) ----
+    results = []
+    for a in paginated:
+        bg = a.background_info
+        brgy = bg.barangay
+        city = brgy.city
 
-    return paginator.get_paginated_response(data)
+        results.append({
+            "id": a.id,
+            "full_name": f"{bg.last_name}, {bg.first_name} {bg.middle_initial or ''}".strip(),
+            "barangay": brgy.name,
+            "city": city.name,
+            "type_of_assistance": a.type_of_assistance,
+            "contact_number": a.contact_number,
+            "date_filled": a.date_filled,
+        })
 
-
-
+    # ---- RETURN PAGINATED RESPONSE ----
+    return paginator.get_paginated_response(results)
     
 
 @api_view(['POST'])
@@ -860,8 +869,22 @@ def export_applicants_csv(request):
                 getattr(rep, "contact_number", ""),
             ])
 
+      
+
     response = StreamingHttpResponse(row_generator(), content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="applicants.csv"'
+
+    log_staff_activity(
+        request.user,
+        "EXPORT APPLICANTS",
+        (
+            "Exported applicants CSV with filters — "
+            f"Start: {start_date or 'All'}, "
+            f"End: {end_date or 'All'}, "
+        ),
+        request
+    )
+
     return response
 
 
@@ -2032,44 +2055,6 @@ def staff_activity_heatmap(request):
 # HELPER FUNCTIONS
 # =============================================
 
-# LOG STAFF ACTIVITY
-# Helper function to log staff activities (with IP tracking and error safety)
-def log_staff_activity(staff, action, details=None, request=None):
-    """
-    🧾 Logs a staff member's activity for auditing and analytics.
-    
-    Args:
-        staff (User): The staff user performing the action.
-        action (str): A short description (e.g., "Approved Applicant #123").
-        details (dict | str, optional): Extra contextual info (e.g., applicant data).
-        request (HttpRequest, optional): Used to capture IP address.
-    """
-    try:
-        # --- Determine the client IP ---
-        ip_address = None
-        if request:
-            # Respect proxy headers if using Nginx / Cloudflare / etc.
-            ip_address = (
-                request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0]
-                or request.META.get('REMOTE_ADDR')
-            )
-
-        # --- Convert dict details to string for storage ---
-        if isinstance(details, dict):
-            details = json.dumps(details, ensure_ascii=False, indent=2)
-
-        # --- Create the activity log record ---
-        StaffActivityLog.objects.create(
-            staff=staff,
-            action=action,
-            details=details,
-            ip_address=ip_address
-        )
-
-    except Exception as e:
-        print(f"[ActivityLog Error] Failed to log staff activity: {e}")
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def contact_admin(request):
@@ -2240,7 +2225,7 @@ def export_analytics_report(request):
         # Log export activity
         log_staff_activity(
             request.user,
-            'EXPORT_ANALYTICS',
+            'EXPORT ANALYTICS',
             f"Exported analytics report ({format_type}) for period "
             f"{filters.get('start_date', 'All')} to {filters.get('end_date', 'All')}",
             request
@@ -2278,12 +2263,12 @@ def export_history(request):
         # Get export activity logs
         if user.is_superuser:
             logs = StaffActivityLog.objects.filter(
-                action='EXPORT_ANALYTICS'
+                action='EXPORT ANALYTICS'
             ).select_related('staff').order_by('-timestamp')[:50]
         else:
             logs = StaffActivityLog.objects.filter(
                 staff=user,
-                action='EXPORT_ANALYTICS'
+                action='EXPORT ANALYTICS'
             ).order_by('-timestamp')[:50]
         
         data = [

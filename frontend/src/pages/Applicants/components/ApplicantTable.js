@@ -22,226 +22,170 @@ const ApplicantTable = ({
   openArchiveModal,
   goPrintPage,
   formatDate,
-  // NOTE: If the parent component passes pagination details, you can calculate the actual index using:
-  // (indexOfFirstItem || 0) + id + 1
 }) => {
+  const SortIcon = ({ column }) => {
+    if (sortConfig.key !== column) return null;
+    return sortConfig.direction === "ascending" ? (
+      <ChevronUp className="w-4 h-4" />
+    ) : (
+      <ChevronDown className="w-4 h-4" />
+    );
+  };
+
   return (
-    // Outer Card Style copied from ApplicantForm.js table container
-    <div className="bg-white bg-opacity-80 backdrop-blur-xl rounded-t-3xl rounded-b-none shadow-xl border border-blue-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-blue-100 table-fixed text-sm align-middle">
-          {/* Table Header: Gradient Background with White Text */}
+    <div className="bg-white rounded-t-3xl shadow border border-blue-200 overflow-hidden">
+      <div className="overflow-x-auto max-w-full">
+        <table className="min-w-full divide-y divide-blue-100 text-sm table-fixed">
           <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
             <tr>
-              {/* 1. NO. - Fixed w-[40px] */}
-              <th className="px-3 py-4 text-left w-[40px] align-middle">
-                <div className="flex items-center justify-center">NO.</div>
-              </th>
+              <th className="px-3 py-4 text-center w-[60px]">NO.</th>
 
-              {/* 2. Full Name - ***REMOVED fixed width w-[20%] to allow flexibility.*** */}
               <th
-                className="px-6 py-4 text-left align-middle cursor-pointer"
-                onClick={() => handleSort("background_info.first_name")}
+                className="px-4 py-4 cursor-pointer w-[160px]"
+                onClick={() => handleSort("full_name")}
               >
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
                   Full Name
-                  {sortConfig.key === "background_info.first_name" &&
-                    (sortConfig.direction === "ascending" ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    ))}
+                  <SortIcon column="full_name" />
                 </div>
               </th>
-              {/* 3. Barangay - Fixed width w-[15%] */}
+
               <th
-                className="px-6 py-4 text-left w-[15%] align-middle cursor-pointer"
-                onClick={() => handleSort("background_info.barangay")}
+                className="px-4 py-4 cursor-pointer w-[150px]"
+                onClick={() => handleSort("barangay")}
               >
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
                   Barangay
-                  {sortConfig.key === "background_info.barangay" &&
-                    (sortConfig.direction === "ascending" ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    ))}
+                  <SortIcon column="barangay" />
                 </div>
               </th>
-              {/* 4. City - Fixed width w-[12%] */}
+
               <th
-                className="px-6 py-4 text-left w-[12%] align-middle cursor-pointer"
-                onClick={() => handleSort("background_info.barangay_details.city_name")}
+                className="px-4 py-4 cursor-pointer w-[120px]"
+                onClick={() => handleSort("city")}
               >
                 <div className="flex items-center gap-2">
                   <Building2 className="w-4 h-4" />
                   City
-                  {sortConfig.key === "background_info.barangay_details.city_name" &&
-                    (sortConfig.direction === "ascending" ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    ))}
+                  <SortIcon column="city" />
                 </div>
               </th>
-              {/* 5. Assistance Type - Fixed width w-[120px] */}
+
               <th
-                className="px-6 py-4 text-left w-[120px] align-middle cursor-pointer"
+                className="px-4 py-4 cursor-pointer w-[110px]"
                 onClick={() => handleSort("type_of_assistance")}
               >
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4" />
-                  Assistance Type
-                  {sortConfig.key === "type_of_assistance" &&
-                    (sortConfig.direction === "ascending" ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    ))}
+                  Assistance
+                  <SortIcon column="type_of_assistance" />
                 </div>
               </th>
-              {/* 6. Date Filled - Fixed width w-[120px] */}
+
               <th
-                className="px-6 py-4 text-left w-[120px] align-middle cursor-pointer"
+                className="px-4 py-4 cursor-pointer w-[110px]"
                 onClick={() => handleSort("date_filled")}
               >
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
                   Date Filled
-                  {sortConfig.key === "date_filled" &&
-                    (sortConfig.direction === "ascending" ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    ))}
+                  <SortIcon column="date_filled" />
                 </div>
               </th>
-              {/* 7. Actions - ***Added minimum width to ensure space for the wrapped buttons.*** */}
-              <th className="px-6 py-4 text-left w-auto align-middle min-w-[200px]">
-                Actions
-              </th>
+
+              <th className="px-4 py-4 text-left w-[300px]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-blue-100 text-gray-800">
-            {currentItems.length > 0 ? (
-              currentItems.map((applicant, id) => (
-                <tr
-                  key={id}
-                  // Row Hover: Very light blue, with cursor pointer
-                  className="hover:bg-blue-50/50 transition-all duration-150 group"
-                >
-                  {/* NO. Cell - px-3 for less padding */}
-                  <td className="px-3 py-4 align-middle">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors font-semibold text-gray-600">
-                      {applicant.id}
-                    </div>
-                  </td>
 
-                  {/* Full Name - ***Removed whitespace-nowrap, added break-words to allow wrapping.*** */}
-                  <td
-                    className="px-6 py-4 align-middle font-semibold text-gray-900 overflow-hidden cursor-pointer group-hover:text-indigo-600 break-words"
-                    onClick={() => openPreviewView(applicant)} // Added click handler to match behavior
-                  >
-                    {`${applicant.background_info?.first_name || ""} ${
-                      applicant.background_info?.last_name || ""
+          <tbody className="divide-y divide-blue-100">
+            {currentItems.map(applicant => (
+              <tr key={applicant.id} className="hover:bg-blue-50">
+                <td className="px-3 py-4 text-center text-gray-600 font-semibold">
+                  {applicant.id}
+                </td>
+
+                <td
+                  className="px-4 py-4 font-semibold cursor-pointer text-gray-900 hover:text-indigo-600 truncate max-w-[160px]"
+                  onClick={() => openPreviewView(applicant)}
+                  title={applicant.full_name}
+                >
+                  {applicant.full_name}
+                </td>
+
+                <td
+                  className="px-4 py-4 text-gray-700 truncate max-w-[150px]"
+                  title={applicant.barangay}
+                >
+                  {applicant.barangay}
+                </td>
+
+                <td
+                  className="px-4 py-4 text-gray-700 truncate max-w-[120px]"
+                  title={applicant.city}
+                >
+                  {applicant.city}
+                </td>
+
+                <td className="px-4 py-4">
+                  <span
+                    className={`px-2 py-1 text-xs rounded-xl font-semibold shadow ${
+                      applicant.type_of_assistance === "Educational"
+                        ? "bg-green-100 text-green-800"
+                        : applicant.type_of_assistance === "Medical"
+                        ? "bg-blue-100 text-blue-800"
+                        : applicant.type_of_assistance === "Burial"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-gray-100 text-gray-800"
                     }`}
-                  </td>
-                  {/* Barangay (with icon) */}
-                  <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                      <span className="truncate">{applicant.background_info?.barangay}</span>
-                    </div>
-                  </td>
-                  {/* City (with icon) */}
-                  <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                      <span className="truncate">
-                        {applicant.background_info?.barangay_details?.city_name || "N/A"}
-                      </span>
-                    </div>
-                  </td>
-                  {/* Assistance Type (Styled Tag) - Smaller padding on tag and px-4 on cell */}
-                  <td className="px-4 py-4 align-middle">
-                    <div className="flex items-center justify-center">
-                      {" "}
-                      {/* Centered content for tag column */}
-                      <span
-                        className={`inline-flex px-2 py-1 rounded-xl text-xs font-semibold shadow-md whitespace-nowrap
-                          ${
-                            // Matching the ApplicantForm.js color logic exactly
-                            applicant.type_of_assistance?.toLowerCase() === "educational"
-                              ? "bg-green-100 text-green-800"
-                              : applicant.type_of_assistance?.toLowerCase() === "medical"
-                              ? "bg-blue-100 text-blue-800"
-                              : applicant.type_of_assistance?.toLowerCase() === "burial"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                      >
-                        {applicant.type_of_assistance || "N/A"}
-                      </span>
-                    </div>
-                  </td>
-                  {/* Date Filled (with icon) - px-4 for less padding */}
-                  <td className="px-4 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                      <span className="truncate">{formatDate(applicant.date_filled)}</span>
-                    </div>
-                  </td>
-                  {/* Actions - ***Changed space-x-1 to gap-1 and added flex-wrap to ensure buttons fit by stacking if necessary.*** */}
-                  <td className="px-6 py-4 align-middle">
-                    <div className="flex **flex-wrap** items-center **gap-1**">
-                      <button
-                        onClick={() => openPreviewView(applicant)}
-                        // Adjusted style for smaller buttons: px-2 py-1.5, text-xs
-                        className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-300"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View
-                      </button>
-                      <button
-                        onClick={() => openEditView(applicant)}
-                        className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors border border-blue-300"
-                      >
-                        <Edit className="w-4 h-4" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => openArchiveModal(applicant.id)}
-                        className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors border border-red-300"
-                      >
-                        <Archive className="w-4 h-4" />
-                        Archive
-                      </button>
-                      <button
-                        onClick={() => goPrintPage(`/print/${applicant.id}`)}
-                        className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-colors border border-gray-300"
-                      >
-                        <Printer className="w-4 h-4" />
-                        Print
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" className="px-6 py-16 text-center">
-                  <div className="flex flex-col items-center">
-                    {/* Empty State Icon: Blue-indigo gradient for consistency */}
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-lg mb-4">
-                      <Archive className="w-6 h-6 text-white" />
-                    </div>
-                    <p className="text-blue-700 text-lg font-bold">No applicants found</p>
-                    <p className="text-gray-500 text-sm mt-1">
-                      Try adjusting your search or filters.
-                    </p>
+                  >
+                    {applicant.type_of_assistance}
+                  </span>
+                </td>
+
+                <td className="px-4 py-4 text-gray-700 whitespace-nowrap">
+                  {formatDate(applicant.date_filled)}
+                </td>
+
+                <td className="px-4 py-4">
+                  <div className="flex flex-nowrap gap-1">
+                    <button
+                      onClick={() => openPreviewView(applicant)}
+                      className="px-2 py-1.5 text-xs border rounded-lg text-indigo-600 border-indigo-300 hover:bg-indigo-50 whitespace-nowrap"
+                    >
+                      <Eye className="w-4 h-4 inline" /> View
+                    </button>
+
+                    <button
+                      onClick={() => openEditView(applicant)}
+                      className="px-2 py-1.5 text-xs border rounded-lg text-blue-600 border-blue-300 hover:bg-blue-50 whitespace-nowrap"
+                    >
+                      <Edit className="w-4 h-4 inline" /> Edit
+                    </button>
+
+                    <button
+                      onClick={() => openArchiveModal(applicant.id)}
+                      className="px-2 py-1.5 text-xs border rounded-lg text-red-600 border-red-300 hover:bg-red-50 whitespace-nowrap"
+                    >
+                      <Archive className="w-4 h-4 inline" /> Archive
+                    </button>
+
+                    <button
+                      onClick={() => goPrintPage(`/print/${applicant.id}`)}
+                      className="px-2 py-1.5 text-xs border rounded-lg text-gray-600 border-gray-300 hover:bg-gray-50 whitespace-nowrap"
+                    >
+                      <Printer className="w-4 h-4 inline" /> Print
+                    </button>
                   </div>
+                </td>
+              </tr>
+            ))}
+
+            {currentItems.length === 0 && (
+              <tr>
+                <td colSpan="7" className="px-6 py-16 text-center text-gray-500">
+                  No applicants found
                 </td>
               </tr>
             )}

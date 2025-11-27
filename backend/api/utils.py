@@ -1,11 +1,50 @@
 import qrcode
 import os
+import json
 from dotenv import load_dotenv
-from .models import ApplicantHistory
+from .models import ApplicantHistory, StaffActivityLog
 from django.db.models import Q
 from datetime import datetime, timedelta
 
 load_dotenv()
+
+
+# LOG STAFF ACTIVITY
+# Helper function to log staff activities (with IP tracking and error safety)
+def log_staff_activity(staff, action, details=None, request=None):
+    """
+    🧾 Logs a staff member's activity for auditing and analytics.
+    
+    Args:
+        staff (User): The staff user performing the action.
+        action (str): A short description (e.g., "Approved Applicant #123").
+        details (dict | str, optional): Extra contextual info (e.g., applicant data).
+        request (HttpRequest, optional): Used to capture IP address.
+    """
+    try:
+        # --- Determine the client IP ---
+        ip_address = None
+        if request:
+            # Respect proxy headers if using Nginx / Cloudflare / etc.
+            ip_address = (
+                request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0]
+                or request.META.get('REMOTE_ADDR')
+            )
+
+        # --- Convert dict details to string for storage ---
+        if isinstance(details, dict):
+            details = json.dumps(details, ensure_ascii=False, indent=2)
+
+        # --- Create the activity log record ---
+        StaffActivityLog.objects.create(
+            staff=staff,
+            action=action,
+            details=details,
+            ip_address=ip_address
+        )
+
+    except Exception as e:
+        print(f"[ActivityLog Error] Failed to log staff activity: {e}")
 
 
 def generate_qr_for_staff(staff, domain=os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000')):

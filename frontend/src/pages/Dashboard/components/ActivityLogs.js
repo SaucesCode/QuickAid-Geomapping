@@ -4,6 +4,7 @@ import { api } from "../../../services/api";
 import { Activity, Loader2 } from "lucide-react";
 import Pagination from "../../../components/Pagination";
 import { Card } from "../../../components/DesignSystem";
+import { formatDate } from "../../../utils/FormatDate";
 
 const ActivityLogs = ({ token }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -31,23 +32,20 @@ const ActivityLogs = ({ token }) => {
   const totalItems = data?.count || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // -------------------------------
-  //     Helpers
-  // -------------------------------
-  const formatDate = dateString => {
-    const date = new Date(dateString);
-    return date.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
-
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
   const indexOfLastItem = indexOfFirstItem + logs.length;
+
+  const getActionStyle = action => {
+    const styles = {
+      CREATE: "bg-green-100 text-green-700 border-green-200",
+      UPDATE: "bg-blue-100 text-blue-700 border-blue-200",
+      LOGIN: "bg-purple-100 text-purple-700 border-purple-200",
+      ARCHIVE: "bg-red-100 text-red-700 border-red-200",
+      "EXPORT APPLICANTS": "bg-teal-100 text-teal-700 border-teal-200",
+      "EXPORT ANALYTICS": "bg-amber-100 text-amber-700 border-amber-200",
+    };
+    return styles[action] || "bg-gray-100 text-gray-700 border-gray-200";
+  };
 
   return (
     <Card>
@@ -93,7 +91,15 @@ const ActivityLogs = ({ token }) => {
                     <td className="px-4 py-4 font-semibold text-gray-800">
                       {log.staff_member}
                     </td>
-                    <td className="px-4 py-4 text-gray-700">{log.action}</td>
+                    <td className="px-4 py-4">
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getActionStyle(
+                          log.action
+                        )}`}
+                      >
+                        {log.action}
+                      </span>
+                    </td>
                     <td className="px-4 py-4 text-gray-500">{log.details}</td>
                     <td className="px-4 py-4 text-gray-500 text-sm">
                       {formatDate(log.timestamp)}
