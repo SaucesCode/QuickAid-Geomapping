@@ -285,6 +285,16 @@ const MapComponent = () => {
     });
   };
 
+  // Add this right before the return statement in MapComponent
+  useEffect(() => {
+    console.log("=== MARKER RENDER ===");
+    console.log(
+      "Cluster key:",
+      `cluster-${typeFilter}-${cityFilter}-${barangayFilter}-${filteredLocations.length}`
+    );
+    console.log("Markers to render:", filteredLocations.length);
+  }, [typeFilter, cityFilter, barangayFilter, filteredLocations]);
+
   return (
     <div className="relative w-full h-full bg-gradient-to-br from-blue-50 via-blue-50 to-blue-100 overflow-hidden">
       <style>{`
@@ -347,6 +357,7 @@ const MapComponent = () => {
 
             {clusterEnabled ? (
               <MarkerClusterGroup
+                key={`cluster-${typeFilter}-${cityFilter}-${barangayFilter}-${filteredLocations.length}`}
                 chunkedLoading
                 iconCreateFunction={createClusterCustomIcon}
                 maxClusterRadius={80}
@@ -358,7 +369,7 @@ const MapComponent = () => {
               >
                 {filteredLocations.map(loc => (
                   <Marker
-                    key={loc.id}
+                    key={`${typeFilter}-${cityFilter}-${barangayFilter}-${loc.id}`}
                     position={[loc.latitude, loc.longitude]}
                     icon={createColoredIcon(getColor(loc.type_of_assistance))}
                     assistanceType={loc.type_of_assistance}
@@ -381,7 +392,7 @@ const MapComponent = () => {
             ) : (
               filteredLocations.map(loc => (
                 <Marker
-                  key={loc.id}
+                  key={`${typeFilter}-${cityFilter}-${barangayFilter}-${loc.id}`}
                   position={[loc.latitude, loc.longitude]}
                   icon={createColoredIcon(getColor(loc.type_of_assistance))}
                 >
