@@ -149,22 +149,6 @@ const ApplicantForm = () => {
             className="w-full pl-12 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50 focus:bg-white text-gray-700 placeholder-gray-400 text-sm sm:text-base"
           />
         </div>
-
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 shadow-inner flex items-center justify-between w-full lg:w-auto">
-          <div>
-            <Caption className="font-semibold text-gray-600">Total Applicants</Caption>
-            {isLoading ? (
-              <div className="h-6 sm:h-8 w-16 sm:w-20 bg-gray-200 rounded animate-pulse mt-1"></div>
-            ) : (
-              <h2 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600">
-                {applicants.length.toLocaleString()}
-              </h2>
-            )}
-          </div>
-          <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
-            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </div>
-        </div>
       </Card>
 
       {/* Data Display */}

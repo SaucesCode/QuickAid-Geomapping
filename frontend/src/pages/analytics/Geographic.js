@@ -109,13 +109,6 @@ const Geographic = () => {
     refetchOnWindowFocus: false,
   });
 
-  const { data: barangayPerformance, isLoading: performanceLoading } = useQuery({
-    queryKey: ["geographic", "barangay-performance", filters],
-    queryFn: () => fetchData("/analytics/geographic/barangay-performance/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
-  });
-
   const { data: coverageGaps, isLoading: gapsLoading } = useQuery({
     queryKey: ["geographic", "coverage-gaps", filters],
     queryFn: () => fetchData("/analytics/geographic/coverage-gaps/"),
@@ -335,11 +328,11 @@ const Geographic = () => {
               </div>
             </div>
           </div>
-          <div className="h-[350px] relative rounded-xl overflow-hidden border border-gray-200">
+          <div className="h-[350px] relative rounded-xl overflow-hidden border border-gray-200 z-10">
             <MapContainer
               center={[13.9311, 121.5542]}
               zoom={10}
-              className="w-full h-full"
+              className="w-full h-full z-10"
               scrollWheelZoom={false}
               doubleClickZoom={false}
               dragging={false}
@@ -498,71 +491,7 @@ const Geographic = () => {
             ))}
           </div>
         </AnalyticsChartCard>
-        <AnalyticsChartCard
-          icon={Award}
-          title="Barangay Performance Comparison"
-          subtitle="Application volume and approval efficiency"
-          isLoading={performanceLoading}
-        >
-          <AnalyticsTable>
-            <TableHeader>
-              <TableHeaderCell>Barangay</TableHeaderCell>
-              <TableHeaderCell>Applications</TableHeaderCell>
-              <TableHeaderCell>Approval Rate</TableHeaderCell>
-              <TableHeaderCell>Performance</TableHeaderCell>
-            </TableHeader>
 
-            <TableBody>
-              {barangayPerformance?.barangays.map((item, idx) => (
-                <TableRow key={idx}>
-                  <TableCell className="font-medium">{item.barangay}</TableCell>
-
-                  <TableCell>{item.total_applications}</TableCell>
-
-                  <TableCell>
-                    <span
-                      className={`font-semibold ${
-                        item.approval_vs_average > 0 ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {item.approval_rate}%
-                      {item.approval_vs_average !== 0 && (
-                        <span className="text-xs ml-1">
-                          ({item.approval_vs_average > 0 ? "+" : ""}
-                          {item.approval_vs_average}%)
-                        </span>
-                      )}
-                    </span>
-                  </TableCell>
-
-                  <TableCell>
-                    <Badge
-                      variant={
-                        item.performance === "High Performing"
-                          ? "success"
-                          : item.performance === "Performing Well"
-                          ? "info"
-                          : "warning"
-                      }
-                    >
-                      {item.performance}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </AnalyticsTable>
-
-          {barangayPerformance?.overall_metrics && (
-            <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
-              <p className="font-semibold text-gray-700 mb-1">Overall Averages:</p>
-              <p className="text-gray-600">
-                Approval Rate: {barangayPerformance.overall_metrics.avg_approval_rate}% |
-                Barangays: {barangayPerformance.overall_metrics.total_barangays}
-              </p>
-            </div>
-          )}
-        </AnalyticsChartCard>
         <AnalyticsChartCard
           icon={MapPin}
           title="Service Coverage Gaps"

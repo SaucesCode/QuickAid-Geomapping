@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
-import MarkerClusterGroup from "react-leaflet-cluster";
+import { useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { api } from "../../services/api";
@@ -15,6 +14,7 @@ import {
   Loader2,
   Map as MapIcon,
 } from "lucide-react";
+import MapCanvas from "./MapCanvas";
 
 // ============= SETUP & CONFIGURATION =============
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -305,106 +305,24 @@ const MapComponent = () => {
 
       <div className="flex flex-col h-full">
         <div className="relative flex-1">
-          <MapContainer
-            center={mapCenter}
-            zoom={11}
-            minZoom={11}
-            maxZoom={17}
-            className="w-full h-[calc(100vh-2rem)]"
-            scrollWheelZoom={true}
-          >
-            <MapReset trigger={resetTrigger} />
-            <BarangayZoom locations={filteredLocations} barangayFilter={barangayFilter} />
-            <TileLayer
-              attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            />
-
-            <TileLayer
-              attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-              url="https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-            />
-
-            {isAllGeoLoading && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[999]">
-                <Loader2 className="w-10 h-10 text-blue-400 animate-spin" />
-                <span className="ml-3 text-blue-300 font-semibold">
-                  Loading province boundaries...
-                </span>
-              </div>
+          <MapCanvas
+            mapCenter={mapCenter}
+            filteredLocations={filteredLocations}
+            clusterEnabled={clusterEnabled}
+            createClusterCustomIcon={createClusterCustomIcon}
+            createColoredIcon={createColoredIcon}
+            getColor={getColor}
+            geoData={geoData}
+            cityGeoData={cityGeoData}
+            MapReset={() => <MapReset trigger={resetTrigger} />}
+            BarangayZoom={() => (
+              <BarangayZoom locations={filteredLocations} barangayFilter={barangayFilter} />
             )}
-
-            <MapBounds cityGeoData={cityGeoData} />
-
-            {geoData && (
-              <GeoJSON
-                data={geoData}
-                style={{ color: "#3b82f6", weight: 2, fillOpacity: 0.05 }}
-              />
-            )}
-
-            {cityGeoData && <CityPolygon cityGeoData={cityGeoData} />}
-
-            {clusterEnabled ? (
-              <MarkerClusterGroup
-                key={`cluster-${typeFilter}-${cityFilter}-${barangayFilter}-${filteredLocations.length}`}
-                chunkedLoading
-                iconCreateFunction={createClusterCustomIcon}
-                maxClusterRadius={80}
-                spiderfyOnMaxZoom={true}
-                showCoverageOnHover={false}
-                zoomToBoundsOnClick={true}
-                animate={true}
-                animateAddingMarkers={true}
-              >
-                {filteredLocations.map(loc => (
-                  <Marker
-                    key={`${typeFilter}-${cityFilter}-${barangayFilter}-${loc.id}`}
-                    position={[loc.latitude, loc.longitude]}
-                    icon={createColoredIcon(getColor(loc.type_of_assistance))}
-                    assistanceType={loc.type_of_assistance}
-                  >
-                    <Popup>
-                      <div className="p-2">
-                        <h3 className="font-semibold text-blue-700 mb-1">{loc.full_name}</h3>
-                        <p className="text-sm text-blue-600 mb-2">{loc.address}</p>
-                        <span
-                          className="inline-block px-2 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
-                          style={{ backgroundColor: getColor(loc.type_of_assistance) }}
-                        >
-                          {loc.type_of_assistance}
-                        </span>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-              </MarkerClusterGroup>
-            ) : (
-              filteredLocations.map(loc => (
-                <Marker
-                  key={`${typeFilter}-${cityFilter}-${barangayFilter}-${loc.id}`}
-                  position={[loc.latitude, loc.longitude]}
-                  icon={createColoredIcon(getColor(loc.type_of_assistance))}
-                >
-                  <Popup>
-                    <div className="p-2">
-                      <h3 className="font-semibold text-blue-700 mb-1">{loc.full_name}</h3>
-                      <p className="text-sm text-blue-600 mb-2">{loc.address}</p>
-                      <span
-                        className="inline-block px-2 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
-                        style={{ backgroundColor: getColor(loc.type_of_assistance) }}
-                      >
-                        {loc.type_of_assistance}
-                      </span>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))
-            )}
-          </MapContainer>
+            MapBounds={() => <MapBounds cityGeoData={cityGeoData} />}
+          />
 
           {/* ========== COLLAPSIBLE TOP-RIGHT PANEL ========== */}
-          <div className="absolute top-4 right-4 z-50 w-full max-w-sm">
+          <div className="absolute top-4 right-4 z-20 w-full max-w-sm ">
             <div className="flex justify-end mb-2">
               <button
                 className="px-4 py-2 text-sm font-semibold bg-white rounded-lg shadow-md border border-blue-200 text-blue-700 hover:bg-blue-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"

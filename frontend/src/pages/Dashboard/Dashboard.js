@@ -23,6 +23,8 @@ import {
   CartesianGrid,
   Legend,
   Area,
+  BarChart,
+  Bar,
 } from "recharts";
 
 // Import Analytics Components
@@ -197,75 +199,7 @@ const Dashboard = () => {
             isLoading={trendLoading}
           />
         </AnalyticsGrid>
-        <AnalyticsGrid cols={{ default: 1, md: 2 }} gap="md">
-          {monthlyComparison && (
-            <>
-              <AnalyticsStatCard
-                icon={TrendingUp}
-                title="Application Volume"
-                value={monthlyComparison.volume.current}
-                subtitle={`Previous: ${monthlyComparison.volume.previous}`}
-                color="blue"
-                isLoading={comparisonLoading}
-              >
-                <div className="flex items-center justify-between mt-3">
-                  <div className="text-sm text-gray-500">
-                    Change:
-                    <span
-                      className={`ml-1 font-semibold ${
-                        monthlyComparison.volume.trend === "up"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {monthlyComparison.volume.change_percent}%
-                    </span>
-                  </div>
 
-                  <TrendingUp
-                    className={`w-5 h-5 ${
-                      monthlyComparison.volume.trend === "up"
-                        ? "text-green-600"
-                        : "text-red-600 rotate-180"
-                    }`}
-                  />
-                </div>
-              </AnalyticsStatCard>
-
-              <AnalyticsStatCard
-                icon={TimerIcon}
-                title="Processing Time"
-                value={`${monthlyComparison.processing_time.current} min`}
-                subtitle={`Previous: ${monthlyComparison.processing_time.previous} min`}
-                color="purple"
-                isLoading={comparisonLoading}
-              >
-                <div className="flex items-center justify-between mt-3">
-                  <div className="text-sm text-gray-500">
-                    Change:
-                    <span
-                      className={`ml-1 font-semibold ${
-                        monthlyComparison.processing_time.trend === "up"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {monthlyComparison.processing_time.change_percent}%
-                    </span>
-                  </div>
-
-                  <TrendingUp
-                    className={`w-5 h-5 ${
-                      monthlyComparison.processing_time.trend === "up"
-                        ? "text-green-600"
-                        : "text-red-600 rotate-180"
-                    }`}
-                  />
-                </div>
-              </AnalyticsStatCard>
-            </>
-          )}
-        </AnalyticsGrid>
         <AnalyticsChartCard
           icon={LineChart}
           title="Assistance Type Volume (This Month)"
@@ -379,20 +313,17 @@ const Dashboard = () => {
         >
           <ChartContainer height={350}>
             <ResponsiveContainer width="100%" height="100%">
-              <RechartsLineChart
+              <BarChart
                 data={growthChartData}
                 margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-
                 <XAxis
                   dataKey="name"
                   stroke="#6b7280"
                   tick={{ fill: "#4b5563", fontSize: 12 }}
                 />
-
                 <YAxis stroke="#6b7280" tick={{ fill: "#4b5563", fontSize: 12 }} />
-
                 <Tooltip
                   contentStyle={{
                     borderRadius: "8px",
@@ -402,15 +333,8 @@ const Dashboard = () => {
                   }}
                   labelStyle={{ fontWeight: "bold", color: "#1f2937" }}
                 />
-
-                <Line
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#6366f1"
-                  strokeWidth={3}
-                  dot={{ r: 5 }}
-                />
-              </RechartsLineChart>
+                <Bar dataKey="count" fill="#6366f1" barSize={400} />
+              </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
         </AnalyticsChartCard>
