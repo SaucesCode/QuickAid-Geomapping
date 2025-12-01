@@ -170,199 +170,195 @@ const SettingsPage = () => {
 
   return (
     <PageContainer>
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">Account Settings</h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Manage your profile and security preferences
-              </p>
-            </div>
+      {/* Header */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+            <Shield className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Account Settings</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Manage your profile and security preferences
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Sidebar */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <nav className="p-2">
+              {settingOptions.map(section => {
+                const IconComponent = section.icon;
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => handleSectionChange(section.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium text-sm ${
+                      activeSection === section.id
+                        ? "bg-blue-50 text-blue-700 shadow-sm"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <IconComponent className="w-5 h-5" />
+                    <span>{section.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
         </div>
 
-        {/* Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <nav className="p-2">
-                {settingOptions.map(section => {
-                  const IconComponent = section.icon;
-                  return (
-                    <button
-                      key={section.id}
-                      onClick={() => handleSectionChange(section.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium text-sm ${
-                        activeSection === section.id
-                          ? "bg-blue-50 text-blue-700 shadow-sm"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      <IconComponent className="w-5 h-5" />
-                      <span>{section.label}</span>
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="lg:col-span-3">
-            {/* Profile Section */}
-            {activeSection === "profile" && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div className="border-b border-gray-200 px-6 py-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                        <User className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900">
-                          Profile Information
-                        </h2>
-                        <p className="text-sm text-gray-600">Update your personal details</p>
-                      </div>
+        {/* Content */}
+        <div className="lg:col-span-3">
+          {/* Profile Section */}
+          {activeSection === "profile" && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="border-b border-gray-200 px-6 py-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                      <User className="w-5 h-5 text-blue-600" />
                     </div>
-                    {!isEditing && (
-                      <button
-                        onClick={handleEdit}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium shadow-sm"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                        Edit Profile
-                      </button>
-                    )}
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        Profile Information
+                      </h2>
+                      <p className="text-sm text-gray-600">Update your personal details</p>
+                    </div>
                   </div>
-                </div>
-
-                <div className="p-6">
-                  {isEditing ? (
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <InputField
-                          label="Username"
-                          name="username"
-                          value={editedUser.username}
-                          onChange={handleChange}
-                          icon={User}
-                        />
-                        <InputField
-                          label="Email Address"
-                          name="email"
-                          value={editedUser.email}
-                          readOnly
-                          icon={Mail}
-                        />
-                        <InputField
-                          label="First Name"
-                          name="first_name"
-                          value={editedUser.first_name}
-                          onChange={handleChange}
-                          icon={User}
-                        />
-                        <InputField
-                          label="Last Name"
-                          name="last_name"
-                          value={editedUser.last_name}
-                          onChange={handleChange}
-                          icon={User}
-                        />
-                      </div>
-
-                      <div className="flex justify-end gap-3 pt-5 border-t border-gray-200">
-                        <button
-                          onClick={() => setIsEditing(false)}
-                          className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-sm font-medium"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleSave}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors duration-200"
-                        >
-                          <Check className="w-4 h-4" />
-                          Save Changes
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-5">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <DisplayField label="Username" value={user.username} />
-                        <DisplayField label="Email" value={user.email} />
-                        <DisplayField label="First Name" value={user.first_name} />
-                        <DisplayField label="Last Name" value={user.last_name} />
-                        <DisplayField label="Role" value={user.role || "User"} />
-                      </div>
-                    </div>
+                  {!isEditing && (
+                    <button
+                      onClick={handleEdit}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium shadow-sm"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      Edit Profile
+                    </button>
                   )}
                 </div>
               </div>
-            )}
 
-            {/* Password Section */}
-            {activeSection === "password" && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div className="border-b border-gray-200 px-6 py-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-                      <Lock className="w-5 h-5 text-purple-600" />
+              <div className="p-6">
+                {isEditing ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <InputField
+                        label="Username"
+                        name="username"
+                        value={editedUser.username}
+                        onChange={handleChange}
+                        icon={User}
+                      />
+                      <InputField
+                        label="Email Address"
+                        name="email"
+                        value={editedUser.email}
+                        readOnly
+                        icon={Mail}
+                      />
+                      <InputField
+                        label="First Name"
+                        name="first_name"
+                        value={editedUser.first_name}
+                        onChange={handleChange}
+                        icon={User}
+                      />
+                      <InputField
+                        label="Last Name"
+                        name="last_name"
+                        value={editedUser.last_name}
+                        onChange={handleChange}
+                        icon={User}
+                      />
                     </div>
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
-                      <p className="text-sm text-gray-600">Update your account password</p>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="p-6">
-                  <div className="max-w-lg space-y-5">
-                    {["current_password", "new_password", "confirm_password"].map(
-                      (key, idx) => (
-                        <PasswordInput
-                          key={key}
-                          label={
-                            idx === 0
-                              ? "Current Password"
-                              : idx === 1
-                              ? "New Password"
-                              : "Confirm New Password"
-                          }
-                          value={passwordData[key]}
-                          onChange={e =>
-                            setPasswordData({ ...passwordData, [key]: e.target.value })
-                          }
-                        />
-                      )
-                    )}
-
-                    <div className="pt-2">
+                    <div className="flex justify-end gap-3 pt-5 border-t border-gray-200">
                       <button
-                        onClick={handlePasswordChange}
-                        disabled={
-                          !passwordData.current_password ||
-                          !passwordData.new_password ||
-                          !passwordData.confirm_password
-                        }
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-purple-600"
+                        onClick={() => setIsEditing(false)}
+                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-sm font-medium"
                       >
-                        <Lock className="w-4 h-4" />
-                        Update Password
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors duration-200"
+                      >
+                        <Check className="w-4 h-4" />
+                        Save Changes
                       </button>
                     </div>
                   </div>
+                ) : (
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <DisplayField label="Username" value={user.username} />
+                      <DisplayField label="Email" value={user.email} />
+                      <DisplayField label="First Name" value={user.first_name} />
+                      <DisplayField label="Last Name" value={user.last_name} />
+                      <DisplayField label="Role" value={user.role || "User"} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Password Section */}
+          {activeSection === "password" && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="border-b border-gray-200 px-6 py-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
+                    <p className="text-sm text-gray-600">Update your account password</p>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
+
+              <div className="p-6">
+                <div className="max-w-lg space-y-5">
+                  {["current_password", "new_password", "confirm_password"].map((key, idx) => (
+                    <PasswordInput
+                      key={key}
+                      label={
+                        idx === 0
+                          ? "Current Password"
+                          : idx === 1
+                          ? "New Password"
+                          : "Confirm New Password"
+                      }
+                      value={passwordData[key]}
+                      onChange={e =>
+                        setPasswordData({ ...passwordData, [key]: e.target.value })
+                      }
+                    />
+                  ))}
+
+                  <div className="pt-2">
+                    <button
+                      onClick={handlePasswordChange}
+                      disabled={
+                        !passwordData.current_password ||
+                        !passwordData.new_password ||
+                        !passwordData.confirm_password
+                      }
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-purple-600"
+                    >
+                      <Lock className="w-4 h-4" />
+                      Update Password
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
