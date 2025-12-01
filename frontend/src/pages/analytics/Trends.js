@@ -321,25 +321,28 @@ const Trends = () => {
           >
             <ChartContainer height={250}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={transformedMonthlyData}>
+                <BarChart data={transformedMonthlyData}>
                   <defs>
-                    <linearGradient id="monthlyGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
+                    <linearGradient id="monthlyBarGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.4} />
                     </linearGradient>
                   </defs>
+
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                  <XAxis dataKey="month" fontSize={11} tick={{ fill: "#4b5563" }} />
+                  <XAxis
+                    dataKey="month"
+                    fontSize={11}
+                    tick={{ fill: "#4b5563" }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
                   <YAxis fontSize={11} tick={{ fill: "#4b5563" }} />
                   <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="count"
-                    stroke="#3B82F6"
-                    fill="url(#monthlyGradient)"
-                    strokeWidth={2}
-                  />
-                </AreaChart>
+
+                  <Bar dataKey="count" fill="url(#monthlyBarGradient)" radius={[6, 6, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           </AnalyticsChartCard>

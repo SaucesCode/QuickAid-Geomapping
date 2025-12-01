@@ -43,8 +43,6 @@ export default function PrintCertificate() {
       // Additional delay for complete render
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      console.log("Starting capture with modern-screenshot...");
-
       // Capture with modern-screenshot
       const dataUrl = await domToPng(element, {
         quality: 1,
@@ -61,8 +59,6 @@ export default function PrintCertificate() {
         },
       });
 
-      console.log("Capture complete, creating PDF...");
-
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -78,8 +74,6 @@ export default function PrintCertificate() {
         img.onerror = reject;
         setTimeout(reject, 10000);
       });
-
-      console.log("Image loaded:", { width: img.width, height: img.height });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -107,8 +101,6 @@ export default function PrintCertificate() {
         .trim()}.pdf`;
 
       pdf.save(filename);
-
-      console.log("PDF generated successfully");
     } catch (err) {
       console.error("PDF generation failed:", err);
       alert(`Failed to generate PDF: ${err.message || "Unknown error"}`);

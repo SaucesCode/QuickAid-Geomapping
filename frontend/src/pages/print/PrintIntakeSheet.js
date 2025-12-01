@@ -51,8 +51,6 @@ export default function PrintIntake() {
       // Additional delay for complete render
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      console.log("Starting capture with modern-screenshot...");
-
       // Capture with modern-screenshot - perfect pixel-for-pixel capture
       const dataUrl = await domToPng(element, {
         quality: 1,
@@ -70,8 +68,6 @@ export default function PrintIntake() {
         },
       });
 
-      console.log("Capture complete, creating PDF...");
-
       // Create PDF
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -88,8 +84,6 @@ export default function PrintIntake() {
         img.onerror = reject;
         setTimeout(reject, 10000);
       });
-
-      console.log("Image loaded:", { width: img.width, height: img.height });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -122,8 +116,6 @@ export default function PrintIntake() {
         .trim()}.pdf`;
 
       pdf.save(fileName);
-
-      console.log("PDF generated successfully");
     } catch (err) {
       console.error("PDF generation failed:", err);
       alert(`Failed to generate PDF: ${err.message || "Unknown error"}`);

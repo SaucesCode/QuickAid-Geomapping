@@ -23,6 +23,7 @@ import {
   Users,
   Clock,
 } from "lucide-react";
+import FloatingStaffLogin from "../LandingPage/FloatingStaffLogin";
 
 const AboutUs = () => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -745,6 +746,7 @@ const AboutUs = () => {
       </section>
 
       <Footer />
+      <FloatingStaffLogin />
     </div>
   );
 };

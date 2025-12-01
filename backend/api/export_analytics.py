@@ -27,6 +27,7 @@ from reportlab.platypus import (
 
 # Django
 from django.conf import settings
+from django.db import transaction
 from django.db.models import (
     Avg, Count, DurationField, ExpressionWrapper, F,
     IntegerField, Max, Q
@@ -364,6 +365,7 @@ class AnalyticsDataCollector:
             'activity_heatmap': activity_heatmap
         }
     
+    @transaction.atomic
     def collect_all(self):
         """Collect all analytics data"""
         return {
@@ -791,110 +793,113 @@ class ChartGenerator:
         """Generate all charts and return as dict of figures"""
         charts = {}
         
-        # Geographic charts
-        if data['geographic']['top_barangays']:
-            charts['top_barangays'] = self.create_bar_chart(
-                data['geographic']['top_barangays'],
-                'background_info__barangay__name', 'count',
-                'Top 10 Barangays by Applications',
-                'Barangay', 'Number of Applications'
-            )
-        
-        if data['geographic']['by_city']:
-            charts['by_city'] = self.create_pie_chart(
-                data['geographic']['by_city'],
-                'background_info__barangay__city__name', 'count',
-                'Applications by City'
-            )
-        
-        # Demographic charts
-        if data['demographics']['by_gender']:
-            charts['by_gender'] = self.create_pie_chart(
-                data['demographics']['by_gender'],
-                'background_info__sex', 'count',
-                'Applications by Gender'
-            )
-        
-        if data['demographics']['age_groups']:
-            age_data = [{'group': k, 'count': v} for k, v in data['demographics']['age_groups'].items()]
-            charts['age_groups'] = self.create_bar_chart(
-                age_data, 'group', 'count',
-                'Applications by Age Group',
-                'Age Group', 'Number of Applications'
-            )
-        
-        if data['demographics']['by_civil_status']:
-            charts['civil_status'] = self.create_bar_chart(
-                data['demographics']['by_civil_status'],
-                'background_info__civil_status', 'count',
-                'Applications by Civil Status',
-                'Civil Status', 'Number of Applications'
-            )
-        
-        # Economic charts
-        if data['economics']['income_distribution']:
-            charts['income'] = self.create_bar_chart(
-                data['economics']['income_distribution'],
-                'range', 'count',
-                'Income Distribution',
-                'Income Range (PHP)', 'Number of Applicants'
-            )
-        
-        # Trends charts
-        if data['trends']['monthly']:
-            charts['monthly_trend'] = self.create_line_chart(
-                data['trends']['monthly'],
-                'month', 'count',
-                'Monthly Application Trends (Last 12 Months)',
-                'Month', 'Number of Applications'
-            )
-        
-        if data['trends']['yearly']:
-            charts['yearly_trend'] = self.create_bar_chart(
-                data['trends']['yearly'],
-                'year', 'count',
-                'Yearly Application Trends',
-                'Year', 'Number of Applications', top_n=20
-            )
-        
-        if data['trends']['by_assistance']:
-            charts['assistance_types'] = self.create_bar_chart(
-                data['trends']['by_assistance'],
-                'type_of_assistance', 'count',
-                'Applications by Assistance Type',
-                'Type of Assistance', 'Number of Applications'
-            )
-        
-        if data['trends']['assistance_over_time']:
-            charts['assistance_over_time'] = self.create_stacked_bar_chart(
-                data['trends']['assistance_over_time'],
-                'Assistance Types Over Time'
-            )
-        
-        # Performance charts
-        if data['performance']['staff_productivity']:
-            charts['staff_productivity'] = self.create_bar_chart(
-                data['performance']['staff_productivity'],
-                'staff__username', 'count',
-                'Staff Productivity (Top 10)',
-                'Staff Member', 'Applications Processed'
-            )
-        
-        if data['performance']['processing_by_type']:
-            charts['processing_time'] = self.create_bar_chart(
-                data['performance']['processing_by_type'],
-                'type_of_assistance', 'avg_minutes',
-                'Average Processing Time by Assistance Type',
-                'Type of Assistance', 'Average Time (minutes)'
-            )
-        
-        if data['performance']['activity_heatmap']:
-            charts['activity_heatmap'] = self.create_heatmap(
-                data['performance']['activity_heatmap'],
-                'Application Activity by Hour of Day'
-            )
-        
-        return charts
+        try:
+            # Geographic charts
+            if data['geographic']['top_barangays']:
+                charts['top_barangays'] = self.create_bar_chart(
+                    data['geographic']['top_barangays'],
+                    'background_info__barangay__name', 'count',
+                    'Top 10 Barangays by Applications',
+                    'Barangay', 'Number of Applications'
+                )
+            
+            if data['geographic']['by_city']:
+                charts['by_city'] = self.create_pie_chart(
+                    data['geographic']['by_city'],
+                    'background_info__barangay__city__name', 'count',
+                    'Applications by City'
+                )
+            
+            # Demographic charts
+            if data['demographics']['by_gender']:
+                charts['by_gender'] = self.create_pie_chart(
+                    data['demographics']['by_gender'],
+                    'background_info__sex', 'count',
+                    'Applications by Gender'
+                )
+            
+            if data['demographics']['age_groups']:
+                age_data = [{'group': k, 'count': v} for k, v in data['demographics']['age_groups'].items()]
+                charts['age_groups'] = self.create_bar_chart(
+                    age_data, 'group', 'count',
+                    'Applications by Age Group',
+                    'Age Group', 'Number of Applications'
+                )
+            
+            if data['demographics']['by_civil_status']:
+                charts['civil_status'] = self.create_bar_chart(
+                    data['demographics']['by_civil_status'],
+                    'background_info__civil_status', 'count',
+                    'Applications by Civil Status',
+                    'Civil Status', 'Number of Applications'
+                )
+            
+            # Economic charts
+            if data['economics']['income_distribution']:
+                charts['income'] = self.create_bar_chart(
+                    data['economics']['income_distribution'],
+                    'range', 'count',
+                    'Income Distribution',
+                    'Income Range (PHP)', 'Number of Applicants'
+                )
+            
+            # Trends charts
+            if data['trends']['monthly']:
+                charts['monthly_trend'] = self.create_line_chart(
+                    data['trends']['monthly'],
+                    'month', 'count',
+                    'Monthly Application Trends (Last 12 Months)',
+                    'Month', 'Number of Applications'
+                )
+            
+            if data['trends']['yearly']:
+                charts['yearly_trend'] = self.create_bar_chart(
+                    data['trends']['yearly'],
+                    'year', 'count',
+                    'Yearly Application Trends',
+                    'Year', 'Number of Applications', top_n=20
+                )
+            
+            if data['trends']['by_assistance']:
+                charts['assistance_types'] = self.create_bar_chart(
+                    data['trends']['by_assistance'],
+                    'type_of_assistance', 'count',
+                    'Applications by Assistance Type',
+                    'Type of Assistance', 'Number of Applications'
+                )
+            
+            if data['trends']['assistance_over_time']:
+                charts['assistance_over_time'] = self.create_stacked_bar_chart(
+                    data['trends']['assistance_over_time'],
+                    'Assistance Types Over Time'
+                )
+            
+            # Performance charts
+            if data['performance']['staff_productivity']:
+                charts['staff_productivity'] = self.create_bar_chart(
+                    data['performance']['staff_productivity'],
+                    'staff__username', 'count',
+                    'Staff Productivity (Top 10)',
+                    'Staff Member', 'Applications Processed'
+                )
+            
+            if data['performance']['processing_by_type']:
+                charts['processing_time'] = self.create_bar_chart(
+                    data['performance']['processing_by_type'],
+                    'type_of_assistance', 'avg_minutes',
+                    'Average Processing Time by Assistance Type',
+                    'Type of Assistance', 'Average Time (minutes)'
+                )
+            
+            if data['performance']['activity_heatmap']:
+                charts['activity_heatmap'] = self.create_heatmap(
+                    data['performance']['activity_heatmap'],
+                    'Application Activity by Hour of Day'
+                )
+            
+            return charts
+        finally:
+            plt.close('all')
 
 
 class PDFReportGenerator:

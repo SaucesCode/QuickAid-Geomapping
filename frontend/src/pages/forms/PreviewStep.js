@@ -21,7 +21,6 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
     setIsSubmitting(true);
     try {
       const data = await submitApplicant({ ...formData, staff_ref_code: staffRef });
-      console.log(formData);
       setSubmitSuccess(true);
       navigate("/print", { state: { applicant: data } });
       toast.custom(t => <CustomToast t={t} type="submit" />, {
