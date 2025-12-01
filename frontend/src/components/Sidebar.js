@@ -143,7 +143,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="flex min-h-screen h-full bg-gray-100">
+    <div className="flex min-h-screen h-full bg-gray-100 overflow-x-hidden">
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div
@@ -635,22 +635,33 @@ const Sidebar = () => {
       {/* Main Content */}
       <main
         className={`flex-1 transition-all duration-300 ${
-          collapsed ? "md:ml-14 lg:ml-16" : "md:ml-48 lg:ml-56 xl:ml-60 2xl:ml-64"
+          collapsed
+            ? "w-full md:w-auto md:ml-14 lg:ml-16"
+            : "w-full md:w-auto md:ml-48 lg:ml-56 xl:ml-60 2xl:ml-64"
         }`}
       >
         {/* Header */}
-        <header className="sticky top-0 z-[100] flex items-center justify-between bg-white border-b border-gray-200 px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 shadow-sm">
-          <div className="flex items-center gap-4">
-            {/* Mobile Menu Button (Remains) */}
-            <button className="text-gray-600 md:hidden" onClick={toggleMobileMenu}>
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        <header className="sticky top-0 z-30 flex items-center justify-between bg-white border-b border-gray-200 px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 shadow-sm">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+            {/* Mobile Menu Button */}
+            <button
+              className="text-gray-600 md:hidden flex-shrink-0"
+              onClick={toggleMobileMenu}
+            >
+              {mobileMenuOpen ? (
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
+              ) : (
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+              )}
             </button>
 
-            {/* The main title/page name */}
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900">{getPageTitle()}</h1>
+            {/* Page Title */}
+            <h1 className="text-sm sm:text-lg md:text-xl font-bold text-gray-900 truncate">
+              {getPageTitle()}
+            </h1>
           </div>
 
-          <div className="flex items-center gap-3"></div>
+          <div className="flex items-center gap-3 flex-shrink-0"></div>
         </header>
 
         {/* Page Content */}
