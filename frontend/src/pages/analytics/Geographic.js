@@ -14,7 +14,8 @@ import {
   Activity,
   Map,
   ExternalLink,
-  Sparkles,
+  BarChart2,
+  UserX,
 } from "lucide-react";
 import {
   BarChart,
@@ -46,6 +47,13 @@ import {
   ChartContainer,
   Badge,
   InsightCard,
+  AnalyticsTable,
+  TableHeader,
+  TableHeaderCell,
+  TableCell,
+  TableBody,
+  TableRow,
+  EmptyState,
 } from "../../components/AnalyticsComponents";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -97,6 +105,20 @@ const Geographic = () => {
   const { data: topBarangays = [], isLoading: topBarangaysLoading } = useQuery({
     queryKey: ["geographic", "topBarangays", filters],
     queryFn: () => fetchData("/analytics/geographic/top-barangays/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: barangayPerformance, isLoading: performanceLoading } = useQuery({
+    queryKey: ["geographic", "barangay-performance", filters],
+    queryFn: () => fetchData("/analytics/geographic/barangay-performance/"),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: coverageGaps, isLoading: gapsLoading } = useQuery({
+    queryKey: ["geographic", "coverage-gaps", filters],
+    queryFn: () => fetchData("/analytics/geographic/coverage-gaps/"),
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
   });
@@ -476,7 +498,122 @@ const Geographic = () => {
             ))}
           </div>
         </AnalyticsChartCard>
+        <AnalyticsChartCard
+          icon={Award}
+          title="Barangay Performance Comparison"
+          subtitle="Application volume and approval efficiency"
+          isLoading={performanceLoading}
+        >
+          <AnalyticsTable>
+            <TableHeader>
+              <TableHeaderCell>Barangay</TableHeaderCell>
+              <TableHeaderCell>Applications</TableHeaderCell>
+              <TableHeaderCell>Approval Rate</TableHeaderCell>
+              <TableHeaderCell>Performance</TableHeaderCell>
+            </TableHeader>
 
+            <TableBody>
+              {barangayPerformance?.barangays.map((item, idx) => (
+                <TableRow key={idx}>
+                  <TableCell className="font-medium">{item.barangay}</TableCell>
+
+                  <TableCell>{item.total_applications}</TableCell>
+
+                  <TableCell>
+                    <span
+                      className={`font-semibold ${
+                        item.approval_vs_average > 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {item.approval_rate}%
+                      {item.approval_vs_average !== 0 && (
+                        <span className="text-xs ml-1">
+                          ({item.approval_vs_average > 0 ? "+" : ""}
+                          {item.approval_vs_average}%)
+                        </span>
+                      )}
+                    </span>
+                  </TableCell>
+
+                  <TableCell>
+                    <Badge
+                      variant={
+                        item.performance === "High Performing"
+                          ? "success"
+                          : item.performance === "Performing Well"
+                          ? "info"
+                          : "warning"
+                      }
+                    >
+                      {item.performance}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </AnalyticsTable>
+
+          {barangayPerformance?.overall_metrics && (
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
+              <p className="font-semibold text-gray-700 mb-1">Overall Averages:</p>
+              <p className="text-gray-600">
+                Approval Rate: {barangayPerformance.overall_metrics.avg_approval_rate}% |
+                Barangays: {barangayPerformance.overall_metrics.total_barangays}
+              </p>
+            </div>
+          )}
+        </AnalyticsChartCard>
+        <AnalyticsChartCard
+          icon={MapPin}
+          title="Service Coverage Gaps"
+          subtitle="Underserved areas requiring outreach"
+          isLoading={gapsLoading}
+        >
+          {coverageGaps && coverageGaps.underserved_barangays.length > 0 ? (
+            <>
+              <div className="space-y-2">
+                {coverageGaps.underserved_barangays.slice(0, 8).map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200"
+                  >
+                    <div>
+                      <p className="font-semibold text-gray-800">{item.barangay}</p>
+                      <p className="text-xs text-gray-600">{item.city}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-orange-600">
+                        {item.application_count} apps
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {item.days_since_last_application} days ago
+                      </p>
+                      <Badge variant={item.priority === "high" ? "danger" : "warning"}>
+                        {item.priority} priority
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm font-semibold text-blue-800">
+                  📊 {coverageGaps.recommendation}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Median volume: {coverageGaps.median_volume} | Threshold:{" "}
+                  {coverageGaps.threshold_volume}
+                </p>
+              </div>
+            </>
+          ) : (
+            <EmptyState
+              icon={MapPin}
+              title="Good Coverage"
+              description="All barangays have adequate service levels"
+            />
+          )}
+        </AnalyticsChartCard>
         <AnalyticsAlertCard
           icon={MapPin}
           title="Key Geographic Insights"
@@ -484,15 +621,36 @@ const Geographic = () => {
           variant="info"
         >
           <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="sm">
-            <InsightCard title="Top Barangay" isLoading={loading}>
+            {/* Top Barangay */}
+            <InsightCard
+              title="Top Barangay"
+              icon={MapPin}
+              variant="info"
+              description="Highest application density"
+              isLoading={loading}
+            >
               {topBarangay} has the highest number of applications ({dominantBarangayCount})
             </InsightCard>
 
-            <InsightCard title="Average Approval Rate" isLoading={loading}>
+            {/* Average Approval Rate */}
+            <InsightCard
+              title="Average Approval Rate"
+              icon={BarChart2}
+              variant="info"
+              description="Approval rate across all mapped barangays"
+              isLoading={loading}
+            >
               {avgApprovalRate}% across mapped locations.
             </InsightCard>
 
-            <InsightCard title="Inactive Applicants" isLoading={loading}>
+            {/* Inactive Applicants */}
+            <InsightCard
+              title="Inactive Applicants"
+              icon={UserX}
+              variant="warning"
+              description="Applicants inactive for 6+ months"
+              isLoading={loading}
+            >
               {inactiveCount} applicants haven't submitted applications in over 6 months.
             </InsightCard>
           </AnalyticsGrid>

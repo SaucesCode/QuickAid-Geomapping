@@ -8,7 +8,10 @@ import {
   Calendar,
   BarChart2,
   LineChart,
-  Users,
+  TimerIcon,
+  AlertCircle,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -18,12 +21,9 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-  BarChart,
-  Bar,
   Legend,
   Area,
 } from "recharts";
-import toast from "react-hot-toast";
 
 // Import Analytics Components
 import {
@@ -31,6 +31,7 @@ import {
   PageHeader,
   AnalyticsStatCard,
   AnalyticsChartCard,
+  AnalyticsAlertCard,
   AnalyticsGrid,
   AnalyticsStack,
   ChartContainer,
@@ -41,6 +42,7 @@ import {
   TableRow,
   TableCell,
   Badge,
+  InsightCard,
 } from "../../components/AnalyticsComponents";
 
 // Assistance Type Colors
@@ -78,9 +80,19 @@ const Dashboard = () => {
     queryFn: () => fetcher("/analytics/trends/assistance-type-trend/"),
   });
 
+  const { data: monthlyComparison, isLoading: comparisonLoading } = useQuery({
+    queryKey: ["dashboard", "monthly-comparison"],
+    queryFn: () => fetcher("/analytics/dashboard/monthly-comparison/"),
+  });
+
   const { data: monthlyTrend, isLoading: trendLoading } = useQuery({
     queryKey: ["monthlyTrend"],
     queryFn: () => fetcher("/analytics/dashboard/total-applicants/"),
+  });
+
+  const { data: alerts } = useQuery({
+    queryKey: ["dashboard", "capacity-alerts"],
+    queryFn: () => fetcher("/analytics/dashboard/capacity-alerts/"),
   });
 
   const { data: staffActivity, isLoading: staffLoading } = useQuery({
@@ -184,6 +196,75 @@ const Dashboard = () => {
             trend={parseFloat(growthPercentage)}
             isLoading={trendLoading}
           />
+        </AnalyticsGrid>
+        <AnalyticsGrid cols={{ default: 1, md: 2 }} gap="md">
+          {monthlyComparison && (
+            <>
+              <AnalyticsStatCard
+                icon={TrendingUp}
+                title="Application Volume"
+                value={monthlyComparison.volume.current}
+                subtitle={`Previous: ${monthlyComparison.volume.previous}`}
+                color="blue"
+                isLoading={comparisonLoading}
+              >
+                <div className="flex items-center justify-between mt-3">
+                  <div className="text-sm text-gray-500">
+                    Change:
+                    <span
+                      className={`ml-1 font-semibold ${
+                        monthlyComparison.volume.trend === "up"
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {monthlyComparison.volume.change_percent}%
+                    </span>
+                  </div>
+
+                  <TrendingUp
+                    className={`w-5 h-5 ${
+                      monthlyComparison.volume.trend === "up"
+                        ? "text-green-600"
+                        : "text-red-600 rotate-180"
+                    }`}
+                  />
+                </div>
+              </AnalyticsStatCard>
+
+              <AnalyticsStatCard
+                icon={TimerIcon}
+                title="Processing Time"
+                value={`${monthlyComparison.processing_time.current} min`}
+                subtitle={`Previous: ${monthlyComparison.processing_time.previous} min`}
+                color="purple"
+                isLoading={comparisonLoading}
+              >
+                <div className="flex items-center justify-between mt-3">
+                  <div className="text-sm text-gray-500">
+                    Change:
+                    <span
+                      className={`ml-1 font-semibold ${
+                        monthlyComparison.processing_time.trend === "up"
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {monthlyComparison.processing_time.change_percent}%
+                    </span>
+                  </div>
+
+                  <TrendingUp
+                    className={`w-5 h-5 ${
+                      monthlyComparison.processing_time.trend === "up"
+                        ? "text-green-600"
+                        : "text-red-600 rotate-180"
+                    }`}
+                  />
+                </div>
+              </AnalyticsStatCard>
+            </>
+          )}
         </AnalyticsGrid>
         <AnalyticsChartCard
           icon={LineChart}
@@ -415,6 +496,42 @@ const Dashboard = () => {
             </AnalyticsChartCard>
           </div>
         </AnalyticsGrid>
+        <AnalyticsAlertCard
+          icon={AlertCircle}
+          title="Capacity Alerts"
+          description="System-generated alerts on capacity thresholds"
+          variant="info"
+        >
+          {alerts && alerts.alerts.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {alerts.alerts.map((alert, idx) => (
+                <InsightCard
+                  key={idx}
+                  icon={
+                    alert.severity === "critical"
+                      ? AlertCircle
+                      : alert.severity === "warning"
+                      ? AlertTriangle
+                      : Info
+                  }
+                  title={alert.title}
+                  description={alert.message}
+                  variant={
+                    alert.severity === "critical"
+                      ? "danger"
+                      : alert.severity === "warning"
+                      ? "warning"
+                      : "info"
+                  }
+                >
+                  <div className="mt-2 text-sm">
+                    <p className="font-medium">{alert.detail}</p>
+                  </div>
+                </InsightCard>
+              ))}
+            </div>
+          )}
+        </AnalyticsAlertCard>
       </AnalyticsStack>
     </PageContainer>
   );

@@ -334,16 +334,44 @@ export const ChartContainer = ({ children, height = 250, className }) => (
 );
 
 // --- INSIGHT CARD (For Summary Cards) ---
-export const InsightCard = ({ title, children, className, isLoading }) => (
-  <AnalyticsCard className={cn("hover:border-blue-200 transition-colors", className)}>
-    <h3 className="font-semibold text-gray-800 mb-2 text-sm">{title}</h3>
-    {isLoading ? (
-      <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-    ) : (
-      <div className="text-gray-700 text-sm">{children}</div>
-    )}
-  </AnalyticsCard>
-);
+export const InsightCard = ({
+  title,
+  icon: Icon,
+  description,
+  variant = "info",
+  children,
+  className,
+  isLoading,
+}) => {
+  const variantColors = {
+    info: "bg-blue-50 border-blue-200",
+    warning: "bg-yellow-50 border-yellow-200",
+    danger: "bg-red-50 border-red-200",
+  };
+
+  return (
+    <AnalyticsCard
+      className={cn(
+        "hover:border-blue-200 transition-colors p-3",
+        variantColors[variant],
+        className
+      )}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        {Icon && <Icon className="w-4 h-4 text-gray-700" />}
+        <h3 className="font-semibold text-gray-800 text-sm">{title}</h3>
+      </div>
+
+      {description && <p className="text-gray-600 text-xs mb-2">{description}</p>}
+
+      {isLoading ? (
+        <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+      ) : (
+        <div className="text-gray-700 text-sm">{children}</div>
+      )}
+    </AnalyticsCard>
+  );
+};
 
 // --- TABLE COMPONENTS ---
 
