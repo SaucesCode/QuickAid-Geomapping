@@ -473,7 +473,12 @@ const Performance = () => {
 
         <AnalyticsAlertCard icon={Activity} title="Performance Insights" variant="info">
           <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="sm">
-            <InsightCard title="Processing Efficiency">
+            <InsightCard
+              title="Processing Efficiency"
+              icon={Target}
+              variant="info"
+              description="Processing time analysis"
+            >
               Average processing time of{" "}
               <span className="font-bold">
                 {(stats.processingEfficiency ?? 0).toFixed(1)} minutes
@@ -487,7 +492,12 @@ const Performance = () => {
               in efficiency.
             </InsightCard>
 
-            <InsightCard title="Staff Performance">
+            <InsightCard
+              title="Staff Performance"
+              icon={Trophy}
+              variant="info"
+              description="Top performer based on processed applications"
+            >
               <span className="font-bold">{stats.topPerformer?.staff || "Top performer"}</span>{" "}
               leads with{" "}
               <span className="font-bold">
@@ -496,7 +506,12 @@ const Performance = () => {
               , showing strong productivity.
             </InsightCard>
 
-            <InsightCard title="Workload Distribution">
+            <InsightCard
+              title="Workload Distribution"
+              icon={Users}
+              variant="info"
+              description="Average productivity"
+            >
               Average productivity of{" "}
               <span className="font-bold">{stats.averageProductivity}</span> applications per
               staff member indicates workload balance.

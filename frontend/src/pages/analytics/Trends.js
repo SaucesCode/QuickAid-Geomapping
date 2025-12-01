@@ -526,7 +526,13 @@ const Trends = () => {
           variant="info"
         >
           <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="md">
-            <InsightCard title="Growth Pattern" isLoading={loadingStates.monthly}>
+            <InsightCard
+              title="Growth Pattern"
+              isLoading={loadingStates.monthly}
+              icon={TrendingUp}
+              variant="info"
+              description="Monthly growth analysis"
+            >
               <p className="text-gray-700">
                 The current application volume shows a{" "}
                 <span
@@ -540,7 +546,13 @@ const Trends = () => {
               </p>
             </InsightCard>
 
-            <InsightCard title="Peak Activity" isLoading={loadingStates.monthly}>
+            <InsightCard
+              title="Peak Activity"
+              isLoading={loadingStates.monthly}
+              icon={Calendar}
+              variant="info"
+              description="Monthly application average"
+            >
               <p className="text-gray-700">
                 The dashboard maintains an average of{" "}
                 {averageMonthlyApplications.toLocaleString()} applications per month,
@@ -548,7 +560,13 @@ const Trends = () => {
               </p>
             </InsightCard>
 
-            <InsightCard title="Service Demand" isLoading={loadingStates.assistanceType}>
+            <InsightCard
+              title="Service Demand"
+              isLoading={loadingStates.assistanceType}
+              icon={Target}
+              variant="info"
+              description="Most requested assistance type"
+            >
               <p className="text-gray-700">
                 The most demanded service is {mostPopularAssistance.type_of_assistance} with{" "}
                 {mostPopularAssistance.count} requests.

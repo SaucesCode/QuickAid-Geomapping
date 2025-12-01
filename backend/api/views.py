@@ -1274,6 +1274,71 @@ def applicant_growth_rate(request):
     })
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def monthly_comparison_metrics(request):
+    """
+    Compare current month vs previous month for all key metrics
+    Returns: percentage changes and actual values
+    """
+    today = timezone.localdate()
+    start_of_this_month = today.replace(day=1)
+    start_of_last_month = (start_of_this_month - timedelta(days=1)).replace(day=1)
+    end_of_last_month = start_of_this_month - timedelta(days=1)
+    
+    base_qs = Applicant.objects.filter(is_archived=False)
+    
+    # This month
+    this_month = base_qs.filter(date_filled__date__gte=start_of_this_month)
+    this_month_count = this_month.count()
+    
+    # Calculate avg processing time this month
+    this_month_avg_time = this_month.exclude(
+        created_at__isnull=True, date_filled__isnull=True
+    ).aggregate(
+        avg_time=Avg(ExpressionWrapper(
+            F('date_filled') - F('created_at'),
+            output_field=DurationField()
+        ))
+    )['avg_time']
+    this_month_minutes = round(this_month_avg_time.total_seconds() / 60, 1) if this_month_avg_time else 0
+    
+    # Last month
+    last_month = base_qs.filter(
+        date_filled__date__range=[start_of_last_month, end_of_last_month]
+    )
+    last_month_count = last_month.count()
+    
+    last_month_avg_time = last_month.exclude(
+        created_at__isnull=True, date_filled__isnull=True
+    ).aggregate(
+        avg_time=Avg(ExpressionWrapper(
+            F('date_filled') - F('created_at'),
+            output_field=DurationField()
+        ))
+    )['avg_time']
+    last_month_minutes = round(last_month_avg_time.total_seconds() / 60, 1) if last_month_avg_time else 0
+    
+    # Calculate percentage changes
+    volume_change = ((this_month_count - last_month_count) / last_month_count * 100) if last_month_count > 0 else 0
+    time_change = ((this_month_minutes - last_month_minutes) / last_month_minutes * 100) if last_month_minutes > 0 else 0
+    
+    return Response({
+        "volume": {
+            "current": this_month_count,
+            "previous": last_month_count,
+            "change_percent": round(volume_change, 1),
+            "trend": "up" if volume_change > 0 else "down"
+        },
+        "processing_time": {
+            "current": this_month_minutes,
+            "previous": last_month_minutes,
+            "change_percent": round(time_change, 1),
+            "trend": "up" if time_change > 0 else "down"
+        }
+    })
+
+
 @api_view(["GET"])
 def applicant_forecast(request):
     today = now().date()
@@ -1341,6 +1406,97 @@ def applicant_forecast(request):
 
 
     return Response(data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def capacity_alerts(request):
+    """
+    Generate proactive warnings about capacity and trends
+    Returns: list of alerts with severity levels
+    """
+    alerts = []
+    
+    today = timezone.localdate()
+    start_of_this_month = today.replace(day=1)
+    base_qs = Applicant.objects.filter(is_archived=False)
+    
+    # 1. Growth Rate Alert
+    start_of_last_month = (start_of_this_month - timedelta(days=1)).replace(day=1)
+    end_of_last_month = start_of_this_month - timedelta(days=1)
+    
+    this_month_count = base_qs.filter(date_filled__date__gte=start_of_this_month).count()
+    last_month_count = base_qs.filter(
+        date_filled__date__range=[start_of_last_month, end_of_last_month]
+    ).count()
+    
+    growth_rate = ((this_month_count - last_month_count) / last_month_count * 100) if last_month_count > 0 else 0
+    
+    if growth_rate > 20:
+        projected_next_month = int(this_month_count * (1 + growth_rate / 100))
+        alerts.append({
+            'severity': 'warning',
+            'category': 'capacity',
+            'title': 'High Growth Detected',
+            'message': f'Applications grew {growth_rate:.1f}% this month',
+            'detail': f'Projected next month: {projected_next_month} applications',
+            'recommendation': 'Consider increasing staff allocation or extending service hours'
+        })
+    
+    # 2. Processing Time Alert
+    avg_time = base_qs.exclude(
+        created_at__isnull=True, date_filled__isnull=True
+    ).aggregate(
+        avg_time=Avg(ExpressionWrapper(
+            F('date_filled') - F('created_at'),
+            output_field=DurationField()
+        ))
+    )['avg_time']
+    
+    avg_minutes = round(avg_time.total_seconds() / 60, 1) if avg_time else 0
+    
+    if avg_minutes > 15:
+        alerts.append({
+            'severity': 'critical',
+            'category': 'efficiency',
+            'title': 'Processing Time Exceeds Target',
+            'message': f'Average processing time: {avg_minutes} minutes',
+            'detail': 'Target is <10 minutes per application',
+            'recommendation': 'Audit workflow for bottlenecks and provide staff training'
+        })
+    elif avg_minutes > 10:
+        alerts.append({
+            'severity': 'info',
+            'category': 'efficiency',
+            'title': 'Processing Time Above Target',
+            'message': f'Average processing time: {avg_minutes} minutes',
+            'detail': 'Approaching 10-minute target threshold',
+            'recommendation': 'Monitor workflow efficiency closely'
+        })
+    
+    # 3. Pending Applications Alert (if you track status)
+    # This assumes you might add a status field later
+    # For now, we'll check for very recent applications (last 24 hours)
+    recent_count = base_qs.filter(
+        date_filled__gte=timezone.now() - timedelta(hours=24)
+    ).count()
+    
+    if recent_count > 50:
+        alerts.append({
+            'severity': 'info',
+            'category': 'workload',
+            'title': 'High Daily Volume',
+            'message': f'{recent_count} applications received in last 24 hours',
+            'detail': 'Above typical daily average',
+            'recommendation': 'Ensure adequate staff coverage for processing'
+        })
+    
+    return Response({
+        'alerts': alerts,
+        'total_alerts': len(alerts),
+        'critical_count': len([a for a in alerts if a['severity'] == 'critical']),
+        'warning_count': len([a for a in alerts if a['severity'] == 'warning'])
+    })
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -1481,6 +1637,113 @@ def barangay_by_type(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def barangay_performance_comparison(request):
+    """
+    Compare barangays by applications and approval rate only
+    """
+    qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
+
+    barangay_metrics = qs.values('background_info__barangay__name').annotate(
+        total_applications=Count('id'),
+        approved_count=Count('id', filter=Q(approvals__isnull=False)),
+    ).order_by('-total_applications')
+
+    results = []
+    for item in barangay_metrics:
+        name = item['background_info__barangay__name']
+        if not name:
+            continue
+
+        total = item['total_applications']
+        approved = item['approved_count'] or 0
+
+        approval_rate = (approved / total * 100) if total > 0 else 0
+
+        results.append({
+            'barangay': name,
+            'total_applications': total,
+            'approval_rate': round(approval_rate, 1),
+        })
+
+    # Compute average approval rate ONLY
+    if results:
+        avg_approval = sum(r['approval_rate'] for r in results) / len(results)
+
+        for item in results:
+            item['approval_vs_average'] = round(item['approval_rate'] - avg_approval, 1)
+
+            # NEW simplified performance logic
+            if item['approval_rate'] >= avg_approval + 5:
+                item['performance'] = 'High Performing'
+            elif item['approval_rate'] >= avg_approval:
+                item['performance'] = 'Performing Well'
+            else:
+                item['performance'] = 'Needs Attention'
+
+    return Response({
+        'barangays': results[:10],
+        'overall_metrics': {
+            'avg_approval_rate': round(avg_approval, 1) if results else 0,
+            'total_barangays': len(results)
+        }
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def service_coverage_gaps(request):
+    """
+    Identify underserved areas and service gaps
+    Returns: barangays with low volume and potential outreach targets
+    """
+    qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
+    
+    # Get all barangays with application counts
+    barangay_volumes = qs.values(
+        'background_info__barangay__name',
+        'background_info__barangay__city__name'
+    ).annotate(
+        count=Count('id'),
+        last_application=Max('date_filled')
+    ).order_by('count')
+    
+    # Calculate median volume for comparison
+    volumes = [b['count'] for b in barangay_volumes]
+    median_volume = sorted(volumes)[len(volumes) // 2] if volumes else 0
+    
+    # Identify underserved (below 25th percentile)
+    threshold = sorted(volumes)[len(volumes) // 4] if len(volumes) >= 4 else 5
+    
+    underserved = []
+    for item in barangay_volumes:
+        if item['count'] < threshold:
+            days_since_last = (timezone.now().date() - item['last_application'].date()).days if item['last_application'] else 999
+            
+            underserved.append({
+                'barangay': item['background_info__barangay__name'],
+                'city': item['background_info__barangay__city__name'],
+                'application_count': item['count'],
+                'vs_median': item['count'] - median_volume,
+                'days_since_last_application': days_since_last,
+                'priority': 'high' if days_since_last > 90 else 'medium'
+            })
+    
+    # Get barangays with zero applications (if you have a full barangay list)
+    # This would require having all barangays in your database
+    
+    return Response({
+        'underserved_barangays': underserved,
+        'total_underserved': len(underserved),
+        'median_volume': median_volume,
+        'threshold_volume': threshold,
+        'recommendation': f'{len(underserved)} barangays need outreach programs'
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def approval_rate_by_location(request):
     """
     🌍 Geographic: Approval rates by location
@@ -1569,6 +1832,80 @@ def inactive_applicants(request):
 # ======================================================
 # 3. 👥 DEMOGRAPHICS & ECONOMICS
 # ======================================================
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def demographic_trends_over_time(request):
+    """
+    Track how demographics change month-over-month
+    Returns: demographic breakdowns by month
+    """
+    today = timezone.now().date()
+    start_date = today.replace(day=1) - relativedelta(months=5)  # Last 6 months
+    
+    qs = Applicant.objects.filter(
+        is_archived=False,
+        date_filled__gte=start_date
+    )
+    qs = apply_common_filters(request, qs)
+    
+    # Monthly demographic breakdown
+    monthly_data = qs.annotate(
+        month=TruncMonth('date_filled')
+    ).values('month').annotate(
+        total=Count('id'),
+        male_count=Count('id', filter=Q(background_info__sex='Male')),
+        female_count=Count('id', filter=Q(background_info__sex='Female')),
+        avg_age=Avg(
+            ExpressionWrapper(
+                today.year - ExtractYear('background_info__birthday'),
+                output_field=IntegerField()
+            )
+        )
+    ).order_by('month')
+    
+    results = []
+    for item in monthly_data:
+        month_str = item['month'].strftime('%b %Y')
+        total = item['total']
+        
+        results.append({
+            'month': month_str,
+            'total_applicants': total,
+            'male_percentage': round((item['male_count'] / total * 100), 1) if total > 0 else 0,
+            'female_percentage': round((item['female_count'] / total * 100), 1) if total > 0 else 0,
+            'average_age': round(item['avg_age'], 1) if item['avg_age'] else 0
+        })
+    
+    return Response({
+        'monthly_trends': results,
+        'trend_summary': _analyze_demographic_trends(results)
+    })
+
+def _analyze_demographic_trends(data):
+    """Helper to identify demographic shifts"""
+    if len(data) < 2:
+        return "Insufficient data for trend analysis"
+    
+    latest = data[-1]
+    previous = data[-2]
+    
+    insights = []
+    
+    # Gender shift
+    gender_shift = latest['male_percentage'] - previous['male_percentage']
+    if abs(gender_shift) > 5:
+        direction = "increased" if gender_shift > 0 else "decreased"
+        insights.append(f"Male representation {direction} by {abs(gender_shift):.1f}%")
+    
+    # Age shift
+    age_shift = latest['average_age'] - previous['average_age']
+    if abs(age_shift) > 2:
+        direction = "older" if age_shift > 0 else "younger"
+        insights.append(f"Average applicant age trending {direction}")
+    
+    return " | ".join(insights) if insights else "Demographics remain stable"
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -1710,6 +2047,75 @@ def income_distribution(request):
             ).count()
         distribution.append({"range": label, "count": count})
     return Response(distribution)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def income_assistance_analysis(request):
+    """
+    Cross-analyze income brackets with assistance type preferences
+    Returns: breakdown of assistance types by income level
+    """
+    qs = Applicant.objects.filter(is_archived=False).exclude(
+        background_info__monthly_income=0
+    )
+    qs = apply_common_filters(request, qs)
+    
+    income_brackets = [
+        (0, 10000, 'Low Income (Below 10k)'),
+        (10001, 20000, 'Lower-Middle Income (10k-20k)'),
+        (20001, 30000, 'Middle Income (20k-30k)'),
+        (30001, 50000, 'Upper-Middle Income (30k-50k)'),
+        (50001, None, 'High Income (Above 50k)')
+    ]
+    
+    results = []
+    for min_income, max_income, label in income_brackets:
+        filtered = qs.filter(background_info__monthly_income__gte=min_income)
+        if max_income:
+            filtered = filtered.filter(background_info__monthly_income__lt=max_income)
+        
+        total = filtered.count()
+        if total == 0:
+            continue
+        
+        breakdown = filtered.values('type_of_assistance').annotate(
+            count=Count('id')
+        ).order_by('-count')
+        
+        assistance_breakdown = []
+        for item in breakdown:
+            assistance_breakdown.append({
+                'type': item['type_of_assistance'],
+                'count': item['count'],
+                'percentage': round((item['count'] / total * 100), 1)
+            })
+        
+        results.append({
+            'income_bracket': label,
+            'total_applicants': total,
+            'assistance_breakdown': assistance_breakdown,
+            'most_common': assistance_breakdown[0]['type'] if assistance_breakdown else None
+        })
+    
+    return Response({
+        'income_brackets': results,
+        'insights': _generate_income_insights(results)
+    })
+
+def _generate_income_insights(data):
+    """Helper to generate insights from income data"""
+    insights = []
+    
+    for bracket in data:
+        if bracket['assistance_breakdown']:
+            top = bracket['assistance_breakdown'][0]
+            if top['percentage'] > 50:
+                insights.append(
+                    f"{bracket['income_bracket']}: {top['type']} dominates at {top['percentage']}%"
+                )
+    
+    return insights
 
 # ======================================================
 # 4. 📈 APPLICATION & APPROVAL TRENDS
@@ -1999,6 +2405,111 @@ def staff_productivity(request):
     qs = qs.values("staff__username").annotate(count=Count("id")).order_by("-count")
     return Response(list(qs))
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def staff_efficiency_trends(request):
+    """
+    Track staff performance changes over time
+    Returns: efficiency metrics with month-over-month changes
+    """
+    today = timezone.now().date()
+    start_of_this_month = today.replace(day=1)
+    start_of_last_month = (start_of_this_month - timedelta(days=1)).replace(day=1)
+    end_of_last_month = start_of_this_month - timedelta(days=1)
+    
+    base_qs = Applicant.objects.filter(is_archived=False)
+    
+    # This month staff performance
+    this_month_staff = base_qs.filter(
+        date_filled__date__gte=start_of_this_month
+    ).values('staff__username').annotate(
+        count=Count('id'),
+        avg_time=Avg(
+            ExpressionWrapper(
+                F('date_filled') - F('created_at'),
+                output_field=DurationField()
+            )
+        )
+    )
+    
+    # Last month staff performance
+    last_month_staff = base_qs.filter(
+        date_filled__date__range=[start_of_last_month, end_of_last_month]
+    ).values('staff__username').annotate(
+        count=Count('id'),
+        avg_time=Avg(
+            ExpressionWrapper(
+                F('date_filled') - F('created_at'),
+                output_field=DurationField()
+            )
+        )
+    )
+    
+    # Build comparison dictionary
+    last_month_dict = {
+        item['staff__username']: {
+            'count': item['count'],
+            'avg_minutes': round(item['avg_time'].total_seconds() / 60, 1) if item['avg_time'] else 0
+        }
+        for item in last_month_staff if item['staff__username']
+    }
+    
+    results = []
+    for item in this_month_staff:
+        username = item['staff__username']
+        if not username:
+            continue
+        
+        current_count = item['count']
+        current_avg = round(item['avg_time'].total_seconds() / 60, 1) if item['avg_time'] else 0
+        
+        # Compare with last month
+        if username in last_month_dict:
+            prev = last_month_dict[username]
+            volume_change = current_count - prev['count']
+            time_change = current_avg - prev['avg_minutes']
+            
+            results.append({
+                'staff': username,
+                'current_month': {
+                    'applications': current_count,
+                    'avg_processing_minutes': current_avg
+                },
+                'previous_month': {
+                    'applications': prev['count'],
+                    'avg_processing_minutes': prev['avg_minutes']
+                },
+                'changes': {
+                    'volume_change': volume_change,
+                    'time_change': round(time_change, 1),
+                    'efficiency_trend': 'improving' if time_change < 0 else 'declining' if time_change > 0 else 'stable'
+                }
+            })
+        else:
+            # New staff member this month
+            results.append({
+                'staff': username,
+                'current_month': {
+                    'applications': current_count,
+                    'avg_processing_minutes': current_avg
+                },
+                'previous_month': None,
+                'changes': {
+                    'volume_change': current_count,
+                    'time_change': 0,
+                    'efficiency_trend': 'new'
+                }
+            })
+    
+    return Response({
+        'staff_trends': sorted(results, key=lambda x: x['current_month']['applications'], reverse=True),
+        'summary': {
+            'improving_count': len([s for s in results if s['changes']['efficiency_trend'] == 'improving']),
+            'declining_count': len([s for s in results if s['changes']['efficiency_trend'] == 'declining']),
+            'stable_count': len([s for s in results if s['changes']['efficiency_trend'] == 'stable'])
+        }
+    })
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -2069,6 +2580,101 @@ def staff_activity_heatmap(request):
 
     return Response(list(qs))
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def workload_balance_analysis(request):
+    """
+    Analyze staff workload distribution and identify imbalances
+    Returns: workload metrics with balance indicators
+    """
+    qs = Applicant.objects.filter(is_archived=False)
+    qs = apply_common_filters(request, qs)
+    
+    # Get staff workload
+    staff_workload = qs.values('staff__username').annotate(
+        total_applications=Count('id'),
+        avg_processing_minutes=Avg(
+            ExpressionWrapper(
+                F('date_filled') - F('created_at'),
+                output_field=DurationField()
+            )
+        )
+    ).order_by('-total_applications')
+    
+    # Convert to list
+    workloads = []
+    for item in staff_workload:
+        if not item['staff__username']:
+            continue
+        
+        avg_seconds = item['avg_processing_minutes']
+        avg_minutes = round(avg_seconds.total_seconds() / 60, 1) if avg_seconds else 0
+        
+        workloads.append({
+            'staff': item['staff__username'],
+            'applications': item['total_applications'],
+            'avg_processing_minutes': avg_minutes
+        })
+    
+    if not workloads:
+        return Response({
+            'workloads': [],
+            'balance_metrics': {},
+            'recommendations': []
+        })
+    
+    # Calculate balance metrics
+    total_apps = sum(w['applications'] for w in workloads)
+    avg_per_staff = total_apps / len(workloads)
+    
+    max_load = max(w['applications'] for w in workloads)
+    min_load = min(w['applications'] for w in workloads)
+    
+    # Add workload indicators
+    for item in workloads:
+        deviation = item['applications'] - avg_per_staff
+        deviation_percent = (deviation / avg_per_staff * 100) if avg_per_staff > 0 else 0
+        
+        item['vs_average'] = round(deviation, 1)
+        item['deviation_percent'] = round(deviation_percent, 1)
+        
+        if item['applications'] > avg_per_staff * 1.3:
+            item['workload_status'] = 'overloaded'
+        elif item['applications'] < avg_per_staff * 0.7:
+            item['workload_status'] = 'underutilized'
+        else:
+            item['workload_status'] = 'balanced'
+    
+    # Generate recommendations
+    recommendations = []
+    overloaded = [w for w in workloads if w['workload_status'] == 'overloaded']
+    underutilized = [w for w in workloads if w['workload_status'] == 'underutilized']
+    
+    if overloaded and underutilized:
+        recommendations.append(
+            f"Consider redistributing workload: {len(overloaded)} staff overloaded, "
+            f"{len(underutilized)} staff underutilized"
+        )
+    
+    imbalance_ratio = (max_load / min_load) if min_load > 0 else 0
+    if imbalance_ratio > 2:
+        recommendations.append(
+            f"High workload imbalance detected (ratio: {imbalance_ratio:.1f}:1). "
+            f"Review assignment process."
+        )
+    
+    return Response({
+        'workloads': workloads,
+        'balance_metrics': {
+            'average_per_staff': round(avg_per_staff, 1),
+            'max_load': max_load,
+            'min_load': min_load,
+            'imbalance_ratio': round(imbalance_ratio, 1),
+            'overloaded_count': len(overloaded),
+            'underutilized_count': len(underutilized)
+        },
+        'recommendations': recommendations
+    })
 
 # =============================================
 # HELPER FUNCTIONS

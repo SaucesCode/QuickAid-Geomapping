@@ -85,6 +85,17 @@ const INCOME_COLORS = [
   "#93C5FD",
 ];
 
+export const assistanceColors = {
+  Medical: "#4caf50", // green
+  Burial: "#f44336", // red
+  Educational: "#2196f3", // blue
+  Default: "#9e9e9e", // gray fallback
+};
+
+export const getAssistanceColor = type => {
+  return assistanceColors[type] || assistanceColors.Default;
+};
+
 const DemographicsEconomics = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
@@ -129,6 +140,15 @@ const DemographicsEconomics = () => {
     queryKey: ["economics", "income-distribution", filters],
     queryFn: () => fetchData("/analytics/economics/income-distribution/"),
   });
+
+  const { data: incomeAssistance = [], isLoading: incomeAssistanceLoading } = useQuery({
+    queryKey: ["economics", "income-assistance", filters],
+    queryFn: () => fetchData("/analytics/economics/income-assistance/"),
+  });
+
+  const firstIncomeBracket = incomeAssistance?.income_brackets?.[0] || {
+    assistance_breakdown: [],
+  };
 
   const loadingStates = {
     gender: genderLoading,
@@ -478,6 +498,50 @@ const DemographicsEconomics = () => {
           </AnalyticsChartCard>
         </AnalyticsGrid>
 
+        <AnalyticsChartCard
+          icon={DollarSign}
+          title="Income vs Assistance Type"
+          subtitle="How assistance preferences vary by income level"
+          isLoading={incomeAssistanceLoading}
+        >
+          <ChartContainer height={350}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={incomeAssistance?.income_brackets || []}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                <XAxis
+                  dataKey="income_bracket"
+                  fontSize={10}
+                  angle={-20}
+                  textAnchor="end"
+                  height={100}
+                />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                {firstIncomeBracket.assistance_breakdown.map((item, idx) => (
+                  <Bar
+                    key={item.type}
+                    dataKey={`assistance_breakdown[${idx}].count`}
+                    name={item.type}
+                    fill={getAssistanceColor(item.type)}
+                    stackId="a"
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+
+          {incomeAssistance?.insights && incomeAssistance.insights.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {incomeAssistance.insights.map((insight, idx) => (
+                <p key={idx} className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                  💡 {insight}
+                </p>
+              ))}
+            </div>
+          )}
+        </AnalyticsChartCard>
+
         <AnalyticsAlertCard
           icon={Users}
           title="Key Demographics Insights"
@@ -485,7 +549,13 @@ const DemographicsEconomics = () => {
           variant="info"
         >
           <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="sm">
-            <InsightCard title="Gender Balance" isLoading={!isGenderLoaded}>
+            <InsightCard
+              title="Gender Balance"
+              isLoading={!isGenderLoaded}
+              icon={Users}
+              variant="info"
+              description="Highest application density by sex"
+            >
               {isGenderLoaded && (
                 <>
                   {dominantGender.gender} applicants represent the majority with{" "}
@@ -494,7 +564,13 @@ const DemographicsEconomics = () => {
               )}
             </InsightCard>
 
-            <InsightCard title="Employment Patterns" isLoading={!isOccupationLoaded}>
+            <InsightCard
+              title="Employment Patterns"
+              isLoading={!isOccupationLoaded}
+              icon={Briefcase}
+              variant="info"
+              description="Occupational trends among applicants"
+            >
               {isOccupationLoaded && (
                 <>
                   {topOccupation?.occupation || "Various occupations"} is the most common
@@ -503,7 +579,13 @@ const DemographicsEconomics = () => {
               )}
             </InsightCard>
 
-            <InsightCard title="Economic Profile" isLoading={!isIncomeLoaded}>
+            <InsightCard
+              title="Economic Profile"
+              isLoading={!isIncomeLoaded}
+              icon={DollarSign}
+              variant="info"
+              description="Income data availability"
+            >
               {isIncomeLoaded && (
                 <>
                   Total of {totalIncome.toLocaleString()} applicants provided income data,

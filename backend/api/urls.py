@@ -58,6 +58,8 @@ urlpatterns = [
     path("analytics/dashboard/summary/", summary_metrics, name="analytics-dashboard-summary"),
     path("analytics/dashboard/total-applicants/", total_applicants, name="analytics-dashboard-total"),
     path("analytics/dashboard/growth-rate/", applicant_growth_rate, name="analytics-dashboard-growth"),
+    path("analytics/dashboard/monthly-comparison/", monthly_comparison_metrics, name="monthly-comparison"),
+    path("analytics/dashboard/capacity-alerts/", capacity_alerts, name="capacity-alerts"),
     path("analytics/dashboard/application-forecast/", applicant_forecast, name="analytics-dashboard-forecast"),
     path("analytics/dashboard/repeat-applicants/", repeat_applicants, name="analytics-dashboard-repeat"),
 
@@ -66,6 +68,8 @@ urlpatterns = [
     # ========================
     path("analytics/geographic/locations/", analytics_applicant_locations, name="analytics-geographic-locations"),
     path("analytics/geographic/top-barangays/", top_barangays, name="analytics-geographic-top"),
+    path("analytics/geographic/barangay-performance/", barangay_performance_comparison, name="barangay-performance"),
+    path("analytics/geographic/coverage-gaps/", service_coverage_gaps, name="coverage-gaps"),
     path("analytics/geographic/barangay-by-type/", barangay_by_type, name="analytics-geographic-type"),
     path("analytics/geographic/approval-rate/", approval_rate_by_location, name="analytics-geographic-approval"),
     path("analytics/geographic/inactive-applicants/", inactive_applicants, name="analytics-geographic-inactive"),
@@ -79,6 +83,8 @@ urlpatterns = [
     path("analytics/demographics/occupation/", applicants_by_occupation, name="analytics-demographics-occupation"),
     path("analytics/demographics/age-gender/", applicants_by_age_gender, name="analytics-demographics-age-gender"),
     path("analytics/economics/income-distribution/", income_distribution, name="analytics-economics-income"),
+    path("analytics/economics/income-assistance/", income_assistance_analysis, name="income-assistance"),
+    path("analytics/economics/demographic-trends/", demographic_trends_over_time, name="demographic-trends"),
     # (future) path("analytics/economics/income-vs-occupation/", income_vs_occupation, name="analytics-economics-income-occupation"),
     # (future) path("analytics/economics/disparities-location/", income_disparities_by_location, name="analytics-economics-disparities"),
 
@@ -108,6 +114,8 @@ urlpatterns = [
     path("analytics/performance/staff-leaderboard/", staff_leaderboard, name="analytics-performance-leaderboard"),
     path("analytics/performance/staff-activity/", staff_activity_logs, name="analytics-performance-activity"),
     path("analytics/performance/staff-heatmap/", staff_activity_heatmap, name="analytics-performance-heatmap"),
+    path("analytics/performance/staff-efficiency-trends/", staff_efficiency_trends, name="staff-efficiency-trends"),
+    path("analytics/performance/workload-balance/", workload_balance_analysis, name="workload-balance"),
 
 
     # ========================
