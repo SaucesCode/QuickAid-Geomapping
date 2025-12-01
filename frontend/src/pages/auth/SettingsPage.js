@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { User, Lock, Check, X, Edit3, Mail, Shield, AlertCircle } from "lucide-react";
-import PageContainer from "../../components/layouts/PageContainer";
+import { PageContainer } from "../../components/DesignSystem";
 import { api } from "../../services/api";
 
 const SettingsPage = () => {
