@@ -8,6 +8,19 @@ import uuid
 
 OPENCAGE_API_KEY = os.environ.get('OPENCAGE_API_KEY')
 
+
+class AnalyticsSummaryCache(models.Model):
+    """Pre-computed analytics for faster dashboard loading"""
+    cache_key = models.CharField(max_length=255, unique=True)
+    data = models.JSONField()
+    computed_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField()
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['cache_key', 'expires_at']),
+        ]
+
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
         ('staff', 'Staff'),

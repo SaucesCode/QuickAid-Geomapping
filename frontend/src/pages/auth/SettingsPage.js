@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { User, Lock, Check, X, Edit3, Mail, Shield, AlertCircle } from "lucide-react";
+import PageContainer from "../../components/layouts/PageContainer";
 import { api } from "../../services/api";
 
 const SettingsPage = () => {
@@ -168,7 +169,7 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <PageContainer>
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
@@ -178,7 +179,9 @@ const SettingsPage = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-800">Account Settings</h1>
-              <p className="text-sm text-gray-500 mt-1">Manage your profile and security preferences</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Manage your profile and security preferences
+              </p>
             </div>
           </div>
         </div>
@@ -222,7 +225,9 @@ const SettingsPage = () => {
                         <User className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Profile Information</h2>
+                        <h2 className="text-lg font-semibold text-gray-900">
+                          Profile Information
+                        </h2>
                         <p className="text-sm text-gray-600">Update your personal details</p>
                       </div>
                     </div>
@@ -320,23 +325,25 @@ const SettingsPage = () => {
 
                 <div className="p-6">
                   <div className="max-w-lg space-y-5">
-                    {["current_password", "new_password", "confirm_password"].map((key, idx) => (
-                      <PasswordInput
-                        key={key}
-                        label={
-                          idx === 0
-                            ? "Current Password"
-                            : idx === 1
-                            ? "New Password"
-                            : "Confirm New Password"
-                        }
-                        value={passwordData[key]}
-                        onChange={e =>
-                          setPasswordData({ ...passwordData, [key]: e.target.value })
-                        }
-                      />
-                    ))}
-                    
+                    {["current_password", "new_password", "confirm_password"].map(
+                      (key, idx) => (
+                        <PasswordInput
+                          key={key}
+                          label={
+                            idx === 0
+                              ? "Current Password"
+                              : idx === 1
+                              ? "New Password"
+                              : "Confirm New Password"
+                          }
+                          value={passwordData[key]}
+                          onChange={e =>
+                            setPasswordData({ ...passwordData, [key]: e.target.value })
+                          }
+                        />
+                      )
+                    )}
+
                     <div className="pt-2">
                       <button
                         onClick={handlePasswordChange}
@@ -368,11 +375,17 @@ const SettingsPage = () => {
                 : "bg-white border-red-200 text-gray-900"
             }`}
           >
-            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-              toastMessage.type === "success" ? "bg-green-100" : "bg-red-100"
-            }`}>
+            <div
+              className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                toastMessage.type === "success" ? "bg-green-100" : "bg-red-100"
+              }`}
+            >
               {toastMessage.type === "success" ? (
-                <Check className={`w-5 h-5 ${toastMessage.type === "success" ? "text-green-600" : "text-red-600"}`} />
+                <Check
+                  className={`w-5 h-5 ${
+                    toastMessage.type === "success" ? "text-green-600" : "text-red-600"
+                  }`}
+                />
               ) : (
                 <X className="w-5 h-5 text-red-600" />
               )}
@@ -381,7 +394,7 @@ const SettingsPage = () => {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 };
 
@@ -424,7 +437,9 @@ const PasswordInput = ({ label, value, onChange }) => (
 
 const DisplayField = ({ label, value }) => (
   <div>
-    <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">{label}</label>
+    <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+      {label}
+    </label>
     <p className="text-gray-900 font-medium text-sm bg-gray-50 px-4 py-3 rounded-lg border border-gray-200">
       {value || "Not provided"}
     </p>

@@ -143,8 +143,6 @@ const Applicants = () => {
     queryFn: fetchApplicants,
   });
 
-  console.log("Fetched applicants data:", data);
-
   const applicants = data?.results || [];
   const totalItems = data?.count || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);

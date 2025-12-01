@@ -1,23 +1,19 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Phone, Clock, LogIn } from "lucide-react";
-import Logo from "../../assets/QUICKAID white stroke LOGO.png"; // adjust path based on your folder
+import Logo from "../../assets/QUICKAID white stroke LOGO.png";
 
 const Footer = () => {
   const navigate = useNavigate();
 
   return (
-    <footer className="bg-gray-900 text-white py-16">
+    <footer className="bg-gray-900 text-white py-16" id="footer">
       <div className="max-w-7xl mx-auto px-4">
         {/* Main Footer Grid */}
         <div className="grid md:grid-cols-4 gap-8 mb-12 items-start">
           {/* Logo Section */}
           <div className="flex flex-col items-center justify-center text-center">
-            <img
-              src={Logo}
-              alt="QuickAid Logo"
-              className="w-40 h-40 mb-4" // Bigger logo
-            />
+            <img src={Logo} alt="QuickAid Logo" className="w-40 h-40 mb-4" />
             <p className="text-gray-400 text-sm max-w-xs">
               Helping individuals in crisis with care and compassion.
             </p>
@@ -51,11 +47,6 @@ const Footer = () => {
             <h3 className="text-lg font-bold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                {/* <Link to="/aics-accomplishment" className="text-gray-400 hover:text-white transition-colors duration-200">
-                  AICS Accomplishment
-                </Link> */}
-              </li>
-              <li>
                 <Link
                   to="/privacy"
                   className="text-gray-400 hover:text-white transition-colors duration-200"
@@ -70,6 +61,15 @@ const Footer = () => {
                 >
                   Terms & Conditions
                 </Link>
+              </li>
+              <li>
+                <button
+                  onClick={() => navigate("/login")}
+                  className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <LogIn className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  Staff Login
+                </button>
               </li>
             </ul>
           </div>

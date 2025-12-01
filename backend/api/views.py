@@ -6,6 +6,8 @@ import requests
 import pandas as pd
 import numpy as np
 import base64
+import logging
+logger = logging.getLogger(__name__)
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta, date
 from django.core.cache import cache
@@ -31,12 +33,12 @@ from django.core.exceptions import ValidationError
 # Django REST Framework
 from rest_framework import status
 from rest_framework.decorators import (
-    api_view, permission_classes, parser_classes
+    api_view, permission_classes, parser_classes, throttle_classes
 )
 from rest_framework.permissions import (
     IsAdminUser, IsAuthenticated, AllowAny
 )
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -63,6 +65,9 @@ class MyTokenObtainView(TokenObtainPairView):
 
 class ApplicantSubmissionRateThrottle(AnonRateThrottle):
     rate = '10/hour'  # allow 10 submissions per hour per IP
+
+class ExportThrottle(UserRateThrottle):
+    rate = '5/hour'
 
 # PROTECTED VIEW
 # Function to test authentication status
@@ -474,6 +479,15 @@ def list_applicants(request):
             'background_info',
             'background_info__barangay',
             'background_info__barangay__city',
+        )
+        .prefetch_related(
+                Prefetch(
+                'background_info__histories',
+                queryset=ApplicantHistory.objects.only(
+                    'id', 'type_of_assistance', 'date_applied', 'applicant'
+                ).order_by('-date_applied'),
+                to_attr='hist'
+            )
         )
         .only(
             'id',
@@ -933,12 +947,17 @@ def applicant_detail(request, applicant_id):
 
             # 🔥 Reload object to refresh nested relations
             applicant.refresh_from_db()
-            if applicant.background_info:
-                applicant.background_info.refresh_from_db()
-            if applicant.representative:
-                applicant.representative.refresh_from_db()
-            if applicant.representative and applicant.representative.background_info:
-                applicant.representative.background_info.refresh_from_db()
+            bg = getattr(applicant, "background_info", None)
+            if bg:
+                bg.refresh_from_db()
+            # Representative (OneToOne — must be accessed safely)
+            rep = getattr(applicant, "representative", None)
+            if rep:
+                rep.refresh_from_db()
+                rep_bg = getattr(rep, "background_info", None)
+                if rep_bg:
+                    rep_bg.refresh_from_db()
+
 
             log_staff_activity(
                 request.user,
@@ -2152,6 +2171,7 @@ def get_location_filters(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([ExportThrottle])
 def export_analytics_report(request):
     """
     Export analytics report in PDF, Excel, or both formats (in-memory)
@@ -2239,15 +2259,12 @@ def export_analytics_report(request):
         }, status=status.HTTP_200_OK)
 
     except Exception as e:
-        import traceback
-        return Response(
-            {
-                "success": False,
-                "error": f"Failed to generate report: {str(e)}",
-                "traceback": traceback.format_exc()
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        logger.exception("Report generation failed")
+        return Response({
+            "success": False,
+            "error": "Failed to generate report. Please contact support."
+            # Only include traceback in DEBUG mode
+        }, status=500)
 
 
 @api_view(['GET'])
