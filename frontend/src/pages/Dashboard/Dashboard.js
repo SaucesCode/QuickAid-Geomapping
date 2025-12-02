@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
@@ -46,6 +47,7 @@ import {
   Badge,
   InsightCard,
 } from "../../components/AnalyticsComponents";
+import MonthToggle from "./components/MonthToggle";
 
 // Assistance Type Colors
 const ASSISTANCE_COLORS = {
@@ -64,6 +66,32 @@ const getAssistanceTypeVariant = type => {
 };
 
 const Dashboard = () => {
+  const [assistanceMonth, setAssistanceMonth] = useState("current");
+  const [forecastMonth, setForecastMonth] = useState("current");
+
+  const getDateRange = monthType => {
+    const today = new Date();
+    let start, end;
+
+    if (monthType === "current") {
+      start = new Date(today.getFullYear(), today.getMonth(), 1);
+      end = today;
+    } else {
+      // Previous month
+      start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      end = new Date(today.getFullYear(), today.getMonth(), 0); // Last day of previous month
+    }
+
+    return {
+      start: start.toISOString().split("T")[0],
+      end: end.toISOString().split("T")[0],
+    };
+  };
+
+  const assistanceDateRange = useMemo(() => getDateRange(assistanceMonth), [assistanceMonth]);
+
+  const forecastDateRange = useMemo(() => getDateRange(forecastMonth), [forecastMonth]);
+
   // Fetch Logic
   const fetcher = async url => (await api.get(url)).data;
 
@@ -77,9 +105,21 @@ const Dashboard = () => {
     queryFn: () => fetcher("/analytics/dashboard/application-forecast/"),
   });
 
+  const { data: forecastHistoricalData, isLoading: forecastHistoricalLoading } = useQuery({
+    queryKey: ["forecastHistorical", forecastMonth, forecastDateRange],
+    queryFn: () =>
+      fetcher(
+        `/analytics/trends/over-time/?start_date=${forecastDateRange.start}&end_date=${forecastDateRange.end}`
+      ),
+    enabled: forecastMonth === "previous",
+  });
+
   const { data: assistanceTrend, isLoading: assistanceLoading } = useQuery({
-    queryKey: ["assistanceTrend"],
-    queryFn: () => fetcher("/analytics/trends/assistance-type-trend/"),
+    queryKey: ["assistanceTrend", assistanceMonth, assistanceDateRange],
+    queryFn: () =>
+      fetcher(
+        `/analytics/trends/assistance-type-trend/?start_date=${assistanceDateRange.start}&end_date=${assistanceDateRange.end}`
+      ),
   });
 
   const { data: monthlyComparison, isLoading: comparisonLoading } = useQuery({
@@ -137,31 +177,51 @@ const Dashboard = () => {
       : 0
     : 0;
 
-  const combinedForecastData = [];
+  const combinedForecastData = useMemo(() => {
+    const data = [];
 
-  if (forecastData?.historical?.dates) {
-    forecastData.historical.dates.forEach((d, i) => {
-      combinedForecastData.push({
-        date: d,
-        actual: forecastData.historical.counts?.[i] ?? 0,
-        forecast: null,
-        upper: null,
-        lower: null,
-      });
-    });
-  }
+    if (forecastMonth === "current") {
+      // Use forecast API for current month
+      if (forecastData?.historical?.dates) {
+        forecastData.historical.dates.forEach((d, i) => {
+          data.push({
+            date: d,
+            actual: forecastData.historical.counts?.[i] ?? 0,
+            forecast: null,
+            upper: null,
+            lower: null,
+          });
+        });
+      }
 
-  if (forecastData?.forecast?.dates) {
-    forecastData.forecast.dates.forEach((d, i) => {
-      combinedForecastData.push({
-        date: d,
-        actual: null,
-        forecast: forecastData.forecast.counts?.[i] ?? 0,
-        upper: forecastData.forecast.upper?.[i] ?? 0,
-        lower: forecastData.forecast.lower?.[i] ?? 0,
-      });
-    });
-  }
+      if (forecastData?.forecast?.dates) {
+        forecastData.forecast.dates.forEach((d, i) => {
+          data.push({
+            date: d,
+            actual: null,
+            forecast: forecastData.forecast.counts?.[i] ?? 0,
+            upper: forecastData.forecast.upper?.[i] ?? 0,
+            lower: forecastData.forecast.lower?.[i] ?? 0,
+          });
+        });
+      }
+    } else {
+      // Use historical data for previous month (no forecast)
+      if (forecastHistoricalData) {
+        forecastHistoricalData.forEach(item => {
+          data.push({
+            date: new Date(item.day).toISOString().split("T")[0],
+            actual: item.count ?? 0,
+            forecast: null,
+            upper: null,
+            lower: null,
+          });
+        });
+      }
+    }
+
+    return data;
+  }, [forecastMonth, forecastData, forecastHistoricalData]);
 
   return (
     <PageContainer>
@@ -202,8 +262,20 @@ const Dashboard = () => {
 
         <AnalyticsChartCard
           icon={LineChart}
-          title="Assistance Type Volume (This Month)"
-          subtitle="Medical vs Educational vs Burial"
+          title={
+            <div className="flex items-center justify-between w-full">
+              <div>
+                <h3 className="text-base font-bold text-gray-800">
+                  Assistance Type Volume (
+                  {assistanceMonth === "current" ? "This Month" : "Previous Month"})
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Medical vs Educational vs Burial
+                </p>
+              </div>
+              <MonthToggle selected={assistanceMonth} onChange={setAssistanceMonth} />
+            </div>
+          }
           isLoading={assistanceLoading}
         >
           <ChartContainer height={350}>
@@ -249,34 +321,50 @@ const Dashboard = () => {
 
         <AnalyticsChartCard
           icon={TrendingUp}
-          title="Applicant Trend + 7-Day Forecast"
-          subtitle="Includes prediction confidence range"
-          isLoading={forecastLoading}
+          title={
+            <div className="flex items-center justify-between w-full">
+              <div>
+                <h3 className="text-base font-bold text-gray-800">
+                  Applicant Trend {forecastMonth === "current" && "+ 7-Day Forecast"}
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {forecastMonth === "current"
+                    ? "Includes prediction confidence range"
+                    : "Historical data only"}
+                </p>
+              </div>
+              <MonthToggle selected={forecastMonth} onChange={setForecastMonth} />
+            </div>
+          }
+          isLoading={forecastMonth === "current" ? forecastLoading : forecastHistoricalLoading}
         >
           <ChartContainer height={400}>
             <ResponsiveContainer width="100%" height="100%">
               <RechartsLineChart data={combinedForecastData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-
                 <XAxis dataKey="date" tick={{ fill: "#4b5563", fontSize: 11 }} />
                 <YAxis tick={{ fill: "#4b5563", fontSize: 11 }} />
                 <Tooltip />
 
-                {/* Confidence range shading */}
-                <Area
-                  type="monotone"
-                  dataKey="upper"
-                  stroke="none"
-                  fill="#10b98122"
-                  activeDot={false}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="lower"
-                  stroke="none"
-                  fill="#10b98122"
-                  activeDot={false}
-                />
+                {/* Only show confidence range for current month */}
+                {forecastMonth === "current" && (
+                  <>
+                    <Area
+                      type="monotone"
+                      dataKey="upper"
+                      stroke="none"
+                      fill="#10b98122"
+                      activeDot={false}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="lower"
+                      stroke="none"
+                      fill="#10b98122"
+                      activeDot={false}
+                    />
+                  </>
+                )}
 
                 {/* Actual Data */}
                 <Line
@@ -289,17 +377,19 @@ const Dashboard = () => {
                   connectNulls={true}
                 />
 
-                {/* Forecast Line */}
-                <Line
-                  type="monotone"
-                  dataKey="forecast"
-                  name="Forecast"
-                  stroke="#10b981"
-                  strokeDasharray="5 5"
-                  strokeWidth={3}
-                  dot={{ r: 4 }}
-                  connectNulls={true}
-                />
+                {/* Only show forecast line for current month */}
+                {forecastMonth === "current" && (
+                  <Line
+                    type="monotone"
+                    dataKey="forecast"
+                    name="Forecast"
+                    stroke="#10b981"
+                    strokeDasharray="5 5"
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                    connectNulls={true}
+                  />
+                )}
               </RechartsLineChart>
             </ResponsiveContainer>
           </ChartContainer>

@@ -2205,22 +2205,37 @@ def assistance_type_trend(request):
     return Response(list(qs))
     
 @api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def assistance_type_linetrend(request):
+
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    # If user did not pass dates → default to current month
     today = now().date()
-    start_date = today.replace(day=1)
+    if not start_date:
+        start_date = today.replace(day=1).isoformat()
+    if not end_date:
+        end_date = today.isoformat()
 
-    queryset = Applicant.objects.filter(date_filled__date__gte=start_date)
+    queryset = Applicant.objects.filter(
+        date_filled__date__range=[start_date, end_date],
+        is_archived=False
+    )
 
-    days = (today - start_date).days + 1
-    labels = [(start_date + timedelta(days=i)).isoformat() for i in range(days)]
+    # Build date labels
+    start = datetime.fromisoformat(start_date).date()
+    end = datetime.fromisoformat(end_date).date()
+    days = (end - start).days + 1
+    labels = [(start + timedelta(days=i)).isoformat() for i in range(days)]
 
     medical = [0] * days
     educational = [0] * days
     burial = [0] * days
 
     for app in queryset:
-        idx = (app.date_filled.date() - start_date).days
-        if idx >= 0 and idx < days:
+        idx = (app.date_filled.date() - start).days
+        if 0 <= idx < days:
             t = app.type_of_assistance.lower()
             if "medical" in t:
                 medical[idx] += 1
@@ -2228,15 +2243,14 @@ def assistance_type_linetrend(request):
                 educational[idx] += 1
             elif "burial" in t:
                 burial[idx] += 1
-                
-    data = {
+
+    return Response({
         "labels": labels,
         "medical": medical,
         "educational": educational,
         "burial": burial
-    }
+    })
 
-    return Response(data)
 
 
 @api_view(['GET'])
