@@ -1,3 +1,5 @@
+import requests
+from django.core.cache import cache
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
@@ -7,6 +9,61 @@ import os
 import uuid
 
 OPENCAGE_API_KEY = os.environ.get('OPENCAGE_API_KEY')
+
+cache_key = "applicant_locations"
+cache.delete(cache_key)
+
+import hashlib
+
+def sanitize_cache_key(key):
+    """
+    Sanitize cache keys to ensure compatibility with all cache backends.
+    """
+    # Use a hash for long or unsafe keys
+    if len(key) > 200 or any(c in key for c in " ,:"):
+        return hashlib.md5(key.encode()).hexdigest()
+    return key
+
+def photon_geocode(address, retries=3):
+    """
+    Free Photon geocoding service with retry mechanism.
+    """
+    sanitized_key = sanitize_cache_key(f"geo_{address}")
+    cached = cache.get(sanitized_key)
+    if cached:
+        return cached
+
+    url = "https://photon.komoot.io/api/"
+    params = {
+        "q": address,
+        "limit": 1
+    }
+    headers = {
+        "User-Agent": "DSWD-Application-System/1.0 (contact@yourdomain.com)"
+    }
+
+    for attempt in range(retries):
+        try:
+            response = requests.get(url, params=params, headers=headers, timeout=15)
+            data = response.json()
+
+            if data and "features" in data and len(data["features"]) > 0:
+                coordinates = data["features"][0]["geometry"]["coordinates"]
+                lat, lng = coordinates[1], coordinates[0]  # Reverse order (lat, lon)
+
+                # Cache the result for 30 days
+                cache.set(sanitized_key, (lat, lng), timeout=60 * 60 * 24 * 30)
+
+                return lat, lng
+
+        except requests.exceptions.Timeout:
+            print(f"Photon geocoding timeout for address: {address} (Attempt {attempt + 1}/{retries})")
+        except Exception as e:
+            print(f"Photon geocoding error: {e}")
+            break
+
+    return None, None
+
 
 
 class AnalyticsSummaryCache(models.Model):
@@ -127,18 +184,45 @@ class Applicant(models.Model):
         ordering = ['-date_filled']
 
 
-    def save(self, *args, **kwargs):
-        if not self.latitude or not self.longitude:
-            location_query = f"{self.background_info.barangay.name}, {self.background_info.barangay.city.name}, {self.background_info.barangay.city.province.name}"
-            self.latitude, self.longitude = self.get_coordinates(location_query)
+    def save(self, force_geocode=True, *args, **kwargs):
+        print(f"DEBUG: Saving applicant {self} (force_geocode={force_geocode})")
+        print(f"DEBUG: Current lat/lng: {self.latitude}, {self.longitude}")
+
+        # Determine if we should geocode
+        if force_geocode or not self.latitude or not self.longitude:
+            try:
+                location_query = (
+                    f"{self.background_info.barangay.name}, "
+                    f"{self.background_info.barangay.city.name}, "
+                    f"{self.background_info.barangay.city.province.name}, Philippines"
+                )
+                print(f"DEBUG: Geocoding address: {location_query}")
+                lat, lng = self.get_coordinates(location_query)
+                print(f"DEBUG: Geocoding result: lat={lat}, lng={lng}")
+
+                if lat and lng:
+                    self.latitude = lat
+                    self.longitude = lng
+                    print(f"DEBUG: Updated coordinates set")
+                else:
+                    print(f"DEBUG: Geocoding returned None")
+            except Exception as e:
+                print(f"DEBUG: Geocoding failed with exception: {e}")
+
         super().save(*args, **kwargs)
+        print(f"DEBUG: Applicant saved with lat/lng: {self.latitude}, {self.longitude}")
+
+        # Clear cached applicant locations
+        cache.delete("applicant_locations")
+
 
     def get_coordinates(self, address):
-        geocoder = OpenCageGeocode(OPENCAGE_API_KEY)
-        result = geocoder.geocode(address)
-        if result and len(result):
-            return result[0]['geometry']['lat'], result[0]['geometry']['lng']
-        return None, None
+        """
+        Kept only for compatibility with old calls.
+        Redirects to new Photon function.
+        """
+        return photon_geocode(address)
+
 
     def __str__(self):
         return f"{self.background_info.first_name} {self.background_info.last_name} - {self.type_of_assistance}"

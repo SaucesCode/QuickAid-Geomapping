@@ -47,12 +47,6 @@ import {
   ChartContainer,
   Badge,
   InsightCard,
-  AnalyticsTable,
-  TableHeader,
-  TableHeaderCell,
-  TableCell,
-  TableBody,
-  TableRow,
   EmptyState,
 } from "../../components/AnalyticsComponents";
 
@@ -274,7 +268,7 @@ const Geographic = () => {
             title="Total Mapped"
             value={totalApplicants.toLocaleString()}
             subtitle="Geocoded applicants"
-            color="blue"
+            color="#003a76"
             isLoading={loading}
           />
           <AnalyticsStatCard
@@ -282,8 +276,7 @@ const Geographic = () => {
             title="Top Barangay"
             value={topBarangay}
             subtitle="Highest applications"
-            color="yellow"
-            badge="🏆"
+            color="#003a76"
             isLoading={loading}
           />
           <AnalyticsStatCard
@@ -291,7 +284,7 @@ const Geographic = () => {
             title="Barangays"
             value={barangayCount}
             subtitle="Unique locations"
-            color="purple"
+            color="#003a76"
             isLoading={loading}
           />
           <AnalyticsStatCard
@@ -299,7 +292,7 @@ const Geographic = () => {
             title="Avg Approval"
             value={`${avgApprovalRate}%`}
             subtitle="Success rate"
-            color="green"
+            color="#003a76"
             isLoading={loading}
           />
           <AnalyticsStatCard
@@ -307,15 +300,15 @@ const Geographic = () => {
             title="Inactive"
             value={inactiveApplicants?.length || 0}
             subtitle="6+ months"
-            color="red"
+            color="#003a76"
             isLoading={loading}
           />
         </AnalyticsGrid>
 
         <AnalyticsCard>
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+            <div className="flex items-center gap-5">
+              <div className="p-1.5 bg-[#003a76] rounded-lg">
                 <MapPin className="w-4 h-4 text-white" />
               </div>
               <div>

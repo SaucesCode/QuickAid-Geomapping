@@ -41,7 +41,7 @@ export const PageHeader = ({ icon: Icon, title, subtitle, action, className }) =
   >
     <div className="flex items-center gap-3">
       {Icon && (
-        <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shrink-0">
+        <div className="p-2 sm:p-3 bg-[#003a76] rounded-xl shrink-0">
           <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </div>
       )}
@@ -67,7 +67,7 @@ export const GradientButton = ({ children, className, loading, disabled, ...prop
     disabled={disabled || loading}
     className={cn(
       baseButtonStyles,
-      "bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:opacity-90 shadow-lg hover:shadow-xl",
+      "bg-blue-600 text-white hover:bg-[#003a76] shadow-lg hover:shadow-xl",
       className
     )}
   >

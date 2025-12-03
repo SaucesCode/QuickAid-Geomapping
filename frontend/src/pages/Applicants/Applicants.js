@@ -178,6 +178,8 @@ const Applicants = () => {
   const handleChange = e => {
     const { name, value } = e.target;
 
+    console.log("handleChange:", name, value); // Debug log
+
     setEditingApplicant(prev => {
       if (!prev) return prev;
 
@@ -221,14 +223,8 @@ const Applicants = () => {
         return updated;
       }
 
-      // AddressDropdown sets barangay (string/psgc) via name 'barangay' in background_info
-      if (name === "barangay") {
-        updated.background_info = {
-          ...updated.background_info,
-          barangay: value,
-        };
-        return updated;
-      }
+      // REMOVED: The barangay handling here - AddressDropdown handles it directly via setEditingApplicant
+      // This was causing the issue - handleChange was overriding the AddressDropdown's updates
 
       // top-level applicant fields
       updated[name] = value;
@@ -243,20 +239,27 @@ const Applicants = () => {
     try {
       toast.loading("Saving changes...", { id: "saving" });
 
-      // Build well-formed payload matching your serializers
       const a = editingApplicant;
-
-      // Ensure background_info exists
       const bg = a.background_info || {};
+
+      // SIMPLIFIED: Just send the PSGC code or ID as-is
+      // The backend will handle the conversion
+      const barangayValue =
+        bg.barangay || bg.barangay_details?.psgc_code || bg.barangay_details?.id;
+
+      if (!barangayValue) {
+        toast.error("Barangay is required", { id: "saving" });
+        return;
+      }
 
       const applicantBg = {
         first_name: bg.first_name || "",
         middle_initial: bg.middle_initial || "",
         last_name: bg.last_name || "",
         suffix: bg.suffix || "",
-        birthday: bg.birthday || "", // required by serializer
+        birthday: bg.birthday || "",
         street_address: bg.street_address || "",
-        barangay: (bg.barangay_details && bg.barangay_details.psgc_code) || bg.barangay || "", // pass PSGC or name as string
+        barangay: barangayValue, // Send PSGC code or ID - backend handles it
         sex: bg.sex || "",
         civil_status: bg.civil_status || "",
         occupation: bg.occupation || "",
@@ -268,8 +271,6 @@ const Applicants = () => {
       if (a.representative) {
         const rep = a.representative;
         const repBg = rep.background_info || {};
-
-        // contact_number may be on rep or applicant depending on your UI; prefer rep.contact_number if present
         const repContact = rep.contact_number || "";
 
         representativePayload = {
@@ -280,7 +281,7 @@ const Applicants = () => {
             middle_initial: repBg.middle_initial || "",
             last_name: repBg.last_name || "",
             suffix: repBg.suffix || "",
-            birthday: repBg.birthday || "", // REQUIRED
+            birthday: repBg.birthday || "",
             street_address: repBg.street_address || "",
             sex: repBg.sex || "",
             civil_status: repBg.civil_status || "",
@@ -301,6 +302,11 @@ const Applicants = () => {
         applicant_type: a.applicant_type || "Self",
       };
 
+      console.log("=== PAYLOAD BEING SENT ===");
+      console.log("barangayValue:", barangayValue);
+      console.log("Full payload:", JSON.stringify(payload, null, 2));
+      console.log("========================");
+
       // Make request
       await api.put(`/applicants/${a.id}/`, payload);
       queryClient.invalidateQueries({ queryKey: ["applicants"] });
@@ -308,7 +314,7 @@ const Applicants = () => {
       setEditView(false);
     } catch (err) {
       console.error("Update failed", err);
-      toast.error("Failed to update applicant", { id: "saving" });
+      toast.error(err.response?.data?.error || "Failed to update applicant", { id: "saving" });
     }
   };
 

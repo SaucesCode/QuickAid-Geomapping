@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../../../services/api";
 import { Activity, Loader2 } from "lucide-react";
 import Pagination from "../../../components/Pagination";
-import { Card } from "../../../components/DesignSystem";
+import { Card, H2, Caption, Spinner, LoadingState } from "../../../components/DesignSystem";
 import { formatDate } from "../../../utils/FormatDate";
 
 const ActivityLogs = ({ token }) => {
@@ -51,21 +51,19 @@ const ActivityLogs = ({ token }) => {
     <Card>
       {/* HEADER */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+        <div className="w-10 h-10 bg-[#003a76] rounded-xl flex items-center justify-center shadow-md">
+          {" "}
           <Activity className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Activity Logs</h2>
-          <p className="text-sm text-gray-500">Track staff actions and system events</p>
+          <H2>Activity Logs</H2>
+          <Caption>Track staff actions and system events</Caption>
         </div>
       </div>
 
       {/* LOADING */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center h-40">
-          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mb-3" />
-          <p className="text-gray-500 text-sm">Loading activity logs...</p>
-        </div>
+        <LoadingState message="Loading activity logs..." />
       ) : logs.length > 0 ? (
         <>
           {/* TABLE */}

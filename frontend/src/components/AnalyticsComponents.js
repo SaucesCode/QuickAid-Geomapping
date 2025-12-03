@@ -11,7 +11,7 @@ export { PageContainer, PageHeader, GradientButton } from "./DesignSystem";
 export const AnalyticsCard = ({ children, className }) => (
   <div
     className={cn(
-      "bg-white rounded-xl shadow-md border border-blue-100 p-4 transition-all hover:shadow-lg",
+      "bg-white rounded-xl shadow-md border p-4 transition-all hover:shadow-lg",
       className
     )}
   >
@@ -26,34 +26,34 @@ export const AnalyticsStatCard = ({
   value,
   subtitle,
   trend,
-  color = "blue",
+  color = "#003a76",
   isLoading,
   badge,
   className,
 }) => {
   const colorMap = {
     blue: {
-      gradient: "from-blue-500 to-indigo-600",
+      bg: "#003a76",
       text: "from-blue-600 to-indigo-700",
       border: "border-blue-100",
     },
     green: {
-      gradient: "from-green-500 to-emerald-600",
+      bg: "#003a76",
       text: "from-green-600 to-emerald-700",
       border: "border-green-100",
     },
     yellow: {
-      gradient: "from-yellow-500 to-orange-600",
+      bg: "#003a76",
       text: "from-yellow-600 to-orange-700",
       border: "border-yellow-100",
     },
     red: {
-      gradient: "from-red-500 to-rose-600",
+      bg: "#003a76",
       text: "from-red-600 to-rose-700",
       border: "border-red-100",
     },
     purple: {
-      gradient: "from-purple-500 to-indigo-600",
+      bg: "#003a76",
       text: "from-purple-600 to-indigo-700",
       border: "border-purple-100",
     },
@@ -74,15 +74,11 @@ export const AnalyticsStatCard = ({
           {badge}
         </div>
       )}
-      <div className="flex items-center gap-2.5">
-        <div
-          className={cn(
-            "w-10 h-10 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform bg-gradient-to-br",
-            colors.gradient
-          )}
-        >
-          <Icon className="w-5 h-5 text-white" />
+      <div className="flex items-center gap-7">
+        <div className="flex items-center justify-center">
+          <Icon className="w-7 h-7" style={{ color: "#003a76" }} />
         </div>
+
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
             {title}
@@ -132,9 +128,9 @@ export const AnalyticsChartCard = ({
   className,
 }) => (
   <AnalyticsCard className={className}>
-    <div className="flex items-center gap-2 mb-4">
+    <div className="flex items-center gap-5 mb-4">
       {Icon && (
-        <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+        <div className="p-1.5 bg-[#003a76] rounded-lg">
           <Icon className="w-4 h-4 text-white" />
         </div>
       )}
@@ -185,20 +181,20 @@ export const AnalyticsAlertCard = ({
         className
       )}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-4">
         {Icon && (
           <div
             className={cn(
-              "w-10 h-10 rounded-lg flex items-center justify-center shadow-md flex-shrink-0 bg-gradient-to-br",
+              "w-8 h-8 rounded-lg flex items-center justify-center shadow-md flex-shrink-0 bg-[#003a76]",
               iconColors[variant]
             )}
           >
             <Icon className="w-5 h-5 text-white" />
           </div>
         )}
-        <div className="flex-1">
+        <div className="flex-1 items-center">
           <h3 className={cn("text-base font-bold", variantStyles[variant])}>{title}</h3>
-          {description && <p className="text-sm mt-1.5 opacity-80">{description}</p>}
+          {description && <p className="text-sm mt-0.5 opacity-80">{description}</p>}
           {children && <div className="mt-3">{children}</div>}
         </div>
       </div>
@@ -352,18 +348,16 @@ export const InsightCard = ({
   return (
     <AnalyticsCard
       className={cn(
-        "hover:border-blue-200 transition-colors p-3",
+        "hover:border-[#003a76] transition-colors p-3",
         variantColors[variant],
         className
       )}
     >
       <div className="flex items-center gap-2 mb-2">
-        {Icon && <Icon className="w-4 h-4 text-gray-700" />}
-        <h3 className="font-semibold text-gray-800 text-sm">{title}</h3>
+        {Icon && <Icon className="w-4 h-4 text-[#003a76]" />}
+        <h3 className="font-semibold text-[#003a76] text-sm">{title}</h3>
       </div>
-
       {description && <p className="text-gray-600 text-xs mb-2">{description}</p>}
-
       {isLoading ? (
         <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
       ) : (

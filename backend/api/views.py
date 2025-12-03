@@ -916,6 +916,7 @@ def recent_applicants(request):
     serializer = ApplicantSerializer(applicants, many=True)
     return Response(serializer.data)
 
+
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def applicant_detail(request, applicant_id):
@@ -931,26 +932,94 @@ def applicant_detail(request, applicant_id):
 
     if request.method == 'GET':
         serializer = ApplicantSerializer(applicant, context={"request": request})
-    
-
-
         response_data = serializer.data
         response_data["application_history"] = get_applicant_history(applicant.background_info)
-
         return Response(response_data)
 
     elif request.method == 'PUT':
         serializer = ApplicantSerializer(applicant, data=request.data, context={"request": request})
-        
-        if serializer.is_valid():
-            serializer.save()
 
-            # 🔥 Reload object to refresh nested relations
+        if serializer.is_valid():
+            # Save applicant fields first
+            applicant = serializer.save()
+
+            # --- Update BackgroundInfo if present ---
+            bg_data = request.data.get('background_info')
+            address_changed = False
+            
+            if bg_data:
+                bg = applicant.background_info
+                
+                # Handle barangay - accept either ID or PSGC code
+                if 'barangay' in bg_data:
+                    barangay_value = bg_data['barangay']
+                    
+                    try:
+                        from .models import Barangay
+                        
+                        # Try to determine if it's an ID (integer) or PSGC code (string)
+                        if isinstance(barangay_value, int):
+                            # It's an ID
+                            barangay = Barangay.objects.get(id=barangay_value)
+                        else:
+                            # It's a PSGC code or string ID
+                            # First try as PSGC code
+                            try:
+                                barangay = Barangay.objects.get(psgc_code=str(barangay_value))
+                            except Barangay.DoesNotExist:
+                                # If not found by PSGC, try as ID
+                                try:
+                                    barangay = Barangay.objects.get(id=int(barangay_value))
+                                except (ValueError, Barangay.DoesNotExist):
+                                    raise Barangay.DoesNotExist
+                        
+                        # Check if address actually changed
+                        if bg.barangay_id != barangay.id:
+                            address_changed = True
+                        
+                        bg.barangay = barangay
+                        
+                    except Barangay.DoesNotExist:
+                        return Response(
+                            {"error": f"Barangay with value '{barangay_value}' does not exist"},
+                            status=400
+                        )
+                    except Exception as e:
+                        return Response(
+                            {"error": f"Invalid barangay value: {str(e)}"},
+                            status=400
+                        )
+                
+                if 'street_address' in bg_data:
+                    if bg.street_address != bg_data['street_address']:
+                        address_changed = True
+                    bg.street_address = bg_data['street_address']
+                
+                # Save with only the fields we've updated
+                fields_to_update = []
+                if 'barangay' in bg_data:
+                    fields_to_update.append('barangay')
+                if 'street_address' in bg_data:
+                    fields_to_update.append('street_address')
+                
+                if fields_to_update:
+                    bg.save(update_fields=fields_to_update)
+                    # Refresh the background_info to get the updated barangay relationship
+                    bg.refresh_from_db()
+
+            # Force geocode ONLY if address changed
+            if address_changed:
+                # Refresh applicant to get the updated background_info relationship
+                applicant.refresh_from_db()
+                applicant.save(force_geocode=True)
+            else:
+                # Just save without geocoding to update other fields
+                applicant.save(force_geocode=False)
+
+            # Refresh object for nested serialization
             applicant.refresh_from_db()
-            bg = getattr(applicant, "background_info", None)
-            if bg:
-                bg.refresh_from_db()
-            # Representative (OneToOne — must be accessed safely)
+            if bg_data:
+                applicant.background_info.refresh_from_db()
             rep = getattr(applicant, "representative", None)
             if rep:
                 rep.refresh_from_db()
@@ -958,7 +1027,7 @@ def applicant_detail(request, applicant_id):
                 if rep_bg:
                     rep_bg.refresh_from_db()
 
-
+            # Log activity
             log_staff_activity(
                 request.user,
                 "UPDATE",
@@ -966,18 +1035,15 @@ def applicant_detail(request, applicant_id):
                 request
             )
 
-            # 🔥 Re-serialize fresh object
+            # Return updated data
             fresh = ApplicantSerializer(applicant, context={"request": request})
             return Response(fresh.data)
 
         return Response(serializer.errors, status=400)
-     
-
 
     elif request.method == 'DELETE':
         applicant.is_archived = True
         applicant.save(update_fields=["is_archived"])
-
         applicant.refresh_from_db()
 
         log_staff_activity(
@@ -988,7 +1054,6 @@ def applicant_detail(request, applicant_id):
         )
 
         return Response({"message": "Applicant archived successfully"})
-
 
 
 # LIST ARCHIVED APPLICANTS
@@ -1068,6 +1133,19 @@ def get_applicant_locations(request):
     type_filter = request.GET.get("type", "")
     city_filter = request.GET.get("city", "")
     barangay_filter = request.GET.get("barangay", "")
+
+    applicants = Applicant.objects.exclude(
+        latitude__isnull=True, 
+        longitude__isnull=True
+    ).select_related(
+        'background_info',
+        'background_info__barangay',
+        'background_info__barangay__city'
+    ).filter(
+        is_archived=False
+    )
+
+    print("Applicants Counts:", applicants.count())
     
     # Get limit with protection
     try:
@@ -1084,18 +1162,6 @@ def get_applicant_locations(request):
     cached_data = cache.get(cache_key)
     if cached_data is not None:
         return JsonResponse(cached_data, safe=False)
-
-    # Query database if not in cache
-    applicants = Applicant.objects.exclude(
-        latitude__isnull=True, 
-        longitude__isnull=True
-    ).select_related(
-        'background_info',
-        'background_info__barangay',
-        'background_info__barangay__city'
-    ).filter(
-        is_archived=False
-    )
 
     # Apply filters
     if type_filter:

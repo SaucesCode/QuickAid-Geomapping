@@ -95,7 +95,7 @@ const MapComponent = () => {
   const [mapCenter] = useState(defaultCenter);
   const [panelOpen, setPanelOpen] = useState(true);
   const [resetTrigger, setResetTrigger] = useState(false);
-  const [clusterEnabled, setClusterEnabled] = useState(true);
+  const [clusterEnabled, setClusterEnabled] = useState(false);
   const togglePanel = () => setPanelOpen(prev => !prev);
   const getColor = type => assistanceColors[type] || "#f87171";
   const resetFilters = () => {
@@ -122,7 +122,7 @@ const MapComponent = () => {
       });
       return res.data.filter(loc => loc.latitude && loc.longitude && !isNaN(loc.latitude));
     },
-    staleTime: 15 * 60 * 1000, // Cache for 15 minutes
+    staleTime: 15 * 60 * 1000,
     cacheTime: 30 * 60 * 1000,
   });
 
