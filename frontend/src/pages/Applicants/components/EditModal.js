@@ -207,6 +207,8 @@ const EditModal = ({
                     <div className="md:col-span-2">
                       <AddressDropdown
                         onSelect={(field, value) => {
+                          console.log("AddressDropdown onSelect:", field, value); // Debug log
+
                           if (field === "city_municipality") {
                             setEditingApplicant(prev => ({
                               ...prev,
@@ -219,11 +221,12 @@ const EditModal = ({
                               },
                             }));
                           } else if (field === "barangay") {
+                            // CRITICAL: Update the barangay field directly
                             setEditingApplicant(prev => ({
                               ...prev,
                               background_info: {
                                 ...prev.background_info,
-                                barangay: value,
+                                barangay: value, // This should be the PSGC code from dropdown
                               },
                             }));
                           }

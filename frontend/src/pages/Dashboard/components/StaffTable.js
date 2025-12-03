@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../../services/api";
 import { Users, Edit3, Trash2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Card } from "../../../components/DesignSystem";
+import { Card, H2, Spinner, Badge } from "../../../components/DesignSystem";
 
 const fetchStaffList = async token => {
   const res = await api.get(`/staff-list/`, {
@@ -65,10 +65,10 @@ const StaffTable = ({ onEdit }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+          <div className="w-10 h-10 bg-[#003a76] rounded-xl flex items-center justify-center shadow-md">
             <Users className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">Staff Members</h2>
+          <H2>Staff Members</H2>
         </div>
         <span className="text-sm font-medium text-blue-700 bg-blue-50 px-3 py-1 rounded-full">
           {staffList.length} total
@@ -78,7 +78,7 @@ const StaffTable = ({ onEdit }) => {
       {/* Table */}
       {isLoading ? (
         <div className="flex justify-center items-center h-48">
-          <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+          <Spinner />
         </div>
       ) : staffList.length > 0 ? (
         <div className="overflow-x-auto">
@@ -108,7 +108,7 @@ const StaffTable = ({ onEdit }) => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => onEdit(staff)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        className="p-2 text-[#003a76] hover:bg-blue-50 rounded-lg transition-all"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>

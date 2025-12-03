@@ -238,7 +238,7 @@ const Dashboard = () => {
             title="Daily Applicants"
             value={daily}
             subtitle="Today's submissions"
-            color="blue"
+            color="#003a76"
             isLoading={trendLoading}
           />
           <AnalyticsStatCard
@@ -246,7 +246,7 @@ const Dashboard = () => {
             title="Weekly Applicants"
             value={weekly}
             subtitle="Last 7 days"
-            color="green"
+            color="#003a76"
             isLoading={trendLoading}
           />
           <AnalyticsStatCard
@@ -254,7 +254,7 @@ const Dashboard = () => {
             title="Monthly Applicants"
             value={monthly}
             subtitle="This month"
-            color="purple"
+            color="#003a76"
             trend={parseFloat(growthPercentage)}
             isLoading={trendLoading}
           />

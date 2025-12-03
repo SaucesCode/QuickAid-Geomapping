@@ -3,7 +3,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../../services/api";
 import { Mail, CheckCircle, X, Loader2 } from "lucide-react";
 import Pagination from "../../../components/Pagination";
-import { Card } from "../../../components/DesignSystem";
+import {
+  Card,
+  H2,
+  H3,
+  Caption,
+  LoadingState,
+  GradientButton,
+  OutlineButton,
+  GhostButton,
+} from "../../../components/DesignSystem";
 
 const SupportMessages = ({ token }) => {
   const queryClient = useQueryClient();
@@ -57,14 +66,13 @@ const SupportMessages = ({ token }) => {
       {/* --- Header --- */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+          <div className="w-10 h-10 bg-[#003a76] rounded-xl flex items-center justify-center shadow-md">
+            {" "}
             <Mail className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Support Messages</h2>
-            <p className="text-sm text-gray-500">
-              Manage staff inquiries and system-related issues
-            </p>
+            <H2>Support Messages</H2>
+            <Caption>Manage staff inquiries and system-related issues</Caption>
           </div>
         </div>
 
@@ -95,10 +103,7 @@ const SupportMessages = ({ token }) => {
 
       {/* --- Message Table --- */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center h-40">
-          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mb-3" />
-          <p className="text-gray-500 text-sm">Loading messages...</p>
-        </div>
+        <LoadingState message="Loading messages..." />
       ) : currentMessages.length > 0 ? (
         <>
           <div className="overflow-x-auto">
@@ -175,14 +180,14 @@ const SupportMessages = ({ token }) => {
       {selectedMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <Card className="relative w-full max-w-lg">
-            <button
+            <GhostButton
               onClick={() => setSelectedMessage(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1"
+              className="absolute top-4 right-4 p-1"
             >
               <X className="w-5 h-5" />
-            </button>
-            <h3 className="text-xl font-bold mb-2 text-gray-800">{selectedMessage.name}</h3>
-            <p className="text-sm text-gray-500 mb-4">{selectedMessage.email}</p>
+            </GhostButton>
+            <H3 className="mb-2">{selectedMessage.name}</H3>{" "}
+            <Caption className="mb-4">{selectedMessage.email}</Caption>{" "}
             <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <p className="text-gray-700 whitespace-pre-wrap">{selectedMessage.message}</p>
             </div>
