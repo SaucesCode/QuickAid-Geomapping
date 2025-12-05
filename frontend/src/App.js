@@ -47,6 +47,8 @@ import eligibility from "./pages/print/CertificateOfEligibility";
 import CertificateOfEligibility from "./pages/print/CertificateOfEligibility";
 import GeneralIntakeSheet from "./pages/print/Intakesheet";
 import { Toaster } from "react-hot-toast";
+import BarangayFetcher from "./utils/fetchAllBrgys";
+import BarangayGeocoder from "./utils/brgyGeocode";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +60,8 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/fetch" element={<BarangayFetcher />} />
+          <Route path="/geocode" element={<BarangayGeocoder />} />
           <Route path="/new-applicant" element={<MultiStepForm />} />
           <Route path="/apply" element={<MultiStepForm />} />
           <Route path="/about-quickaid" element={<AboutQuickaid />} />

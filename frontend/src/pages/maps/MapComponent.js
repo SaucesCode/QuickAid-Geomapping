@@ -61,27 +61,23 @@ const assistanceColors = {
 const assistanceTypes = ["Medical", "Burial", "Educational"];
 const cities = ["Lucena City", "Sariaya", "Candelaria", "Tiaong", "San Antonio", "Dolores"];
 
-const MapBounds = ({ cityGeoData }) => {
+const MapBounds = ({ cityGeoData, cityFilter }) => {
   const map = useMap();
+
   useEffect(() => {
     if (!cityGeoData) return;
+    if (!cityFilter) return;
 
-    const timeout = setTimeout(() => {
-      try {
-        const bounds = L.geoJSON(cityGeoData).getBounds();
-        map.fitBounds(bounds.pad(0.01), {
-          padding: [20, 20],
-          maxZoom: 14,
-          animate: true,
-          duration: 0.5,
-        });
-      } catch (err) {
-        console.error("Error setting bounds:", err);
-      }
-    }, 50);
+    const bounds = L.geoJSON(cityGeoData).getBounds();
+    map.fitBounds(bounds.pad(0.01), {
+      padding: [20, 20],
+      maxZoom: 14,
+      animate: true,
+      duration: 0.5,
+    });
 
-    return () => clearTimeout(timeout);
-  }, [cityGeoData, map]);
+    // Only rerun when city changes — NOT when barangay changes
+  }, [cityFilter]);
 
   return null;
 };
@@ -125,6 +121,8 @@ const MapComponent = () => {
     staleTime: 15 * 60 * 1000,
     cacheTime: 30 * 60 * 1000,
   });
+
+  console.log("Locations", allLocationsData);
 
   // Client-side filtering (instant performance)
   const filteredLocations = useMemo(() => {
@@ -313,12 +311,13 @@ const MapComponent = () => {
             createColoredIcon={createColoredIcon}
             getColor={getColor}
             geoData={geoData}
+            cityFilter={cityFilter}
             cityGeoData={cityGeoData}
-            MapReset={() => <MapReset trigger={resetTrigger} />}
-            BarangayZoom={() => (
-              <BarangayZoom locations={filteredLocations} barangayFilter={barangayFilter} />
-            )}
-            MapBounds={() => <MapBounds cityGeoData={cityGeoData} />}
+            // MapReset={() => <MapReset trigger={resetTrigger} />}
+            // BarangayZoom={() => (
+            //   <BarangayZoom locations={filteredLocations} barangayFilter={barangayFilter} />
+            // )}
+            // MapBounds={() => <MapBounds cityGeoData={cityGeoData} />}
           />
 
           {/* ========== COLLAPSIBLE TOP-RIGHT PANEL ========== */}

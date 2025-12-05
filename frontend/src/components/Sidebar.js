@@ -793,7 +793,7 @@ const Sidebar = () => {
             width: collapsed ? collapsedWidth : expandedWidth,
           }}
         >
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1 justify-between">
             <button
               className="text-gray-600 md:hidden flex-shrink-0"
               onClick={toggleMobileMenu}
@@ -808,6 +808,12 @@ const Sidebar = () => {
             <h1 className="text-sm sm:text-lg md:text-xl font-bold text-gray-900 truncate">
               {getPageTitle()}
             </h1>
+
+            <img
+              src="/QuickaidText.png"
+              alt="Logo"
+              className="h-3 sm:h-5 md:h-6 object-contain mr-10"
+            />
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0"></div>
