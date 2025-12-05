@@ -33,14 +33,14 @@ const createColoredIcon = color =>
   L.divIcon({
     className: "custom-marker",
     html: `
-      <svg xmlns="http://www.w3.org/2000/svg" width="44" height="64" viewBox="0 0 24 24">
-        <path
-          d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
-          fill="${color}"
-        />
-        <circle cx="12" cy="9" r="3" fill="white" />
-      </svg>
-    `,
+        <svg xmlns="http://www.w3.org/2000/svg" width="44" height="64" viewBox="0 0 24 24">
+          <path
+            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+            fill="${color}"
+          />
+          <circle cx="12" cy="9" r="3" fill="white" />
+        </svg>
+      `,
     iconSize: [44, 64],
     iconAnchor: [22, 64],
     popupAnchor: [0, -58],
@@ -60,27 +60,6 @@ const assistanceColors = {
 
 const assistanceTypes = ["Medical", "Burial", "Educational"];
 const cities = ["Lucena City", "Sariaya", "Candelaria", "Tiaong", "San Antonio", "Dolores"];
-
-const MapBounds = ({ cityGeoData, cityFilter }) => {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!cityGeoData) return;
-    if (!cityFilter) return;
-
-    const bounds = L.geoJSON(cityGeoData).getBounds();
-    map.fitBounds(bounds.pad(0.01), {
-      padding: [20, 20],
-      maxZoom: 14,
-      animate: true,
-      duration: 0.5,
-    });
-
-    // Only rerun when city changes — NOT when barangay changes
-  }, [cityFilter]);
-
-  return null;
-};
 
 // ============= MAIN MAP COMPONENT =============
 const MapComponent = () => {
@@ -167,33 +146,6 @@ const MapComponent = () => {
     staleTime: Infinity,
   });
 
-  const CityPolygon = ({ cityGeoData }) => {
-    const map = useMap();
-
-    useEffect(() => {
-      if (!cityGeoData) return;
-
-      const layer = L.geoJSON(cityGeoData, {
-        style: { color: "#3b82f6", weight: 3, fillOpacity: 0.15 },
-      }).addTo(map);
-
-      const bounds = layer.getBounds();
-      if (bounds.isValid()) {
-        map.fitBounds(bounds.pad(0.1), {
-          padding: [50, 50],
-          animate: true,
-          duration: 0.3,
-        });
-      }
-
-      return () => {
-        map.removeLayer(layer);
-      };
-    }, [cityGeoData, map]);
-
-    return null;
-  };
-
   // Zoom to barangay markers when barangay is selected
   const BarangayZoom = ({ locations, barangayFilter }) => {
     const map = useMap();
@@ -261,23 +213,23 @@ const MapComponent = () => {
 
     return L.divIcon({
       html: `
-        <div style="
-          background: ${color};
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: bold;
-          font-size: 14px;
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        ">
-          ${count}
-        </div>
-      `,
+          <div style="
+            background: ${color};
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          ">
+            ${count}
+          </div>
+        `,
       className: "custom-cluster-icon",
       iconSize: L.point(40, 40, true),
     });
@@ -286,11 +238,11 @@ const MapComponent = () => {
   return (
     <div className="relative w-full h-full bg-gradient-to-br from-blue-50 via-blue-50 to-blue-100 overflow-hidden">
       <style>{`
-        .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        .leaflet-container { z-index: 0 !important; }
-        .custom-cluster-icon { background: transparent !important; border: none !important; }
-      `}</style>
+          .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
+          @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+          .leaflet-container { z-index: 0 !important; }
+          .custom-cluster-icon { background: transparent !important; border: none !important; }
+        `}</style>
 
       {isLoadingLocations && (
         <div className="absolute inset-0 bg-blue-900/80 flex items-center justify-center z-[9999]">

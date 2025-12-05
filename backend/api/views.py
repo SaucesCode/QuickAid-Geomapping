@@ -1156,7 +1156,7 @@ def get_applicant_locations(request):
         limit = 2000
 
     # Create cache key based on filters
-    cache_key = f"applicant_locations_{type_filter}_{city_filter}_{barangay_filter}_{limit}"
+    cache_key = "applicant_locations_cache"
     
     # Try to get from cache first
     cached_data = cache.get(cache_key)
@@ -1191,8 +1191,8 @@ def get_applicant_locations(request):
         for app in applicants
     ]
 
-    # Cache for 15 minutes
-    cache.set(cache_key, data, 60 * 15)
+    # Cache for 10 seconds
+    cache.set(cache_key, data, 10)
 
     return JsonResponse(data, safe=False)
 

@@ -14,8 +14,8 @@ import {
   X,
   Calendar,
 } from "lucide-react";
-import { formatDate } from "../../utils/FormatDate";
-import ApplicantsFilter from "./components/ApplicantFilter";
+import ApprovedFilter from "./components/ApprovedFilter";
+import Pagination from "../../components/Pagination";
 import {
   PageContainer,
   PageHeader,
@@ -24,9 +24,8 @@ import {
   LoadingState,
   H2,
   BodyText,
-  OutlineButton,
 } from "../../components/DesignSystem";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
 
 // --- API Helpers ---
@@ -48,34 +47,46 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
     city: "",
     barangay: "",
     type: "",
-    start: "",
-    end: "",
+    search: "",
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const { data: approvals = [], isLoading } = useQuery({
-    queryKey: ["approvals", batch.id, filters],
+  const { data: approvalsData = [], isLoading } = useQuery({
+    queryKey: ["approvals", batch.id, filters, currentPage, itemsPerPage],
     queryFn: async () => {
       const params = new URLSearchParams();
+      params.append("page", currentPage);
+      params.append("limit", itemsPerPage);
+      if (filters.search) params.append("search", filters.search);
       if (filters.city) params.append("city", filters.city);
       if (filters.barangay) params.append("barangay", filters.barangay);
       if (filters.type) params.append("type", filters.type);
-      if (filters.start && filters.end) {
-        params.append("start_date", filters.start);
-        params.append("end_date", filters.end);
-      }
       const res = await api.get(`/approved/batch/${batch.id}/approvals/?${params.toString()}`);
-      return res.data.results || [];
+      return res.data;
     },
     enabled: isExpanded,
     staleTime: 1000 * 60 * 5,
   });
 
-  const hasActiveFilters =
-    filters.city || filters.barangay || filters.type || (filters.start && filters.end);
+  const approvals = approvalsData?.results || [];
+  const totalItems = approvalsData?.count || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const clearFilters = () =>
-    setFilters({ city: "", barangay: "", type: "", start: "", end: "" });
+  const clearFilters = () => {
+    setFilters({ city: "", barangay: "", type: "", search: "" });
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = page => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = e => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all">
@@ -150,15 +161,7 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
 
             {showFilters && (
               <div className="space-y-3">
-                <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
-                {hasActiveFilters && (
-                  <OutlineButton
-                    onClick={clearFilters}
-                    className="w-full text-red-600 border-red-300 hover:bg-red-50"
-                  >
-                    <X className="w-4 h-4" /> Clear All Filters
-                  </OutlineButton>
-                )}
+                <ApprovedFilter filters={filters} onFilterChange={setFilters} />
               </div>
             )}
           </div>
@@ -216,6 +219,16 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
                   ))}
                 </tbody>
               </table>
+            )}
+            {!isLoading && approvals.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                handlePageChange={handlePageChange}
+                itemsPerPage={itemsPerPage}
+                handleItemsPerPageChange={handleItemsPerPageChange}
+                totalItems={totalItems}
+              />
             )}
           </div>
         </div>

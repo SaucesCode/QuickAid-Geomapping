@@ -1,5 +1,4 @@
-// src/components/AnalyticsFilter.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Filter, RotateCcw, Calendar, Tags } from "lucide-react";
 
 const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
@@ -9,9 +8,32 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
     end: "",
   });
 
+  const [dateError, setDateError] = useState("");
+
+  // Validate date range
+  useEffect(() => {
+    const { start, end } = filters;
+
+    if (start && end && new Date(start) > new Date(end)) {
+      setDateError("End date cannot be earlier than start date.");
+    } else {
+      setDateError("");
+    }
+  }, [filters.start, filters.end]);
+
   const handleChange = e => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+
+    setFilters(prev => {
+      let updated = { ...prev, [name]: value };
+
+      // Auto-fix invalid range
+      if (name === "start" && updated.end && new Date(value) > new Date(updated.end)) {
+        updated.end = value; // Force end date to match start date
+      }
+
+      return updated;
+    });
   };
 
   const handleReset = () => {
@@ -21,7 +43,9 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
   };
 
   const handleApply = () => {
-    onFilterChange?.(filters);
+    if (!dateError) {
+      onFilterChange?.(filters);
+    }
   };
 
   return (
@@ -59,16 +83,17 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
           name="start"
           value={filters.start}
           onChange={handleChange}
+          max={filters.end || undefined}
         />
         <DateInput
           icon={Calendar}
           label="End Date"
           name="end"
           value={filters.end}
+          min={filters.start || undefined}
           onChange={handleChange}
         />
 
-        {/* Optional Extra Fields */}
         {extraFields}
 
         {/* Buttons */}
@@ -80,15 +105,24 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
             <RotateCcw className="w-3.5 h-3.5" />
             Reset
           </button>
+
           <button
             onClick={handleApply}
-            className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 rounded-lg text-sm font-semibold transition-all hover:shadow-md active:scale-[0.98] shadow-sm"
+            disabled={!!dateError}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm ${
+              dateError
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-md hover:from-blue-600 hover:to-indigo-700"
+            }`}
           >
             <Filter className="w-3.5 h-3.5" />
             Apply
           </button>
         </div>
       </div>
+
+      {/* Date Range Error */}
+      {dateError && <p className="text-red-600 text-sm mt-2 font-medium">{dateError}</p>}
     </div>
   );
 };
@@ -131,7 +165,7 @@ const FilterSelect = ({ icon: Icon, label, name, value, onChange, options }) => 
   </div>
 );
 
-const DateInput = ({ icon: Icon, label, name, value, onChange }) => (
+const DateInput = ({ icon: Icon, label, name, value, onChange, min, max }) => (
   <div className="flex flex-col min-w-[140px]">
     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
       {Icon && <Icon className="w-3 h-3" />}
@@ -141,6 +175,8 @@ const DateInput = ({ icon: Icon, label, name, value, onChange }) => (
       type="date"
       name={name}
       value={value}
+      min={min}
+      max={max}
       onChange={onChange}
       className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 cursor-pointer"
     />
