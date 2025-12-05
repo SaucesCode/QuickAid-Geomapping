@@ -48,7 +48,7 @@ const ApplicantsFilter = ({ filters, onFilterChange }) => {
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+        <div className="p-1.5 bg-[#003a76] rounded-lg">
           <Filter className="w-4 h-4 text-white" />
         </div>
         <div>
@@ -134,7 +134,7 @@ const ApplicantsFilter = ({ filters, onFilterChange }) => {
           </button>
           <button
             onClick={handleApply}
-            className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 rounded-lg text-sm font-semibold transition-all hover:shadow-md active:scale-[0.98] shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white hover:bg-[#003a76]  rounded-lg text-sm font-semibold transition-all hover:shadow-md active:scale-[0.98] shadow-sm"
           >
             <Filter className="w-3.5 h-3.5" />
             Apply

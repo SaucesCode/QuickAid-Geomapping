@@ -1,14 +1,15 @@
+import os
+import uuid
+import json
+import random
+import hashlib
 import requests
 from django.core.cache import cache
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
-from opencage.geocoder import OpenCageGeocode
-import os
-import uuid
 
-OPENCAGE_API_KEY = os.environ.get('OPENCAGE_API_KEY')
 
 cache_key = "applicant_locations"
 cache.delete(cache_key)
@@ -24,13 +25,104 @@ def sanitize_cache_key(key):
         return hashlib.md5(key.encode()).hexdigest()
     return key
 
-def photon_geocode(address, retries=3):
+
+def load_barangay_coordinates():
     """
-    Free Photon geocoding service with retry mechanism.
+    Load barangay coordinates from JSON file.
+    Cached for performance.
     """
-    sanitized_key = sanitize_cache_key(f"geo_{address}")
+    cache_key = "barangay_coordinates_data"
+    cached = cache.get(cache_key)
+    
+    if cached:
+        return cached
+    
+    # Path to your JSON file (adjust as needed)
+    json_path = os.path.join(settings.BASE_DIR, 'utils', 'barangays_geocoded.json')
+    
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Create a lookup dictionary for fast access
+        # Format: {city_code: {barangay_code: {name, coordinates}}}
+        lookup = {}
+        for city in data:
+            city_code = city['cityCode']
+            lookup[city_code] = {}
+            
+            for barangay in city['barangays']:
+                brgy_code = barangay['code']
+                lookup[city_code][brgy_code] = {
+                    'name': barangay['name'],
+                    'coordinates': barangay.get('coordinates')
+                }
+        
+        # Cache for 7 days (since this data rarely changes)
+        cache.set(cache_key, lookup, timeout=60 * 60 * 24 * 7)
+        print(f"Loaded {len(lookup)} cities with barangay coordinates")
+        
+        return lookup
+    
+    except FileNotFoundError:
+        print(f"ERROR: barangays_geocoded.json not found at {json_path}")
+        return {}
+    except json.JSONDecodeError as e:
+        print(f"ERROR: Invalid JSON in barangays_geocoded.json: {e}")
+        return {}
+
+
+def json_geocode(barangay_code, city_code, retries=3):
+    """
+    Get coordinates from local JSON file with random offset applied.
+    Returns unique coordinates for each call.
+    
+    Args:
+        barangay_code: PSGC code of the barangay (e.g., "045624002")
+        city_code: PSGC code of the city (e.g., "045624000")
+        retries: Not used, kept for compatibility
+    
+    Returns:
+        tuple: (latitude, longitude) or (None, None) if not found
+    """
+    # Load barangay data
+    barangay_data = load_barangay_coordinates()
+    
+    # Look up the barangay
+    city_data = barangay_data.get(city_code, {})
+    barangay_info = city_data.get(barangay_code)
+    
+    if not barangay_info or not barangay_info.get('coordinates'):
+        print(f"WARNING: No coordinates found for barangay {barangay_code} in city {city_code}")
+        return None, None
+    
+    coords = barangay_info['coordinates']
+    base_lat = coords['lat']
+    base_lng = coords['lng']
+    
+    # Apply random offset to avoid exact duplicates
+    # ~200m radius (0.002 degrees ≈ 220m at equator)
+    lat_offset = random.uniform(-0.001, 0.001)
+    lng_offset = random.uniform(-0.001, 0.001)
+    
+    lat = base_lat + lat_offset
+    lng = base_lng + lng_offset
+    
+    print(f"DEBUG JSON GEOCODE: {barangay_info['name']} → "
+          f"Base=({base_lat:.6f}, {base_lng:.6f}) → "
+          f"Offset=({lat:.6f}, {lng:.6f})")
+    
+    return lat, lng
+
+def photon_geocode_base(address, retries=3):
+    """
+    Get base coordinates from Photon (with caching).
+    Returns the raw coordinates WITHOUT offset.
+    """
+    sanitized_key = sanitize_cache_key(f"geo_base_{address}")
     cached = cache.get(sanitized_key)
     if cached:
+        print(f"DEBUG: Using cached base coords for {address}")
         return cached
 
     url = "https://photon.komoot.io/api/"
@@ -49,20 +141,45 @@ def photon_geocode(address, retries=3):
 
             if data and "features" in data and len(data["features"]) > 0:
                 coordinates = data["features"][0]["geometry"]["coordinates"]
-                lat, lng = coordinates[1], coordinates[0]  # Reverse order (lat, lon)
+                lat, lng = coordinates[1], coordinates[0]
 
-                # Cache the result for 30 days
+                # Cache BASE coordinates for 30 days
                 cache.set(sanitized_key, (lat, lng), timeout=60 * 60 * 24 * 30)
+                print(f"DEBUG: Cached base coords: ({lat:.6f}, {lng:.6f})")
 
                 return lat, lng
 
         except requests.exceptions.Timeout:
-            print(f"Photon geocoding timeout for address: {address} (Attempt {attempt + 1}/{retries})")
+            print(f"Photon timeout: {address} (Attempt {attempt + 1}/{retries})")
         except Exception as e:
-            print(f"Photon geocoding error: {e}")
+            print(f"Photon error: {e}")
             break
 
     return None, None
+
+
+def photon_geocode(address, retries=3):
+    """
+    Get coordinates with random offset applied.
+    Each call returns UNIQUE coordinates.
+    """
+    # Get base coordinates (cached)
+    base_lat, base_lng = photon_geocode_base(address, retries)
+    
+    if base_lat is None or base_lng is None:
+        return None, None
+    
+    # Apply random offset (NOT cached)
+    lat_offset = random.uniform(-0.002, 0.002)
+    lng_offset = random.uniform(-0.002, 0.002)
+    
+    lat = base_lat + lat_offset
+    lng = base_lng + lng_offset
+    
+    print(f"DEBUG OFFSET: Base=({base_lat:.6f}, {base_lng:.6f}) → "
+          f"Offset=({lat:.6f}, {lng:.6f}) [Δlat={lat_offset:.6f}, Δlng={lng_offset:.6f}]")
+    
+    return lat, lng
 
 
 
@@ -184,20 +301,32 @@ class Applicant(models.Model):
         ordering = ['-date_filled']
 
 
-    def save(self, force_geocode=True, *args, **kwargs):
+    def save(self, force_geocode=False, *args, **kwargs):
         print(f"DEBUG: Saving applicant {self} (force_geocode={force_geocode})")
         print(f"DEBUG: Current lat/lng: {self.latitude}, {self.longitude}")
 
         # Determine if we should geocode
         if force_geocode or not self.latitude or not self.longitude:
             try:
-                location_query = (
-                    f"{self.background_info.barangay.name}, "
-                    f"{self.background_info.barangay.city.name}, "
-                    f"{self.background_info.barangay.city.province.name}, Philippines"
-                )
-                print(f"DEBUG: Geocoding address: {location_query}")
-                lat, lng = self.get_coordinates(location_query)
+                # Try JSON geocoding first
+                barangay = self.background_info.barangay
+                city = barangay.city
+                
+                print(f"DEBUG: Attempting JSON geocode for {barangay.name}, {city.name}")
+                print(f"DEBUG: Barangay code: {barangay.psgc_code}, City code: {city.psgc_code}")
+                
+                lat, lng = json_geocode(barangay.psgc_code, city.psgc_code)
+                
+                # Fallback to Photon if JSON geocoding fails
+                if not lat or not lng:
+                    print(f"DEBUG: JSON geocode failed, falling back to Photon")
+                    location_query = (
+                        f"{barangay.name}, "
+                        f"{city.name}, "
+                        f"{city.province.name}, Philippines"
+                    )
+                    lat, lng = photon_geocode(location_query)
+                
                 print(f"DEBUG: Geocoding result: lat={lat}, lng={lng}")
 
                 if lat and lng:
@@ -215,13 +344,19 @@ class Applicant(models.Model):
         # Clear cached applicant locations
         cache.delete("applicant_locations")
 
-
-    def get_coordinates(self, address):
+    def get_coordinates(self, address=None):
         """
-        Kept only for compatibility with old calls.
-        Redirects to new Photon function.
+        Get coordinates using JSON data or fallback to Photon.
+        If address is provided, use Photon directly.
         """
-        return photon_geocode(address)
+        if address:
+            # Legacy support: if address string provided, use Photon
+            return photon_geocode(address)
+        else:
+            # Use JSON data based on barangay/city codes
+            barangay = self.background_info.barangay
+            city = barangay.city
+            return json_geocode(barangay.psgc_code, city.psgc_code)
 
 
     def __str__(self):

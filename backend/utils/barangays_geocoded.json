@@ -1,0 +1,2228 @@
+[
+  {
+    "city": "Lucena City",
+    "cityCode": "045624000",
+    "barangayCount": 33,
+    "barangays": [
+      {
+        "name": "Barangay 1",
+        "code": "045624002",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.938974711110527,
+          "lng": 121.61170644327105
+        },
+        "geocoded": true,
+        "query": "Barangay 1, Lucena City, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Barangay 10",
+        "code": "045624003",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.92853486436225,
+          "lng": 121.61588975503287
+        },
+        "geocoded": true,
+        "query": "Barangay 10, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Barangay 11",
+        "code": "045624004",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.942092103261988,
+          "lng": 121.61305843029824
+        },
+        "geocoded": true,
+        "query": "Barangay 11, Lucena City, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Barangay 2",
+        "code": "045624005",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.938749869306294,
+          "lng": 121.61459811124703
+        },
+        "geocoded": true,
+        "query": "Barangay 2, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Barangay 3",
+        "code": "045624006",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.937597135273595,
+          "lng": 121.61003120133645
+        },
+        "geocoded": true,
+        "query": "Barangay 3, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Barangay 4",
+        "code": "045624007",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.936675524662347,
+          "lng": 121.61455722751494
+        },
+        "geocoded": true,
+        "query": "Barangay 4, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Barangay 5",
+        "code": "045624008",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 14.608347997921026,
+          "lng": 120.96647560107795
+        },
+        "geocoded": true,
+        "query": "Barangay 5, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Barangay 6",
+        "code": "045624009",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 14.609265167640753,
+          "lng": 120.96778861413677
+        },
+        "geocoded": true,
+        "query": "Barangay 6, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Barangay 7",
+        "code": "045624010",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 14.606536726292536,
+          "lng": 120.96922789944763
+        },
+        "geocoded": true,
+        "query": "Barangay 7, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Barangay 8",
+        "code": "045624011",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.929616496408158,
+          "lng": 121.61110530876329
+        },
+        "geocoded": true,
+        "query": "Barangay 8, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Barangay 9",
+        "code": "045624012",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.931056095317116,
+          "lng": 121.61524104650407
+        },
+        "geocoded": true,
+        "query": "Barangay 9, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Barra",
+        "code": "045624013",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.901454204003727,
+          "lng": 121.60721162015632
+        },
+        "geocoded": true,
+        "query": "Barra, Lucena City, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Bocohan",
+        "code": "045624014",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.957071118539673,
+          "lng": 121.58354942448291
+        },
+        "geocoded": true,
+        "query": "Bocohan, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Mayao Castillo",
+        "code": "045624015",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.931842213769041,
+          "lng": 121.65722779905522
+        },
+        "geocoded": true,
+        "query": "Mayao Castillo, Lucena City, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Cotta",
+        "code": "045624016",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.920456356685007,
+          "lng": 121.61024477265805
+        },
+        "geocoded": true,
+        "query": "Cotta, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Gulang-gulang",
+        "code": "045624017",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.95743074055819,
+          "lng": 121.60773894449696
+        },
+        "geocoded": true,
+        "query": "Gulang-gulang, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Dalahican",
+        "code": "045624018",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.90757723027105,
+          "lng": 121.6197947376074
+        },
+        "geocoded": true,
+        "query": "Dalahican, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Domoit",
+        "code": "045624019",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.962429003932995,
+          "lng": 121.59669896065014
+        },
+        "geocoded": true,
+        "query": "Domoit, Lucena City, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Ibabang Dupay",
+        "code": "045624020",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.944606639646533,
+          "lng": 121.62383515494128
+        },
+        "geocoded": true,
+        "query": "Ibabang Dupay, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Ibabang Iyam",
+        "code": "045624021",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.932263846813983,
+          "lng": 121.59723555276166
+        },
+        "geocoded": true,
+        "query": "Ibabang Iyam, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Ibabang Talim",
+        "code": "045624022",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.921988073191164,
+          "lng": 121.57809020252118
+        },
+        "geocoded": true,
+        "query": "Ibabang Talim, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Ilayang Dupay",
+        "code": "045624023",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.9638349674925,
+          "lng": 121.61683972324052
+        },
+        "geocoded": true,
+        "query": "Ilayang Dupay, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Ilayang Iyam",
+        "code": "045624024",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.940339568850325,
+          "lng": 121.60230075044507
+        },
+        "geocoded": true,
+        "query": "Ilayang Iyam, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Ilayang Talim",
+        "code": "045624025",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.935393156176557,
+          "lng": 121.56465546535225
+        },
+        "geocoded": true,
+        "query": "Ilayang Talim, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Isabang",
+        "code": "045624026",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.948636501406073,
+          "lng": 121.58405095333394
+        },
+        "geocoded": true,
+        "query": "Isabang, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Mayao Crossing",
+        "code": "045624027",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.931250727758053,
+          "lng": 121.6264484622654
+        },
+        "geocoded": true,
+        "query": "Mayao Crossing, Lucena City, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Mayao Kanluran",
+        "code": "045624028",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.947356569302787,
+          "lng": 121.63732036546172
+        },
+        "geocoded": true,
+        "query": "Mayao Kanluran, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Mayao Parada",
+        "code": "045624029",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.928353919122419,
+          "lng": 121.64462608297359
+        },
+        "geocoded": true,
+        "query": "Mayao Parada, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Mayao Silangan",
+        "code": "045624030",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.956369287095773,
+          "lng": 121.64585181713105
+        },
+        "geocoded": true,
+        "query": "Mayao Silangan, Lucena City, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Ransohan",
+        "code": "045624032",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.89452960593453,
+          "lng": 121.5967004439896
+        },
+        "geocoded": true,
+        "query": "Ransohan, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Salinas",
+        "code": "045624033",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.898862859092148,
+          "lng": 121.58420846075738
+        },
+        "geocoded": true,
+        "query": "Salinas, Lucena City, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Talao-talao",
+        "code": "045624034",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.909829251658296,
+          "lng": 121.63742222288762
+        },
+        "geocoded": true,
+        "query": "Talao-talao, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Market View",
+        "code": "045624035",
+        "city": "Lucena City",
+        "cityCode": "045624000",
+        "coordinates": {
+          "lat": 13.93447040673591,
+          "lng": 121.61840007055132
+        },
+        "geocoded": true,
+        "query": "Market View, Lucena City, Quezon, Philippines",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "city": "Sariaya",
+    "cityCode": "045645000",
+    "barangayCount": 43,
+    "barangays": [
+      {
+        "name": "Antipolo",
+        "code": "045645001",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.92282604896711,
+          "lng": 121.55819306536928
+        },
+        "geocoded": true,
+        "query": "Antipolo, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Balubal",
+        "code": "045645002",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.967730284434666,
+          "lng": 121.5345322467889
+        },
+        "geocoded": true,
+        "query": "Balubal, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Concepcion Pinagbakuran",
+        "code": "045645003",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.984484014576486,
+          "lng": 121.48252606871577
+        },
+        "geocoded": true,
+        "query": "Concepcion Pinagbakuran, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bignay 1",
+        "code": "045645006",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.872484045797725,
+          "lng": 121.48648240840839
+        },
+        "geocoded": true,
+        "query": "Bignay 1, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bignay 2",
+        "code": "045645007",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.849293523302407,
+          "lng": 121.4696097096006
+        },
+        "geocoded": true,
+        "query": "Bignay 2, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bucal",
+        "code": "045645009",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.92181252255604,
+          "lng": 121.53923867279397
+        },
+        "geocoded": true,
+        "query": "Bucal, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Canda",
+        "code": "045645010",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.91101344500466,
+          "lng": 121.52728261482416
+        },
+        "geocoded": true,
+        "query": "Canda, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Castañas",
+        "code": "045645011",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.881007429669785,
+          "lng": 121.55284630665226
+        },
+        "geocoded": true,
+        "query": "Castañas, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Concepcion Banahaw",
+        "code": "045645012",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 14.007866936461584,
+          "lng": 121.47650022331857
+        },
+        "geocoded": true,
+        "query": "Concepcion Banahaw, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Concepcion No. 1",
+        "code": "045645013",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.943378615315664,
+          "lng": 121.47548644114167
+        },
+        "geocoded": true,
+        "query": "Concepcion No. 1, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Concepcion Palasan",
+        "code": "045645014",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.912706243545925,
+          "lng": 121.46592659368372
+        },
+        "geocoded": true,
+        "query": "Concepcion Palasan, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Gibanga",
+        "code": "045645015",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.967142497406407,
+          "lng": 121.54501436859138
+        },
+        "geocoded": true,
+        "query": "Gibanga, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Guisguis-San Roque",
+        "code": "045645016",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.878055461597585,
+          "lng": 121.51911807070634
+        },
+        "geocoded": true,
+        "query": "Guisguis-San Roque, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Guisguis-Talon",
+        "code": "045645017",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.867511571027508,
+          "lng": 121.50400666361129
+        },
+        "geocoded": true,
+        "query": "Guisguis-Talon, Sariaya, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Janagdong 1",
+        "code": "045645018",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.924725019112634,
+          "lng": 121.50501900209117
+        },
+        "geocoded": true,
+        "query": "Janagdong 1, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Janagdong 2",
+        "code": "045645019",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.901046995074868,
+          "lng": 121.50841920983738
+        },
+        "geocoded": true,
+        "query": "Janagdong 2, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Limbon",
+        "code": "045645020",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.893770719528767,
+          "lng": 121.54003842496034
+        },
+        "geocoded": true,
+        "query": "Limbon, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Lutucan Bata",
+        "code": "045645021",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.89010028641474,
+          "lng": 121.49370264972265
+        },
+        "geocoded": true,
+        "query": "Lutucan Bata, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Lutucan Malabag",
+        "code": "045645022",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.907177117189288,
+          "lng": 121.48305437932946
+        },
+        "geocoded": true,
+        "query": "Lutucan Malabag, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Lutucan 1",
+        "code": "045645023",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.924788243297892,
+          "lng": 121.48498573675114
+        },
+        "geocoded": true,
+        "query": "Lutucan 1, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Mamala I",
+        "code": "045645024",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 14.002016067477694,
+          "lng": 121.52057658287498
+        },
+        "geocoded": true,
+        "query": "Mamala I, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Manggalang 1",
+        "code": "045645025",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.863571229977794,
+          "lng": 121.45900348476587
+        },
+        "geocoded": true,
+        "query": "Manggalang 1, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Manggalang Tulo-tulo",
+        "code": "045645026",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.861102357199835,
+          "lng": 121.44852456195775
+        },
+        "geocoded": true,
+        "query": "Manggalang Tulo-tulo, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Manggalang-Bantilan",
+        "code": "045645027",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.842031974611691,
+          "lng": 121.43678859193656
+        },
+        "geocoded": true,
+        "query": "Manggalang-Bantilan, Sariaya, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Manggalang-Kiling",
+        "code": "045645028",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.828232380611686,
+          "lng": 121.45973303922148
+        },
+        "geocoded": true,
+        "query": "Manggalang-Kiling, Sariaya, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Montecillo",
+        "code": "045645029",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.88739071484039,
+          "lng": 121.47727979520768
+        },
+        "geocoded": true,
+        "query": "Montecillo, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Morong",
+        "code": "045645030",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.93353022214261,
+          "lng": 121.549025032964
+        },
+        "geocoded": true,
+        "query": "Morong, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Pili",
+        "code": "045645032",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.94948798898702,
+          "lng": 121.53547956111376
+        },
+        "geocoded": true,
+        "query": "Pili, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Barangay 2",
+        "code": "045645033",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.964612744618995,
+          "lng": 121.52526565683291
+        },
+        "geocoded": true,
+        "query": "Barangay 2, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Barangay 3",
+        "code": "045645034",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.965711241376146,
+          "lng": 121.5284194874191
+        },
+        "geocoded": true,
+        "query": "Barangay 3, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Barangay 4",
+        "code": "045645035",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.9630176037725,
+          "lng": 121.52872741483957
+        },
+        "geocoded": true,
+        "query": "Barangay 4, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Barangay 5",
+        "code": "045645036",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.961777420918756,
+          "lng": 121.52596390731443
+        },
+        "geocoded": true,
+        "query": "Barangay 5, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Barangay 6",
+        "code": "045645037",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.961037015028031,
+          "lng": 121.5243117028971
+        },
+        "geocoded": true,
+        "query": "Barangay 6, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Sampaloc Bogon",
+        "code": "045645038",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 14.015653659796456,
+          "lng": 121.49930346999697
+        },
+        "geocoded": true,
+        "query": "Sampaloc Bogon, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Sampaloc 1",
+        "code": "045645039",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.989684223655134,
+          "lng": 121.51198149457734
+        },
+        "geocoded": true,
+        "query": "Sampaloc 1, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Sampaloc 2",
+        "code": "045645040",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.966234740063896,
+          "lng": 121.50765074633142
+        },
+        "geocoded": true,
+        "query": "Sampaloc 2, Sariaya, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Sampaloc Santo Cristo",
+        "code": "045645041",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.951914034413967,
+          "lng": 121.49016995280923
+        },
+        "geocoded": true,
+        "query": "Sampaloc Santo Cristo, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Talaan Aplaya",
+        "code": "045645042",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.889998792758385,
+          "lng": 121.56517981663895
+        },
+        "geocoded": true,
+        "query": "Talaan Aplaya, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Talaanpantoc",
+        "code": "045645043",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.903211838131043,
+          "lng": 121.55163157626912
+        },
+        "geocoded": true,
+        "query": "Talaanpantoc, Sariaya, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Tumbaga 1",
+        "code": "045645044",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.947404477810174,
+          "lng": 121.52332342757043
+        },
+        "geocoded": true,
+        "query": "Tumbaga 1, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Tumbaga 2",
+        "code": "045645045",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.93884611818248,
+          "lng": 121.51124705413594
+        },
+        "geocoded": true,
+        "query": "Tumbaga 2, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Barangay 1",
+        "code": "045645046",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.9628344651666,
+          "lng": 121.52191673974362
+        },
+        "geocoded": true,
+        "query": "Barangay 1, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Mamala II",
+        "code": "045645047",
+        "city": "Sariaya",
+        "cityCode": "045645000",
+        "coordinates": {
+          "lat": 13.97736958327556,
+          "lng": 121.52165260714241
+        },
+        "geocoded": true,
+        "query": "Mamala II, Sariaya, Quezon, Philippines",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "city": "Candelaria",
+    "cityCode": "045608000",
+    "barangayCount": 25,
+    "barangays": [
+      {
+        "name": "Poblacion",
+        "code": "045608001",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.928895182015225,
+          "lng": 121.4245781983718
+        },
+        "geocoded": true,
+        "query": "Poblacion, Candelaria, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Buenavista East",
+        "code": "045608002",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.910123696240367,
+          "lng": 121.38049790930414
+        },
+        "geocoded": true,
+        "query": "Buenavista East, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Buenavista West",
+        "code": "045608003",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.911887328222424,
+          "lng": 121.3927520425083
+        },
+        "geocoded": true,
+        "query": "Buenavista West, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bukal Norte",
+        "code": "045608004",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.965369354951816,
+          "lng": 121.40678901093341
+        },
+        "geocoded": true,
+        "query": "Bukal Norte, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bukal Sur",
+        "code": "045608005",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.935437813541151,
+          "lng": 121.39149778222487
+        },
+        "geocoded": true,
+        "query": "Bukal Sur, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Kinatihan I",
+        "code": "045608006",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.888756385855421,
+          "lng": 121.39653914358102
+        },
+        "geocoded": true,
+        "query": "Kinatihan I, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Kinatihan II",
+        "code": "045608007",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.873154547668621,
+          "lng": 121.39703664971665
+        },
+        "geocoded": true,
+        "query": "Kinatihan II, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Malabanban Norte",
+        "code": "045608008",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.931928517126234,
+          "lng": 121.43840123036078
+        },
+        "geocoded": true,
+        "query": "Malabanban Norte, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Malabanban Sur",
+        "code": "045608009",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.918497755398603,
+          "lng": 121.43429571709285
+        },
+        "geocoded": true,
+        "query": "Malabanban Sur, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Mangilag Norte",
+        "code": "045608010",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.94611518369682,
+          "lng": 121.45392641454251
+        },
+        "geocoded": true,
+        "query": "Mangilag Norte, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Mangilag Sur",
+        "code": "045608011",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.931294052742858,
+          "lng": 121.45126523722995
+        },
+        "geocoded": true,
+        "query": "Mangilag Sur, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Masalukot I",
+        "code": "045608012",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.940129785896817,
+          "lng": 121.42886300830408
+        },
+        "geocoded": true,
+        "query": "Masalukot I, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Masalukot II",
+        "code": "045608013",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.94659718019486,
+          "lng": 121.42238451674761
+        },
+        "geocoded": true,
+        "query": "Masalukot II, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Masalukot III",
+        "code": "045608014",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.980064994628918,
+          "lng": 121.43871849313864
+        },
+        "geocoded": true,
+        "query": "Masalukot III, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Masalukot IV",
+        "code": "045608015",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 14.00713611825266,
+          "lng": 121.4515881418608
+        },
+        "geocoded": true,
+        "query": "Masalukot IV, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Masin Norte",
+        "code": "045608016",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.93807315128769,
+          "lng": 121.40906346111112
+        },
+        "geocoded": true,
+        "query": "Masin Norte, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Masin Sur",
+        "code": "045608017",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.922763035326392,
+          "lng": 121.40767459287541
+        },
+        "geocoded": true,
+        "query": "Masin Sur, Candelaria, Quezon, Philippines",
+        "confidence": "medium"
+      },
+      {
+        "name": "Mayabobo",
+        "code": "045608018",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.958078504189066,
+          "lng": 121.44239093698833
+        },
+        "geocoded": true,
+        "query": "Mayabobo, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Pahinga Norte",
+        "code": "045608019",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.912800337954295,
+          "lng": 121.41718637012949
+        },
+        "geocoded": true,
+        "query": "Pahinga Norte, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Pahinga Sur",
+        "code": "045608020",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.904701872206438,
+          "lng": 121.40468043455851
+        },
+        "geocoded": true,
+        "query": "Pahinga Sur, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "San Andres",
+        "code": "045608022",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.90738958774622,
+          "lng": 121.44730988149158
+        },
+        "geocoded": true,
+        "query": "San Andres, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "San Isidro",
+        "code": "045608023",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.853663457259756,
+          "lng": 121.40649722462352
+        },
+        "geocoded": true,
+        "query": "San Isidro, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Santa Catalina Norte",
+        "code": "045608024",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.895161674690735,
+          "lng": 121.42008579483816
+        },
+        "geocoded": true,
+        "query": "Santa Catalina Norte, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Santa Catalina Sur",
+        "code": "045608025",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.8712932615077,
+          "lng": 121.42816467802146
+        },
+        "geocoded": true,
+        "query": "Santa Catalina Sur, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Masalukot V",
+        "code": "045608026",
+        "city": "Candelaria",
+        "cityCode": "045608000",
+        "coordinates": {
+          "lat": 13.999849339056386,
+          "lng": 121.46035097396893
+        },
+        "geocoded": true,
+        "query": "Masalukot V, Candelaria, Quezon, Philippines",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "city": "Tiaong",
+    "cityCode": "045648000",
+    "barangayCount": 31,
+    "barangays": [
+      {
+        "name": "Anastacia",
+        "code": "045648001",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.982814920757493,
+          "lng": 121.36091104216896
+        },
+        "geocoded": true,
+        "query": "Anastacia, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Ayusan I",
+        "code": "045648002",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.95317791462575,
+          "lng": 121.3056145789283
+        },
+        "geocoded": true,
+        "query": "Ayusan I, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Barangay I",
+        "code": "045648003",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.960757719635522,
+          "lng": 121.31933612620024
+        },
+        "geocoded": true,
+        "query": "Barangay I, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Barangay II",
+        "code": "045648004",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.96405293953144,
+          "lng": 121.32137646058615
+        },
+        "geocoded": true,
+        "query": "Barangay II, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Barangay III",
+        "code": "045648005",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.960570477340978,
+          "lng": 121.32318178576611
+        },
+        "geocoded": true,
+        "query": "Barangay III, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Barangay IV",
+        "code": "045648006",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.964394134858209,
+          "lng": 121.32376374879055
+        },
+        "geocoded": true,
+        "query": "Barangay IV, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Behia",
+        "code": "045648007",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.901975467551702,
+          "lng": 121.33866347715716
+        },
+        "geocoded": true,
+        "query": "Behia, Tiaong, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Bukal",
+        "code": "045648008",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.931478569738221,
+          "lng": 121.28645656455996
+        },
+        "geocoded": true,
+        "query": "Bukal, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bula",
+        "code": "045648009",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.928272187256809,
+          "lng": 121.30923932030807
+        },
+        "geocoded": true,
+        "query": "Bula, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bulakin",
+        "code": "045648010",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.985204023366824,
+          "lng": 121.34115415073875
+        },
+        "geocoded": true,
+        "query": "Bulakin, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Cabatang",
+        "code": "045648011",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.969975878940051,
+          "lng": 121.37979869528974
+        },
+        "geocoded": true,
+        "query": "Cabatang, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Cabay",
+        "code": "045648012",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.885668386045545,
+          "lng": 121.37135448654637
+        },
+        "geocoded": true,
+        "query": "Cabay, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Del Rosario",
+        "code": "045648013",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.859614330243852,
+          "lng": 121.38636200151308
+        },
+        "geocoded": true,
+        "query": "Del Rosario, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Lagalag",
+        "code": "045648014",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.941493537232999,
+          "lng": 121.37604114616873
+        },
+        "geocoded": true,
+        "query": "Lagalag, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Lalig",
+        "code": "045648015",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.975447521835497,
+          "lng": 121.32748417506724
+        },
+        "geocoded": true,
+        "query": "Lalig, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Lumingon",
+        "code": "045648016",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.959333503809066,
+          "lng": 121.3288324164977
+        },
+        "geocoded": true,
+        "query": "Lumingon, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Lusacan",
+        "code": "045648017",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.95737487364244,
+          "lng": 121.3450240401738
+        },
+        "geocoded": true,
+        "query": "Lusacan, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Paiisa",
+        "code": "045648018",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.925421150850182,
+          "lng": 121.35349476328832
+        },
+        "geocoded": true,
+        "query": "Paiisa, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Palagaran",
+        "code": "045648019",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.938491675179558,
+          "lng": 121.34350893168298
+        },
+        "geocoded": true,
+        "query": "Palagaran, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Quipot",
+        "code": "045648021",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.954529757784549,
+          "lng": 121.3209891527151
+        },
+        "geocoded": true,
+        "query": "Quipot, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "San Agustin",
+        "code": "045648022",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.940455076752931,
+          "lng": 121.3231034129107
+        },
+        "geocoded": true,
+        "query": "San Agustin, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "San Isidro",
+        "code": "045648023",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.854413461240195,
+          "lng": 121.40645430928062
+        },
+        "geocoded": true,
+        "query": "San Isidro, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "San Jose",
+        "code": "045648024",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.922337567233331,
+          "lng": 121.33968351345725
+        },
+        "geocoded": true,
+        "query": "San Jose, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "San Juan",
+        "code": "045648025",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.893862512059425,
+          "lng": 121.36162118369441
+        },
+        "geocoded": true,
+        "query": "San Juan, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "San Pedro",
+        "code": "045648026",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.968595762676415,
+          "lng": 121.29418557463474
+        },
+        "geocoded": true,
+        "query": "San Pedro, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Tagbakin",
+        "code": "045648027",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.91572970902895,
+          "lng": 121.36381070749762
+        },
+        "geocoded": true,
+        "query": "Tagbakin, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Talisay",
+        "code": "045648028",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.947697620477378,
+          "lng": 121.36041799974285
+        },
+        "geocoded": true,
+        "query": "Talisay, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Tamisian",
+        "code": "045648029",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.938237107236116,
+          "lng": 121.29942673168236
+        },
+        "geocoded": true,
+        "query": "Tamisian, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "San Francisco",
+        "code": "045648030",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.890019796605772,
+          "lng": 121.351167324809
+        },
+        "geocoded": true,
+        "query": "San Francisco, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Aquino",
+        "code": "045648031",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.963807517834859,
+          "lng": 121.26549292254137
+        },
+        "geocoded": true,
+        "query": "Aquino, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Ayusan II",
+        "code": "045648032",
+        "city": "Tiaong",
+        "cityCode": "045648000",
+        "coordinates": {
+          "lat": 13.952094269840252,
+          "lng": 121.28086393532811
+        },
+        "geocoded": true,
+        "query": "Ayusan II, Tiaong, Quezon, Philippines",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "city": "San Antonio",
+    "cityCode": "045641000",
+    "barangayCount": 20,
+    "barangays": [
+      {
+        "name": "Arawan",
+        "code": "045641001",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.909231852519527,
+          "lng": 121.25327175425002
+        },
+        "geocoded": true,
+        "query": "Arawan, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bagong Niing",
+        "code": "045641002",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.90826825587375,
+          "lng": 121.29376003781469
+        },
+        "geocoded": true,
+        "query": "Bagong Niing, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Balat Atis",
+        "code": "045641003",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.8962195,
+          "lng": 121.2931059
+        },
+        "geocoded": true,
+        "query": "Balat Atis, San Antonio, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Briones",
+        "code": "045641004",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.878780746746644,
+          "lng": 121.32304027246204
+        },
+        "geocoded": true,
+        "query": "Briones, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bulihan",
+        "code": "045641005",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.918980262817756,
+          "lng": 121.26323648963758
+        },
+        "geocoded": true,
+        "query": "Bulihan, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Buliran",
+        "code": "045641006",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.897335037088052,
+          "lng": 121.3005510560394
+        },
+        "geocoded": true,
+        "query": "Buliran, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Callejon",
+        "code": "045641007",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.875138301788141,
+          "lng": 121.34483198617642
+        },
+        "geocoded": true,
+        "query": "Callejon, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Corazon",
+        "code": "045641008",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.879519931301532,
+          "lng": 121.28993289439616
+        },
+        "geocoded": true,
+        "query": "Corazon, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Manuel del Valle, Sr.",
+        "code": "045641009",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.873546441787916,
+          "lng": 121.36283532643208
+        },
+        "geocoded": true,
+        "query": "Manuel del Valle, Sr., San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Loob",
+        "code": "045641010",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.884283312900823,
+          "lng": 121.27661894069205
+        },
+        "geocoded": true,
+        "query": "Loob, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Magsaysay",
+        "code": "045641011",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.876459804115896,
+          "lng": 121.31097354303456
+        },
+        "geocoded": true,
+        "query": "Magsaysay, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Matipunso",
+        "code": "045641012",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.896761845563608,
+          "lng": 121.26649666125701
+        },
+        "geocoded": true,
+        "query": "Matipunso, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Niing",
+        "code": "045641013",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.907627123608918,
+          "lng": 121.27910899347691
+        },
+        "geocoded": true,
+        "query": "Niing, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Poblacion",
+        "code": "045641014",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.894097459115937,
+          "lng": 121.29024768482728
+        },
+        "geocoded": true,
+        "query": "Poblacion, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Pulo",
+        "code": "045641015",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.923349174136144,
+          "lng": 121.32306681399065
+        },
+        "geocoded": true,
+        "query": "Pulo, San Antonio, Quezon, Philippines",
+        "confidence": "low"
+      },
+      {
+        "name": "Pury",
+        "code": "045641016",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.919807152321013,
+          "lng": 121.31299966904635
+        },
+        "geocoded": true,
+        "query": "Pury, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Sampaga",
+        "code": "045641017",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.918839182813919,
+          "lng": 121.30652989304745
+        },
+        "geocoded": true,
+        "query": "Sampaga, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Sampaguita",
+        "code": "045641018",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.887876580323244,
+          "lng": 121.28708044486093
+        },
+        "geocoded": true,
+        "query": "Sampaguita, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "San Jose",
+        "code": "045641019",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.905578732804349,
+          "lng": 121.31087754701436
+        },
+        "geocoded": true,
+        "query": "San Jose, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Sinturisan",
+        "code": "045641020",
+        "city": "San Antonio",
+        "cityCode": "045641000",
+        "coordinates": {
+          "lat": 13.894071464820655,
+          "lng": 121.32266100206779
+        },
+        "geocoded": true,
+        "query": "Sinturisan, San Antonio, Quezon, Philippines",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "city": "Dolores",
+    "cityCode": "045615000",
+    "barangayCount": 16,
+    "barangays": [
+      {
+        "name": "Antonino",
+        "code": "045615001",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 13.981520204845458,
+          "lng": 121.39998065759107
+        },
+        "geocoded": true,
+        "query": "Antonino, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bagong Anyo",
+        "code": "045615002",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.018518735772,
+          "lng": 121.40216721541225
+        },
+        "geocoded": true,
+        "query": "Bagong Anyo, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bayanihan",
+        "code": "045615003",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.016330201466433,
+          "lng": 121.3974605378441
+        },
+        "geocoded": true,
+        "query": "Bayanihan, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bulakin I",
+        "code": "045615004",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.018004631139833,
+          "lng": 121.38134804542493
+        },
+        "geocoded": true,
+        "query": "Bulakin I, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bungoy",
+        "code": "045615005",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 13.996019709305068,
+          "lng": 121.3630731271868
+        },
+        "geocoded": true,
+        "query": "Bungoy, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Cabatang",
+        "code": "045615006",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 13.969809294843657,
+          "lng": 121.38022784871856
+        },
+        "geocoded": true,
+        "query": "Cabatang, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Dagatan",
+        "code": "045615007",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.007502854299151,
+          "lng": 121.38042079172537
+        },
+        "geocoded": true,
+        "query": "Dagatan, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Kinabuhayan",
+        "code": "045615008",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.047877330837489,
+          "lng": 121.44712094322213
+        },
+        "geocoded": true,
+        "query": "Kinabuhayan, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Maligaya",
+        "code": "045615009",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.014082105417362,
+          "lng": 121.3998403373015
+        },
+        "geocoded": true,
+        "query": "Maligaya, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Manggahan",
+        "code": "045615010",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.00662672803465,
+          "lng": 121.40252060941376
+        },
+        "geocoded": true,
+        "query": "Manggahan, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Pinagdanlayan",
+        "code": "045615011",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.022461964483874,
+          "lng": 121.43125198741721
+        },
+        "geocoded": true,
+        "query": "Pinagdanlayan, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Putol",
+        "code": "045615012",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.008058359400135,
+          "lng": 121.35290216564619
+        },
+        "geocoded": true,
+        "query": "Putol, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "San Mateo",
+        "code": "045615013",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 13.991788205207307,
+          "lng": 121.3895575180627
+        },
+        "geocoded": true,
+        "query": "San Mateo, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Santa Lucia",
+        "code": "045615014",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.03488274013933,
+          "lng": 121.41320043275368
+        },
+        "geocoded": true,
+        "query": "Santa Lucia, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Silanganan",
+        "code": "045615015",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.016549889380821,
+          "lng": 121.40372543787717
+        },
+        "geocoded": true,
+        "query": "Silanganan, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      },
+      {
+        "name": "Bulakin II",
+        "code": "045615016",
+        "city": "Dolores",
+        "cityCode": "045615000",
+        "coordinates": {
+          "lat": 14.01283779269883,
+          "lng": 121.39146369386495
+        },
+        "geocoded": true,
+        "query": "Bulakin II, Dolores, Quezon, Philippines",
+        "confidence": "high"
+      }
+    ]
+  }
+]

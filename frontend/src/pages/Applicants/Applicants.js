@@ -302,11 +302,6 @@ const Applicants = () => {
         applicant_type: a.applicant_type || "Self",
       };
 
-      console.log("=== PAYLOAD BEING SENT ===");
-      console.log("barangayValue:", barangayValue);
-      console.log("Full payload:", JSON.stringify(payload, null, 2));
-      console.log("========================");
-
       // Make request
       await api.put(`/applicants/${a.id}/`, payload);
       queryClient.invalidateQueries({ queryKey: ["applicants"] });

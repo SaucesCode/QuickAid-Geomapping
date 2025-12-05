@@ -1,0 +1,1052 @@
+[
+  {
+    "city": "Lucena City",
+    "cityCode": "045624000",
+    "barangayCount": 33,
+    "barangays": [
+      {
+        "name": "Barangay 1",
+        "code": "045624002",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Barangay 10",
+        "code": "045624003",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Barangay 11",
+        "code": "045624004",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Barangay 2",
+        "code": "045624005",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Barangay 3",
+        "code": "045624006",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Barangay 4",
+        "code": "045624007",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Barangay 5",
+        "code": "045624008",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Barangay 6",
+        "code": "045624009",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Barangay 7",
+        "code": "045624010",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Barangay 8",
+        "code": "045624011",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Barangay 9",
+        "code": "045624012",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Barra",
+        "code": "045624013",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Bocohan",
+        "code": "045624014",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Mayao Castillo",
+        "code": "045624015",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Cotta",
+        "code": "045624016",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Gulang-gulang",
+        "code": "045624017",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Dalahican",
+        "code": "045624018",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Domoit",
+        "code": "045624019",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Ibabang Dupay",
+        "code": "045624020",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Ibabang Iyam",
+        "code": "045624021",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Ibabang Talim",
+        "code": "045624022",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Ilayang Dupay",
+        "code": "045624023",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Ilayang Iyam",
+        "code": "045624024",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Ilayang Talim",
+        "code": "045624025",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Isabang",
+        "code": "045624026",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Mayao Crossing",
+        "code": "045624027",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Mayao Kanluran",
+        "code": "045624028",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Mayao Parada",
+        "code": "045624029",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Mayao Silangan",
+        "code": "045624030",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Ransohan",
+        "code": "045624032",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Salinas",
+        "code": "045624033",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Talao-talao",
+        "code": "045624034",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      },
+      {
+        "name": "Market View",
+        "code": "045624035",
+        "city": "Lucena City",
+        "cityCode": "045624000"
+      }
+    ]
+  },
+  {
+    "city": "Sariaya",
+    "cityCode": "045645000",
+    "barangayCount": 43,
+    "barangays": [
+      {
+        "name": "Antipolo",
+        "code": "045645001",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Balubal",
+        "code": "045645002",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Concepcion Pinagbakuran",
+        "code": "045645003",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Bignay 1",
+        "code": "045645006",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Bignay 2",
+        "code": "045645007",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Bucal",
+        "code": "045645009",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Canda",
+        "code": "045645010",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Castañas",
+        "code": "045645011",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Concepcion Banahaw",
+        "code": "045645012",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Concepcion No. 1",
+        "code": "045645013",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Concepcion Palasan",
+        "code": "045645014",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Gibanga",
+        "code": "045645015",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Guisguis-San Roque",
+        "code": "045645016",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Guisguis-Talon",
+        "code": "045645017",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Janagdong 1",
+        "code": "045645018",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Janagdong 2",
+        "code": "045645019",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Limbon",
+        "code": "045645020",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Lutucan Bata",
+        "code": "045645021",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Lutucan Malabag",
+        "code": "045645022",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Lutucan 1",
+        "code": "045645023",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Mamala I",
+        "code": "045645024",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Manggalang 1",
+        "code": "045645025",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Manggalang Tulo-tulo",
+        "code": "045645026",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Manggalang-Bantilan",
+        "code": "045645027",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Manggalang-Kiling",
+        "code": "045645028",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Montecillo",
+        "code": "045645029",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Morong",
+        "code": "045645030",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Pili",
+        "code": "045645032",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Barangay 2",
+        "code": "045645033",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Barangay 3",
+        "code": "045645034",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Barangay 4",
+        "code": "045645035",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Barangay 5",
+        "code": "045645036",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Barangay 6",
+        "code": "045645037",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Sampaloc Bogon",
+        "code": "045645038",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Sampaloc 1",
+        "code": "045645039",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Sampaloc 2",
+        "code": "045645040",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Sampaloc Santo Cristo",
+        "code": "045645041",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Talaan Aplaya",
+        "code": "045645042",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Talaanpantoc",
+        "code": "045645043",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Tumbaga 1",
+        "code": "045645044",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Tumbaga 2",
+        "code": "045645045",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Barangay 1",
+        "code": "045645046",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      },
+      {
+        "name": "Mamala II",
+        "code": "045645047",
+        "city": "Sariaya",
+        "cityCode": "045645000"
+      }
+    ]
+  },
+  {
+    "city": "Candelaria",
+    "cityCode": "045608000",
+    "barangayCount": 25,
+    "barangays": [
+      {
+        "name": "Poblacion",
+        "code": "045608001",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Buenavista East",
+        "code": "045608002",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Buenavista West",
+        "code": "045608003",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Bukal Norte",
+        "code": "045608004",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Bukal Sur",
+        "code": "045608005",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Kinatihan I",
+        "code": "045608006",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Kinatihan II",
+        "code": "045608007",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Malabanban Norte",
+        "code": "045608008",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Malabanban Sur",
+        "code": "045608009",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Mangilag Norte",
+        "code": "045608010",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Mangilag Sur",
+        "code": "045608011",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Masalukot I",
+        "code": "045608012",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Masalukot II",
+        "code": "045608013",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Masalukot III",
+        "code": "045608014",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Masalukot IV",
+        "code": "045608015",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Masin Norte",
+        "code": "045608016",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Masin Sur",
+        "code": "045608017",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Mayabobo",
+        "code": "045608018",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Pahinga Norte",
+        "code": "045608019",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Pahinga Sur",
+        "code": "045608020",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "San Andres",
+        "code": "045608022",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "San Isidro",
+        "code": "045608023",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Santa Catalina Norte",
+        "code": "045608024",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Santa Catalina Sur",
+        "code": "045608025",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      },
+      {
+        "name": "Masalukot V",
+        "code": "045608026",
+        "city": "Candelaria",
+        "cityCode": "045608000"
+      }
+    ]
+  },
+  {
+    "city": "Tiaong",
+    "cityCode": "045648000",
+    "barangayCount": 31,
+    "barangays": [
+      {
+        "name": "Anastacia",
+        "code": "045648001",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Ayusan I",
+        "code": "045648002",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Barangay I",
+        "code": "045648003",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Barangay II",
+        "code": "045648004",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Barangay III",
+        "code": "045648005",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Barangay IV",
+        "code": "045648006",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Behia",
+        "code": "045648007",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Bukal",
+        "code": "045648008",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Bula",
+        "code": "045648009",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Bulakin",
+        "code": "045648010",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Cabatang",
+        "code": "045648011",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Cabay",
+        "code": "045648012",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Del Rosario",
+        "code": "045648013",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Lagalag",
+        "code": "045648014",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Lalig",
+        "code": "045648015",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Lumingon",
+        "code": "045648016",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Lusacan",
+        "code": "045648017",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Paiisa",
+        "code": "045648018",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Palagaran",
+        "code": "045648019",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Quipot",
+        "code": "045648021",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "San Agustin",
+        "code": "045648022",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "San Isidro",
+        "code": "045648023",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "San Jose",
+        "code": "045648024",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "San Juan",
+        "code": "045648025",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "San Pedro",
+        "code": "045648026",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Tagbakin",
+        "code": "045648027",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Talisay",
+        "code": "045648028",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Tamisian",
+        "code": "045648029",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "San Francisco",
+        "code": "045648030",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Aquino",
+        "code": "045648031",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      },
+      {
+        "name": "Ayusan II",
+        "code": "045648032",
+        "city": "Tiaong",
+        "cityCode": "045648000"
+      }
+    ]
+  },
+  {
+    "city": "San Antonio",
+    "cityCode": "045641000",
+    "barangayCount": 20,
+    "barangays": [
+      {
+        "name": "Arawan",
+        "code": "045641001",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Bagong Niing",
+        "code": "045641002",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Balat Atis",
+        "code": "045641003",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Briones",
+        "code": "045641004",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Bulihan",
+        "code": "045641005",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Buliran",
+        "code": "045641006",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Callejon",
+        "code": "045641007",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Corazon",
+        "code": "045641008",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Manuel del Valle, Sr.",
+        "code": "045641009",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Loob",
+        "code": "045641010",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Magsaysay",
+        "code": "045641011",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Matipunso",
+        "code": "045641012",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Niing",
+        "code": "045641013",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Poblacion",
+        "code": "045641014",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Pulo",
+        "code": "045641015",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Pury",
+        "code": "045641016",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Sampaga",
+        "code": "045641017",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Sampaguita",
+        "code": "045641018",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "San Jose",
+        "code": "045641019",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      },
+      {
+        "name": "Sinturisan",
+        "code": "045641020",
+        "city": "San Antonio",
+        "cityCode": "045641000"
+      }
+    ]
+  },
+  {
+    "city": "Dolores",
+    "cityCode": "045615000",
+    "barangayCount": 16,
+    "barangays": [
+      {
+        "name": "Antonino",
+        "code": "045615001",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Bagong Anyo",
+        "code": "045615002",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Bayanihan",
+        "code": "045615003",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Bulakin I",
+        "code": "045615004",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Bungoy",
+        "code": "045615005",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Cabatang",
+        "code": "045615006",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Dagatan",
+        "code": "045615007",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Kinabuhayan",
+        "code": "045615008",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Maligaya",
+        "code": "045615009",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Manggahan",
+        "code": "045615010",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Pinagdanlayan",
+        "code": "045615011",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Putol",
+        "code": "045615012",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "San Mateo",
+        "code": "045615013",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Santa Lucia",
+        "code": "045615014",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Silanganan",
+        "code": "045615015",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      },
+      {
+        "name": "Bulakin II",
+        "code": "045615016",
+        "city": "Dolores",
+        "cityCode": "045615000"
+      }
+    ]
+  }
+]

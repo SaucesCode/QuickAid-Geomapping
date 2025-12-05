@@ -1,7 +1,16 @@
 import React, { useEffect } from "react";
 import L from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  GeoJSON,
+  useMap,
+  LayersControl,
+} from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
+const { BaseLayer } = LayersControl;
 
 const MapCanvas = React.memo(function MapCanvas({
   mapCenter,
@@ -14,14 +23,8 @@ const MapCanvas = React.memo(function MapCanvas({
   cityGeoData,
   resetTrigger, // Pass data, not component
   barangayFilter,
+  cityFilter,
 }) {
-  const addJitter = (latitude, longitude) => {
-    const jitterAmount = 0.0051; // Adjust this value as needed
-    const jitterLat = latitude + (Math.random() - 0.5) * jitterAmount;
-    const jitterLng = longitude + (Math.random() - 0.5) * jitterAmount;
-    return [jitterLat, jitterLng];
-  };
-
   const MapReset = ({ trigger }) => {
     const map = useMap();
     useEffect(() => {
@@ -35,7 +38,7 @@ const MapCanvas = React.memo(function MapCanvas({
   const BarangayZoom = ({ locations, barangayFilter }) => {
     const map = useMap();
     useEffect(() => {
-      if (!barangayFilter || locations.length === 0) return;
+      if (!barangayFilter || !cityFilter || locations.length === 0) return;
       const positions = locations.map(loc => [loc.latitude, loc.longitude]);
       if (positions.length > 0) {
         const bounds = L.latLngBounds(positions);
@@ -45,7 +48,7 @@ const MapCanvas = React.memo(function MapCanvas({
           duration: 0.3,
         });
       }
-    }, [barangayFilter, locations, map]);
+    }, [barangayFilter]);
     return null;
   };
 
@@ -53,6 +56,7 @@ const MapCanvas = React.memo(function MapCanvas({
     const map = useMap();
     useEffect(() => {
       if (!cityGeoData) return;
+      if (!cityFilter) return;
       const timeout = setTimeout(() => {
         try {
           const bounds = L.geoJSON(cityGeoData).getBounds();
@@ -67,7 +71,7 @@ const MapCanvas = React.memo(function MapCanvas({
         }
       }, 50);
       return () => clearTimeout(timeout);
-    }, [cityGeoData, map]);
+    }, [cityFilter]);
     return null;
   };
 
@@ -77,21 +81,31 @@ const MapCanvas = React.memo(function MapCanvas({
       zoom={11}
       minZoom={11}
       maxZoom={17}
-      className="w-full h-[calc(100vh-2rem)]"
+      className="w-full h-[90vh]"
       scrollWheelZoom={true}
     >
       <MapReset trigger={resetTrigger} />
-      <BarangayZoom locations={filteredLocations} barangayFilter={barangayFilter} />
-      <MapBounds cityGeoData={cityGeoData} />
-      <TileLayer
-        attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+      <BarangayZoom
+        locations={filteredLocations}
+        barangayFilter={barangayFilter}
+        cityFilter={cityFilter}
       />
+      <MapBounds cityGeoData={cityGeoData} cityFilter={cityFilter} />
+      <LayersControl position="bottomleft">
+        <BaseLayer checked name="🗺️ OpenStreetMap">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        </BaseLayer>
 
-      <TileLayer
-        attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-        url="https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-      />
+        <BaseLayer name="🛰️ Satellite">
+          <TileLayer
+            attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          />
+        </BaseLayer>
+      </LayersControl>
 
       <MapBounds />
       {geoData && (
@@ -126,7 +140,7 @@ const MapCanvas = React.memo(function MapCanvas({
         filteredLocations.map(loc => (
           <Marker
             key={loc.id}
-            position={addJitter(loc.latitude, loc.longitude)}
+            position={[loc.latitude, loc.longitude]}
             icon={createColoredIcon(getColor(loc.type_of_assistance))}
           >
             <Popup>
