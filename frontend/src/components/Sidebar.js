@@ -575,7 +575,7 @@ const Sidebar = () => {
                       }`}
                       style={collapsed ? { top: popoutY } : {}}
                     >
-                      <NavLink
+                      {/* <NavLink
                         to="/register-applicant"
                         onClick={handleNavClick}
                         className={({ isActive }) =>
@@ -588,7 +588,7 @@ const Sidebar = () => {
                       >
                         <UserPlus className="w-4 h-4" />
                         <span className="text-white">New Applicant</span>
-                      </NavLink>
+                      </NavLink> */}
 
                       <NavLink
                         to="/applicants"

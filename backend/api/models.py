@@ -341,8 +341,8 @@ class Applicant(models.Model):
         super().save(*args, **kwargs)
         print(f"DEBUG: Applicant saved with lat/lng: {self.latitude}, {self.longitude}")
 
-        # Clear cached applicant locations
-        cache.delete("applicant_locations")
+        # Invalidate map cache
+        cache.delete("applicant_locations_cache")
 
     def get_coordinates(self, address=None):
         """

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import L from "leaflet";
 import {
   MapContainer,
@@ -52,26 +52,50 @@ const MapCanvas = React.memo(function MapCanvas({
     return null;
   };
 
-  const MapBounds = ({ cityGeoData }) => {
+  const CityPolygon = ({ cityGeoData }) => {
     const map = useMap();
+    const cityLayerRef = useRef(null);
+
     useEffect(() => {
-      if (!cityGeoData) return;
-      if (!cityFilter) return;
-      const timeout = setTimeout(() => {
-        try {
-          const bounds = L.geoJSON(cityGeoData).getBounds();
-          map.fitBounds(bounds.pad(0.01), {
-            padding: [20, 20],
-            maxZoom: 14,
-            animate: true,
-            duration: 0.5,
-          });
-        } catch (err) {
-          console.error("Error setting bounds:", err);
+      if (!cityGeoData) {
+        // If no city selected, remove polygon
+        if (cityLayerRef.current) {
+          map.removeLayer(cityLayerRef.current);
+          cityLayerRef.current = null;
         }
-      }, 50);
-      return () => clearTimeout(timeout);
-    }, [cityFilter]);
+        return;
+      }
+
+      // Remove old polygon
+      if (cityLayerRef.current) {
+        map.removeLayer(cityLayerRef.current);
+      }
+
+      // Add new polygon
+      const newLayer = L.geoJSON(cityGeoData, {
+        style: { color: "#3b82f6", weight: 3, fillOpacity: 0.15 },
+      }).addTo(map);
+
+      cityLayerRef.current = newLayer;
+
+      // Fit to new bounds
+      const bounds = newLayer.getBounds();
+      if (bounds.isValid()) {
+        map.fitBounds(bounds.pad(0.1), {
+          padding: [50, 50],
+          animate: true,
+          duration: 0.3,
+        });
+      }
+
+      return () => {
+        if (cityLayerRef.current) {
+          map.removeLayer(cityLayerRef.current);
+          cityLayerRef.current = null;
+        }
+      };
+    }, [cityGeoData, map]);
+
     return null;
   };
 
@@ -84,13 +108,13 @@ const MapCanvas = React.memo(function MapCanvas({
       className="w-full h-[90vh]"
       scrollWheelZoom={true}
     >
+      <CityPolygon cityGeoData={cityGeoData} />
       <MapReset trigger={resetTrigger} />
       <BarangayZoom
         locations={filteredLocations}
         barangayFilter={barangayFilter}
         cityFilter={cityFilter}
       />
-      <MapBounds cityGeoData={cityGeoData} cityFilter={cityFilter} />
       <LayersControl position="bottomleft">
         <BaseLayer checked name="🗺️ OpenStreetMap">
           <TileLayer
@@ -107,15 +131,8 @@ const MapCanvas = React.memo(function MapCanvas({
         </BaseLayer>
       </LayersControl>
 
-      <MapBounds />
       {geoData && (
         <GeoJSON data={geoData} style={{ color: "#3b82f6", weight: 2, fillOpacity: 0.05 }} />
-      )}
-      {cityGeoData && (
-        <GeoJSON
-          data={cityGeoData}
-          style={{ color: "#3b82f6", weight: 3, fillOpacity: 0.1 }}
-        />
       )}
 
       {clusterEnabled ? (
