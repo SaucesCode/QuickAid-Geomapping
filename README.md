@@ -25,7 +25,6 @@ The system allows organizations to track applicants, visualize geographic distri
 - **State/Data:** React Query
 - **Backend:** Python (Django REST Framework)
 - **Authentication:** JWT (SimpleJWT)
-- **Geocoding:** OpenCage API
 - **Database:** PostgreSQL
 
 ---
