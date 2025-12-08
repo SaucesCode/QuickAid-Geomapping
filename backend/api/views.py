@@ -372,6 +372,33 @@ def delete_staff(request, staff_id):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def reactivate_staff(request, staff_id):
+    try:
+        user = User.objects.get(pk=staff_id, is_staff=True)
+        
+        if user.is_active:
+            return Response({"error": "Staff is already active"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        with transaction.atomic():
+            user.is_active = True
+            user.save(update_fields=['is_active'])
+
+            log_staff_activity(
+                request.user,
+                'REACTIVATE',
+                f"Reactivated staff member: {user.username}",
+                request
+            )
+        
+        return Response({"message": f"Staff '{user.username}' reactivated successfully"}, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({"error": "Staff not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 # GET STAFF ACTIVITY LOGS
 # Function to retrieve detailed staff activity logs
 @api_view(['GET'])

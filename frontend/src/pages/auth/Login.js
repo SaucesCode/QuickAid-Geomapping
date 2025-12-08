@@ -1,11 +1,7 @@
-import aicsLogo from "../../assets/AICS-OFFICIAL.png";
-import dswdLogo from "../../assets/dswd-logo.png";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
-  User,
-  Lock,
   Eye,
   EyeOff,
   AlertCircle,
@@ -44,18 +40,12 @@ const Login = () => {
     e.preventDefault();
     if (!username || !password) return;
     setIsLoading(true);
-
     try {
       await loginStaff(username, password);
-
-      // ✅ Show custom toast after successful login
       toast.custom(t => <CustomToast t={t} type="login" />);
-
       navigate("/dashboard");
     } catch (err) {
       setShowModal(true);
-
-      // Clear fields after failed login
       setUsername("");
       setPassword("");
     } finally {
@@ -71,18 +61,15 @@ const Login = () => {
   }, [navigate]);
 
   return (
-    // 🎨 Blue Themed Background Container (using a vibrant gradient for glassmorphism contrast)
     <div
       className="min-h-screen flex bg-cover bg-center"
       style={{
         backgroundImage: `url(${bg})`,
-        backgroundColor: "#1a202c", // A dark blue fallback
+        backgroundColor: "#1a202c",
       }}
     >
       <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
-      {/* 🎨 Left Section (Blue Themed Information Panel) - Kept the original layout but simplified the blue theme for a sleek look */}
       <div className="hidden lg:flex lg:w-1/2 relative text-white flex-col justify-between p-12 overflow-hidden">
-        {/* Faint Icon Background */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-12">
             <ShieldCheck className="w-24 h-24 text-sky-300" />
@@ -111,7 +98,6 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Removed the original "Back to Home" link from the right section and moved a simplified one here. */}
         <Link
           to="/"
           className="relative z-10 inline-flex items-center text-sky-200 hover:text-white transition-colors duration-200"
@@ -124,8 +110,6 @@ const Login = () => {
       {/* Right Form Section */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-12 lg:px-16">
         <div className="w-full max-w-md mx-auto">
-          {/* Back to Home - Removed the original link block to declutter the right side based on the new design aesthetic. */}
-
           {/* 🎨 Login Card - GLASSMORHPISM EFFECT */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-10 shadow-2xl shadow-white/30 border border-white/20">
             <div className="mb-8 text-left text-white">
@@ -134,7 +118,6 @@ const Login = () => {
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6" noValidate autoComplete="off">
-              {/* Username (E-mail for snippet match) */}
               <div>
                 <label
                   htmlFor="username"
@@ -143,7 +126,6 @@ const Login = () => {
                   Username
                 </label>
                 <div className="relative">
-                  {/* Removed the <User> icon */}
                   <input
                     id="username"
                     type="text"
@@ -151,7 +133,6 @@ const Login = () => {
                     value={username}
                     onChange={e => setUsername(e.target.value)}
                     required
-                    // 🎨 Input styling - Transparent background, white text, subtle white border-b
                     className="w-full bg-transparent border-b border-white/50 text-white rounded-none pl-0 pr-3 py-2 focus:border-white focus:outline-none transition-colors placeholder:text-white/60"
                   />
                 </div>
@@ -166,15 +147,13 @@ const Login = () => {
                   Password
                 </label>
                 <div className="relative">
-                  {/* Removed the <Lock> icon */}
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password" // Changed placeholder to match snippet
+                    placeholder="Enter your password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     required
-                    // 🎨 Input styling - Transparent background, white text, subtle white border-b
                     className="w-full bg-transparent border-b border-white/50 text-white rounded-none pl-0 pr-10 py-2 focus:border-white focus:outline-none transition-colors placeholder:text-white/60"
                   />
                   <button
@@ -195,7 +174,6 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={!username || !password || isLoading}
-                // 🎨 Button styling - Solid dark blue background, rounded-lg, white text
                 className="w-full bg-blue-600 hover:bg-blue-300 text-white rounded-lg px-4 py-3 font-medium transition-all duration-200 shadow-xl shadow-blue-500/40 disabled:bg-blue-500/50 disabled:cursor-not-allowed relative"
               >
                 {isLoading && (
@@ -213,14 +191,12 @@ const Login = () => {
                 Having trouble?{" "}
                 <button
                   type="button"
-                  onClick={() => setShowContactModal(true)} // ✅ opens the modal
+                  onClick={() => setShowContactModal(true)}
                   className="text-sky-300 font-medium hover:underline focus:outline-none"
                 >
                   Contact your administrator
                 </button>
               </p>
-
-              {/* Removed "Having trouble? Contact your administrator" to match snippet and clean up */}
             </div>
           </div>
         </div>

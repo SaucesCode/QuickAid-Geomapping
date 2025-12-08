@@ -22,6 +22,7 @@ urlpatterns = [
     path("register_staff/", register_staff, name="register_staff"),
     path("staff-list/", list_staff, name="staff_list"),
     path("delete-staff/<int:staff_id>/", delete_staff, name="delete_staff"),
+    path("reactivate-staff/<int:staff_id>/", reactivate_staff, name="reactivate_staff"),
     path("update-staff/<int:staff_id>/", update_staff, name="update-staff"),
     path("contact-admin/", contact_admin, name="contact_admin"),
     path("support-messages/", list_support_messages, name="support_messages"),
