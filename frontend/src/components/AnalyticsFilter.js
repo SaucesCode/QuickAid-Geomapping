@@ -51,7 +51,7 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
   return (
     <div className="bg-white rounded-xl shadow-md border border-blue-100 p-4 transition-all hover:shadow-lg">
       <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+        <div className="p-1.5 bg-[#003a76] rounded-lg">
           <Filter className="w-4 h-4 text-white" />
         </div>
         <div>

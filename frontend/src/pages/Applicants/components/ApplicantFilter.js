@@ -115,12 +115,14 @@ const ApplicantsFilter = ({ filters, onFilterChange }) => {
           label="Start Date"
           value={localFilters.start}
           onChange={value => handleChange("start", value)}
+          max={localFilters.end || undefined}
         />
         <DateInput
           icon={Calendar}
           label="End Date"
           value={localFilters.end}
           onChange={value => handleChange("end", value)}
+          min={localFilters.start || undefined}
         />
 
         {/* Buttons */}
@@ -179,7 +181,7 @@ const FilterSelect = ({ icon: Icon, label, value, onChange, disabled, children }
   </div>
 );
 
-const DateInput = ({ icon: Icon, label, value, onChange }) => (
+const DateInput = ({ icon: Icon, label, value, onChange, min, max }) => (
   <div className="flex flex-col min-w-[140px]">
     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
       {Icon && <Icon className="w-3 h-3" />}
@@ -188,6 +190,8 @@ const DateInput = ({ icon: Icon, label, value, onChange }) => (
     <input
       type="date"
       value={value}
+      min={min}
+      max={max}
       onChange={e => onChange(e.target.value)}
       className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 cursor-pointer"
     />

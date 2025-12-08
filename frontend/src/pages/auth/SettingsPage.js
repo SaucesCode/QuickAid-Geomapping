@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { User, Lock, Check, X, Edit3, Mail, Shield, AlertCircle } from "lucide-react";
-import { PageContainer } from "../../components/DesignSystem";
+import { PageContainer, PageHeader } from "../../components/DesignSystem";
 import { api } from "../../services/api";
 
 const SettingsPage = () => {
@@ -171,19 +171,11 @@ const SettingsPage = () => {
   return (
     <PageContainer>
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
-            <Shield className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">Account Settings</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Manage your profile and security preferences
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon={Shield}
+        title="Account Settings"
+        subtitle="Manage your profile and security preferences"
+      ></PageHeader>
 
       {/* Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

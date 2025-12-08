@@ -49,6 +49,7 @@ import GeneralIntakeSheet from "./pages/print/Intakesheet";
 import { Toaster } from "react-hot-toast";
 import BarangayFetcher from "./utils/fetchAllBrgys";
 import BarangayGeocoder from "./utils/brgyGeocode";
+import DataDictionaryDocument from "./utils/DataDictionaryDocument";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/fetch" element={<BarangayFetcher />} />
           <Route path="/geocode" element={<BarangayGeocoder />} />
+          <Route path="/data" element={<DataDictionaryDocument />} />
           <Route path="/new-applicant" element={<MultiStepForm />} />
           <Route path="/apply" element={<MultiStepForm />} />
           <Route path="/about-quickaid" element={<AboutQuickaid />} />

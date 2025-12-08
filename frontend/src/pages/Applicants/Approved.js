@@ -290,7 +290,7 @@ const Approved = () => {
       <PageHeader
         icon={CheckCircle}
         title="Approved Applicants"
-        subtitle="Upload and manage approved applicant batches"
+        subtitle="Upload and view approved applicant batches"
       />
 
       {/* Upload Section */}
@@ -314,7 +314,18 @@ const Approved = () => {
           onDrop={e => {
             e.preventDefault();
             setDragActive(false);
-            if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0]);
+            const droppedFile = e.dataTransfer.files?.[0];
+            if (droppedFile) {
+              // Validate file type
+              const validTypes = [".csv", ".xlsx", ".xls"];
+              const fileExtension = "." + droppedFile.name.split(".").pop().toLowerCase();
+
+              if (validTypes.includes(fileExtension)) {
+                setFile(droppedFile);
+              } else {
+                toast.error("Invalid file type. Please upload CSV or Excel files only.");
+              }
+            }
           }}
           className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
             dragActive
@@ -327,11 +338,25 @@ const Approved = () => {
               <FileSpreadsheet className="w-8 h-8 text-indigo-600" />
             </div>
             <BodyText>
-              Drag and drop your file here, or click to browse. Supports CSV and Excel files.
+              Drag and drop <strong>one file</strong> here, or click to browse. Supports CSV
+              and Excel files (.csv, .xlsx, .xls)
             </BodyText>
             <input
               type="file"
-              onChange={e => setFile(e.target.files[0])}
+              onChange={e => {
+                const selectedFile = e.target.files?.[0]; // Only get first file
+                if (selectedFile) {
+                  const validTypes = [".csv", ".xlsx", ".xls"];
+                  const fileExtension = "." + selectedFile.name.split(".").pop().toLowerCase();
+
+                  if (validTypes.includes(fileExtension)) {
+                    setFile(selectedFile);
+                  } else {
+                    toast.error("Invalid file type. Please upload CSV or Excel files only.");
+                    e.target.value = "";
+                  }
+                }
+              }}
               className="hidden"
               id="file-upload"
               accept=".csv,.xlsx,.xls"

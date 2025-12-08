@@ -47,16 +47,6 @@ const ApprovedFilter = ({ filters, onFilterChange }) => {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-[#003a76] rounded-lg">
-          <Filter className="w-4 h-4 text-white" />
-        </div>
-        <div>
-          <h3 className="text-base font-bold text-gray-800">Filters</h3>
-          <p className="text-xs text-gray-500">Refine your approved applicants search</p>
-        </div>
-      </div>
-
       <div className="flex flex-wrap items-end gap-3">
         {/* Search Bar */}
         <div className="flex flex-col min-w-[200px] flex-1 max-w-[300px]">
