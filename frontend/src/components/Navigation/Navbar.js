@@ -208,7 +208,6 @@ const Navbar = () => {
           onClick={() => setShowModal(false)}
         >
           <div
-            // MODAL WIDTH INCREASED: max-w-md -> max-w-xl
             className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-xl relative transition-all duration-300 transform scale-100"
             onClick={e => e.stopPropagation()}
           >
