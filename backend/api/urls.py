@@ -100,7 +100,6 @@ urlpatterns = [
     path("analytics/trends/assistance-type-trend/", assistance_type_linetrend, name="analytics-trends-type-line"),
     path("analytics/trends/assistance-type-over-time/", assistance_type_over_time, name="analytics-trends-type-over"),
     path("analytics/trends/applicant-heatmap/", applicant_activity_heatmap, name="applicant_heatmap"),
-
     path("analytics/trends/approval/", approval_trends, name="analytics-trends-approval"),
     path("analytics/trends/time-to-approval/", time_to_approval, name="analytics-trends-time"),
 

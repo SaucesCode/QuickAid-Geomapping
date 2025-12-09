@@ -16,6 +16,8 @@ import {
   FileSpreadsheet,
   BarChart3,
   FileWarning,
+  UserX,
+  UserCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -115,6 +117,22 @@ const toastVariants = {
     text: "text-emerald-900",
     accent: "bg-emerald-100 text-emerald-600",
     icon: <FileSpreadsheet className="w-6 h-6" strokeWidth={2.5} />,
+  },
+  deactivate: {
+    title: "Staff Deactivated",
+    message: "Staff access has been removed successfully.",
+    color: "bg-red-50",
+    text: "text-red-900",
+    accent: "bg-red-100 text-red-600",
+    icon: <UserX className="w-6 h-6" strokeWidth={2.5} />,
+  },
+  reactivate: {
+    title: "Staff Reactivated",
+    message: "Staff access has been restored successfully.",
+    color: "bg-green-50",
+    text: "text-green-900",
+    accent: "bg-green-100 text-green-600",
+    icon: <UserCheck className="w-6 h-6" strokeWidth={2.5} />,
   },
 };
 

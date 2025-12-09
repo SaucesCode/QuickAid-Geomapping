@@ -67,6 +67,13 @@ const Trends = () => {
   const [filters, setFilters] = useState({});
   const [colorMap, setColorMap] = useState({});
 
+  useEffect(() => {
+    document.title = "QuickAid | Trends Analysis";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
+
   // Fetch Logic
   const fetchData = async endpoint => {
     const params = new URLSearchParams();

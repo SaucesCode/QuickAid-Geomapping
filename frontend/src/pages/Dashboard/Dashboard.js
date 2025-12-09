@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
@@ -69,6 +69,13 @@ const Dashboard = () => {
   const [assistanceMonth, setAssistanceMonth] = useState("current");
   const [forecastMonth, setForecastMonth] = useState("current");
 
+  useEffect(() => {
+    document.title = "QuickAid | Dashboard";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
+
   const getDateRange = monthType => {
     const today = new Date();
     let start, end;
@@ -120,11 +127,6 @@ const Dashboard = () => {
       fetcher(
         `/analytics/trends/assistance-type-trend/?start_date=${assistanceDateRange.start}&end_date=${assistanceDateRange.end}`
       ),
-  });
-
-  const { data: monthlyComparison, isLoading: comparisonLoading } = useQuery({
-    queryKey: ["dashboard", "monthly-comparison"],
-    queryFn: () => fetcher("/analytics/dashboard/monthly-comparison/"),
   });
 
   const { data: monthlyTrend, isLoading: trendLoading } = useQuery({

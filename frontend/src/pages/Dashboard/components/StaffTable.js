@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../../services/api";
-import { Users, Edit3, Trash2, RefreshCw } from "lucide-react";
+import { Users, Edit, UserX, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import { Card, H2, Caption, Spinner, Badge } from "../../../components/DesignSystem";
 import { DeactivateModal, ReactivateModal } from "./StaffModal";
+import CustomToast from "../../../components/CustomToast";
 
 // Fetch staff with active/inactive filter
 const fetchStaffList = async ({ active = true }) => {
@@ -54,7 +55,13 @@ const StaffTable = ({ onEdit }) => {
   const { mutate: removeStaff, isPending: isDeleting } = useMutation({
     mutationFn: deleteStaff,
     onSuccess: () => {
-      toast.success("Staff deactivated successfully!");
+      toast.custom(t => (
+        <CustomToast
+          t={t}
+          type="deactivate"
+          customMessage="The staff member no longer has system access."
+        />
+      ));
       queryClient.invalidateQueries({ queryKey: ["staffList"] });
       setDeactivateModalOpen(false);
       setSelectedStaff(null);
@@ -69,7 +76,13 @@ const StaffTable = ({ onEdit }) => {
   const { mutate: reactivate, isPending: isReactivating } = useMutation({
     mutationFn: reactivateStaff,
     onSuccess: () => {
-      toast.success("Staff reactivated successfully!");
+      toast.custom(t => (
+        <CustomToast
+          t={t}
+          type="reactivate"
+          customMessage="The staff member can now access the system again."
+        />
+      ));
       queryClient.invalidateQueries({ queryKey: ["staffList"] });
       setReactivateModalOpen(false);
       setSelectedStaff(null);
@@ -185,36 +198,35 @@ const StaffTable = ({ onEdit }) => {
                   </td>
                   <td className="px-4 py-4 text-gray-600">{staff.email}</td>
                   <td className="px-4 py-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-nowrap gap-1">
                       {!showInactive ? (
                         <>
                           {/* Edit Button */}
                           <button
                             onClick={() => onEdit(staff)}
-                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all disabled:opacity-50"
+                            className="px-2 py-1.5 text-xs border rounded-lg text-blue-600 border-blue-300 hover:bg-blue-50 whitespace-nowrap transition-all disabled:opacity-50"
                             disabled={isDeleting || isReactivating}
                           >
-                            <Edit3 className="w-4 h-4" />
+                            <Edit className="w-4 h-4 inline" /> Edit
                           </button>
 
                           {/* Deactivate Button */}
                           <button
                             onClick={() => handleDeactivateClick(staff)}
-                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all disabled:opacity-50"
+                            className="px-2 py-1.5 text-xs border rounded-lg text-red-600 border-red-300 hover:bg-red-50 whitespace-nowrap transition-all disabled:opacity-50"
                             disabled={isDeleting || isReactivating}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <UserX className="w-4 h-4 inline" /> Deactivate
                           </button>
                         </>
                       ) : (
                         // Reactivate Button
                         <button
                           onClick={() => handleReactivateClick(staff)}
-                          className="text-sm text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg font-medium transition-all shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+                          className="px-2 py-1.5 text-xs border rounded-lg text-green-600 border-green-300 hover:bg-green-50 whitespace-nowrap transition-all disabled:opacity-50"
                           disabled={isDeleting || isReactivating}
                         >
-                          <RefreshCw className="w-4 h-4" />
-                          Reactivate
+                          <RefreshCw className="w-4 h-4 inline" /> Reactivate
                         </button>
                       )}
                     </div>

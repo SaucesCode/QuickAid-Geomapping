@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, UserPlus, Mail, Lock, Eye, EyeOff, Save, Edit3 } from "lucide-react";
 import SupportMessages from "./components/SupportMessages";
 import ActivityLogs from "./components/ActivityLogs";
@@ -31,6 +31,13 @@ const AdminManagement = () => {
   const queryClient = useQueryClient();
 
   const token = localStorage.getItem("accessToken");
+
+  useEffect(() => {
+    document.title = "QuickAid | Admin Dashboard";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
 
   // Submit Logic
   const handleSubmit = async () => {

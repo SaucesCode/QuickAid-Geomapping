@@ -1815,24 +1815,17 @@ def service_coverage_gaps(request):
             days_since_last = (timezone.now().date() - item['last_application'].date()).days if item['last_application'] else 999
             
             underserved.append({
+                'id': f"{item['background_info__barangay__name']}-{item['background_info__barangay__city__name']}",
                 'barangay': item['background_info__barangay__name'],
                 'city': item['background_info__barangay__city__name'],
                 'application_count': item['count'],
                 'vs_median': item['count'] - median_volume,
                 'days_since_last_application': days_since_last,
-                'priority': 'high' if days_since_last > 90 else 'medium'
+                'last_application': item['last_application'].isoformat() if item['last_application'] else None, 
+                'priority': 'High' if days_since_last > 90 else 'Medium'  
             })
-    
-    # Get barangays with zero applications (if you have a full barangay list)
-    # This would require having all barangays in your database
-    
-    return Response({
-        'underserved_barangays': underserved,
-        'total_underserved': len(underserved),
-        'median_volume': median_volume,
-        'threshold_volume': threshold,
-        'recommendation': f'{len(underserved)} barangays need outreach programs'
-    })
+
+    return Response(underserved)
 
 
 @api_view(['GET'])

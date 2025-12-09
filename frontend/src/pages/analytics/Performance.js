@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
@@ -75,6 +75,13 @@ const getProductivityColor = count => {
 const Performance = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
+
+  useEffect(() => {
+    document.title = "QuickAid | Performance Analysis";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
 
   const fetchData = async endpoint => {
     const params = new URLSearchParams();

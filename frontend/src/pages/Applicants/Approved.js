@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
@@ -52,6 +52,13 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    document.title = "QuickAid | Approved Applicants";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
 
   const { data: approvalsData = [], isLoading } = useQuery({
     queryKey: ["approvals", batch.id, filters, currentPage, itemsPerPage],

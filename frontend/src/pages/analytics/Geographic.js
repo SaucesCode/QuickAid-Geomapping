@@ -32,6 +32,7 @@ import {
 import { api } from "../../services/api";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 import { useNavigate } from "react-router-dom";
+import Pagination from "../../components/Pagination";
 
 // Import Analytics Components
 import {
@@ -78,6 +79,16 @@ const Geographic = () => {
   const [filters, setFilters] = useState({});
   const navigate = useNavigate();
 
+  const [inactivePage, setInactivePage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    document.title = "QuickAid | Geographic Analysis";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
+
   // Fetch logic
   const fetchData = async endpoint => {
     const params = new URLSearchParams();
@@ -103,7 +114,7 @@ const Geographic = () => {
     refetchOnWindowFocus: false,
   });
 
-  const { data: coverageGaps, isLoading: gapsLoading } = useQuery({
+  const { data: coverageGaps = [], isLoading: gapsLoading } = useQuery({
     queryKey: ["geographic", "coverage-gaps", filters],
     queryFn: () => fetchData("/analytics/geographic/coverage-gaps/"),
     staleTime: 1000 * 60 * 10,
@@ -243,6 +254,28 @@ const Geographic = () => {
           }, {})
         ).sort((a, b) => b[1] - a[1])[0]?.[0]
       : "N/A";
+
+  const sortedGaps = [...(coverageGaps || [])].sort((a, b) => {
+    // Sort by highest days_since_last_application first
+    if (b.days_since_last_application !== a.days_since_last_application) {
+      return b.days_since_last_application - a.days_since_last_application;
+    }
+    // Then lowest application_count
+    return a.application_count - b.application_count;
+  });
+
+  const totalGapsPages = Math.ceil(sortedGaps.length / itemsPerPage);
+  const gapsStartIndex = (inactivePage - 1) * itemsPerPage;
+  const gapsEndIndex = gapsStartIndex + itemsPerPage;
+  const paginatedGaps = sortedGaps.slice(gapsStartIndex, gapsEndIndex);
+
+  const handleGapsPrevPage = () => {
+    setInactivePage(prev => Math.max(1, prev - 1));
+  };
+
+  const handleGapsNextPage = () => {
+    setInactivePage(prev => Math.min(totalGapsPages, prev + 1));
+  };
 
   return (
     <PageContainer>
@@ -486,56 +519,81 @@ const Geographic = () => {
         </AnalyticsChartCard>
 
         <AnalyticsChartCard
-          icon={MapPin}
+          icon={Clock}
           title="Service Coverage Gaps"
-          subtitle="Underserved areas requiring outreach"
+          subtitle={`${coverageGaps?.length || 0} underserved barangays identified`}
           isLoading={gapsLoading}
         >
-          {coverageGaps && coverageGaps.underserved_barangays.length > 0 ? (
+          {paginatedGaps.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500 text-sm">No coverage gaps detected</p>
+            </div>
+          ) : (
             <>
-              <div className="space-y-2">
-                {coverageGaps.underserved_barangays.slice(0, 8).map((item, idx) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                {paginatedGaps.map((gap, index) => (
                   <div
-                    key={idx}
-                    className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200"
+                    key={gap.id || index}
+                    className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-200 hover:shadow-md transition-all"
                   >
-                    <div>
-                      <p className="font-semibold text-gray-800">{item.barangay}</p>
-                      <p className="text-xs text-gray-600">{item.city}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-orange-600">
-                        {item.application_count} apps
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {item.days_since_last_application} days ago
-                      </p>
-                      <Badge variant={item.priority === "high" ? "danger" : "warning"}>
-                        {item.priority} priority
-                      </Badge>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 text-sm truncate">
+                          {gap.barangay}
+                        </h4>
+
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          City:{" "}
+                          <span className="ml-1 font-medium text-gray-700">{gap.city}</span>
+                        </p>
+
+                        <div className="flex gap-3 mt-2">
+                          <p className="text-xs text-gray-600">
+                            Applicants:{" "}
+                            <span className="font-medium">{gap.application_count}</span>
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            Last:{" "}
+                            <span className="font-medium">
+                              {gap.days_since_last_application} days ago
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          gap.priority === "High"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
+                        {gap.priority}
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-semibold text-blue-800">
-                  📊 {coverageGaps.recommendation}
-                </p>
-                <p className="text-xs text-blue-600 mt-1">
-                  Median volume: {coverageGaps.median_volume} | Threshold:{" "}
-                  {coverageGaps.threshold_volume}
-                </p>
-              </div>
+              {/* Pagination using your existing component */}
+              {totalGapsPages >= 1 && (
+                <Pagination
+                  currentPage={inactivePage}
+                  totalPages={totalGapsPages}
+                  handlePageChange={setInactivePage}
+                  itemsPerPage={itemsPerPage}
+                  handleItemsPerPageChange={e => {
+                    const newValue = Number(e.target.value);
+                    setItemsPerPage(newValue);
+                    setInactivePage(1); // Reset to first page
+                  }}
+                  totalItems={coverageGaps?.length || 0}
+                />
+              )}
             </>
-          ) : (
-            <EmptyState
-              icon={MapPin}
-              title="Good Coverage"
-              description="All barangays have adequate service levels"
-            />
           )}
         </AnalyticsChartCard>
+
         <AnalyticsAlertCard
           icon={MapPin}
           title="Key Geographic Insights"
