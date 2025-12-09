@@ -119,7 +119,7 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
         {/* Main Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           {/* Header Section (Reduced padding and font size) */}
-          <div className="bg-gradient-to-r from-blue-500 to-blue-500 px-4 sm:px-8 py-6 sm:py-8">
+          <div className="bg-[#003a76] px-4 sm:px-8 py-6 sm:py-8">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
                 <svg
@@ -470,7 +470,7 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
                 type="button"
                 onClick={() => setShowConfirmModal(true)}
                 // w-full on mobile, sm:w-auto on desktop, order-first on mobile
-                className={`group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl px-6 py-2.5 inline-flex items-center justify-center w-full sm:w-auto gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed text-base sm:text-sm sm:order-none order-first ${
+                className={`group relative bg-[#003a76] hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl px-6 py-2.5 inline-flex items-center justify-center w-full sm:w-auto gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed text-base sm:text-sm sm:order-none order-first ${
                   !isSubmitting ? "hover:scale-[1.02] active:scale-[0.98]" : ""
                 }`}
                 disabled={isSubmitting}
@@ -541,7 +541,7 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-scale-in">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+            <div className="bg-[#003a76] px-6 py-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
                   <svg
@@ -606,7 +606,7 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
                 disabled={!confirmChecked}
                 className={`flex-1 px-4 py-2.5 font-semibold rounded-xl transition-all duration-200 ${
                   confirmChecked
-                    ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-[1.02] active:scale-95"
+                    ? "bg-[#003a76] hover:to-blue-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-[1.02] active:scale-95"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
               >
@@ -670,7 +670,7 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-scale-in">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-blue-400 to-blue-500 px-6 py-4">
+            <div className="bg-[#003a76] px-6 py-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
                   <svg
@@ -714,7 +714,7 @@ const PreviewStep = ({ formData, prevStep, staffRef }) => {
               <button
                 type="button"
                 onClick={confirmCancel}
-                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-95 shadow-lg shadow-blue-400/30"
+                className="flex-1 px-4 py-2.5 bg-[#003a76] hover:from-blue-500 hover:to-blue-600 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-95 shadow-lg shadow-blue-400/30"
               >
                 Yes, Go Back
               </button>
