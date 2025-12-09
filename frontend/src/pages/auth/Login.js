@@ -27,6 +27,7 @@ const Login = () => {
   const [showContactModal, setShowContactModal] = useState(false);
   const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
   const [sending, setSending] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,6 +51,33 @@ const Login = () => {
       setPassword("");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const validateEmail = email => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSubmitAdmin = async e => {
+    e.preventDefault();
+
+    if (!validateEmail(contactForm.email)) {
+      setEmailError("Please enter a valid email address (e.g., user@example.com).");
+      return;
+    }
+    setEmailError("");
+
+    setSending(true);
+    try {
+      await api.post("/contact-admin/", contactForm);
+      toast.custom(t => <CustomToast t={t} type="contactAdmin" />);
+      setContactForm({ name: "", email: "", message: "" });
+      setShowContactModal(false);
+    } catch {
+      toast.error("Failed to send message. Try again later.");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -174,24 +202,28 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={!username || !password || isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-300 text-white rounded-lg px-4 py-3 font-medium transition-all duration-200 shadow-xl shadow-blue-500/40 disabled:bg-blue-500/50 disabled:cursor-not-allowed relative"
+                className="w-full bg-[#003a76] text-white hover:bg-blue-300 rounded-lg px-4 py-3 font-medium transition-all duration-200 shadow-xl shadow-blue-500/40 disabled:bg-blue-500/50 disabled:cursor-not-allowed relative"
               >
                 {isLoading && (
                   <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
                   </div>
                 )}
-                <span className={isLoading ? "opacity-0" : "opacity-100"}>Log in</span>
+                <span className={isLoading ? "opacity-0" : "opacity-100 text-white"}>
+                  Log in
+                </span>
               </button>
             </form>
 
-            {/* Register Here / Footer */}
             <div className="mt-6 text-center">
               <p className="text-sm text-white/70">
                 Having trouble?{" "}
                 <button
                   type="button"
-                  onClick={() => setShowContactModal(true)}
+                  onClick={() => {
+                    setShowContactModal(true);
+                    setEmailError(""); // Reset error when opening modal
+                  }}
                   className="text-sky-300 font-medium hover:underline focus:outline-none"
                 >
                   Contact your administrator
@@ -202,100 +234,117 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Error Modal (Styles updated for consistency) */}
+      {/* 🛑 Redesigned Error Modal 🛑 */}
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-70 backdrop-blur-sm">
-          {/* Modal Card - Glassmorphism style */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl max-w-sm w-full p-6 relative border border-white/20">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
+          {/* Modal Card - Enhanced Glassmorphism Style */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-3xl shadow-red-500/10 max-w-sm w-full p-8 relative border border-red-500/30 transform transition-all duration-300 scale-100">
             <button
-              className="absolute top-3 right-3 text-white/50 hover:text-white"
+              className="absolute top-4 right-4 p-1 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               onClick={() => setShowModal(false)}
             >
               <X className="w-5 h-5" />
             </button>
             <div className="flex flex-col items-center text-center">
-              <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Login Failed</h3>
-              <p className="text-sm text-sky-200/80">Invalid credentials. Please try again.</p>
+              <AlertCircle className="w-14 h-14 text-red-400 mb-4 animate-pulse" />
+              <h3 className="text-2xl font-bold text-white mb-2">Access Denied</h3>
+              <p className="text-sm text-sky-200/80">
+                Invalid **username** or **password**. Please verify your credentials and try
+                again.
+              </p>
               <button
                 onClick={() => setShowModal(false)}
-                className="mt-6 w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition"
+                className="mt-6 w-full bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-xl font-semibold transition shadow-lg shadow-red-500/30"
               >
-                Try Again
+                Close
               </button>
             </div>
           </div>
         </div>
       )}
-      {/* Contact Modal (Styles updated for consistency) */}
+
       {showContactModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-70 backdrop-blur-sm">
-          {/* Modal Card - Glassmorphism style */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl max-w-sm w-full p-6 relative border border-white/20">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-3xl shadow-blue-500/10 max-w-md w-full p-8 relative border border-blue-500/30 transform transition-all duration-300 scale-100">
             <button
-              className="absolute top-3 right-3 text-white/50 hover:text-white"
+              className="absolute top-4 right-4 p-1 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               onClick={() => setShowContactModal(false)}
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-lg font-semibold text-white mb-4 text-center">
+            <h3 className="text-2xl font-bold text-white mb-6 text-center">
               Contact Administrator
             </h3>
 
-            <form
-              onSubmit={async e => {
-                e.preventDefault();
-                setSending(true);
-                try {
-                  await api.post("/contact-admin/", contactForm);
-                  toast.success("Message sent successfully!");
-                  setContactForm({ name: "", email: "", message: "" });
-                  setShowContactModal(false);
-                } catch {
-                  toast.error("Failed to send message. Try again later.");
-                } finally {
-                  setSending(false);
-                }
-              }}
-              className="space-y-4"
-            >
+            <form onSubmit={handleSubmitAdmin} className="space-y-4">
               <div>
                 <input
                   type="text"
-                  placeholder="Your name"
+                  placeholder="Your full name"
                   value={contactForm.name}
                   onChange={e => setContactForm({ ...contactForm, name: e.target.value })}
                   required
-                  className="w-full border border-white/30 rounded-lg px-3 py-2 bg-white/10 text-white placeholder:text-white/60 focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition"
+                  className="w-full border border-white/30 rounded-lg px-4 py-3 bg-white/10 text-white placeholder:text-white/60 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
                 />
               </div>
+
+              {/* Email Input with Validation */}
               <div>
                 <input
                   type="email"
-                  placeholder="Your email"
+                  placeholder="Your email address"
                   value={contactForm.email}
-                  onChange={e => setContactForm({ ...contactForm, email: e.target.value })}
+                  onChange={e => {
+                    setContactForm({ ...contactForm, email: e.target.value });
+                    if (emailError && validateEmail(e.target.value)) {
+                      setEmailError("");
+                    }
+                  }}
                   required
-                  className="w-full border border-white/30 rounded-lg px-3 py-2 bg-white/10 text-white placeholder:text-white/60 focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition"
+                  className={`w-full border rounded-lg px-4 py-3 bg-white/10 text-white placeholder:text-white/60 focus:ring-2 transition 
+                    ${
+                      emailError
+                        ? "border-red-500 focus:ring-red-400 focus:border-red-400"
+                        : "border-white/30 focus:ring-blue-400 focus:border-blue-400"
+                    }`}
                 />
+                {emailError && (
+                  <p className="mt-1 text-sm text-red-400 flex items-center font-medium">
+                    <AlertCircle className="w-4 h-4 mr-1" /> {emailError}
+                  </p>
+                )}
               </div>
+
               <div>
                 <textarea
-                  placeholder="Describe your issue..."
+                  placeholder="Describe your issue or request for help..."
                   value={contactForm.message}
                   onChange={e => setContactForm({ ...contactForm, message: e.target.value })}
                   required
-                  className="w-full border border-white/30 rounded-lg px-3 py-2 h-24 bg-white/10 text-white placeholder:text-white/60 focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition"
+                  className="w-full border border-white/30 rounded-lg px-4 py-3 h-28 bg-white/10 text-white placeholder:text-white/60 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={sending}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 font-medium transition disabled:bg-blue-900/50"
+                disabled={
+                  sending ||
+                  !contactForm.name ||
+                  !contactForm.email ||
+                  !contactForm.message ||
+                  emailError
+                }
+                className="w-full bg-blue-500 text-white hover:bg-blue-600 rounded-lg px-4 py-3 font-bold transition disabled:bg-blue-900/50 relative shadow-lg shadow-blue-500/30"
               >
-                {sending ? "Sending..." : "Send Message"}
+                {sending ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                    Sending...
+                  </div>
+                ) : (
+                  "Send Message"
+                )}
               </button>
             </form>
           </div>

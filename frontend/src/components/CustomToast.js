@@ -4,7 +4,6 @@ import {
   LogIn,
   LogOut,
   ArchiveBox,
-  SendHorizonal,
   Wand2,
   X,
   CheckCircle2,
@@ -18,6 +17,7 @@ import {
   FileWarning,
   UserX,
   UserCheck,
+  SendHorizonal,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -133,6 +133,14 @@ const toastVariants = {
     text: "text-green-900",
     accent: "bg-green-100 text-green-600",
     icon: <UserCheck className="w-6 h-6" strokeWidth={2.5} />,
+  },
+  contactAdmin: {
+    title: "Message Sent",
+    message: "Your request has been forwarded to the administrator.",
+    color: "bg-indigo-50",
+    text: "text-indigo-900",
+    accent: "bg-indigo-100 text-indigo-600",
+    icon: <SendHorizonal className="w-6 h-6" strokeWidth={2.5} />,
   },
 };
 
