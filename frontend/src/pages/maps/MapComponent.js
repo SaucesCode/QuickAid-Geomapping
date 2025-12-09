@@ -300,7 +300,7 @@ const MapComponent = () => {
             >
               {/* Header */}
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-blue-100">
-                <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-[#003a76] rounded-lg">
                   <Filter className="w-4 h-4 text-white" />
                 </div>
                 <div>
@@ -507,13 +507,15 @@ const MapComponent = () => {
               {/* Overview Section */}
               <div className="mt-4 pt-3 border-t border-blue-100">
                 {/* Total Locations */}
-                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg p-3 text-white mb-3 shadow-sm">
+                <div className="bg-[#003a76] rounded-lg p-3 text-white mb-3 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <MapIcon className="w-4 h-4" />
-                      <p className="text-xs font-semibold opacity-90">Total Locations</p>
+                      <p className="text-xs text-white font-semibold opacity-90">
+                        Total Locations
+                      </p>
                     </div>
-                    <p className="text-2xl font-bold">{filteredLocations.length}</p>
+                    <p className="text-2xl font-bold text-white">{filteredLocations.length}</p>
                   </div>
                 </div>
 

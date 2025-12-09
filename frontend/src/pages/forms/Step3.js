@@ -71,7 +71,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
         {/* Main Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           {/* Header Section */}
-          <div className="bg-gradient-to-r from-blue-500 to-blue-500 px-6 py-6">
+          <div className="bg-[#003a76] px-6 py-6">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
                 <svg
@@ -475,7 +475,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_last_name"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Last Name(Apelyido) <span className="text-red-500">*</span>
+                        Last Name (Apelyido) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <input
@@ -703,7 +703,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_address"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Address(Tirahan) <span className="text-red-500">*</span>
+                        Address (Tirahan) <span className="text-red-500">*</span>
                       </label>
                       <label className="flex items-center mb-3 space-x-2 cursor-pointer group">
                         <input
@@ -723,7 +723,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                           className="w-4 h-4 text-blue-500 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors">
-                          Same as applicant's address(Kagaya ng tirahan ng aplikante)
+                          Same as applicant's address (Kagaya ng tirahan ng aplikante)
                         </span>
                       </label>
                       <div className="relative">
@@ -788,7 +788,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_birthday"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Birthday(Kaarawan) <span className="text-red-500">*</span>
+                        Birthday (Kaarawan) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <input
@@ -846,7 +846,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_gender"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Sex(Kasarian) <span className="text-red-500">*</span>
+                        Sex (Kasarian) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <select
@@ -909,7 +909,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_civil_status"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Civil Status(Katayuang Sibil) <span className="text-red-500">*</span>
+                        Civil Status (Katayuang Sibil) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <select
@@ -975,7 +975,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_occupation"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Occupation(Trabaho)
+                        Occupation (Trabaho)
                       </label>
                       <input
                         type="text"
@@ -994,7 +994,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                         htmlFor="rep_monthly_income"
                         className="block text-sm font-semibold text-gray-700 mb-2"
                       >
-                        Monthly Income(Buwanang Kita)
+                        Monthly Income (Buwanang Kita)
                       </label>
                       <div className="relative">
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
@@ -1099,7 +1099,7 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
               </button>
               <button
                 type="submit"
-                className="w-full sm:w-auto group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white font-semibold rounded-xl px-6 py-2.5 inline-flex items-center justify-center sm:justify-start gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-[1.02] active:scale-95"
+                className="w-full sm:w-auto group relative bg-[#003a76] hover:to-blue-600 text-white font-semibold rounded-xl px-6 py-2.5 inline-flex items-center justify-center sm:justify-start gap-3 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-[1.02] active:scale-95"
               >
                 <span className="text-white">Continue to Preview(Magpatuloy)</span>
                 <svg

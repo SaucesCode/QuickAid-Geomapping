@@ -100,7 +100,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
         {/* Main Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           {/* HEADER SECTION */}
-          <div className="bg-gradient-to-r from-blue-500 to-blue-500 px-6 py-6">
+          <div className="bg-[#003a76] px-6 py-6">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
                 <svg
@@ -136,9 +136,9 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
               <div className="flex flex-col">
                 <label
                   htmlFor="first_name"
-                  className="block text-sm font-semibold text-slate-700 mb-2"
+                  className="block text-sm font-semibold text-gray-700 mb-2 whitespace-nowrap"
                 >
-                  {T.firstName} <span className="text-blue-600">*</span>
+                  {T.firstName}
                 </label>
                 <div className="relative">
                   <input
@@ -148,38 +148,37 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     value={formData.first_name || ""}
                     onChange={handleInputChange}
                     // FIX: py-0 and leading-10 guarantee text is vertically centered in 40px box.
-                    className={`w-full h-11 px-3 border-2 rounded-md focus:ring-2 focus:ring-blue-500 outline-none transition-all duration-200 ${
-                      errors.first_name
-                        ? "border-blue-300 bg-blue-50/50 focus:border-blue-500 text-blue-900"
-                        : "border-slate-200 focus:border-blue-500 hover:border-slate-300 bg-white"
+                    className={`w-full h-11 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none ${
+                      errors.middle_initial
+                        ? "border-red-400 bg-red-50 focus:border-red-500"
+                        : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                     }`}
                     placeholder={T.placeholderFirstName}
-                    autoComplete="given-name"
-                    required
+                    autoComplete="additional-name"
                   />
                   {formData.first_name && !errors.first_name && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
-                        <svg
-                          className="w-3 h-3 text-blue-600"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
+                    // Reverted positioning to absolute for maximum stability
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <svg
+                        className="w-4 h-4 text-[#00FF00]"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                     </div>
                   )}
                 </div>
-                <div className="h-6 flex items-center mt-1.5">
+                {/* Fixed space for error messages (ensures alignment) */}
+                <div className="h-6 flex items-start">
                   {errors.first_name && (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       <svg
-                        className="w-3.5 h-3.5 text-blue-500"
+                        className="w-3.5 h-3.5 text-red-500"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -189,7 +188,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                           clipRule="evenodd"
                         />
                       </svg>
-                      <p className="text-xs text-blue-700 font-medium">{errors.first_name}</p>
+                      <p className="text-2xs text-red-600 font-medium">{errors.first_name}</p>
                     </div>
                   )}
                 </div>
@@ -223,7 +222,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     // Reverted positioning to absolute for maximum stability
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       <svg
-                        className="w-4 h-4 text-blue-500"
+                        className="w-4 h-4 text-[#00FF00]"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -288,7 +287,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     // Reverted positioning to absolute for maximum stability
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       <svg
-                        className="w-4 h-4 text-blue-500"
+                        className="w-4 h-4 text-[#00FF00]"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -406,7 +405,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                       // Reverted positioning to absolute for maximum stability
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
                         <svg
-                          className="w-4 h-4 text-blue-500"
+                          className="w-4 h-4 text-[#00FF00]"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -462,7 +461,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
             <div className="flex justify-end mt-6 pt-4 border-t border-gray-100">
               <button
                 type="submit"
-                className="group relative bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white text-sm font-semibold rounded-xl px-5 py-2.5 inline-flex items-center gap-2 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-105 active:scale-95"
+                className="group relative bg-[#003a76] hover:to-blue-600 text-white text-sm font-semibold rounded-xl px-5 py-2.5 inline-flex items-center gap-2 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 <span className="text-white">{T.continue}</span>
                 <svg
