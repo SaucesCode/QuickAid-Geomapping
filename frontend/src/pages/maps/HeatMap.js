@@ -97,6 +97,13 @@ const Geographic = () => {
   const [loading, setLoading] = useState(true);
   const [districtGeo, setDistrictGeo] = useState(null);
 
+  useEffect(() => {
+    document.title = "QuickAid | HeatMap";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
+
   // Fetch Locations
   useEffect(() => {
     const fetchLocations = async () => {

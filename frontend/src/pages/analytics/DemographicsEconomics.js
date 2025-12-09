@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
@@ -99,6 +99,13 @@ export const getAssistanceColor = type => {
 const DemographicsEconomics = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
+
+  useEffect(() => {
+    document.title = "QuickAid | Demographics and Economics Analysis";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
 
   // Fetch Logic
   const fetchData = async endpoint => {

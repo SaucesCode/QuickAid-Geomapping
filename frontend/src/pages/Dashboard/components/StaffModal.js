@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash2, RefreshCw, AlertTriangle, Info, X } from "lucide-react";
+import { UserX, RefreshCw, AlertTriangle, Info, X } from "lucide-react";
 
 // Deactivate Modal
 export const DeactivateModal = ({ isOpen, onClose, onConfirm, isLoading, staffName }) => {
@@ -20,7 +20,7 @@ export const DeactivateModal = ({ isOpen, onClose, onConfirm, isLoading, staffNa
 
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-              <Trash2 className="w-5 h-5 text-white" />
+              <UserX className="w-5 h-5 text-white" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">Deactivate Staff</h2>
@@ -84,7 +84,7 @@ export const DeactivateModal = ({ isOpen, onClose, onConfirm, isLoading, staffNa
                 </>
               ) : (
                 <>
-                  <Trash2 className="w-4 h-4" />
+                  <UserX className="w-4 h-4" />
                   Deactivate
                 </>
               )}

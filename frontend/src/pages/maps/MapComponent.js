@@ -86,6 +86,9 @@ const MapComponent = () => {
 
   useEffect(() => {
     document.title = "QuickAid | Geolocation Map";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
   }, []);
 
   // React Query for ALL Locations (loaded once, filtered client-side)
