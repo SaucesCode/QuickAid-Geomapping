@@ -714,7 +714,7 @@ const LandingPage = () => {
           </div>
 
           {/* CTA Section - Executive Style */}
-          <div className="max-w-4xl mx-auto">
+          {/* <div className="max-w-4xl mx-auto">
             <div className="bg-white border-2 border-slate-200 p-12 text-center">
               <h3 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">
                 Initiate Your Application
@@ -736,7 +736,7 @@ const LandingPage = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </section>
       {/* FAQ Section */}
