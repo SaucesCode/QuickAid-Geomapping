@@ -201,17 +201,23 @@ const Navbar = () => {
           </AnimatePresence>
         </nav>
       </header>
-
       {/* StaffQR Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-[90%] max-w-lg relative">
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            // MODAL WIDTH INCREASED: max-w-md -> max-w-xl
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-xl relative transition-all duration-300 transform scale-100"
+            onClick={e => e.stopPropagation()}
+          >
             {/* Close Button */}
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-200"
+              className="absolute top-2 right-2 p-2 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6 stroke-2" />
             </button>
 
             {/* StaffQR Content */}
