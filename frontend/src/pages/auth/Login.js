@@ -118,9 +118,9 @@ const Login = () => {
 
         {/* Welcome Text */}
         <div className="relative z-10 flex flex-col justify-center flex-1 px-6 text-center lg:text-left -mt-20">
-          <div className="relative mx-auto lg:mx-0 w-fit">
+          <div className="relative mx-auto w-fit">
             <img src={LP1} alt="QuickAid Logo" className="w-64 drop-shadow-lg mx-auto" />
-            <p className="absolute bottom-[-1.8rem] right-[-90%] text-lg text-blue-200 whitespace-nowrap">
+            <p className="absolute bottom-[-1.8rem] right-[-55%] text-lg text-blue-200 whitespace-nowrap">
               Authorized Staff Login Portal for the AICS Information System
             </p>
           </div>

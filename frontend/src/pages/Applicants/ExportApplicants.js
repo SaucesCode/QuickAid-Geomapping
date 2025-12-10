@@ -38,12 +38,18 @@ const ExportApplicants = () => {
             className={cn(
               "flex-1 px-4 sm:px-6 py-3 sm:py-4 font-semibold text-sm transition-all flex items-center justify-center gap-2",
               activeTab === "applicants"
-                ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-b-4 border-indigo-700"
+                ? "bg-[#003a76]  border-b-4 border-indigo-700 text-white"
                 : "text-gray-600 hover:bg-gray-50"
             )}
           >
             <Database className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Applicant Data (CSV)</span>
+            <span
+              className={
+                activeTab === "applicants" ? "hidden sm:inline text-white" : "text-black"
+              }
+            >
+              Applicant Data (CSV)
+            </span>
             <span className="sm:hidden">Applicants</span>
           </button>
           <button
@@ -51,12 +57,18 @@ const ExportApplicants = () => {
             className={cn(
               "flex-1 px-4 sm:px-6 py-3 sm:py-4 font-semibold text-sm transition-all flex items-center justify-center gap-2",
               activeTab === "analytics"
-                ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-b-4 border-indigo-700"
+                ? "bg-[#003a76] text-white border-b-4 border-indigo-700"
                 : "text-gray-600 hover:bg-gray-50"
             )}
           >
             <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Analytics Report</span>
+            <span
+              className={
+                activeTab === "analytics" ? "hidden sm:inline text-white" : "text-black"
+              }
+            >
+              Analytics Report
+            </span>
             <span className="sm:hidden">Analytics</span>
           </button>
         </div>
