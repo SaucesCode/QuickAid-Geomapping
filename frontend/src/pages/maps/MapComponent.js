@@ -268,11 +268,6 @@ const MapComponent = () => {
             geoData={geoData}
             cityFilter={cityFilter}
             cityGeoData={cityGeoData}
-            // MapReset={() => <MapReset trigger={resetTrigger} />}
-            // BarangayZoom={() => (
-            //   <BarangayZoom locations={filteredLocations} barangayFilter={barangayFilter} />
-            // )}
-            // MapBounds={() => <MapBounds cityGeoData={cityGeoData} />}
           />
 
           {/* ========== COLLAPSIBLE TOP-RIGHT PANEL ========== */}

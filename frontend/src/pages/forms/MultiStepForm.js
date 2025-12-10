@@ -113,7 +113,7 @@ const MultiStepForm = () => {
   const closeCancelModal = () => setCancelModal({ show: false });
   const confirmCancel = () => {
     closeCancelModal();
-    navigate(-1);
+    navigate("/");
     window.location.reload();
   };
 
