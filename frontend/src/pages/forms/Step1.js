@@ -138,7 +138,7 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                   htmlFor="first_name"
                   className="block text-sm font-semibold text-gray-700 mb-2 whitespace-nowrap"
                 >
-                  {T.firstName}
+                  {T.firstName} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
