@@ -177,15 +177,15 @@ const LandingPage = () => {
                 <div className="flex flex-col items-center bg-white/20 backdrop-blur-sm p-3 w-48 h-15 rounded-lg shadow-md hover:shadow-lg transition duration-300 mx-auto">
                   <Users className="w-6 h-6 text-blue-200 mb-1" />
                   <h3 className="text-sm font-semibold text-white text-center">
-                    25,000+ Families Helped
+                    30 - 40 Million Individuals
                   </h3>
                 </div>
 
                 {/* 24/7 Emergency Support */}
                 <div className="flex flex-col items-center bg-white/20 backdrop-blur-sm p-3 w-48 h-15 rounded-lg shadow-md hover:shadow-lg transition duration-300 mx-auto">
                   <Clock className="w-6 h-6 text-blue-200 mb-1" />
-                  <h3 className="text-sm font-semibold text-white text-center">
-                    24/7 Emergency Support
+                  <h3 className="text-[0.8rem] font-semibold text-white text-center">
+                    Helping People since 1970s
                   </h3>
                 </div>
               </div>

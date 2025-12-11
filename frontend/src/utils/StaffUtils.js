@@ -12,7 +12,7 @@ export const getStaffFormLink = async () => {
     const encoded = btoa(user.ref_code);
     return `${baseURL}/apply?r=${randomize()}&k=${encoded}`;
   }
-
+       
   // Otherwise fetch from backend
   try {
     const res = await api.get("/get-active-staff/");
