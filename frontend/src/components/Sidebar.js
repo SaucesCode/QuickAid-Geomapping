@@ -249,7 +249,7 @@ const Sidebar = () => {
           </div>
 
           <button
-            onClick={() => navigate("/register-applicant")}
+            onClick={() => navigate("/new-applicant")}
             className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-md transition-colors duration-200"
           >
             <Plus className="w-4 h-4" />
