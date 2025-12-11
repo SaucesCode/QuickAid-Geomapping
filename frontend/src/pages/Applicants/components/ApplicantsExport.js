@@ -84,7 +84,7 @@ const ApplicantExport = () => {
 
     if (startDate) params.append("start_date", startDate);
     if (endDate) params.append("end_date", endDate);
-    if (selectedCity) params.append("city", selectedCity);
+    if (selectedCity) params.append("cities", selectedCity);
 
     selectedBarangays.forEach(b => params.append("barangays", b));
     selectedAssistanceTypes.forEach(t => params.append("assistance_types", t));
