@@ -47,11 +47,11 @@ import {
 
 // Assistance Type Color Mapping
 const ASSISTANCE_COLOR_MAP = {
-  educational: "#10B981",
-  medical: "#3B82F6",
+  educational: "#0d8d1eff",
+  medical: "#1c2ed3ff",
   burial: "#FDE68A",
   other: "#EF4444",
-  default: "#8B5CF6",
+  default: "#123b94ff",
 };
 
 const getAssistanceColor = type => {
@@ -314,7 +314,7 @@ const Trends = () => {
             title="Top Assistance"
             value={mostPopularAssistance.type_of_assistance}
             subtitle={`${mostPopularAssistance.count} applications`}
-            color="purple"
+            color="#0c377eff"
             isLoading={!isAssistanceTypeLoaded}
           />
         </AnalyticsGrid>

@@ -261,12 +261,12 @@ export const AnalyticsStack = ({ children, spacing = "md", className }) => (
 // Heatmap Cell Component with 12-hour time format
 export const HeatmapCell = ({ hour, count, intensity, label }) => {
   const getIntensityColor = intensity => {
-    if (intensity === 0) return "#F3F4F6"; // very light gray
-    if (intensity < 20) return "#EFF6FF"; // ultra-light blue
-    if (intensity < 40) return "#BFDBFE"; // light blue
-    if (intensity < 60) return "#60A5FA"; // medium-light blue
-    if (intensity < 80) return "#2563EB"; // medium blue
-    return "#1D4ED8"; // slightly darker blue for peak, still not too dark
+    if (intensity === 0) return "#f1f1f1ff"; // very light gray
+    if (intensity < 20) return "#3cb131ff"; // ultra-light blue
+    if (intensity < 60) return "#fcff59ff"; // light blue
+    if (intensity < 80) return "#e9812cff"; // medium-light blue
+    if (intensity < 100) return "#ca3d12ff"; // medium blue
+    return "#8919a5ff"; // slightly darker blue for peak, still not too dark
   };
 
   // Convert 24-hour to 12-hour format
@@ -301,23 +301,27 @@ export const HeatmapLegend = ({ className }) => (
   >
     <div className="flex items-center gap-1.5">
       <div className="w-4 h-4 bg-gray-200 rounded border border-gray-300"></div>
-      <span>Low (0)</span>
+      <span>Beyond Office hours</span>
     </div>
     <div className="flex items-center gap-1.5">
-      <div className="w-4 h-4 bg-blue-100 rounded"></div>
+      <div className="w-4 h-4 bg-green-500 rounded"></div>
       <span>Low-Medium</span>
     </div>
     <div className="flex items-center gap-1.5">
-      <div className="w-4 h-4 bg-blue-300 rounded"></div>
+      <div className="w-4 h-4 bg-yellow-500 rounded"></div>
       <span>Medium</span>
     </div>
     <div className="flex items-center gap-1.5">
-      <div className="w-4 h-4 bg-blue-500 rounded"></div>
+      <div className="w-4 h-4 bg-orange-500 rounded"></div>
       <span>High</span>
     </div>
     <div className="flex items-center gap-1.5">
-      <div className="w-4 h-4 bg-blue-700 rounded shadow-sm"></div>
+      <div className="w-4 h-4 bg-red-700 rounded shadow-sm"></div>
       <span>Peak</span>
+    </div>
+    <div className="flex items-center gap-1.5">
+      <div className="w-4 h-4 bg-purple-700 rounded shadow-sm"></div>
+      <span>Highest Peak</span>
     </div>
   </div>
 );
