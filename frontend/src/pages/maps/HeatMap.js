@@ -195,7 +195,7 @@ const Geographic = () => {
         <AnalyticsCard>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-[#] rounded-lg">
+              <div className="p-1.5 bg-[#003a76] rounded-lg">
                 <MapIcon className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -261,7 +261,7 @@ const Geographic = () => {
         {/* Legend Card */}
         <AnalyticsCard>
           <div className="flex items-center gap-2 mb-3">
-            <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+            <div className="p-1.5 bg-[#003a76] rounded-lg">
               <Layers className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -276,7 +276,7 @@ const Geographic = () => {
               <span className="text-xs text-gray-700 font-medium">Low Concentration</span>
               <span className="text-xs text-gray-700 font-medium">High Concentration</span>
             </div>
-            <div className="h-4 rounded-full bg-gradient-to-r from-sky-300 via-blue-500via-indigo-600 to-purple-700 shadow-sm"></div>
+            <div className="h-4 rounded-full bg-gradient-to-r from-[#12e200] via-[#fbb021]via-[#f68838] to-[#ee3e32] shadow-sm"></div>
           </div>
         </AnalyticsCard>
       </AnalyticsStack>
