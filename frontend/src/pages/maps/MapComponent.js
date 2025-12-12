@@ -283,7 +283,7 @@ const MapComponent = () => {
             </div>
 
             <div
-              className={`bg-white rounded-xl shadow-md border border-blue-100 transition-all duration-300 ${
+              className={`bg-white/40 backdrop-blur-sm rounded-xl shadow-xl border border-white/40 transition-all duration-300 ${
                 panelOpen
                   ? "p-4 max-h-[calc(100vh-8rem)] opacity-100 overflow-y-auto"
                   : "max-h-0 opacity-0 p-0 overflow-hidden"
@@ -294,20 +294,20 @@ const MapComponent = () => {
               }}
             >
               {/* Header */}
-              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-blue-100">
+              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-blue-100/50">
                 <div className="p-1.5 bg-[#003a76] rounded-lg">
                   <Filter className="w-4 h-4 text-white" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-gray-800">Map Filters</h3>
-                  <p className="text-xs text-gray-500">Filter locations on map</p>
+                  <p className="text-xs text-black">Filter locations on map</p>
                 </div>
               </div>
 
               {/* Filters */}
               <div className="space-y-3 text-sm">
                 {/* Cluster Toggle */}
-                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between p-3 bg-white/50 rounded-lg border border-blue-100">
                   <div className="flex items-center gap-2">
                     <div
                       className={`p-1.5 rounded-lg ${
@@ -318,7 +318,7 @@ const MapComponent = () => {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-800">Cluster Mode</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-900">
                         {clusterEnabled ? "Groups nearby markers" : "Shows all pins"}
                       </p>
                     </div>
@@ -339,13 +339,13 @@ const MapComponent = () => {
 
                 {/* Type Filter */}
                 <div className="flex flex-col">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                  <label className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-1.5 flex items-center gap-1">
                     <Tags className="w-3 h-3" />
                     Assistance Type
                   </label>
                   <div className="relative">
                     <select
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 appearance-none cursor-pointer pr-8"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white/80 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 appearance-none cursor-pointer pr-8"
                       onChange={e => setTypeFilter(e.target.value)}
                       value={typeFilter}
                     >
@@ -376,13 +376,13 @@ const MapComponent = () => {
 
                 {/* City Filter */}
                 <div className="flex flex-col">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                  <label className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-1.5 flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
                     City
                   </label>
                   <div className="relative">
                     <select
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 appearance-none cursor-pointer pr-8"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white/80 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 appearance-none cursor-pointer pr-8"
                       onChange={e => setCityFilter(e.target.value)}
                       value={cityFilter}
                     >
@@ -420,7 +420,7 @@ const MapComponent = () => {
                     </label>
                     <div className="relative">
                       <select
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 appearance-none cursor-pointer pr-8"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white/80 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 appearance-none cursor-pointer pr-8"
                         onChange={e => setBarangayFilter(e.target.value)}
                         value={barangayFilter}
                       >
@@ -452,7 +452,7 @@ const MapComponent = () => {
 
                 {/* Reset Button */}
                 <button
-                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-semibold transition-all hover:shadow-sm active:scale-[0.98] border border-gray-200 mt-1"
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-white/50 text-gray-700 hover:bg-white/80 rounded-lg text-sm font-semibold transition-all hover:shadow-sm active:scale-[0.98] border border-gray-200 mt-1"
                   onClick={resetFilters}
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -462,9 +462,9 @@ const MapComponent = () => {
 
               {/* Active Filters Tags */}
               {(typeFilter || cityFilter || barangayFilter) && (
-                <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-blue-100">
+                <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-blue-100/50">
                   {typeFilter && (
-                    <span className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium flex items-center gap-1.5">
+                    <span className="px-2.5 py-1 bg-blue-100/80 text-blue-700 rounded-full text-xs font-medium flex items-center gap-1.5">
                       {typeFilter}
                       <button
                         onClick={() => setTypeFilter("")}
@@ -475,7 +475,7 @@ const MapComponent = () => {
                     </span>
                   )}
                   {cityFilter && (
-                    <span className="px-2.5 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium flex items-center gap-1.5">
+                    <span className="px-2.5 py-1 bg-indigo-100/80 text-indigo-700 rounded-full text-xs font-medium flex items-center gap-1.5">
                       {cityFilter}
                       <button
                         onClick={() => setCityFilter("")}
@@ -486,7 +486,7 @@ const MapComponent = () => {
                     </span>
                   )}
                   {barangayFilter && (
-                    <span className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium flex items-center gap-1.5">
+                    <span className="px-2.5 py-1 bg-purple-100/80 text-purple-700 rounded-full text-xs font-medium flex items-center gap-1.5">
                       {barangayFilter}
                       <button
                         onClick={() => setBarangayFilter("")}
@@ -500,7 +500,7 @@ const MapComponent = () => {
               )}
 
               {/* Overview Section */}
-              <div className="mt-4 pt-3 border-t border-blue-100">
+              <div className="mt-4 pt-3 border-t border-blue-100/50">
                 {/* Total Locations */}
                 <div className="bg-[#003a76] rounded-lg p-3 text-white mb-3 shadow-sm">
                   <div className="flex items-center justify-between">
@@ -519,7 +519,7 @@ const MapComponent = () => {
                   {Object.entries(assistanceColors).map(([type, color]) => (
                     <div
                       key={type}
-                      className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+                      className="flex items-center justify-between p-2.5 bg-white/60 rounded-lg border border-gray-200 hover:bg-white/80 transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <div

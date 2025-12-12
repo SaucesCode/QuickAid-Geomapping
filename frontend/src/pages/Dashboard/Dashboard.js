@@ -272,7 +272,7 @@ const Dashboard = () => {
                   {assistanceMonth === "current" ? "This Month" : "Previous Month"})
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Medical vs Educational vs Burial
+                  Distribution of Assistance Type Volume in whole month
                 </p>
               </div>
               <MonthToggle selected={assistanceMonth} onChange={setAssistanceMonth} />
@@ -296,7 +296,7 @@ const Dashboard = () => {
                   type="monotone"
                   dataKey="medical"
                   name="Medical"
-                  stroke="#ef4444"
+                  stroke="#2427ebff"
                   strokeWidth={3}
                   dot={false}
                 />
@@ -304,7 +304,7 @@ const Dashboard = () => {
                   type="monotone"
                   dataKey="educational"
                   name="Educational"
-                  stroke="#3b82f6"
+                  stroke="#33a517ff"
                   strokeWidth={3}
                   dot={false}
                 />
@@ -312,7 +312,7 @@ const Dashboard = () => {
                   type="monotone"
                   dataKey="burial"
                   name="Burial"
-                  stroke="#f59e0b"
+                  stroke="#f5ca0bff"
                   strokeWidth={3}
                   dot={false}
                 />
