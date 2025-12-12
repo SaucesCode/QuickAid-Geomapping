@@ -595,28 +595,38 @@ def upload_approved_list(request):
     for _, row in df.iterrows():
         first_name = str(row.get("first name", "")).strip()
         last_name = str(row.get("last name", "")).strip()
-        middle_name = str(row.get("middle name", "")).strip()
+        raw_middle = row.get("middle name", "")
+        middle_name = "" if pd.isna(raw_middle) else str(raw_middle).strip()
         barangay = str(row.get("barangay", "")).strip()
         city = str(row.get("municipal", "")).strip()
         assistance_type = str(row.get("type of assistance", "")).strip()
 
-        # Build Q object to batch query
+
+        if middle_name:
+            middle_filter = Q(background_info__middle_initial__iexact=middle_name)
+        else:
+            middle_filter = (
+                Q(background_info__middle_initial__isnull=True)
+                | Q(background_info__middle_initial__exact='')
+            )
+
         applicant_filters |= (
             Q(
                 background_info__first_name__iexact=first_name,
-                background_info__middle_initial__iexact=middle_name,
                 background_info__last_name__iexact=last_name,
                 background_info__barangay__name__iexact=barangay,
                 background_info__barangay__city__name__iexact=city,
                 type_of_assistance__iexact=assistance_type,
             )
+            & middle_filter
         )
+
 
     # ✅ Bulk fetch applicants in a single query
     applicants = {
         (
             a.background_info.first_name.lower(),
-            a.background_info.middle_initial.lower() if a.background_info.middle_initial else '',
+            (a.background_info.middle_initial.lower() if a.background_info.middle_initial else ''),
             a.background_info.last_name.lower(),
             a.background_info.barangay.name.lower(),
             a.background_info.barangay.city.name.lower(),
@@ -633,7 +643,10 @@ def upload_approved_list(request):
         for _, row in df.iterrows():
             first_name = str(row.get("first name", "")).strip().lower()
             last_name = str(row.get("last name", "")).strip().lower()
-            middle_name = str(row.get("middle name", "")).strip().lower()
+
+            raw_middle = row.get("middle name", "")
+            middle_name = "" if pd.isna(raw_middle) else str(raw_middle).strip().lower()
+
             barangay = str(row.get("barangay", "")).strip().lower()
             city = str(row.get("municipal", "")).strip().lower()
             assistance_type = str(row.get("type of assistance", "")).strip().lower()
@@ -643,7 +656,8 @@ def upload_approved_list(request):
             applicant = applicants.get(key)
 
             if not applicant:
-                continue  # Skip if not found, no error needed
+                continue
+
 
             Approval.objects.create(
                 applicant=applicant,
