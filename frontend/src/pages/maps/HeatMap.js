@@ -34,13 +34,12 @@ const districtCities = [
   "Dolores",
 ];
 
-// Heatmap gradient shifted to a blue/indigo scale
 const BLUE_HEAT_GRADIENT = {
-  0.2: "#7dd3fc", // Light Sky Blue (Low)
-  0.4: "#38bdf8", // Sky Blue
-  0.6: "#2563eb", // Blue
-  0.8: "#4f46e5", // Indigo
-  1.0: "#6d28d9", // Violet/Purple (High)
+  0.2: "#12e200", // green1
+  0.5: "#d2ff00", // yellowgreen
+  0.6: "#fbb021", // yellow
+  0.8: "#f68838", // orange
+  1.0: "#ee3e32", // red
 };
 
 // Auto-fit map to District 2 boundary
@@ -69,7 +68,7 @@ const HeatLayer = ({ points }) => {
     const heatData = points.map(p => [p.latitude, p.longitude, 0.8]);
 
     const heatLayer = window.L.heatLayer(heatData, {
-      radius: 20,
+      radius: 16,
       blur: 15,
       maxZoom: 13,
       gradient: BLUE_HEAT_GRADIENT,
@@ -196,7 +195,7 @@ const Geographic = () => {
         <AnalyticsCard>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-[#] rounded-lg">
                 <MapIcon className="w-4 h-4 text-white" />
               </div>
               <div>
