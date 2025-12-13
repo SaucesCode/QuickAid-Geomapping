@@ -228,7 +228,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                       Approved At
                     </th>
                     <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">
-                      Approved By
+                      Approved Amount
                     </th>
                     <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">
                       Batch File
@@ -245,7 +245,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView, formatDate }) => {
                         <td className="px-4 py-3 text-blue-800 whitespace-nowrap">
                           {formatDate(a.approved_at)}
                         </td>
-                        <td className="px-4 py-3 text-blue-800">{a.approved_by || "N/A"}</td>
+                        <td className="px-4 py-3 text-blue-800">{a.notes || "N/A"}</td>
                         <td className="px-4 py-3 text-blue-800">{a.batch_file || "N/A"}</td>
                       </tr>
                     ))

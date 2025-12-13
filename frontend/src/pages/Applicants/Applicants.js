@@ -435,6 +435,7 @@ const Applicants = () => {
                 const res = await api.get(`/applicants/${app.id}/`);
                 setPreviewApplicant(res.data);
                 setPreviewView(true);
+                console.log(res.data);
               }}
               openEditView={async app => {
                 const res = await api.get(`/applicants/${app.id}/`);
