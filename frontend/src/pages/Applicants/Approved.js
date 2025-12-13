@@ -95,6 +95,19 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
     setCurrentPage(1);
   };
 
+  const assistanceStyles = type => {
+    switch (type?.toLowerCase()) {
+      case "medical":
+        return "from-blue-600 to-blue-700";
+      case "burial":
+        return "from-yellow-500 to-yellow-600";
+      case "educational":
+        return "from-green-600 to-green-700";
+      default:
+        return "from-gray-500 to-gray-600";
+    }
+  };
+
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all">
       {/* Header */}
@@ -216,7 +229,11 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
                       <td className="px-5 py-3">{app.barangay}</td>
                       <td className="px-5 py-3">{app.municipal}</td>
                       <td className="px-5 py-3">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-sm">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r ${assistanceStyles(
+                            app.type_of_assistance
+                          )} shadow-sm`}
+                        >
                           <FileText className="w-3 h-3" />
                           {app.type_of_assistance}
                         </span>
