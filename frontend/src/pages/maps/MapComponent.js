@@ -1,8 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet-easyprint";
 import { api } from "../../services/api";
 import {
   Filter,
@@ -12,15 +13,21 @@ import {
   Building2,
   Tags,
   Loader2,
+  Download,
   Map as MapIcon,
 } from "lucide-react";
 import MapCanvas from "./MapCanvas";
+import toast from "react-hot-toast";
 
-// ============= SETUP & CONFIGURATION =============
+// ===========================================
+// 1. LEAFLET SETUP & CONFIGURATION
+// ===========================================
+
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 
-let DefaultIcon = L.icon({
+// Set Leaflet's default marker icon configuration
+L.Marker.prototype.options.icon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
   iconSize: [25, 41],
@@ -29,40 +36,51 @@ let DefaultIcon = L.icon({
   shadowSize: [41, 41],
 });
 
-const createColoredIcon = color =>
-  L.divIcon({
-    className: "custom-marker",
-    html: `
-        <svg xmlns="http://www.w3.org/2000/svg" width="44" height="64" viewBox="0 0 24 24">
-          <path
-            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
-            fill="${color}"
-          />
-          <circle cx="12" cy="9" r="3" fill="white" />
-        </svg>
-      `,
-    iconSize: [44, 64],
-    iconAnchor: [22, 64],
-    popupAnchor: [0, -58],
-  });
-
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Default center (Quezon Province)
+// Default center coordinates for the map (e.g., Quezon Province)
 const defaultCenter = [13.918, 121.575];
 
-// Colors
+// Configuration data
 const assistanceColors = {
   Medical: "blue",
   Burial: "#fef08a",
   Educational: "green",
 };
-
 const assistanceTypes = ["Medical", "Burial", "Educational"];
 const cities = ["Lucena City", "Sariaya", "Candelaria", "Tiaong", "San Antonio", "Dolores"];
 
-// ============= MAIN MAP COMPONENT =============
+/**
+ * @function createColoredIcon
+ * @description Creates a custom, colored Leaflet DivIcon (SVG pin) for a marker.
+ * @param {string} color - The color to be used for the SVG pin.
+ */
+const createColoredIcon = color =>
+  L.divIcon({
+    className: "custom-marker",
+    html: `
+      <svg xmlns="http://www.w3.org/2000/svg" width="44" height="64" viewBox="0 0 24 24">
+        <path
+          d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+          fill="${color}"
+        />
+        <circle cx="12" cy="9" r="3" fill="white" />
+      </svg>
+    `,
+    iconSize: [44, 64],
+    iconAnchor: [22, 64],
+    popupAnchor: [0, -58],
+  });
+
+// ===========================================
+// 2. MAIN MAP COMPONENT
+// ===========================================
+
+/**
+ * @component MapComponent
+ * @description The main container component managing map state, data fetching,
+ * filtering logic, and user interface controls.
+ */
 const MapComponent = () => {
+  // --- State Management ---
   const [typeFilter, setTypeFilter] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [barangayFilter, setBarangayFilter] = useState("");
@@ -71,42 +89,97 @@ const MapComponent = () => {
   const [panelOpen, setPanelOpen] = useState(true);
   const [resetTrigger, setResetTrigger] = useState(false);
   const [clusterEnabled, setClusterEnabled] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const printerRef = useRef(null); // Ref to hold the Leaflet EasyPrint instance
+
+  // --- Utility Functions ---
+
+  /**
+   * @function togglePanel
+   * @description Toggles the visibility of the filter panel.
+   */
   const togglePanel = () => setPanelOpen(prev => !prev);
+
+  /**
+   * @function getColor
+   * @description Returns the configured color for a given assistance type.
+   */
   const getColor = type => assistanceColors[type] || "#f87171";
+
+  /**
+   * @function resetFilters
+   * @description Clears all filters and triggers a map view reset.
+   */
   const resetFilters = () => {
     setTypeFilter("");
     setCityFilter("");
     setBarangayFilter("");
+    // Toggling resetTrigger forces MapCanvas to reset the view
     setResetTrigger(prev => !prev);
   };
 
+  // Dynamically generate the GeoJSON file name based on the current city filter
   const cityGeoFileName = cityFilter
     ? `${cityFilter.toLowerCase().replace(/ /g, "_")}.geojson`
     : null;
 
-  useEffect(() => {
-    document.title = "QuickAid | Geolocation Map";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  // --- Data Fetching (React Query) ---
 
-  // React Query for ALL Locations (loaded once, filtered client-side)
+  /**
+   * @hook useQuery (allLocationsData)
+   * @description Fetches all location data from the API once and caches it.
+   */
   const { data: allLocationsData, isLoading: isLoadingLocations } = useQuery({
     queryKey: ["allLocations"],
     queryFn: async () => {
       const res = await api.get("/applicant-locations/", {
         params: { limit: 2000 },
       });
+      // Filter out locations with invalid or missing coordinates
       return res.data.filter(loc => loc.latitude && loc.longitude && !isNaN(loc.latitude));
     },
+    // Cache settings
     staleTime: 15 * 60 * 1000,
     cacheTime: 30 * 60 * 1000,
   });
 
-  console.log("Locations", allLocationsData);
+  /**
+   * @hook useQuery (geoData)
+   * @description Fetches the GeoJSON data for the overall region boundaries.
+   */
+  const { data: geoData } = useQuery({
+    queryKey: ["allCitiesGeoData"],
+    queryFn: async () => {
+      const res = await fetch("/all_cities.geojson");
+      if (!res.ok) throw new Error("Failed to load all cities GeoJSON");
+      return res.json();
+    },
+    staleTime: Infinity, // Never refetch boundary data
+  });
 
-  // Client-side filtering (instant performance)
+  /**
+   * @hook useQuery (cityGeoData)
+   * @description Fetches the GeoJSON boundary data for the *currently selected* city.
+   */
+  const { data: cityGeoData } = useQuery({
+    queryKey: ["cityGeoData", cityFilter],
+    queryFn: async () => {
+      if (!cityGeoFileName) return null;
+      const res = await fetch(`/${cityGeoFileName}`);
+      if (!res.ok) throw new Error("Failed to load city GeoJSON");
+      return res.json();
+    },
+    enabled: !!cityFilter, // Only run the query when a city is selected
+    staleTime: Infinity,
+  });
+
+  // --- Filtering & Memoized Values ---
+
+  /**
+   * @hook useMemo (filteredLocations)
+   * @description Filters the full list of locations based on the current
+   * `typeFilter`, `cityFilter`, and `barangayFilter`.
+   */
   const filteredLocations = useMemo(() => {
     if (!allLocationsData) return [];
 
@@ -118,7 +191,11 @@ const MapComponent = () => {
     });
   }, [allLocationsData, typeFilter, cityFilter, barangayFilter]);
 
-  // Calculate stats from filtered data
+  /**
+   * @hook useMemo (stats)
+   * @description Calculates the count of locations for each assistance type
+   * within the currently filtered dataset.
+   */
   const stats = useMemo(() => {
     const counts = {};
     assistanceTypes.forEach(t => {
@@ -127,86 +204,56 @@ const MapComponent = () => {
     return counts;
   }, [filteredLocations]);
 
-  const { data: geoData, isFetching: isAllGeoLoading } = useQuery({
-    queryKey: ["allCitiesGeoData"],
-    queryFn: async () => {
-      const res = await fetch("/all_cities.geojson");
-      if (!res.ok) throw new Error("Failed to load all cities GeoJSON");
-      return res.json();
-    },
-    staleTime: Infinity,
-  });
+  // --- Side Effects ---
 
-  const { data: cityGeoData, isFetching: isCityGeoLoading } = useQuery({
-    queryKey: ["cityGeoData", cityFilter],
-    queryFn: async () => {
-      if (!cityGeoFileName) return null;
-      const res = await fetch(`/${cityGeoFileName}`);
-      if (!res.ok) throw new Error("Failed to load city GeoJSON");
-      return res.json();
-    },
-    enabled: !!cityFilter,
-    staleTime: Infinity,
-  });
-
-  // Zoom to barangay markers when barangay is selected
-  const BarangayZoom = ({ locations, barangayFilter }) => {
-    const map = useMap();
-
-    useEffect(() => {
-      if (!barangayFilter || locations.length === 0) return;
-
-      const positions = locations.map(loc => [loc.latitude, loc.longitude]);
-
-      if (positions.length > 0) {
-        const bounds = L.latLngBounds(positions);
-        map.fitBounds(bounds.pad(0.2), {
-          padding: [50, 50],
-          animate: true,
-          duration: 0.3,
-        });
-      }
-    }, [barangayFilter, locations, map]);
-
-    return null;
-  };
-
+  /**
+   * @hook useEffect
+   * @description Updates the list of available barangays whenever the city filter changes.
+   */
   useEffect(() => {
     if (!allLocationsData) return;
 
+    // Filter locations by selected city (or all if no city filter)
     const brgys = allLocationsData
       .filter(loc => (cityFilter ? loc.city === cityFilter : true))
       .map(loc => loc.barangay);
+
+    // Get unique barangays and sort them alphabetically
     setAvailableBarangays([...new Set(brgys)].sort());
 
+    // Reset barangay filter when the city changes
     setBarangayFilter("");
   }, [allLocationsData, cityFilter]);
 
-  const MapReset = ({ trigger }) => {
-    const map = useMap();
+  /**
+   * @hook useEffect
+   * @description Manages browser tab title.
+   */
+  useEffect(() => {
+    document.title = "QuickAid | Geolocation Map";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
 
-    useEffect(() => {
-      if (trigger) {
-        map.setView(defaultCenter, 11, {
-          animate: true,
-        });
-      }
-    }, [trigger, map]);
+  // --- Custom Map Functions ---
 
-    return null;
-  };
-
-  // Custom cluster icon creator
+  /**
+   * @function createClusterCustomIcon
+   * @description Creates a custom icon for a marker cluster group. The icon color
+   * is determined by the most dominant assistance type within the cluster.
+   */
   const createClusterCustomIcon = cluster => {
     const markers = cluster.getAllChildMarkers();
     const typeCounts = {};
 
     markers.forEach(m => {
+      // Note: assistanceType is a custom option passed to the Marker component
       const type = m.options.assistanceType;
       typeCounts[type] = (typeCounts[type] || 0) + 1;
     });
 
-    // Determine dominant type
+    // Find the type with the highest count
     const dominantType = Object.keys(typeCounts).reduce((a, b) =>
       typeCounts[a] > typeCounts[b] ? a : b
     );
@@ -238,15 +285,51 @@ const MapComponent = () => {
     });
   };
 
+  /**
+   * @function handleDownloadMap
+   * @description Handles the map download/export process using the EasyPrint plugin.
+   * It temporarily enables the MapStatsOverlay component by setting `exporting` to true.
+   */
+  const handleDownloadMap = () => {
+    if (!printerRef.current) {
+      toast.error("Map is not ready for download.");
+      return;
+    }
+
+    setExporting(true); // Show stats overlay for print
+
+    // Create a descriptive filename based on active filters
+    const filterStr = [
+      typeFilter && `type-${typeFilter}`,
+      cityFilter && `city-${cityFilter}`,
+      barangayFilter && `barangay-${barangayFilter}`,
+    ]
+      .filter(Boolean)
+      .join("_");
+
+    const filename = `quickaid-map${filterStr ? `-${filterStr}` : ""}`;
+
+    // Small delay to allow the exporting overlay to render before printing
+    setTimeout(() => {
+      printerRef.current.printMap("CurrentSize", filename);
+      // Wait a little longer before hiding the overlay
+      setTimeout(() => setExporting(false), 500);
+    }, 100);
+  };
+
+  // --- Render ---
+
   return (
     <div className="relative w-full h-full bg-gradient-to-br from-blue-50 via-blue-50 to-blue-100 overflow-hidden">
+      {/* Inline Styles for Animation and Leaflet Z-index fix */}
       <style>{`
-          .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
-          @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-          .leaflet-container { z-index: 0 !important; }
-          .custom-cluster-icon { background: transparent !important; border: none !important; }
-        `}</style>
+        .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .leaflet-container { z-index: 0 !important; }
+        .custom-cluster-icon { background: transparent !important; border: none !important; }
+      `}</style>
 
+      {/* Full-screen Loading Overlay */}
       {isLoadingLocations && (
         <div className="absolute inset-0 bg-blue-900/80 flex items-center justify-center z-[9999]">
           <div className="bg-white rounded-lg p-6 shadow-2xl flex flex-col items-center gap-3">
@@ -258,6 +341,7 @@ const MapComponent = () => {
 
       <div className="flex flex-col h-full">
         <div className="relative flex-1">
+          {/* Map Canvas (Child Component) */}
           <MapCanvas
             mapCenter={mapCenter}
             filteredLocations={filteredLocations}
@@ -268,11 +352,29 @@ const MapComponent = () => {
             geoData={geoData}
             cityFilter={cityFilter}
             cityGeoData={cityGeoData}
+            resetTrigger={resetTrigger}
+            exporting={exporting}
+            stats={stats}
+            total={filteredLocations.length}
+            barangayFilter={barangayFilter}
+            typeFilter={typeFilter}
+            // Callback to receive the Leaflet EasyPrint instance
+            onPrinterReady={printer => {
+              printerRef.current = printer;
+            }}
           />
 
-          {/* ========== COLLAPSIBLE TOP-RIGHT PANEL ========== */}
+          {/* ========== COLLAPSIBLE TOP-RIGHT FILTER PANEL ========== */}
           <div className="absolute top-4 right-4 z-20 w-full max-w-sm ">
-            <div className="flex justify-end mb-2">
+            {/* Toggle Button */}
+            <div className="flex justify-end gap-2 mb-2">
+              <button
+                className="px-4 py-2 text-sm font-semibold bg-white rounded-lg shadow-md border border-blue-200 text-blue-700 hover:bg-blue-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+                onClick={handleDownloadMap}
+              >
+                <Download className="w-4 h-4" />
+                PNG Download
+              </button>
               <button
                 className="px-4 py-2 text-sm font-semibold bg-white rounded-lg shadow-md border border-blue-200 text-blue-700 hover:bg-blue-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
                 onClick={togglePanel}
@@ -282,12 +384,14 @@ const MapComponent = () => {
               </button>
             </div>
 
+            {/* Filter Content Panel */}
             <div
               className={`bg-white/40 backdrop-blur-sm rounded-xl shadow-xl border border-white/40 transition-all duration-300 ${
                 panelOpen
                   ? "p-4 max-h-[calc(100vh-8rem)] opacity-100 overflow-y-auto"
                   : "max-h-0 opacity-0 p-0 overflow-hidden"
               }`}
+              // Custom scrollbar styles (non-tailwind)
               style={{
                 scrollbarWidth: "thin",
                 scrollbarColor: "#3b82f6 #e5e7eb",
@@ -304,7 +408,7 @@ const MapComponent = () => {
                 </div>
               </div>
 
-              {/* Filters */}
+              {/* Controls */}
               <div className="space-y-3 text-sm">
                 {/* Cluster Toggle */}
                 <div className="flex items-center justify-between p-3 bg-white/50 rounded-lg border border-blue-100">
@@ -323,6 +427,7 @@ const MapComponent = () => {
                       </p>
                     </div>
                   </div>
+                  {/* Toggle Switch */}
                   <button
                     onClick={() => setClusterEnabled(!clusterEnabled)}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
@@ -337,7 +442,7 @@ const MapComponent = () => {
                   </button>
                 </div>
 
-                {/* Type Filter */}
+                {/* Type Filter Select */}
                 <div className="flex flex-col">
                   <label className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-1.5 flex items-center gap-1">
                     <Tags className="w-3 h-3" />
@@ -356,6 +461,7 @@ const MapComponent = () => {
                         </option>
                       ))}
                     </select>
+                    {/* SVG Down Arrow */}
                     <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
                       <svg
                         className="w-4 h-4 text-gray-400"
@@ -374,7 +480,7 @@ const MapComponent = () => {
                   </div>
                 </div>
 
-                {/* City Filter */}
+                {/* City Filter Select */}
                 <div className="flex flex-col">
                   <label className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-1.5 flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
@@ -393,6 +499,7 @@ const MapComponent = () => {
                         </option>
                       ))}
                     </select>
+                    {/* SVG Down Arrow */}
                     <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
                       <svg
                         className="w-4 h-4 text-gray-400"
@@ -411,7 +518,7 @@ const MapComponent = () => {
                   </div>
                 </div>
 
-                {/* Barangay Filter */}
+                {/* Barangay Filter Select (Conditional) */}
                 {cityFilter && (
                   <div className="flex flex-col animate-fadeIn">
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
@@ -431,6 +538,7 @@ const MapComponent = () => {
                           </option>
                         ))}
                       </select>
+                      {/* SVG Down Arrow */}
                       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
                         <svg
                           className="w-4 h-4 text-gray-400"
@@ -499,9 +607,9 @@ const MapComponent = () => {
                 </div>
               )}
 
-              {/* Overview Section */}
+              {/* Overview Section (Stats) */}
               <div className="mt-4 pt-3 border-t border-blue-100/50">
-                {/* Total Locations */}
+                {/* Total Locations Card */}
                 <div className="bg-[#003a76] rounded-lg p-3 text-white mb-3 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -514,7 +622,7 @@ const MapComponent = () => {
                   </div>
                 </div>
 
-                {/* Stats Cards */}
+                {/* Stats Cards by Type */}
                 <div className="space-y-2">
                   {Object.entries(assistanceColors).map(([type, color]) => (
                     <div

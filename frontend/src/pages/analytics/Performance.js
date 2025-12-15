@@ -88,6 +88,8 @@ const Performance = () => {
     if (filters.start) params.append("start_date", filters.start);
     if (filters.end) params.append("end_date", filters.end);
     if (filters.type) params.append("type", filters.type);
+    if (filters.city) params.append("city", filters.city);
+    if (filters.barangay) params.append("barangay", filters.barangay);
     const query = params.toString() ? `?${params.toString()}` : "";
     const res = await api.get(`${endpoint}${query}`).catch(err => {
       setError(err);

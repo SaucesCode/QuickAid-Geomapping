@@ -1,14 +1,40 @@
 import React, { useState, useEffect } from "react";
-import { Filter, RotateCcw, Calendar, Tags } from "lucide-react";
+import { Filter, RotateCcw, Calendar, Tags, MapPin, Building2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../services/api";
 
 const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
   const [filters, setFilters] = useState({
     type: "",
     start: "",
     end: "",
+    city: "",
+    barangay: "",
   });
 
   const [dateError, setDateError] = useState("");
+
+  // Fetch cities
+  const { data: cities = [], isFetching: isFetchingCities } = useQuery({
+    queryKey: ["citiesWithApplicants"],
+    queryFn: async () => {
+      const res = await api.get("/applicant-locations/filters/");
+      return res.data.cities || [];
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+
+  // Fetch barangays for selected city
+  const { data: barangays = [], isFetching: isFetchingBarangays } = useQuery({
+    queryKey: ["barangaysByCity", filters.city],
+    queryFn: async () => {
+      if (!filters.city) return [];
+      const res = await api.get(`/applicant-locations/filters/?city=${filters.city}`);
+      return res.data.barangays || [];
+    },
+    enabled: !!filters.city,
+    staleTime: 1000 * 60 * 5,
+  });
 
   // Validate date range
   useEffect(() => {
@@ -29,7 +55,12 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
 
       // Auto-fix invalid range
       if (name === "start" && updated.end && new Date(value) > new Date(updated.end)) {
-        updated.end = value; // Force end date to match start date
+        updated.end = value;
+      }
+
+      // Reset barangay when city changes
+      if (name === "city") {
+        updated.barangay = "";
       }
 
       return updated;
@@ -37,7 +68,7 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
   };
 
   const handleReset = () => {
-    const cleared = { type: "", start: "", end: "" };
+    const cleared = { type: "", start: "", end: "", city: "", barangay: "" };
     setFilters(cleared);
     onFilterChange?.(cleared);
   };
@@ -51,7 +82,7 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
   return (
     <div className="bg-white rounded-xl shadow-md border border-blue-100 p-4 transition-all hover:shadow-lg">
       <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-[#003a76] rounded-lg">
+        <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
           <Filter className="w-4 h-4 text-white" />
         </div>
         <div>
@@ -61,6 +92,44 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
+        {/* City */}
+        <FilterSelect
+          icon={MapPin}
+          label="City"
+          name="city"
+          value={filters.city}
+          onChange={handleChange}
+          disabled={isFetchingCities}
+          options={[
+            {
+              value: "",
+              label: isFetchingCities ? "Loading..." : "All Cities",
+            },
+            ...cities.map(city => ({ value: city, label: city })),
+          ]}
+        />
+
+        {/* Barangay */}
+        <FilterSelect
+          icon={Building2}
+          label="Barangay"
+          name="barangay"
+          value={filters.barangay}
+          onChange={handleChange}
+          disabled={!filters.city || isFetchingBarangays}
+          options={[
+            {
+              value: "",
+              label: filters.city
+                ? isFetchingBarangays
+                  ? "Loading..."
+                  : "All Barangays"
+                : "Select City First",
+            },
+            ...barangays.map(b => ({ value: b, label: b })),
+          ]}
+        />
+
         {/* Assistance Type */}
         <FilterSelect
           icon={Tags}
@@ -127,7 +196,7 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
   );
 };
 
-const FilterSelect = ({ icon: Icon, label, name, value, onChange, options }) => (
+const FilterSelect = ({ icon: Icon, label, name, value, onChange, options, disabled }) => (
   <div className="flex flex-col min-w-[140px]">
     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
       {Icon && <Icon className="w-3 h-3" />}
@@ -138,7 +207,8 @@ const FilterSelect = ({ icon: Icon, label, name, value, onChange, options }) => 
         name={name}
         value={value}
         onChange={onChange}
-        className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 appearance-none cursor-pointer pr-8"
+        disabled={disabled}
+        className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 appearance-none cursor-pointer pr-8 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50"
       >
         {options.map(opt => (
           <option key={opt.value} value={opt.value}>
