@@ -10,6 +10,8 @@ const T = {
   // Form Labels
   firstName: "First Name (Unang Pangalan)",
   middleInitial: "Middle Initial (Gitnang Pangalan)",
+  noMiddleName: "I have no middle name",
+  placeholderNoMiddleName: "No middle name",
   lastName: "Last Name (Apelyido)",
   // FIX 1: New keys to clearly separate label and default option text
   suffixLabel: "Suffix ",
@@ -35,6 +37,8 @@ const T = {
 
 const Step1 = ({ formData, handleChange, nextStep }) => {
   const [errors, setErrors] = useState({});
+
+  const [noMiddleName, setNoMiddleName] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -91,6 +95,16 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
     // Clear field errors
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const handleNoMiddleNameChange = e => {
+    const checked = e.target.checked;
+    setNoMiddleName(checked);
+
+    // Clear middle initial if checkbox is checked
+    if (checked) {
+      handleChange({ target: { name: "middle_initial", value: "" } });
     }
   };
 
@@ -209,17 +223,18 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     name="middle_initial"
                     value={formData.middle_initial || ""}
                     onChange={handleInputChange}
-                    // FIX: py-0 and leading-10 guarantee text is vertically centered in 40px box.
+                    disabled={noMiddleName}
                     className={`w-full h-11 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none ${
-                      errors.middle_initial
+                      noMiddleName
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : errors.middle_initial
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
                     }`}
-                    placeholder={T.placeholderMiddleInitial}
+                    placeholder={noMiddleName ? "No middle name" : T.placeholderMiddleInitial}
                     autoComplete="additional-name"
                   />
-                  {formData.middle_initial && !errors.middle_initial && (
-                    // Reverted positioning to absolute for maximum stability
+                  {formData.middle_initial && !errors.middle_initial && !noMiddleName && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       <svg
                         className="w-4 h-4 text-[#00FF00]"
@@ -235,9 +250,9 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                     </div>
                   )}
                 </div>
-                {/* Fixed space for error messages (ensures alignment) */}
+                {/* Checkbox and error messages container */}
                 <div className="h-6 flex items-start">
-                  {errors.middle_initial && (
+                  {errors.middle_initial && !noMiddleName ? (
                     <div className="flex items-center gap-1">
                       <svg
                         className="w-3.5 h-3.5 text-red-500"
@@ -254,6 +269,18 @@ const Step1 = ({ formData, handleChange, nextStep }) => {
                         {errors.middle_initial}
                       </p>
                     </div>
+                  ) : (
+                    <label className="flex items-center gap-1.5 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={noMiddleName}
+                        onChange={handleNoMiddleNameChange}
+                        className="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                      />
+                      <span className="text-2xs text-gray-600 group-hover:text-gray-800 transition-colors">
+                        I have no middle name
+                      </span>
+                    </label>
                   )}
                 </div>
               </div>
