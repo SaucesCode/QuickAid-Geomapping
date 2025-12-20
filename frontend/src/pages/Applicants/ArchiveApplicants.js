@@ -129,39 +129,10 @@ const ArchiveApplicants = () => {
       <Card>
         <ApplicantsFilter
           filters={filters}
-          onFilterChange={f => {
-            setFilters(f);
-            setCurrentPage(1); // reset page
-          }}
+          onFilterChange={setFilters}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
         />
-      </Card>
-
-      {/* Search Bar */}
-      <Card>
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search archived applicants..."
-              value={searchTerm}
-              onChange={e => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl"
-            />
-          </div>
-
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className="p-3 text-gray-500 hover:bg-indigo-100 rounded-xl"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
       </Card>
 
       {/* Table */}

@@ -14,8 +14,6 @@ import CustomToast from "../../components/CustomToast";
 import { useDebounce } from "../../hooks/useDebounce";
 import {
   AlertCircle,
-  Search,
-  X,
   Users,
   MapPin,
   Building2,
@@ -386,35 +384,12 @@ const Applicants = () => {
 
       {/* Filters */}
       <Card>
-        <ApplicantsFilter filters={filters} onFilterChange={setFilters} />
-      </Card>
-
-      {/* Search Bar */}
-      <Card>
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search applicants..."
-              value={searchTerm}
-              onChange={e => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1); // restart pagination
-              }}
-              className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-xl"
-            />
-          </div>
-
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className="p-2 text-gray-500 hover:text-indigo-700 hover:bg-indigo-100 rounded-xl"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
+        <ApplicantsFilter
+          filters={filters}
+          onFilterChange={setFilters}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
       </Card>
 
       {/* TABLE + PAGINATION */}
