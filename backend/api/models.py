@@ -287,6 +287,25 @@ class Applicant(models.Model):
     date_filled = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(null=True, blank=True)
     is_archived = models.BooleanField(default=False)
+    IDENTITY_STATUS_CHOICES = [
+        ('NEW', 'New'),
+        ('VERIFIED', 'Verified'),
+        ('SUSPICIOUS', 'Suspicious'),
+        ('REVIEWED', 'Reviewed'),
+        ('BLOCKED', 'Blocked'),
+    ]
+
+    identity_status = models.CharField(
+        max_length=20,
+        choices=IDENTITY_STATUS_CHOICES,
+        default='NEW',
+        db_index=True
+    )
+
+    identity_notes = models.TextField(
+        blank=True,
+        null=True
+    )
 
     class Meta:
         # Add these indexes for faster queries
@@ -372,13 +391,53 @@ class Representative(models.Model):
         return f"{self.background_info.first_name} - Representative of {self.applicant}"
     
 class ApplicantHistory(models.Model):
-    background_info = models.ForeignKey(BackgroundInfo, on_delete=models.CASCADE, related_name="histories")
-    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, related_name="history_entry")
+    HISTORY_TYPE_CHOICES = [
+        ("APPLICATION", "Application"),
+        ("PAYOUT", "Payout"),
+    ]
+
+    background_info = models.ForeignKey(
+        BackgroundInfo,
+        on_delete=models.CASCADE,
+        related_name="histories"
+    )
+    applicant = models.ForeignKey(
+        Applicant,
+        on_delete=models.CASCADE,
+        related_name="history_entry"
+    )
+
     type_of_assistance = models.CharField(max_length=50)
+
+    history_type = models.CharField(
+        max_length=20,
+        choices=HISTORY_TYPE_CHOICES,
+        default="APPLICATION"
+    )
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    related_claim = models.OneToOneField(
+        "DisbursementClaim",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="history_record"
+    )
+
     date_applied = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ["-date_applied"]
+
     def __str__(self):
-        return f"{self.background_info} applied for {self.type_of_assistance} on {self.date_applied}"
+        return f"{self.history_type} - {self.type_of_assistance} ({self.date})"
+
     
 class Approval(models.Model):
     applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, related_name="approvals")
@@ -411,6 +470,90 @@ class ApprovalBatch(models.Model):
 
     def __str__(self):
         return f"Batch {self.id} by {self.uploaded_by} on {self.uploaded_at}"
+
+
+class DisbursementBatch(models.Model):
+    STATUS_CHOICES = [
+        ("OPEN", "Open"),
+        ("CLOSED", "Closed"),
+    ]
+
+    name = models.CharField(max_length=255)
+    assistance_type = models.CharField(max_length=100)
+    payout_date = models.DateField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="OPEN")
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_batches"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class DisbursementClaim(models.Model):
+    STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("CLAIMED", "Claimed"),
+        ("UNCLAIMED", "Unclaimed"),
+    ]
+
+    batch = models.ForeignKey(
+        DisbursementBatch,
+        on_delete=models.PROTECT,
+        related_name="claims"
+    )
+    approval = models.OneToOneField(
+        "Approval",
+        on_delete=models.PROTECT,
+        related_name="disbursement_claim"
+    )
+    applicant = models.ForeignKey(
+        "Applicant",
+        on_delete=models.PROTECT,
+        related_name="disbursement_claims"
+    )
+
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default="PENDING"
+    )
+
+    payout_date = models.DateField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def mark_claimed(self, payout_date):
+        if self.status != "PENDING":
+            raise ValueError("Only PENDING claims can be claimed.")
+
+        self.status = "CLAIMED"
+        self.payout_date = payout_date
+        self.save()
+
+        # Prevent duplicates
+        if hasattr(self, "history_record"):
+            return
+
+        ApplicantHistory.objects.create(
+            background_info=self.applicant.background_info,
+            applicant=self.applicant,
+            type_of_assistance=self.approval.applicant.type_of_assistance,
+            history_type="PAYOUT",
+            amount=self.amount,
+            related_claim=self,
+        )
+
+    def mark_unclaimed(self):
+        if self.status != "PENDING":
+            raise ValueError("Only PENDING claims can be unclaimed.")
+        self.status = "UNCLAIMED"
+        self.save()
 
 
 class StaffActivityLog(models.Model):

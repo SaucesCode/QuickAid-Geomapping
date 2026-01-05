@@ -26,7 +26,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.timezone import now, timedelta
-from .utils import apply_applicant_filters, apply_approval_filters, get_applicant_history, log_staff_activity
+from .utils import apply_applicant_filters, apply_approval_filters, get_applicant_history, log_staff_activity, extract_amount_from_notes
 from .export_analytics import ExportOrchestrator
 from django.core.exceptions import ValidationError
 
@@ -47,9 +47,14 @@ from rest_framework.pagination import LimitOffsetPagination
 # Local
 from .models import (
     Applicant, CustomUser, StaffActivityLog,
-    BackgroundInfo, ApplicantHistory, Approval, ApprovalBatch, SupportMessage, City, Barangay
+    BackgroundInfo, ApplicantHistory, Approval, 
+    ApprovalBatch, SupportMessage, City, Barangay, 
+    DisbursementBatch, DisbursementClaim
 )
-from .serializers import ApplicantSerializer, MyTokenObtainPairSerializer
+from .serializers import (
+    ApplicantSerializer, MyTokenObtainPairSerializer, 
+    DisbursementClaimSerializer, DisbursementBatchSerializer
+)
 
 
 User = get_user_model()
@@ -521,6 +526,7 @@ def list_applicants(request):
             'type_of_assistance',
             'date_filled',
             'contact_number',
+            'identity_status',
 
             # background info
             'background_info__first_name',
@@ -557,6 +563,7 @@ def list_applicants(request):
             "type_of_assistance": a.type_of_assistance,
             "contact_number": a.contact_number,
             "date_filled": a.date_filled,
+            "identity_status": a.identity_status,
         })
 
     # ---- RETURN PAGINATED RESPONSE ----
@@ -812,19 +819,30 @@ def approval_batch_history(request):
 class Echo:
     def write(self, value):
         return value
-    
-from django.utils import timezone
-from datetime import datetime, timedelta
-from django.http import StreamingHttpResponse
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-import csv
 
-class Echo:
-    """An object that implements just the write method of the file-like interface."""
-    def write(self, value):
-        return value
+def parse_amount(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0
+
+import re
+from decimal import Decimal
+
+def extract_amount(notes):
+    """
+    Extract numeric amount from approval notes.
+    Example: 'Approved amount: 4000' -> Decimal('4000')
+    """
+    if not notes:
+        return Decimal("0")
+
+    match = re.search(r"(\d+(?:\.\d+)?)", notes)
+    if match:
+        return Decimal(match.group(1))
+
+    return Decimal("0")
+
 
 
 @api_view(["GET"])
@@ -847,8 +865,22 @@ def export_applicants_csv(request):
         "background_info",
         "background_info__barangay",
         "background_info__barangay__city",
-        "background_info__barangay__city__province"
-    ).prefetch_related("representative__background_info")
+        "background_info__barangay__city__province",
+    ).prefetch_related(
+        "representative__background_info",
+        Prefetch(
+            "history_entry",
+            queryset=ApplicantHistory.objects.order_by("date_applied"),
+        ),
+        Prefetch(
+            "approvals",
+            queryset=Approval.objects.select_related(
+                "approved_by",
+                "disbursement_claim"
+            ).order_by("approved_at"),
+        ),
+    )
+
 
     # 📅 Date filtering
     if start_date and end_date:
@@ -883,6 +915,12 @@ def export_applicants_csv(request):
         "Birthday", "Sex", "Civil Status", "Occupation",
         "Monthly Income", "Valid ID", "Assistance Type",
         "Applicant Type", "Date Filled",
+        "Identity Status",
+        "Total Applications",
+        "Application History",
+        "Total Approvals",
+        "Total Approved Amount",
+        "Approval History",
         "Representative First Name", "Representative Last Name",
         "Representative Contact Number"
     ]
@@ -899,6 +937,25 @@ def export_applicants_csv(request):
             bg = app.background_info
             rep = getattr(app, "representative", None)
             rep_bg = getattr(rep, "background_info", None) if rep else None
+
+
+            history = list(app.history_entry.all())
+            approvals = list(app.approvals.all())
+
+            application_history = "; ".join(
+                f"{h.type_of_assistance} ({h.date_applied.strftime('%Y-%m-%d')})"
+                for h in history
+            )
+
+            approval_history = "; ".join(
+                f"Approved by {a.approved_by.username} on {a.approved_at.strftime('%Y-%m-%d')} ({a.notes})"
+                for a in approvals
+            )
+
+            total_approved_amount = sum(
+                extract_amount(a.notes) for a in approvals
+            )
+
 
             yield writer.writerow([
                 app.id,
@@ -919,10 +976,19 @@ def export_applicants_csv(request):
                 app.type_of_assistance,
                 app.applicant_type,
                 app.date_filled.strftime("%Y-%m-%d %H:%M:%S"),
+   
+                app.identity_status,
+                len(history),
+                application_history,
+                len(approvals),
+                total_approved_amount,
+                approval_history,
+
                 rep_bg.first_name if rep_bg else "",
                 rep_bg.last_name if rep_bg else "",
                 getattr(rep, "contact_number", ""),
             ])
+
 
       
 
@@ -3027,6 +3093,84 @@ def export_history(request):
             {"error": f"Failed to fetch export history: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+    
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_disbursement_batch(request):
+    serializer = DisbursementBatchSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(created_by=request.user)
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def attach_approvals_to_batch(request, batch_id):
+    batch = get_object_or_404(DisbursementBatch, id=batch_id, status="OPEN")
+    approval_ids = request.data.get("approval_ids", [])
+
+    created = []
+
+    for approval in Approval.objects.filter(id__in=approval_ids):
+        if hasattr(approval, "disbursement_claim"):
+            continue  # already attached
+
+        amount = extract_amount_from_notes(approval.notes)
+
+        claim = DisbursementClaim.objects.create(
+            batch=batch,
+            approval=approval,
+            applicant=approval.applicant,
+            amount=amount,
+        )
+        created.append(claim.id)
+
+    return Response({"created_claims": created})
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_batch_claims(request, batch_id):
+    claims = DisbursementClaim.objects.filter(batch_id=batch_id)
+    serializer = DisbursementClaimSerializer(claims, many=True)
+    return Response(serializer.data)
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_claim_status(request, claim_id):
+    claim = get_object_or_404(DisbursementClaim, id=claim_id)
+
+    new_status = request.data.get("status")
+
+    if new_status == "CLAIMED":
+        payout_date = request.data.get("payout_date")
+        if not payout_date:
+            return Response(
+                {"error": "payout_date is required"},
+                status=400
+            )
+        claim.mark_claimed(payout_date)
+
+    elif new_status == "UNCLAIMED":
+        claim.mark_unclaimed()
+
+    else:
+        return Response({"error": "Invalid status"}, status=400)
+
+    return Response(DisbursementClaimSerializer(claim).data)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def close_batch(request, batch_id):
+    batch = get_object_or_404(DisbursementBatch, id=batch_id)
+
+    if batch.status == "CLOSED":
+        return Response({"detail": "Batch already closed."})
+
+    batch.status = "CLOSED"
+    batch.save()
+
+    return Response({"detail": "Batch closed successfully."})
 
 
 @api_view(['GET'])

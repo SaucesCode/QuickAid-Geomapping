@@ -1,10 +1,13 @@
 import qrcode
+import re
 import os
 import json
 from dotenv import load_dotenv
 from .models import ApplicantHistory, StaffActivityLog
 from django.db.models import Q
 from datetime import datetime, timedelta
+from decimal import Decimal
+
 
 load_dotenv()
 
@@ -197,3 +200,16 @@ def apply_approval_filters(queryset, request):
         queryset = queryset.order_by(ordering)
 
     return queryset
+
+def extract_amount_from_notes(notes: str) -> Decimal:
+    """
+    Extracts amount from text like: 'Approved amount: 4000'
+    """
+    if not notes:
+        return Decimal("0.00")
+
+    match = re.search(r"(\d+(?:\.\d+)?)", notes)
+    if not match:
+        return Decimal("0.00")
+
+    return Decimal(match.group(1))

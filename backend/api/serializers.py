@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Applicant, Representative, BackgroundInfo, Barangay, Approval
+from .models import Applicant, Representative, BackgroundInfo, Barangay, Approval, DisbursementClaim, DisbursementBatch
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from datetime import *
 from django.utils import timezone
@@ -171,6 +171,37 @@ class ApprovalSerializer(serializers.ModelSerializer):
         fields = ["id", "approved_at", "approved_by", "batch_file", "notes"]
 
 
+class DisbursementBatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DisbursementBatch
+        fields = "__all__"
+        read_only_fields = ("status", "created_by", "created_at")
+
+
+class DisbursementClaimSerializer(serializers.ModelSerializer):
+    applicant_name = serializers.CharField(
+        source="applicant.background_info.full_name",
+        read_only=True
+    )
+
+    class Meta:
+        model = DisbursementClaim
+        fields = "__all__"
+        read_only_fields = (
+            "batch",
+            "approval",
+            "applicant",
+            "amount",
+            "updated_at",
+        )
+
+    def validate(self, attrs):
+        instance = self.instance
+        if instance.batch.status == "CLOSED":
+            raise serializers.ValidationError("Batch is already closed.")
+        return attrs
+
+
 # ---------------------------------------------------------
 # APPLICANT SERIALIZER
 # ---------------------------------------------------------
@@ -183,12 +214,57 @@ class ApplicantSerializer(serializers.ModelSerializer):
     staff_ref_code = serializers.UUIDField(source='staff.ref_code', read_only=True)
     approval_count = serializers.IntegerField(source="approvals.count", read_only=True)
     approvals = ApprovalSerializer(many=True, read_only=True)
+    identity_status = serializers.CharField(read_only=True)
+    identity_notes = serializers.CharField(read_only=True)
+
 
     class Meta:
         model = Applicant
         fields = "__all__"
         read_only_fields = ["id", "staff", "staff_ref_code",
                             "longitude", "latitude", "date_filled"]
+
+    def evaluate_identity_risk(self, background_info, contact_number):
+        """
+        Returns (status, notes)
+        """
+        conflicts = Applicant.objects.filter(
+            contact_number=contact_number
+        ).exclude(background_info=background_info)
+
+        if conflicts.exists():
+            other = conflicts.first()
+            bi = other.background_info
+
+            if bi.birthday != background_info.birthday:
+                return (
+                    "SUSPICIOUS",
+                    "Same contact number used with different birthday"
+                )
+
+            if (
+                bi.first_name.lower() != background_info.first_name.lower()
+                or bi.last_name.lower() != background_info.last_name.lower()
+            ):
+                return (
+                    "SUSPICIOUS",
+                    "Same contact number used with different name"
+                )
+
+        # Count assistance history
+        history_count = Applicant.objects.filter(
+            background_info=background_info,
+            is_archived=False
+        ).count()
+
+        if history_count >= 2:
+            return (
+                "REVIEWED",
+                f"{history_count} prior assistance records"
+            )
+
+        return ("NEW", "")
+
         
     def create(self, validated_data):
         request = self.context.get("request")
@@ -263,6 +339,74 @@ class ApplicantSerializer(serializers.ModelSerializer):
                 f"{recent_application.date_filled.strftime('%B %d, %Y')}. "
                 f"Next eligible date: {next_eligible.strftime('%B %d, %Y')}."
             )
+        
+        # -----------------------------------------------
+        # 2.5 Identity status evaluation (NON-BLOCKING)
+        # -----------------------------------------------
+
+
+        SEVERITY_ORDER = {
+            "NEW": 1,
+            "REVIEWED": 2,
+            "SUSPICIOUS": 3,
+            "BLOCKED": 4,
+        }
+
+        identity_status = "NEW"
+        identity_notes = ""
+
+        contact_number = validated_data.get("contact_number")
+
+        # Count history for same person (any time)
+        history_count = Applicant.objects.filter(
+            background_info__first_name__iexact=background_info.first_name,
+            background_info__last_name__iexact=background_info.last_name,
+            background_info__birthday=background_info.birthday,
+        ).exclude(is_archived=True).count()
+
+        # Same contact, different birthday
+        conflict_contact_birthday = Applicant.objects.filter(
+            contact_number=contact_number,
+        ).exclude(
+            background_info__birthday=background_info.birthday
+        ).exists()
+
+        # Same birthday + contact, different name
+        conflict_identity_name = Applicant.objects.filter(
+            contact_number=contact_number,
+            background_info__birthday=background_info.birthday,
+        ).exclude(
+            background_info__first_name__iexact=background_info.first_name,
+            background_info__last_name__iexact=background_info.last_name,
+        ).exists()
+
+        # Contact reused by multiple identities
+        distinct_people_using_contact = Applicant.objects.filter(
+            contact_number=contact_number
+        ).values(
+            "background_info__first_name",
+            "background_info__last_name",
+            "background_info__birthday",
+        ).distinct().count()
+
+        # Decision tree
+        if conflict_contact_birthday:
+            identity_status = "SUSPICIOUS"
+            identity_notes = "Same contact number used with different birthday"
+
+        elif conflict_identity_name:
+            identity_status = "SUSPICIOUS"
+            identity_notes = "Same birthday and contact used with different name"
+
+        elif distinct_people_using_contact >= 3:
+            identity_status = "SUSPICIOUS"
+            identity_notes = "Contact number reused by multiple identities"
+
+        elif history_count >= 2:
+            identity_status = "REVIEWED"
+            identity_notes = "Repeat beneficiary with assistance history"
+
+        print(f"IDENTITY STATUS: {identity_status} | {identity_notes}")
 
         # -----------------------------------------------
         # 3. Create or Update Applicant tied to this BI
@@ -276,7 +420,16 @@ class ApplicantSerializer(serializers.ModelSerializer):
 
             applicant.staff = staff_user
             applicant.created_at = created_at
-            applicant.date_filled = now  # ALWAYS update this
+            applicant.date_filled = now 
+
+            previous_status = applicant.identity_status or "NEW"
+
+            if SEVERITY_ORDER[identity_status] < SEVERITY_ORDER[previous_status]:
+                identity_status = previous_status
+                identity_notes = applicant.identity_notes
+
+            applicant.identity_status = identity_status
+            applicant.identity_notes = identity_notes   
             applicant.save()
         else:
             print("Creating NEW Applicant record")
@@ -285,6 +438,8 @@ class ApplicantSerializer(serializers.ModelSerializer):
                 staff=staff_user,
                 created_at=created_at,
                 date_filled=now,
+                identity_status=identity_status,
+                identity_notes=identity_notes,
                 **validated_data
             )
 
