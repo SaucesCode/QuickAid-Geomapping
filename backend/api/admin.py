@@ -16,7 +16,8 @@ class ApplicantAdmin(admin.ModelAdmin):
     list_display = (
         "id", "staff", "get_first_name", "get_last_name",
         "get_barangay", "get_city", "get_province",
-        "type_of_assistance", "date_filled", "created_at"
+        "type_of_assistance", "date_filled", "created_at",
+        'identity_status',
     )
     search_fields = (
         "background_info__first_name",
@@ -31,7 +32,8 @@ class ApplicantAdmin(admin.ModelAdmin):
         "background_info__barangay__city__name",
         "background_info__barangay__name",
         "type_of_assistance",
-        "date_filled"
+        "date_filled",
+        'identity_status'
     )
     ordering = ("-date_filled",)
 
