@@ -3112,7 +3112,10 @@ def attach_approvals_to_batch(request, batch_id):
 
     created = []
 
-    for approval in Approval.objects.filter(id__in=approval_ids):
+    for approval in Approval.objects.filter(
+        id__in=approval_ids,
+        applicant__type_of_assistance=batch.assistance_type
+    ):
         if hasattr(approval, "disbursement_claim"):
             continue  # already attached
 
@@ -3138,7 +3141,22 @@ def list_batch_claims(request, batch_id):
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_claim_status(request, claim_id):
-    claim = get_object_or_404(DisbursementClaim, id=claim_id)
+    claim = get_object_or_404(
+        DisbursementClaim.objects.select_related("batch"),
+        id=claim_id
+    )
+
+    if claim.batch.status == "CLOSED":
+        return Response(
+            {"error": "Batch is closed. Claim cannot be modified."},
+            status=400
+        )
+
+    if claim.status != "PENDING":
+        return Response(
+            {"error": "Only PENDING claims can be updated."},
+            status=400
+        )
 
     new_status = request.data.get("status")
 
@@ -3158,6 +3176,7 @@ def update_claim_status(request, claim_id):
         return Response({"error": "Invalid status"}, status=400)
 
     return Response(DisbursementClaimSerializer(claim).data)
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])

@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import Applicant, Representative, BackgroundInfo, Barangay, Approval, DisbursementClaim, DisbursementBatch
+from .models import Applicant, Representative, BackgroundInfo, Barangay, Approval, DisbursementClaim, DisbursementBatch, ApplicantHistory
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from datetime import *
+from datetime import datetime, timedelta
 from django.utils import timezone
 from .utils import log_staff_activity
 
@@ -157,19 +157,15 @@ class RepresentativeSerializer(serializers.ModelSerializer):
             background_info=bg_instance,
             **validated_data
         )
-
-
-# ---------------------------------------------------------
-# APPROVAL SERIALIZER
-# ---------------------------------------------------------
-class ApprovalSerializer(serializers.ModelSerializer):
-    approved_by = serializers.CharField(source="approved_by.username", read_only=True)
-    batch_file = serializers.CharField(source="batch.file_name", read_only=True)
-
+    
+class ApplicantHistorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Approval
-        fields = ["id", "approved_at", "approved_by", "batch_file", "notes"]
-
+        model = ApplicantHistory
+        fields = [
+            "id",
+            "type_of_assistance",
+            "date_applied",
+        ]
 
 class DisbursementBatchSerializer(serializers.ModelSerializer):
     class Meta:
@@ -179,27 +175,46 @@ class DisbursementBatchSerializer(serializers.ModelSerializer):
 
 
 class DisbursementClaimSerializer(serializers.ModelSerializer):
-    applicant_name = serializers.CharField(
-        source="applicant.background_info.full_name",
+    status_label = serializers.CharField(
+        source="get_status_display",
         read_only=True
     )
 
     class Meta:
         model = DisbursementClaim
-        fields = "__all__"
-        read_only_fields = (
-            "batch",
-            "approval",
-            "applicant",
+        fields = [
+            "id",
             "amount",
+            "status",
+            "status_label",
+            "payout_date",
             "updated_at",
-        )
+        ]
 
-    def validate(self, attrs):
-        instance = self.instance
-        if instance.batch.status == "CLOSED":
-            raise serializers.ValidationError("Batch is already closed.")
-        return attrs
+
+# ---------------------------------------------------------
+# APPROVAL SERIALIZER
+# ---------------------------------------------------------
+class ApprovalSerializer(serializers.ModelSerializer):
+    approved_by = serializers.StringRelatedField()
+    disbursement_claim = DisbursementClaimSerializer(read_only=True)
+    claim_status = serializers.SerializerMethodField()
+    class Meta:
+        model = Approval
+        fields = [
+            "id",
+            "approved_at",
+            "approved_by",
+            "notes",
+            "disbursement_claim",
+            "claim_status",
+        ]
+
+    def get_claim_status(self, obj):
+        if hasattr(obj, "disbursement_claim"):
+            return obj.disbursement_claim.status
+        return "PENDING"
+
 
 
 # ---------------------------------------------------------
@@ -216,55 +231,43 @@ class ApplicantSerializer(serializers.ModelSerializer):
     approvals = ApprovalSerializer(many=True, read_only=True)
     identity_status = serializers.CharField(read_only=True)
     identity_notes = serializers.CharField(read_only=True)
+    application_history = ApplicantHistorySerializer(
+        source="history_entry",
+        many=True,
+        read_only=True
+    )
 
+    total_approved_amount = serializers.SerializerMethodField()
+    total_claimed_amount = serializers.SerializerMethodField()
+    total_unclaimed_amount = serializers.SerializerMethodField()
+
+
+    def _claims(self, obj):
+        return obj.disbursement_claims.all()
+
+    def get_total_approved_amount(self, obj):
+        return sum(
+            c.amount for c in self._claims(obj)
+            if c.status in ["PENDING", "CLAIMED", "UNCLAIMED"]
+        )
+
+    def get_total_claimed_amount(self, obj):
+        return sum(
+            c.amount for c in self._claims(obj)
+            if c.status == "CLAIMED"
+        )
+
+    def get_total_unclaimed_amount(self, obj):
+        return sum(
+            c.amount for c in self._claims(obj)
+            if c.status == "UNCLAIMED"
+        )
 
     class Meta:
         model = Applicant
         fields = "__all__"
         read_only_fields = ["id", "staff", "staff_ref_code",
                             "longitude", "latitude", "date_filled"]
-
-    def evaluate_identity_risk(self, background_info, contact_number):
-        """
-        Returns (status, notes)
-        """
-        conflicts = Applicant.objects.filter(
-            contact_number=contact_number
-        ).exclude(background_info=background_info)
-
-        if conflicts.exists():
-            other = conflicts.first()
-            bi = other.background_info
-
-            if bi.birthday != background_info.birthday:
-                return (
-                    "SUSPICIOUS",
-                    "Same contact number used with different birthday"
-                )
-
-            if (
-                bi.first_name.lower() != background_info.first_name.lower()
-                or bi.last_name.lower() != background_info.last_name.lower()
-            ):
-                return (
-                    "SUSPICIOUS",
-                    "Same contact number used with different name"
-                )
-
-        # Count assistance history
-        history_count = Applicant.objects.filter(
-            background_info=background_info,
-            is_archived=False
-        ).count()
-
-        if history_count >= 2:
-            return (
-                "REVIEWED",
-                f"{history_count} prior assistance records"
-            )
-
-        return ("NEW", "")
-
         
     def create(self, validated_data):
         request = self.context.get("request")
@@ -513,3 +516,5 @@ class ApplicantSerializer(serializers.ModelSerializer):
         except Representative.DoesNotExist:
             data['representative'] = None
         return data
+
+
