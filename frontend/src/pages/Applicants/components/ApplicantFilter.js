@@ -43,7 +43,7 @@ const ApplicantsFilter = ({ filters, onFilterChange, searchTerm, onSearchChange 
     if (field === "city") setLocalFilters(prev => ({ ...prev, barangay: "" }));
   };
 
-  const handleClearField = (fieldName) => {
+  const handleClearField = fieldName => {
     setLocalFilters(prev => {
       let updated = { ...prev, [fieldName]: "" };
       if (fieldName === "city") {
@@ -67,10 +67,11 @@ const ApplicantsFilter = ({ filters, onFilterChange, searchTerm, onSearchChange 
   };
 
   const hasActiveFilters = Object.values(localFilters).some(v => v) || localSearch;
-  const activeFilterCount = Object.values(localFilters).filter(v => v).length + (localSearch ? 1 : 0);
+  const activeFilterCount =
+    Object.values(localFilters).filter(v => v).length + (localSearch ? 1 : 0);
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
       {/* Header Section with Gradient */}
       <div className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 px-6 py-5 border-b border-slate-200/60">
         <div className="flex items-center justify-between">
@@ -79,7 +80,9 @@ const ApplicantsFilter = ({ filters, onFilterChange, searchTerm, onSearchChange 
               <Filter className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 tracking-tight">Applicants Search & Filters</h3>
+              <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
+                Applicants Search & Filters
+              </h3>
               <p className="text-sm text-slate-500 mt-0.5">Find and filter applicants</p>
             </div>
           </div>
@@ -100,8 +103,12 @@ const ApplicantsFilter = ({ filters, onFilterChange, searchTerm, onSearchChange 
               </span>
             )}
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""} ${
-                hasActiveFilters && !isExpanded ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
+              className={`w-4 h-4 transition-transform duration-300 ${
+                isExpanded ? "rotate-180" : ""
+              } ${
+                hasActiveFilters && !isExpanded
+                  ? "text-blue-600"
+                  : "text-slate-400 group-hover:text-slate-600"
               }`}
             />
           </button>
@@ -308,7 +315,8 @@ const ApplicantsFilter = ({ filters, onFilterChange, searchTerm, onSearchChange 
               <div className="flex flex-wrap gap-2">
                 {localSearch && (
                   <span className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-semibold text-xs shadow-sm">
-                    Search: {localSearch.length > 20 ? localSearch.slice(0, 20) + "..." : localSearch}
+                    Search:{" "}
+                    {localSearch.length > 20 ? localSearch.slice(0, 20) + "..." : localSearch}
                   </span>
                 )}
                 {localFilters.city && (
@@ -345,14 +353,14 @@ const CompactSelect = ({ label, value, onChange, onClear, disabled, children }) 
         onChange={e => onChange(e.target.value)}
         disabled={disabled}
         className={`w-full px-3 py-2 rounded-lg border-2 border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed hover:border-slate-300 ${
-          value && !disabled ? 'pr-10' : 'pr-8'
+          value && !disabled ? "pr-10" : "pr-8"
         }`}
       >
         {children}
       </select>
       {value && !disabled ? (
         <button
-          onClick={(e) => {
+          onClick={e => {
             e.preventDefault();
             onClear();
           }}
@@ -382,7 +390,7 @@ const CompactDateInput = ({ label, value, onChange, onClear, min, max }) => (
       />
       {value && (
         <button
-          onClick={(e) => {
+          onClick={e => {
             e.preventDefault();
             onClear();
           }}

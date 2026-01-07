@@ -124,4 +124,14 @@ urlpatterns = [
     path('export/analytics/', export_analytics_report, name='export-analytics'),
     path('export/history/', export_history, name='export-history'),
     path('export/filters/', available_filters, name='available-filters'),
+
+    # =============================================
+    # DISBURSEMENT / PAYOUT
+    # =============================================
+    path("disbursement/batches/", create_disbursement_batch, name="create-disbursement-batch"),
+    path("disbursement/list-batches/", list_disbursement_batches, name="list-disbursement-batches"),
+    path("disbursement/batch/<int:batch_id>/attach-approvals/", attach_approvals_to_batch, name="attach-approvals-to-batch"),
+    path("disbursement/batch/<int:batch_id>/claims/", list_batch_claims, name="list-batch-claims"),
+    path("disbursement/claim/<int:claim_id>/status/", update_claim_status, name="update-claim-status"),
+    path("disbursement/batch/<int:batch_id>/close/", close_batch, name="close-batch"),
 ]
