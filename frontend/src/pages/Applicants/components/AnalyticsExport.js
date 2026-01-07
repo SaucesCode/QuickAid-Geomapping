@@ -13,8 +13,9 @@ import {
   FileSpreadsheet,
   Files,
   BarChart3,
+  ChevronDown,
+  Check,
 } from "lucide-react";
-import FilterGroup from "./FilterGroup";
 import toast from "react-hot-toast";
 import CustomToast from "../../../components/CustomToast";
 
@@ -30,6 +31,7 @@ const AnalyticsExport = () => {
   // UI state
   const [showFilters, setShowFilters] = useState(true);
   const [dateError, setDateError] = useState("");
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   // Fetch available filter options
   const { data: filterOptions, isLoading: filtersLoading } = useQuery({
@@ -56,6 +58,32 @@ const AnalyticsExport = () => {
     }
   }, [startDate, endDate]);
 
+  // Toggle item in array
+  const toggleItem = (item, setter, state) => {
+    setter(state.includes(item) ? state.filter(i => i !== item) : [...state, item]);
+  };
+
+  // Handle city selection (single-select)
+  const handleCityToggle = city => {
+    if (selectedCity === city) {
+      setSelectedCity("");
+      setSelectedBarangays([]);
+    } else {
+      setSelectedCity(city);
+      setSelectedBarangays([]);
+      setOpenDropdown(null);
+    }
+  };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setStartDate("");
+    setEndDate("");
+    setSelectedCity("");
+    setSelectedBarangays([]);
+    setSelectedAssistanceTypes([]);
+  };
+
   // Export analytics function
   const exportAnalytics = async ({ filters, format }) => {
     const response = await api.post("/export/analytics/", {
@@ -70,7 +98,6 @@ const AnalyticsExport = () => {
     const data = response.data;
     if (!data.success) throw new Error(data.error || "Failed to generate report");
 
-    // Download files from base64
     const downloadFileFromBase64 = file => {
       const byteCharacters = atob(file.base64);
       const byteNumbers = new Array(byteCharacters.length)
@@ -111,37 +138,13 @@ const AnalyticsExport = () => {
     },
   });
 
-  // Toggle item in array
-  const toggleItem = (item, setter, state) => {
-    setter(state.includes(item) ? state.filter(i => i !== item) : [...state, item]);
-  };
-
-  // Handle city selection (single-select)
-  const handleCityToggle = city => {
-    if (selectedCity === city) {
-      // Deselect city
-      setSelectedCity("");
-      setSelectedBarangays([]);
-    } else {
-      // Select new city and clear barangays
-      setSelectedCity(city);
-      setSelectedBarangays([]);
-    }
-  };
-
-  // Clear all filters
-  const clearAllFilters = () => {
-    setStartDate("");
-    setEndDate("");
-    setSelectedCity("");
-    setSelectedBarangays([]);
-    setSelectedAssistanceTypes([]);
-  };
-
   // Handle export
   const handleExport = () => {
     if (dateError) {
-      alert("Please fix date range errors before exporting");
+      toast.error("⚠ Please fix the date range first.", {
+        duration: 4000,
+        position: "top-right",
+      });
       return;
     }
 
@@ -157,10 +160,129 @@ const AnalyticsExport = () => {
     analyticsMutation.mutate({ filters, format: exportFormat });
   };
 
+  // Custom Dropdown Component (matches ApplicantsExport)
+  const CustomDropdown = ({
+    title,
+    items = [],
+    selected = [],
+    onSelect,
+    onClear,
+    disabled = false,
+    loading = false,
+    singleSelect = false,
+    placeholder = "Select...",
+    showNames = false,
+  }) => {
+    const isOpen = openDropdown === title;
+    const hasSelection = selected.length > 0;
+
+    const getDisplayText = () => {
+      if (loading) return "Loading...";
+      if (!hasSelection) return placeholder;
+      if (singleSelect) return selected[0];
+      return `${selected.length} selected`;
+    };
+
+    return (
+      <div className="relative">
+        <label className="block mb-2 font-semibold text-gray-700 text-sm">{title}</label>
+        <button
+          type="button"
+          onClick={() => !disabled && setOpenDropdown(isOpen ? null : title)}
+          disabled={disabled}
+          className={`w-full px-4 py-2.5 text-left border rounded-lg bg-white transition-all flex items-center justify-between ${
+            disabled
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "hover:border-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          } ${isOpen ? "border-blue-500 ring-2 ring-blue-500" : "border-gray-300"}`}
+        >
+          <span className={`text-sm truncate ${hasSelection ? "text-gray-900" : "text-gray-500"}`}>
+            {getDisplayText()}
+          </span>
+          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+            {hasSelection && !disabled && (
+              <X
+                className="w-4 h-4 text-gray-400 hover:text-gray-600"
+                onClick={e => {
+                  e.stopPropagation();
+                  onClear();
+                }}
+              />
+            )}
+            {!hasSelection && (
+              <ChevronDown
+                className={`w-4 h-4 text-gray-400 transition-transform ${
+                  isOpen ? "rotate-180" : ""
+                }`}
+              />
+            )}
+          </div>
+        </button>
+
+        {showNames && selected.length > 1 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {selected.map((item, idx) => (
+              <span 
+                key={idx} 
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100"
+              >
+                {item}
+                <X 
+                  className="w-3 h-3 cursor-pointer hover:text-blue-900" 
+                  onClick={() => onSelect(item)}
+                />
+              </span>
+            ))}
+          </div>
+        )}
+
+        {isOpen && !disabled && (
+          <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+            {items.length === 0 ? (
+              <div className="px-4 py-3 text-sm text-gray-500 text-center">No options available</div>
+            ) : (
+              <div className="py-1">
+                {items.map((item, idx) => {
+                  const isSelected = selected.includes(item);
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => onSelect(item)}
+                      className={`w-full px-4 py-2.5 text-left text-sm transition-colors flex items-center justify-between ${
+                        isSelected
+                          ? "bg-blue-50 text-blue-700 font-medium"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <span>{item}</span>
+                      {isSelected && <Check className="w-4 h-4 text-blue-600" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = e => {
+      if (!e.target.closest(".relative")) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const formatOptions = [
-    { value: "pdf", label: "PDF Only", icon: FileText, color: "red" },
-    { value: "excel", label: "Excel Only", icon: FileSpreadsheet, color: "green" },
-    { value: "both", label: "Both Formats", icon: Files, color: "blue" },
+    { value: "pdf", label: "PDF Only", icon: FileText },
+    { value: "excel", label: "Excel Only", icon: FileSpreadsheet },
+    { value: "both", label: "Both Formats", icon: Files },
   ];
 
   const hasActiveFilters =
@@ -172,13 +294,10 @@ const AnalyticsExport = () => {
 
   return (
     <div className="space-y-6">
-      {/* Info Banner */}
-      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex items-start gap-3">
+      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 flex items-start gap-3">
         <BarChart3 className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
         <div>
-          <p className="text-sm font-medium text-indigo-900">
-            Generate comprehensive analytics report
-          </p>
+          <p className="text-sm font-semibold text-indigo-900">Generate comprehensive analytics report</p>
           <p className="text-xs text-indigo-700 mt-1">
             Includes summary statistics, geographic analysis, demographics, trends, performance
             metrics, and recommendations.
@@ -186,7 +305,6 @@ const AnalyticsExport = () => {
         </div>
       </div>
 
-      {/* Export Format Selection */}
       <div>
         <label className="block mb-3 font-semibold text-gray-700 text-sm">Export Format</label>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -203,14 +321,8 @@ const AnalyticsExport = () => {
                     : "border-gray-200 hover:border-gray-300 bg-white"
                 }`}
               >
-                <Icon
-                  className={`w-6 h-6 ${isSelected ? "text-blue-600" : "text-gray-400"}`}
-                />
-                <span
-                  className={`font-medium text-sm ${
-                    isSelected ? "text-blue-700" : "text-gray-700"
-                  }`}
-                >
+                <Icon className={`w-6 h-6 ${isSelected ? "text-blue-600" : "text-gray-400"}`} />
+                <span className={`font-medium text-sm ${isSelected ? "text-blue-700" : "text-gray-700"}`}>
                   {option.label}
                 </span>
               </button>
@@ -219,7 +331,6 @@ const AnalyticsExport = () => {
         </div>
       </div>
 
-      {/* Filters Toggle */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-800">Filter Options</h3>
         <button
@@ -231,35 +342,41 @@ const AnalyticsExport = () => {
         </button>
       </div>
 
-      {/* Filters Section */}
       {showFilters && (
-        <div className="space-y-4 p-5 bg-gradient-to-br from-gray-50 to-indigo-50 rounded-xl border border-gray-200">
-          {/* Date Range */}
+        <div className="space-y-5 p-6 bg-gray-50 rounded-lg border border-gray-200">
           <div>
-            <label className="block mb-2 font-semibold text-gray-700 text-sm">
-              Date Range
-            </label>
+            <label className="block mb-2 font-semibold text-gray-700 text-sm">Date Range</label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 w-5 h-5 pointer-events-none" />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
                 <input
                   type="date"
                   value={startDate}
                   onChange={e => setStartDate(e.target.value)}
                   max={filterOptions?.date_range?.latest}
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm bg-white"
+                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm bg-white"
                 />
+                {startDate && (
+                  <button onClick={() => setStartDate("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 w-5 h-5 pointer-events-none" />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
                 <input
                   type="date"
                   value={endDate}
                   onChange={e => setEndDate(e.target.value)}
                   min={startDate}
                   max={filterOptions?.date_range?.latest}
-                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm bg-white"
+                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm bg-white"
                 />
+                {endDate && (
+                  <button onClick={() => setEndDate("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
             {dateError && (
@@ -270,48 +387,47 @@ const AnalyticsExport = () => {
             )}
           </div>
 
-          {/* City - Single Select (shows selected city in input) */}
-          <FilterGroup
+          <CustomDropdown
             title="City"
             items={filterOptions?.cities || []}
             selected={selectedCity ? [selectedCity] : []}
-            toggle={handleCityToggle}
-            clearAll={() => {
+            onSelect={handleCityToggle}
+            onClear={() => {
               setSelectedCity("");
               setSelectedBarangays([]);
             }}
             loading={filtersLoading}
             singleSelect={true}
+            placeholder="Search city..."
           />
 
-          {/* Barangays - Multi Select (with "All Barangays" option) */}
-          <FilterGroup
+          <CustomDropdown
             title="Barangays"
             items={filterOptions?.barangays || []}
-            selected={selectedBarangays || []}
-            toggle={b => toggleItem(b, setSelectedBarangays, selectedBarangays)}
-            clearAll={() => setSelectedBarangays([])}
+            selected={selectedBarangays}
+            onSelect={b => toggleItem(b, setSelectedBarangays, selectedBarangays)}
+            onClear={() => setSelectedBarangays([])}
             loading={filtersLoading}
             disabled={!selectedCity}
-            showAllOption={true}
-            allOptionLabel="All Barangays"
+            placeholder="Select city first"
+            showNames={true}
           />
 
-          {/* Assistance Types - Multi Select */}
-          <FilterGroup
+          <CustomDropdown
             title="Assistance Types"
             items={filterOptions?.assistance_types || []}
-            selected={selectedAssistanceTypes || []}
-            toggle={t => toggleItem(t, setSelectedAssistanceTypes, selectedAssistanceTypes)}
-            clearAll={() => setSelectedAssistanceTypes([])}
+            selected={selectedAssistanceTypes}
+            onSelect={t => toggleItem(t, setSelectedAssistanceTypes, selectedAssistanceTypes)}
+            onClear={() => setSelectedAssistanceTypes([])}
             loading={filtersLoading}
+            placeholder="Search assistance types..."
+            showNames={true}
           />
 
-          {/* Clear Filters */}
           {hasActiveFilters && (
             <button
               onClick={clearAllFilters}
-              className="w-full text-sm text-red-600 font-medium hover:bg-red-50 rounded-lg py-2 flex items-center justify-center gap-2 transition-colors"
+              className="w-full text-sm text-red-600 font-medium hover:bg-red-50 rounded-lg py-2 flex items-center justify-center gap-2 transition-colors border border-red-200"
             >
               <X className="w-4 h-4" /> Clear All Filters
             </button>
@@ -319,40 +435,29 @@ const AnalyticsExport = () => {
         </div>
       )}
 
-      {/* Export Button */}
       <div className="flex justify-end pt-4 border-t border-gray-200">
         <button
           onClick={handleExport}
           disabled={analyticsMutation.isPending || dateError || filtersLoading}
-          className="relative overflow-hidden flex items-center justify-center gap-3 px-8 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+          className="relative overflow-hidden flex items-center justify-center gap-2 px-8 py-3 rounded-lg font-semibold bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all text-white"
         >
-          {/* Progress bar background */}
           {analyticsMutation.isPending && (
             <div
-              className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-800 to-indigo-800"
-              style={{
-                animation: "progress 3s ease-out forwards",
-              }}
+              className="absolute left-0 top-0 bottom-0 bg-blue-800"
+              style={{ animation: "progress 3s ease-out forwards" }}
             />
           )}
-
-          <style>{`
-    @keyframes progress {
-      0% { width: 0%; }
-      100% { width: 100%; }
-    }
-  `}</style>
-
-          <span className="relative z-10 text-white flex items-center gap-3">
+          <style>{`@keyframes progress { 0% { width: 0%; } 100% { width: 100%; } }`}</style>
+          <span className="relative z-10 flex items-center gap-2">
             {analyticsMutation.isPending ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin text-white" />
-                <span className="text-white font-bold">Generating Report...</span>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Generating Report...</span>
               </>
             ) : (
               <>
                 <Download className="w-5 h-5 text-white" />
-                <span className="text-white font-bold">Generate Report</span>
+                <span className="text-white">Generate Report</span>
               </>
             )}
           </span>
