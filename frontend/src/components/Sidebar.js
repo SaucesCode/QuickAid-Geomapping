@@ -21,6 +21,7 @@ import {
   Layers,
   ChevronLeft,
   Home,
+  Check,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import CustomToast from "./CustomToast";
@@ -141,6 +142,7 @@ const Sidebar = () => {
       path.includes("/register-applicant") ||
       path.includes("/applicants") ||
       path.includes("/approved") ||
+      path.includes("/disbursement") ||
       path.includes("/archived-applicants") ||
       path.includes("/export-applicants")
     ) {
@@ -184,6 +186,7 @@ const Sidebar = () => {
       "/analytics/performance": "Performance Insights",
       "/admin-management": "Admin Management",
       "/settings": "Settings",
+      "/disbursement": "Disbursement",
     };
     return map[location.pathname] || "Dashboard";
   };
@@ -575,21 +578,7 @@ const Sidebar = () => {
                       }`}
                       style={collapsed ? { top: popoutY } : {}}
                     >
-                      {/* <NavLink
-                        to="/register-applicant"
-                        onClick={handleNavClick}
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
-                            isActive
-                              ? "bg-gray-700 text-white font-medium"
-                              : "text-white hover:bg-gray-700 hover:text-white"
-                          }`
-                        }
-                      >
-                        <UserPlus className="w-4 h-4" />
-                        <span className="text-white">New Applicant</span>
-                      </NavLink> */}
-
+                      {/* All Applicants - Available to all staff */}
                       <NavLink
                         to="/applicants"
                         onClick={handleNavClick}
@@ -605,6 +594,7 @@ const Sidebar = () => {
                         <span className="text-white">All Applicants</span>
                       </NavLink>
 
+                      {/* Superuser-only items */}
                       {user?.is_superuser && (
                         <>
                           <NavLink
@@ -620,6 +610,21 @@ const Sidebar = () => {
                           >
                             <CheckCircle className="w-4 h-4" />
                             <span className="text-white">Approved</span>
+                          </NavLink>
+
+                          <NavLink
+                            to="/disbursement"
+                            onClick={handleNavClick}
+                            className={({ isActive }) =>
+                              `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                                isActive
+                                  ? "bg-gray-700 text-white font-medium"
+                                  : "text-white hover:bg-gray-700 hover:text-white"
+                              }`
+                            }
+                          >
+                            <Check className="w-4 h-4" />
+                            <span className="text-white">Disbursement</span>
                           </NavLink>
 
                           <NavLink
@@ -639,6 +644,7 @@ const Sidebar = () => {
                         </>
                       )}
 
+                      {/* Archived - Available to all staff */}
                       <NavLink
                         to="/archived-applicants"
                         onClick={handleNavClick}

@@ -17,6 +17,8 @@ import Approved from "./pages/Applicants/Approved";
 import ArchiveApplicants from "./pages/Applicants/ArchiveApplicants";
 import ExportApplicants from "./pages/Applicants/ExportApplicants";
 
+import Disbursement from "./pages/Disbursement/Disbursement";
+
 import MultiStepForm from "./pages/forms/MultiStepForm";
 import PrintPage from "./pages/print/PrintPage";
 import PrintPagebyID from "./pages/print/PrintPagebyID";
@@ -43,7 +45,6 @@ import TermsAndConditions from "./components/Sections/TermsAndConditions";
 import PrivacyPolicy from "./components/Sections/PrivacyPolicy";
 
 import StaffQR from "./components/StaffQR";
-import eligibility from "./pages/print/CertificateOfEligibility";
 import CertificateOfEligibility from "./pages/print/CertificateOfEligibility";
 import GeneralIntakeSheet from "./pages/print/Intakesheet";
 import { Toaster } from "react-hot-toast";
@@ -113,6 +114,8 @@ function App() {
             <Route path="export-applicants" element={<ExportApplicants />} />
             <Route path="approved" element={<Approved />} />
             <Route path="archived-applicants" element={<ArchiveApplicants />} />
+
+            <Route path="disbursement" element={<Disbursement />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>

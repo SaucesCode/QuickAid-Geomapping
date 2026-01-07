@@ -1030,12 +1030,17 @@ def applicant_detail(request, applicant_id):
 
     applicant = get_object_or_404(
         Applicant.objects.select_related(
-            "background_info__barangay__city",
             "background_info__barangay__city__province",
+            "staff",
             "representative__background_info",
+        ).prefetch_related(
+            "approvals__approved_by",
+            "approvals__disbursement_claim",
+            "history_entry",
         ),
         pk=applicant_id,
     )
+
 
     if request.method == 'GET':
         serializer = ApplicantSerializer(applicant, context={"request": request})
@@ -3103,6 +3108,20 @@ def create_disbursement_batch(request):
         serializer.save(created_by=request.user)
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_disbursement_batches(request):
+    batches = DisbursementBatch.objects.prefetch_related(
+        "claims",
+        "claims__approval",
+        "claims__applicant"
+    ).order_by("-created_at")
+
+    serializer = DisbursementBatchSerializer(batches, many=True)
+    return Response(serializer.data)
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
