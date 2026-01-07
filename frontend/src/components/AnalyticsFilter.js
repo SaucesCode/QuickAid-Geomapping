@@ -76,7 +76,7 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
 
     setFilters(updatedFilters);
     setSelectedPreset(preset);
-    onFilterChange?.(updatedFilters); // ✅ Auto-apply immediately
+    onFilterChange?.(updatedFilters);
   };
 
   // Validate date range
@@ -100,7 +100,6 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
         updated.barangay = "";
       }
 
-      // ✅ Auto-apply filters immediately
       onFilterChange?.(updated);
       return updated;
     });
@@ -110,11 +109,22 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
     }
   };
 
+  const handleClearField = (fieldName) => {
+    setFilters(prev => {
+      let updated = { ...prev, [fieldName]: "" };
+      if (fieldName === "city") {
+        updated.barangay = "";
+      }
+      onFilterChange?.(updated);
+      return updated;
+    });
+  };
+
   const handleReset = () => {
     const cleared = { type: "", start: "", end: "", city: "", barangay: "" };
     setFilters(cleared);
     setSelectedPreset("");
-    onFilterChange?.(cleared); // ✅ Auto-apply reset
+    onFilterChange?.(cleared);
   };
 
   // Check if any filters are active
@@ -122,303 +132,353 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
   const activeFilterCount = Object.values(filters).filter(v => v).length;
 
   return (
-    <div className="bg-white rounded-xl shadow-md border border-blue-100 p-4">
-      {/* Header Row */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
-            <Filter className="w-4 h-4 text-white" />
+    <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden">
+      {/* Header Section with Gradient */}
+      <div className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 px-6 py-5 border-b border-slate-200/60">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl shadow-sm">
+              <Filter className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 tracking-tight">Analytics Filters</h3>
+              <p className="text-sm text-slate-500 mt-0.5">Customize your data view</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-base font-bold text-gray-800">Filters</h3>
-            <p className="text-xs text-gray-500">Refine your analytics data</p>
-          </div>
-        </div>
 
-        {/* Toggle Button */}
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${
-            hasActiveFilters && !isExpanded
-              ? "bg-blue-50 border-blue-300 text-blue-700"
-              : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
-          }`}
-        >
-          <span>{isExpanded ? "Hide" : "Show"} More Filters</span>
-          {hasActiveFilters && !isExpanded && (
-            <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
-              {activeFilterCount}
-            </span>
-          )}
-          <ChevronDown
-            className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-          />
-        </button>
-      </div>
-
-      {/* ✅ Quick Date Range - Always Visible */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-200 mb-3">
-        <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-blue-600" />
-          Quick Date Range
-        </label>
-        <div className="flex flex-wrap gap-1.5">
-          {datePresets.map(preset => (
-            <button
-              key={preset.value}
-              onClick={() => applyDatePreset(preset.value)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                selectedPreset === preset.value
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-white text-gray-700 hover:bg-blue-100 border border-gray-200"
+          {/* Toggle Button */}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`group flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all duration-200 ${
+              hasActiveFilters && !isExpanded
+                ? "bg-blue-50 border-blue-200 text-blue-700 shadow-sm hover:shadow-md"
+                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-sm"
+            }`}
+          >
+            <span className="font-semibold">{isExpanded ? "Hide" : "Show"} Filters</span>
+            {hasActiveFilters && !isExpanded && (
+              <span className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs rounded-full min-w-[22px] h-[22px] flex items-center justify-center font-bold shadow-sm">
+                {activeFilterCount}
+              </span>
+            )}
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""} ${
+                hasActiveFilters && !isExpanded ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
               }`}
-            >
-              {preset.label}
-            </button>
-          ))}
+            />
+          </button>
         </div>
       </div>
 
-      {/* Collapsible Advanced Filters */}
-      {isExpanded && (
-        <div className="space-y-4 animate-slideDown">
-          {/* Main Filters Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {/* Location Filters Group */}
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <h4 className="text-xs font-bold text-gray-600 uppercase mb-2 flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                Location
-              </h4>
-              <div className="space-y-2">
-                <CompactSelect
-                  label="City"
-                  name="city"
-                  value={filters.city}
-                  onChange={handleChange}
-                  disabled={isFetchingCities}
-                >
-                  <option value="">All Cities</option>
-                  {cities.map(city => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </CompactSelect>
-
-                <CompactSelect
-                  label="Barangay"
-                  name="barangay"
-                  value={filters.barangay}
-                  onChange={handleChange}
-                  disabled={!filters.city || isFetchingBarangays}
-                >
-                  <option value="">
-                    {filters.city ? "All Barangays" : "Select City First"}
-                  </option>
-                  {barangays.map(b => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
-                  ))}
-                </CompactSelect>
-              </div>
-            </div>
-
-            {/* Assistance Type Group */}
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <h4 className="text-xs font-bold text-gray-600 uppercase mb-2 flex items-center gap-1">
-                <Tags className="w-3 h-3" />
-                Assistance
-              </h4>
-              <CompactSelect
-                label="Type"
-                name="type"
-                value={filters.type}
-                onChange={handleChange}
+      <div className="px-6 py-5">
+        {/* Quick Date Range - Always Visible */}
+        <div className="bg-gradient-to-br from-blue-50 via-indigo-50/50 to-blue-50 rounded-xl p-4 border border-blue-200/60 shadow-sm">
+          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-blue-600" />
+            Quick Date Range
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {datePresets.map(preset => (
+              <button
+                key={preset.value}
+                onClick={() => applyDatePreset(preset.value)}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  selectedPreset === preset.value
+                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md scale-105"
+                    : "bg-white text-slate-700 hover:bg-blue-100 hover:text-blue-700 border-2 border-slate-200 hover:border-blue-300 shadow-sm hover:shadow"
+                }`}
               >
-                <option value="">All Types</option>
-                <option value="Medical">Medical</option>
-                <option value="Educational">Educational</option>
-                <option value="Burial">Burial</option>
-              </CompactSelect>
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Collapsible Advanced Filters */}
+        {isExpanded && (
+          <div className="space-y-5 animate-slideDown mt-5">
+            {/* Main Filters Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Location Filters Group */}
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-4 border-2 border-slate-200/60 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <MapPin className="w-4 h-4 text-blue-600" />
+                  Location
+                </h4>
+                <div className="space-y-3">
+                  <CompactSelect
+                    label="City"
+                    name="city"
+                    value={filters.city}
+                    onChange={handleChange}
+                    onClear={() => handleClearField("city")}
+                    disabled={isFetchingCities}
+                  >
+                    <option value="">All Cities</option>
+                    {cities.map(city => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </CompactSelect>
+
+                  <CompactSelect
+                    label="Barangay"
+                    name="barangay"
+                    value={filters.barangay}
+                    onChange={handleChange}
+                    onClear={() => handleClearField("barangay")}
+                    disabled={!filters.city || isFetchingBarangays}
+                  >
+                    <option value="">
+                      {filters.city ? "All Barangays" : "Select City First"}
+                    </option>
+                    {barangays.map(b => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </CompactSelect>
+                </div>
+              </div>
+
+              {/* Assistance Type Group */}
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-4 border-2 border-slate-200/60 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <Tags className="w-4 h-4 text-blue-600" />
+                  Assistance Type
+                </h4>
+                <CompactSelect
+                  label="Type"
+                  name="type"
+                  value={filters.type}
+                  onChange={handleChange}
+                  onClear={() => handleClearField("type")}
+                >
+                  <option value="">All Types</option>
+                  <option value="Medical">Medical</option>
+                  <option value="Educational">Educational</option>
+                  <option value="Burial">Burial</option>
+                </CompactSelect>
+              </div>
+
+              {/* Custom Date Range Group */}
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-4 border-2 border-slate-200/60 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  Custom Date Range
+                </h4>
+                <div className="space-y-3">
+                  <CompactDateInput
+                    label="Start Date"
+                    name="start"
+                    value={filters.start}
+                    onChange={handleChange}
+                    onClear={() => handleClearField("start")}
+                    max={filters.end || undefined}
+                  />
+                  <CompactDateInput
+                    label="End Date"
+                    name="end"
+                    value={filters.end}
+                    onChange={handleChange}
+                    onClear={() => handleClearField("end")}
+                    min={filters.start || undefined}
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Custom Date Range Group */}
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <h4 className="text-xs font-bold text-gray-600 uppercase mb-2 flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                Custom Range
-              </h4>
-              <div className="space-y-2">
-                <CompactDateInput
-                  label="Start"
-                  name="start"
-                  value={filters.start}
-                  onChange={handleChange}
-                  max={filters.end || undefined}
-                />
-                <CompactDateInput
-                  label="End"
-                  name="end"
-                  value={filters.end}
-                  onChange={handleChange}
-                  min={filters.start || undefined}
-                />
+            {/* Extra Fields */}
+            {extraFields && (
+              <div className="pt-4 border-t-2 border-slate-200">
+                {extraFields}
+              </div>
+            )}
+
+            {/* Active Filters Display */}
+            {hasActiveFilters && (
+              <div className="bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-xl p-4 border border-slate-200/60">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-bold text-slate-700 mr-1">
+                    Active Filters:
+                  </span>
+                  {selectedPreset && (
+                    <FilterTag
+                      label={
+                        datePresets.find(p => p.value === selectedPreset)?.label || selectedPreset
+                      }
+                      onRemove={() => {
+                        setSelectedPreset("");
+                        const cleared = { ...filters, start: "", end: "" };
+                        setFilters(cleared);
+                        onFilterChange?.(cleared);
+                      }}
+                    />
+                  )}
+                  {filters.city && (
+                    <FilterTag
+                      label={filters.city}
+                      onRemove={() => handleClearField("city")}
+                    />
+                  )}
+                  {filters.barangay && (
+                    <FilterTag
+                      label={filters.barangay}
+                      onRemove={() => handleClearField("barangay")}
+                    />
+                  )}
+                  {filters.type && (
+                    <FilterTag
+                      label={filters.type}
+                      onRemove={() => handleClearField("type")}
+                    />
+                  )}
+                  {filters.start && !selectedPreset && (
+                    <FilterTag
+                      label={`From: ${filters.start}`}
+                      onRemove={() => handleClearField("start")}
+                    />
+                  )}
+                  {filters.end && !selectedPreset && (
+                    <FilterTag
+                      label={`To: ${filters.end}`}
+                      onRemove={() => handleClearField("end")}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {dateError && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 flex items-center gap-3 shadow-sm">
+                <div className="p-1 bg-red-100 rounded-lg">
+                  <X className="w-4 h-4 text-red-600" />
+                </div>
+                <p className="text-sm text-red-700 font-medium">{dateError}</p>
+              </div>
+            )}
+
+            {/* Reset Button */}
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={handleReset}
+                className="group flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 rounded-xl text-sm font-semibold transition-all duration-200 border-2 border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md"
+              >
+                <RotateCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+                Reset All Filters
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Compact Summary When Collapsed */}
+        {!isExpanded && hasActiveFilters && (
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-slate-700">Active:</span>
+              <div className="flex flex-wrap gap-2">
+                {selectedPreset && (
+                  <span className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-semibold text-xs shadow-sm">
+                    {datePresets.find(p => p.value === selectedPreset)?.label}
+                  </span>
+                )}
+                {filters.city && (
+                  <span className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg font-medium text-xs border border-slate-200">
+                    {filters.city}
+                  </span>
+                )}
+                {filters.barangay && (
+                  <span className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg font-medium text-xs border border-slate-200">
+                    {filters.barangay}
+                  </span>
+                )}
+                {filters.type && (
+                  <span className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg font-medium text-xs border border-slate-200">
+                    {filters.type}
+                  </span>
+                )}
               </div>
             </div>
           </div>
-
-          {/* Extra Fields */}
-          {extraFields && <div className="pt-2 border-t border-gray-200">{extraFields}</div>}
-
-          {/* Active Filters Display */}
-          {hasActiveFilters && (
-            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-gray-200">
-              <span className="text-xs font-medium text-gray-500 self-center mr-1">
-                Active:
-              </span>
-              {selectedPreset && (
-                <FilterTag
-                  label={
-                    datePresets.find(p => p.value === selectedPreset)?.label || selectedPreset
-                  }
-                  onRemove={() => {
-                    setSelectedPreset("");
-                    const cleared = { ...filters, start: "", end: "" };
-                    setFilters(cleared);
-                    onFilterChange?.(cleared); // ✅ Auto-apply
-                  }}
-                />
-              )}
-              {filters.city && (
-                <FilterTag
-                  label={filters.city}
-                  onRemove={() => handleChange({ target: { name: "city", value: "" } })}
-                />
-              )}
-              {filters.barangay && (
-                <FilterTag
-                  label={filters.barangay}
-                  onRemove={() => handleChange({ target: { name: "barangay", value: "" } })}
-                />
-              )}
-              {filters.type && (
-                <FilterTag
-                  label={filters.type}
-                  onRemove={() => handleChange({ target: { name: "type", value: "" } })}
-                />
-              )}
-              {filters.start && !selectedPreset && (
-                <FilterTag
-                  label={`From: ${filters.start}`}
-                  onRemove={() => handleChange({ target: { name: "start", value: "" } })}
-                />
-              )}
-              {filters.end && !selectedPreset && (
-                <FilterTag
-                  label={`To: ${filters.end}`}
-                  onRemove={() => handleChange({ target: { name: "end", value: "" } })}
-                />
-              )}
-            </div>
-          )}
-
-          {/* Error Message */}
-          {dateError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-2 flex items-center gap-2">
-              <X className="w-4 h-4 text-red-500" />
-              <p className="text-xs text-red-600 font-medium">{dateError}</p>
-            </div>
-          )}
-
-          {/* ✅ Only Reset Button - No Apply Button */}
-          <div className="flex gap-2 pt-2">
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-medium transition-all border border-gray-300"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Reset All Filters
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Compact Summary When Collapsed */}
-      {!isExpanded && hasActiveFilters && (
-        <div className="mt-2 text-xs text-gray-600 flex items-center gap-2">
-          <span className="font-medium">Active filters:</span>
-          <div className="flex flex-wrap gap-1">
-            {selectedPreset && (
-              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">
-                {datePresets.find(p => p.value === selectedPreset)?.label}
-              </span>
-            )}
-            {filters.city && (
-              <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded">
-                {filters.city}
-              </span>
-            )}
-            {filters.barangay && (
-              <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded">
-                {filters.barangay}
-              </span>
-            )}
-            {filters.type && (
-              <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded">
-                {filters.type}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
 
 // Compact Components
-const CompactSelect = ({ label, name, value, onChange, disabled, children }) => (
-  <div className="space-y-1">
-    <label className="text-xs font-medium text-gray-600">{label}</label>
+const CompactSelect = ({ label, name, value, onChange, onClear, disabled, children }) => (
+  <div className="space-y-1.5">
+    <label className="text-xs font-semibold text-slate-700">{label}</label>
     <div className="relative">
       <select
         name={name}
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="w-full px-2 py-1.5 rounded-md border border-gray-300 bg-white text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none transition-all appearance-none cursor-pointer pr-6 disabled:opacity-50 disabled:bg-gray-100"
+        className={`w-full px-3 py-2 rounded-lg border-2 border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed hover:border-slate-300 ${
+          value && !disabled ? 'pr-10' : 'pr-8'
+        }`}
       >
         {children}
       </select>
-      <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+      {value && !disabled ? (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onClear();
+          }}
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded transition-colors z-10"
+          type="button"
+        >
+          <X className="w-3.5 h-3.5 text-slate-500 hover:text-slate-700" />
+        </button>
+      ) : (
+        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+      )}
     </div>
   </div>
 );
 
-const CompactDateInput = ({ label, name, value, onChange, min, max }) => (
-  <div className="space-y-1">
-    <label className="text-xs font-medium text-gray-600">{label}</label>
-    <input
-      type="date"
-      name={name}
-      value={value}
-      min={min}
-      max={max}
-      onChange={onChange}
-      className="w-full px-2 py-1.5 rounded-md border border-gray-300 bg-white text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none transition-all"
-    />
+const CompactDateInput = ({ label, name, value, onChange, onClear, min, max }) => (
+  <div className="space-y-1.5">
+    <label className="text-xs font-semibold text-slate-700">{label}</label>
+    <div className="relative">
+      <input
+        type="date"
+        name={name}
+        value={value}
+        min={min}
+        max={max}
+        onChange={onChange}
+        className="w-full px-3 py-2 rounded-lg border-2 border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all hover:border-slate-300 pr-10"
+      />
+      {value && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onClear();
+          }}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded transition-colors z-10"
+          type="button"
+        >
+          <X className="w-3.5 h-3.5 text-slate-500 hover:text-slate-700" />
+        </button>
+      )}
+    </div>
   </div>
 );
 
 const FilterTag = ({ label, onRemove }) => (
-  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-lg text-xs font-semibold border-2 border-blue-200 shadow-sm">
     {label}
     <button
       onClick={onRemove}
-      className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+      className="hover:bg-blue-200 rounded-full p-0.5 transition-all duration-200 hover:scale-110"
     >
-      <X className="w-2.5 h-2.5" />
+      <X className="w-3 h-3" />
     </button>
   </span>
 );
