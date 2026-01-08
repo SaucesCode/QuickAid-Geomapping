@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db import models
 from .models import Applicant, Representative, BackgroundInfo, Barangay, Approval, DisbursementClaim, DisbursementBatch, ApplicantHistory
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from datetime import datetime, timedelta
