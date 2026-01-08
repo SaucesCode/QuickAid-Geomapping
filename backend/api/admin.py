@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Sum
 from .models import (
     Applicant,
     CustomUser,
@@ -8,10 +9,46 @@ from .models import (
     StaffActivityLog,
     Approval,
     ApprovalBatch,
-    SupportMessage
+    SupportMessage,
+    DisbursementBatch,
+    DisbursementClaim
 )
 
-#
+class DisbursementBatchAdmin(admin.ModelAdmin):
+    list_display = (
+        "id", 
+        "name", 
+        "assistance_type", 
+        "status", 
+        "get_total_amount",
+        "total_beneficiaries",
+        "created_at"
+    )
+    list_filter = ("status", "assistance_type", "created_at")
+    search_fields = ("name", "assistance_type")
+
+    def get_total_amount(self, obj):
+        total = obj.claims.aggregate(Sum('amount'))['amount__sum'] or 0
+        return f"₱{total:,.2f}"
+    get_total_amount.short_description = "Total Amount"
+
+class DisbursementClaimAdmin(admin.ModelAdmin):
+    list_display = (
+        "id", 
+        "applicant", 
+        "batch", 
+        "amount", 
+        "status", 
+        "updated_at"
+    )
+    list_filter = ("status", "batch", "updated_at")
+    search_fields = (
+        "applicant__background_info__first_name", 
+        "applicant__background_info__last_name",
+        "batch__name"
+    )
+    raw_id_fields = ("applicant", "batch", "approval")
+
 class ApplicantAdmin(admin.ModelAdmin):
     list_display = (
         "id", "staff", "get_first_name", "get_last_name",
@@ -71,74 +108,36 @@ class ApplicantAdmin(admin.ModelAdmin):
             return True
         return obj.staff == request.user or request.user.is_superuser
 
-
 class RepresentativeAdmin(admin.ModelAdmin):
-    list_display = (
-        "applicant", "get_first_name", "get_last_name", "relationship",
-    )
-
-    def get_first_name(self, obj):
-        return obj.background_info.first_name
-    get_first_name.short_description = "First Name"
-
-    def get_last_name(self, obj):
-        return obj.background_info.last_name
-    get_last_name.short_description = "Last Name"
-
+    list_display = ("applicant", "get_first_name", "get_last_name", "relationship")
+    def get_first_name(self, obj): return obj.background_info.first_name
+    def get_last_name(self, obj): return obj.background_info.last_name
 
 class CustomUserAdmin(admin.ModelAdmin):
     list_display = ("username", "email", "role", "is_staff", "is_active")
     search_fields = ("username", "email")
     list_filter = ("role", "is_superuser", "is_active")
 
-
 class ApplicantHistoryAdmin(admin.ModelAdmin):
-    list_display = (
-        "background_info",
-        "applicant",
-        "type_of_assistance",
-        "date_applied"
-    )
-    search_fields = (
-        "background_info__first_name",
-        "background_info__last_name",
-        "type_of_assistance"
-    )
+    list_display = ("background_info", "applicant", "type_of_assistance", "date_applied")
+    search_fields = ("background_info__first_name", "background_info__last_name", "type_of_assistance")
     list_filter = ("type_of_assistance", "date_applied")
     ordering = ("-date_applied",)
 
-
 class StaffActivityLogAdmin(admin.ModelAdmin):
-    list_display = (
-        "staff", "action", "details", "ip_address", "timestamp"
-    )
+    list_display = ("staff", "action", "details", "ip_address", "timestamp")
     search_fields = ("staff__username", "action", "details")
     list_filter = ("action", "timestamp")
     ordering = ("-timestamp",)
 
-
 class ApprovalAdmin(admin.ModelAdmin):
     list_display = ("applicant", "approved_by", "approved_at", "notes")
-    search_fields = (
-        "applicant__background_info__first_name",
-        "applicant__background_info__last_name",
-        "approved_by__username",
-    )
+    search_fields = ("applicant__background_info__first_name", "applicant__background_info__last_name", "approved_by__username")
     list_filter = ("approved_at", "approved_by")
     ordering = ("-approved_at",)
 
-
 class ApprovalBatchAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "uploaded_by",
-        "file_name",
-        "uploaded_at",
-        "total_processed",
-        "total_approved",
-        "total_already_approved",
-        "total_not_found",
-    )
+    list_display = ("id", "uploaded_by", "file_name", "uploaded_at", "total_approved")
     search_fields = ("file_name", "uploaded_by__username")
     list_filter = ("uploaded_at",)
     ordering = ("-uploaded_at",)
@@ -148,8 +147,6 @@ class SupportMessageAdmin(admin.ModelAdmin):
     list_filter = ('is_resolved', 'created_at')
     search_fields = ('name', 'email', 'message')
 
-
-# Register models
 admin.site.register(ApplicantHistory, ApplicantHistoryAdmin)
 admin.site.register(StaffActivityLog, StaffActivityLogAdmin)
 admin.site.register(Applicant, ApplicantAdmin)
@@ -159,4 +156,5 @@ admin.site.register(BackgroundInfo)
 admin.site.register(Approval, ApprovalAdmin)
 admin.site.register(ApprovalBatch, ApprovalBatchAdmin)
 admin.site.register(SupportMessage, SupportMessageAdmin)
-
+admin.site.register(DisbursementBatch, DisbursementBatchAdmin)
+admin.site.register(DisbursementClaim, DisbursementClaimAdmin)

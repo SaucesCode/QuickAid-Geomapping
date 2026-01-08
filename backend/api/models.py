@@ -476,7 +476,17 @@ class DisbursementBatch(models.Model):
     STATUS_CHOICES = [
         ("OPEN", "Open"),
         ("CLOSED", "Closed"),
+        ("FINALIZED", "Finalized"),
     ]
+
+    # ✅ ADD THIS: Link to approval batch
+    approval_batch = models.OneToOneField(
+        "ApprovalBatch",
+        on_delete=models.PROTECT,
+        related_name="disbursement_batch",
+        null=True,
+        blank=True
+    )
 
     name = models.CharField(max_length=255)
     assistance_type = models.CharField(max_length=100)
@@ -489,6 +499,11 @@ class DisbursementBatch(models.Model):
         related_name="created_batches"
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    total_beneficiaries = models.IntegerField(default=0)
+    total_claimed = models.IntegerField(default=0)
+    total_unclaimed = models.IntegerField(default=0)
+    finalized_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name
