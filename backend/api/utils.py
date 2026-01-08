@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from .models import ApplicantHistory, StaffActivityLog
 from django.db.models import Q
 from datetime import datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 
 load_dotenv()
@@ -201,15 +201,16 @@ def apply_approval_filters(queryset, request):
 
     return queryset
 
-def extract_amount_from_notes(notes: str) -> Decimal:
-    """
-    Extracts amount from text like: 'Approved amount: 4000'
-    """
+def extract_amount_from_notes(notes):
+    """Extract amount from 'Approved amount: 5000' format"""
     if not notes:
-        return Decimal("0.00")
-
-    match = re.search(r"(\d+(?:\.\d+)?)", notes)
-    if not match:
-        return Decimal("0.00")
-
-    return Decimal(match.group(1))
+        return Decimal('0.00')
+    
+    match = re.search(r'[\d,]+\.?\d*', notes)
+    if match:
+        amount_str = match.group().replace(',', '')
+        try:
+            return Decimal(amount_str)
+        except InvalidOperation:
+            return Decimal('0.00')
+    return Decimal('0.00')

@@ -167,29 +167,178 @@ class ApplicantHistorySerializer(serializers.ModelSerializer):
             "date_applied",
         ]
 
-class DisbursementBatchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DisbursementBatch
-        fields = "__all__"
-        read_only_fields = ("status", "created_by", "created_at")
-
+# ---------------------------------------------------------
+# DISBURSEMENT SERIALIZERS (FIXED)
+# ---------------------------------------------------------
 
 class DisbursementClaimSerializer(serializers.ModelSerializer):
-    status_label = serializers.CharField(
-        source="get_status_display",
-        read_only=True
-    )
+    # ✅ ADD: Applicant details for the disbursement list
+    applicant_id = serializers.IntegerField(source='applicant.id', read_only=True)
+    applicant_name = serializers.SerializerMethodField()
+    barangay = serializers.CharField(source='applicant.background_info.barangay.name', read_only=True)
+    city = serializers.CharField(source='applicant.background_info.barangay.city.name', read_only=True)
+    contact_number = serializers.CharField(source='applicant.contact_number', read_only=True)
+    assistance_type = serializers.CharField(source='applicant.type_of_assistance', read_only=True)
+    
+    # ✅ ADD: Status display
+    status_label = serializers.CharField(source='get_status_display', read_only=True)
+    
+    # ✅ ADD: Approval reference
+    approval_id = serializers.IntegerField(source='approval.id', read_only=True)
+    approval_notes = serializers.CharField(source='approval.notes', read_only=True)
 
     class Meta:
         model = DisbursementClaim
         fields = [
-            "id",
-            "amount",
-            "status",
-            "status_label",
-            "payout_date",
-            "updated_at",
+            'id',
+            'batch',
+            'approval',
+            'approval_id',
+            'approval_notes',
+            'applicant',
+            'applicant_id',
+            'applicant_name',
+            'barangay',
+            'city',
+            'contact_number',
+            'assistance_type',
+            'amount',
+            'status',
+            'status_label',
+            'payout_date',
+            'updated_at',
         ]
+        read_only_fields = ['id', 'batch', 'approval', 'applicant', 'updated_at']
+
+    def get_applicant_name(self, obj):
+        bg = obj.applicant.background_info
+        middle = f"{bg.middle_initial}." if bg.middle_initial else ""
+        suffix = bg.suffix or ""
+        full_name = f"{bg.last_name}, {bg.first_name} {middle} {suffix}".strip()
+        return full_name
+
+
+class DisbursementBatchSerializer(serializers.ModelSerializer):
+    # ✅ ADD: User info
+    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
+    created_by_full_name = serializers.SerializerMethodField()
+    
+    # ✅ ADD: Approval batch link
+    approval_batch_id = serializers.IntegerField(source='approval_batch.id', read_only=True)
+    approval_batch_file = serializers.CharField(source='approval_batch.file_name', read_only=True)
+    
+    # ✅ ADD: Computed counts
+    total_claims = serializers.SerializerMethodField()
+    pending_count = serializers.SerializerMethodField()
+    claimed_count = serializers.SerializerMethodField()
+    unclaimed_count = serializers.SerializerMethodField()
+    
+    # ✅ ADD: Amount totals
+    total_amount = serializers.SerializerMethodField()
+    claimed_amount = serializers.SerializerMethodField()
+    unclaimed_amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DisbursementBatch
+        fields = [
+            'id',
+            'approval_batch',
+            'approval_batch_id',
+            'approval_batch_file',
+            'name',
+            'assistance_type',
+            'payout_date',
+            'status',
+            'created_by',
+            'created_by_name',
+            'created_by_full_name',
+            'created_at',
+            'finalized_at',
+            'total_beneficiaries',
+            'total_claimed',
+            'total_unclaimed',
+            'total_claims',
+            'pending_count',
+            'claimed_count',
+            'unclaimed_count',
+            'total_amount',
+            'claimed_amount',
+            'unclaimed_amount',
+        ]
+        read_only_fields = [
+            'id', 'created_by', 'created_at', 'finalized_at',
+            'total_beneficiaries', 'total_claimed', 'total_unclaimed'
+        ]
+
+    def get_created_by_full_name(self, obj):
+        if obj.created_by:
+            return f"{obj.created_by.first_name} {obj.created_by.last_name}".strip()
+        return "System"
+
+    def get_total_claims(self, obj):
+        return obj.claims.count()
+
+    def get_pending_count(self, obj):
+        return obj.claims.filter(status='PENDING').count()
+
+    def get_claimed_count(self, obj):
+        return obj.claims.filter(status='CLAIMED').count()
+
+    def get_unclaimed_count(self, obj):
+        return obj.claims.filter(status='UNCLAIMED').count()
+
+    def get_total_amount(self, obj):
+        from decimal import Decimal
+        return obj.claims.aggregate(total=models.Sum('amount'))['total'] or Decimal('0.00')
+
+    def get_claimed_amount(self, obj):
+        from decimal import Decimal
+        return obj.claims.filter(status='CLAIMED').aggregate(
+            total=models.Sum('amount')
+        )['total'] or Decimal('0.00')
+
+    def get_unclaimed_amount(self, obj):
+        from decimal import Decimal
+        return obj.claims.filter(status='UNCLAIMED').aggregate(
+            total=models.Sum('amount')
+        )['total'] or Decimal('0.00')
+
+
+# ✅ ADD: Lightweight serializer for batch list views
+class DisbursementBatchListSerializer(serializers.ModelSerializer):
+    """Lighter serializer for listing batches without detailed claims"""
+    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
+    approval_batch_file = serializers.CharField(source='approval_batch.file_name', read_only=True)
+    
+    # Only basic counts
+    total_claims = serializers.IntegerField(source='claims.count', read_only=True)
+    pending_count = serializers.SerializerMethodField()
+    claimed_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = DisbursementBatch
+        fields = [
+            'id',
+            'name',
+            'assistance_type',
+            'payout_date',
+            'status',
+            'created_by_name',
+            'approval_batch_file',
+            'created_at',
+            'total_beneficiaries',
+            'total_claimed',
+            'total_unclaimed',
+            'total_claims',
+            'pending_count',
+            'claimed_count',
+        ]
+
+    def get_pending_count(self, obj):
+        return obj.claims.filter(status='PENDING').count()
+
+    def get_claimed_count(self, obj):
+        return obj.claims.filter(status='CLAIMED').count()
 
 
 # ---------------------------------------------------------

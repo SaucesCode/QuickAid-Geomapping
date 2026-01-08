@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 import base64
 import logging
+import re
+from decimal import Decimal,InvalidOperation
 logger = logging.getLogger(__name__)
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta, date
@@ -53,7 +55,8 @@ from .models import (
 )
 from .serializers import (
     ApplicantSerializer, MyTokenObtainPairSerializer, 
-    DisbursementClaimSerializer, DisbursementBatchSerializer
+    DisbursementClaimSerializer, DisbursementBatchSerializer,
+    DisbursementBatchListSerializer,
 )
 
 
@@ -578,7 +581,7 @@ def upload_approved_list(request):
     if not file_obj:
         return Response({"error": "No file uploaded"}, status=400)
 
-    # ✅ Read CSV or Excel safely
+    # ✅ Read CSV/Excel
     try:
         if file_obj.name.endswith(".csv"):
             df = pd.read_csv(file_obj)
@@ -588,52 +591,56 @@ def upload_approved_list(request):
     except Exception as e:
         return Response({"error": f"Failed to read file: {str(e)}"}, status=400)
 
-    # ✅ Create approval batch
-    batch = ApprovalBatch.objects.create(
+    # ✅ Create Approval Batch
+    approval_batch = ApprovalBatch.objects.create(
         uploaded_by=request.user,
         file_name=file_obj.name,
         total_processed=len(df),
     )
 
-    matched = []
+    # ✅ Collect unique assistance types and prepare batch name
+    assistance_types = df['type of assistance'].unique() if 'type of assistance' in df.columns else []
+    
+    # Use first assistance type or 'Mixed' if multiple types
+    primary_assistance_type = assistance_types[0] if len(assistance_types) == 1 else 'Mixed Assistance'
+    
+    # ✅ Auto-create Disbursement Batch
+    disbursement_batch = DisbursementBatch.objects.create(
+        approval_batch=approval_batch,
+        name=f"Disbursement Batch - {approval_batch.file_name} ({timezone.now().strftime('%Y-%m-%d')})",
+        assistance_type=primary_assistance_type,
+        payout_date=timezone.now().date(),  # Can be changed later
+        created_by=request.user,
+        status='OPEN',
+        total_beneficiaries=0  # Will be updated after processing
+    )
 
-    # ✅ Collect all names to query in bulk
+    matched = []
+    disbursement_claims = []
+
+    # ✅ Bulk fetch applicants (same as before)
     applicant_filters = Q()
     for _, row in df.iterrows():
         first_name = str(row.get("first name", "")).strip()
         last_name = str(row.get("last name", "")).strip()
-        raw_middle = row.get("middle name", "")
-        middle_name = "" if pd.isna(raw_middle) else str(raw_middle).strip()
+        middle_name = str(row.get("middle name", "")).strip()
         barangay = str(row.get("barangay", "")).strip()
         city = str(row.get("municipal", "")).strip()
         assistance_type = str(row.get("type of assistance", "")).strip()
 
-
-        if middle_name:
-            middle_filter = Q(background_info__middle_initial__iexact=middle_name)
-        else:
-            middle_filter = (
-                Q(background_info__middle_initial__isnull=True)
-                | Q(background_info__middle_initial__exact='')
-            )
-
-        applicant_filters |= (
-            Q(
-                background_info__first_name__iexact=first_name,
-                background_info__last_name__iexact=last_name,
-                background_info__barangay__name__iexact=barangay,
-                background_info__barangay__city__name__iexact=city,
-                type_of_assistance__iexact=assistance_type,
-            )
-            & middle_filter
+        applicant_filters |= Q(
+            background_info__first_name__iexact=first_name,
+            background_info__middle_initial__iexact=middle_name,
+            background_info__last_name__iexact=last_name,
+            background_info__barangay__name__iexact=barangay,
+            background_info__barangay__city__name__iexact=city,
+            type_of_assistance__iexact=assistance_type,
         )
 
-
-    # ✅ Bulk fetch applicants in a single query
     applicants = {
         (
             a.background_info.first_name.lower(),
-            (a.background_info.middle_initial.lower() if a.background_info.middle_initial else ''),
+            a.background_info.middle_initial.lower() if a.background_info.middle_initial else '',
             a.background_info.last_name.lower(),
             a.background_info.barangay.name.lower(),
             a.background_info.barangay.city.name.lower(),
@@ -645,15 +652,12 @@ def upload_approved_list(request):
         ).filter(applicant_filters)
     }
 
-    # ✅ Process approvals in one transaction
+    # ✅ Process approvals AND create disbursement claims
     with transaction.atomic():
         for _, row in df.iterrows():
             first_name = str(row.get("first name", "")).strip().lower()
             last_name = str(row.get("last name", "")).strip().lower()
-
-            raw_middle = row.get("middle name", "")
-            middle_name = "" if pd.isna(raw_middle) else str(raw_middle).strip().lower()
-
+            middle_name = str(row.get("middle name", "")).strip().lower()
             barangay = str(row.get("barangay", "")).strip().lower()
             city = str(row.get("municipal", "")).strip().lower()
             assistance_type = str(row.get("type of assistance", "")).strip().lower()
@@ -665,24 +669,56 @@ def upload_approved_list(request):
             if not applicant:
                 continue
 
-
-            Approval.objects.create(
+            # ✅ Create Approval
+            approval = Approval.objects.create(
                 applicant=applicant,
-                batch=batch,
+                batch=approval_batch,
                 approved_by=request.user,
                 notes=f"Approved amount: {amount}"
             )
+            
             matched.append(f"{first_name.title()} {last_name.title()} - {barangay.title()} ({assistance_type.title()})")
 
-    # ✅ Update batch summary
-    batch.total_approved = len(matched)
-    batch.save(update_fields=["total_processed", "total_approved"])
+            # ✅ Extract amount properly
+            try:
+                clean_amount = Decimal(str(amount).replace(',', ''))
+            except (InvalidOperation, ValueError):
+                clean_amount = extract_amount_from_notes(approval.notes)
+
+            # ✅ Auto-create Disbursement Claim
+            disbursement_claims.append(
+                DisbursementClaim(
+                    batch=disbursement_batch,
+                    approval=approval,
+                    applicant=applicant,
+                    amount=clean_amount,
+                    status='PENDING'
+                )
+            )
+
+        # ✅ Bulk create disbursement claims
+        DisbursementClaim.objects.bulk_create(disbursement_claims)
+
+    # ✅ Update batch totals
+    approval_batch.total_approved = len(matched)
+    approval_batch.save(update_fields=["total_approved"])
+
+    disbursement_batch.total_beneficiaries = len(matched)
+    disbursement_batch.save(update_fields=["total_beneficiaries"])
+
+    log_staff_activity(
+        request.user,
+        "DISBURSEMENT",
+        f"Created disbursement batch {disbursement_batch.id} with {len(matched)} beneficiaries",
+        request
+    )
 
     return Response({
         "approved": matched,
         "total_processed": len(df),
         "total_approved": len(matched),
-        "message": "Approved applicants processed successfully"
+        "disbursement_batch_id": disbursement_batch.id,
+        "message": "Approval batch processed and disbursement batch created automatically"
     }, status=201)
 
 
@@ -826,8 +862,6 @@ def parse_amount(value):
     except (TypeError, ValueError):
         return 0
 
-import re
-from decimal import Decimal
 
 def extract_amount(notes):
     """
@@ -3098,64 +3132,62 @@ def export_history(request):
             {"error": f"Failed to fetch export history: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-    
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def create_disbursement_batch(request):
-    serializer = DisbursementBatchSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save(created_by=request.user)
-        return Response(serializer.data, status=201)
-    return Response(serializer.errors, status=400)
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def list_disbursement_batches(request):
-    batches = DisbursementBatch.objects.prefetch_related(
-        "claims",
-        "claims__approval",
-        "claims__applicant"
-    ).order_by("-created_at")
+    """List all disbursement batches (lightweight)"""
+    batches = DisbursementBatch.objects.select_related(
+        'approval_batch',
+        'created_by'
+    ).prefetch_related('claims').order_by("-created_at")
 
-    serializer = DisbursementBatchSerializer(batches, many=True)
+    serializer = DisbursementBatchListSerializer(batches, many=True) 
     return Response(serializer.data)
 
-
-@api_view(["POST"])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def attach_approvals_to_batch(request, batch_id):
-    batch = get_object_or_404(DisbursementBatch, id=batch_id, status="OPEN")
-    approval_ids = request.data.get("approval_ids", [])
-
-    created = []
-
-    for approval in Approval.objects.filter(
-        id__in=approval_ids,
-        applicant__type_of_assistance=batch.assistance_type
-    ):
-        if hasattr(approval, "disbursement_claim"):
-            continue  # already attached
-
-        amount = extract_amount_from_notes(approval.notes)
-
-        claim = DisbursementClaim.objects.create(
-            batch=batch,
-            approval=approval,
-            applicant=approval.applicant,
-            amount=amount,
-        )
-        created.append(claim.id)
-
-    return Response({"created_claims": created})
+def get_disbursement_batch_detail(request, batch_id):
+    """Get detailed batch info with full claim data"""
+    batch = get_object_or_404(
+        DisbursementBatch.objects.select_related('approval_batch', 'created_by')
+        .prefetch_related('claims__applicant__background_info__barangay__city'),
+        id=batch_id
+    )
+    
+    serializer = DisbursementBatchSerializer(batch)  # ✅ Full serializer
+    return Response(serializer.data)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def list_batch_claims(request, batch_id):
-    claims = DisbursementClaim.objects.filter(batch_id=batch_id)
-    serializer = DisbursementClaimSerializer(claims, many=True)
-    return Response(serializer.data)
+    """List all claims in a disbursement batch with pagination"""
+    paginator = LimitOffsetPagination()
+    paginator.default_limit = 50
+
+    claims = DisbursementClaim.objects.filter(batch_id=batch_id).select_related(
+        'applicant__background_info__barangay__city',
+        'approval',
+        'batch'
+    ).order_by('status', 'applicant__background_info__last_name')
+
+    # ✅ Apply filters if provided
+    status_filter = request.GET.get('status')
+    if status_filter:
+        claims = claims.filter(status=status_filter)
+
+    search = request.GET.get('search')
+    if search:
+        claims = claims.filter(
+            Q(applicant__background_info__first_name__icontains=search) |
+            Q(applicant__background_info__last_name__icontains=search)
+        )
+
+    paginated_claims = paginator.paginate_queryset(claims, request)
+    serializer = DisbursementClaimSerializer(paginated_claims, many=True)
+    
+    return paginator.get_paginated_response(serializer.data)
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
@@ -3200,15 +3232,53 @@ def update_claim_status(request, claim_id):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def close_batch(request, batch_id):
+    """Close batch - ready for printing/payout"""
     batch = get_object_or_404(DisbursementBatch, id=batch_id)
 
     if batch.status == "CLOSED":
-        return Response({"detail": "Batch already closed."})
+        return Response({"detail": "Batch already closed."}, status=400)
 
     batch.status = "CLOSED"
-    batch.save()
+    batch.save(update_fields=['status'])
+
+    log_staff_activity(
+        request.user,
+        "DISBURSEMENT",
+        f"Closed disbursement batch {batch.id} for payout",
+        request
+    )
 
     return Response({"detail": "Batch closed successfully."})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def finalize_batch(request, batch_id):
+    """Finalize batch after encoding payout results"""
+    batch = get_object_or_404(DisbursementBatch, id=batch_id)
+
+    if batch.status == "FINALIZED":
+        return Response({"error": "Batch already finalized"}, status=400)
+
+    # ✅ Update totals
+    batch.total_claimed = batch.claims.filter(status='CLAIMED').count()
+    batch.total_unclaimed = batch.claims.filter(status='UNCLAIMED').count()
+    batch.status = 'FINALIZED'
+    batch.finalized_at = timezone.now()
+    batch.save()
+
+    log_staff_activity(
+        request.user,
+        "DISBURSEMENT",
+        f"Finalized disbursement batch {batch.id} - {batch.total_claimed} claimed, {batch.total_unclaimed} unclaimed",
+        request
+    )
+
+    return Response({
+        "detail": "Batch finalized successfully",
+        "total_claimed": batch.total_claimed,
+        "total_unclaimed": batch.total_unclaimed
+    })
 
 
 @api_view(['GET'])
