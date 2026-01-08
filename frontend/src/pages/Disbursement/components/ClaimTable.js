@@ -1,119 +1,218 @@
 import { useState } from "react";
-import { Search, Users, FileText, CheckCircle } from "lucide-react";
-import { Card, Badge, LoadingState, BodyText, Stack } from "../../../components/DesignSystem";
+import { Search, Filter, CheckSquare, Square, Edit3 } from "lucide-react";
+import { Card, LoadingState, GradientButton } from "../../../components/DesignSystem";
 import ClaimRow from "./ClaimRow";
+import Pagination from "../../../components/Pagination";
 
-const ClaimTable = ({ claims = [], loading, onStatusChange, batchStatus }) => {
-  const [searchTerm, setSearchTerm] = useState("");
+const ClaimTable = ({
+  claims,
+  totalClaims,
+  loading,
+  batchStatus,
+  canEdit,
+  isFinalized,
+  selectedClaims,
+  onClaimSelect,
+  onSelectAll,
+  onStatusChange,
+  onBulkUpdate,
+  filters,
+  onFilterChange,
+  isUpdating,
+}) => {
+  const [searchTerm, setSearchTerm] = useState(filters.search || "");
+  const [statusFilter, setStatusFilter] = useState(filters.status || "");
 
-  const safeClaims = Array.isArray(claims) ? claims : claims?.results || [];
-
-  // 1. Logic: Is the whole batch locked?
-  const isLocked = batchStatus === "CLOSED";
-
-  // 2. Filter logic for search
-  const filteredClaims = safeClaims.filter(
-    c =>
-      c.applicant_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.control_number?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // 3. Simple Stats for the table header
-  const stats = {
-    total: claims.length,
-    claimed: claims.filter(c => c.status === "CLAIMED").length,
-    pending: claims.filter(c => c.status === "PENDING").length,
+  // Handle search with debounce
+  const handleSearch = value => {
+    setSearchTerm(value);
+    // Debounce search
+    setTimeout(() => {
+      onFilterChange({ ...filters, search: value, offset: 0 });
+    }, 500);
   };
 
-  if (loading)
-    return (
-      <Card>
-        <LoadingState message="Fetching beneficiary claims..." />
-      </Card>
-    );
+  // Handle status filter
+  const handleStatusFilter = value => {
+    setStatusFilter(value);
+    onFilterChange({ ...filters, status: value, offset: 0 });
+  };
+
+  const currentPage = Math.floor(filters.offset / filters.limit) + 1;
+  const totalPages = Math.ceil(totalClaims / filters.limit);
+
+  const handlePageChange = page => {
+    const newOffset = (page - 1) * filters.limit;
+    onFilterChange({ ...filters, offset: newOffset });
+  };
+
+  const handleItemsPerPageChange = e => {
+    const newLimit = Number(e.target.value);
+    onFilterChange({
+      ...filters,
+      limit: newLimit,
+      offset: 0, // reset to first page
+    });
+  };
+
+  // Check if all visible claims are selected
+  const allSelected =
+    claims.length > 0 && claims.every(claim => selectedClaims.includes(claim.id));
+
+  const handleSelectAllToggle = () => {
+    onSelectAll(!allSelected);
+  };
 
   return (
-    <Stack spacing="md">
-      {/* Table Header & Search */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-        <div className="flex items-center gap-6">
-          <div className="flex flex-col">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-tight">
-              Total Claims
-            </span>
-            <span className="text-lg font-bold text-gray-800">{stats.total}</span>
+    <Card className="p-0 overflow-hidden">
+      {/* Header */}
+      <div className="p-4 sm:p-6 border-b bg-gray-50/50">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-gray-800 mb-1">Beneficiary Claims</h2>
+            <p className="text-sm text-gray-600">
+              {totalClaims} total beneficiaries • {selectedClaims.length} selected
+            </p>
           </div>
-          <div className="flex flex-col">
-            <span className="text-xs font-bold text-green-500 uppercase tracking-tight">
-              Claimed
-            </span>
-            <span className="text-lg font-bold text-gray-800">{stats.claimed}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xs font-bold text-amber-500 uppercase tracking-tight">
-              Pending
-            </span>
-            <span className="text-lg font-bold text-gray-800">{stats.pending}</span>
-          </div>
+
+          {/* Bulk Actions */}
+          {canEdit && selectedClaims.length > 0 && (
+            <GradientButton onClick={onBulkUpdate} className="w-full lg:w-auto">
+              <Edit3 className="w-4 h-4" />
+              Update {selectedClaims.length} Selected
+            </GradientButton>
+          )}
         </div>
 
-        <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search beneficiary or control #..."
-            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-          />
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name, barangay, city..."
+              value={searchTerm}
+              onChange={e => handleSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <select
+              value={statusFilter}
+              onChange={e => handleStatusFilter(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm appearance-none bg-white"
+            >
+              <option value="">All Statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="CLAIMED">Claimed</option>
+              <option value="UNCLAIMED">Unclaimed</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Main Table */}
-      <Card className="p-0 overflow-hidden border-none shadow-lg">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50/80 backdrop-blur-sm sticky top-0 z-10">
+      {/* Table */}
+      <div className="overflow-x-auto">
+        {loading ? (
+          <div className="p-12">
+            <LoadingState message="Loading claims..." />
+          </div>
+        ) : claims.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="bg-gray-50 p-6 rounded-full mb-4 inline-block">
+              <CheckSquare className="w-10 h-10 text-gray-300" />
+            </div>
+            <p className="text-gray-500 mb-2">No claims found</p>
+            <p className="text-sm text-gray-400">
+              {searchTerm || statusFilter
+                ? "Try adjusting your filters"
+                : "This batch was created from an uploaded approval list"}
+            </p>
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">
-                  Beneficiary Details
+                {/* Select All Checkbox */}
+                {canEdit && (
+                  <th className="w-12 px-4 py-3">
+                    <button
+                      onClick={handleSelectAllToggle}
+                      className="text-gray-600 hover:text-blue-600 transition-colors"
+                      disabled={isFinalized}
+                    >
+                      {allSelected ? (
+                        <CheckSquare className="w-5 h-5" />
+                      ) : (
+                        <Square className="w-5 h-5" />
+                      )}
+                    </button>
+                  </th>
+                )}
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Beneficiary
                 </th>
-                <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">
+                  Location
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">
+                  Assistance
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest text-right">
-                  Actions
-                </th>
+                {canEdit && (
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
-              {filteredClaims.length > 0 ? (
-                filteredClaims.map(claim => (
-                  <ClaimRow
-                    key={claim.id}
-                    claim={claim}
-                    isLocked={isLocked}
-                    onStatusChange={onStatusChange}
-                  />
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" className="py-20 text-center">
-                    <div className="flex flex-col items-center justify-center text-gray-400">
-                      <Users className="w-12 h-12 mb-2 opacity-20" />
-                      <BodyText>No matching beneficiaries found</BodyText>
-                    </div>
-                  </td>
-                </tr>
-              )}
+            <tbody className="divide-y divide-gray-200">
+              {claims.map(claim => (
+                <ClaimRow
+                  key={claim.id}
+                  claim={claim}
+                  isSelected={selectedClaims.includes(claim.id)}
+                  canEdit={canEdit}
+                  isFinalized={isFinalized}
+                  onSelect={isSelected => onClaimSelect(claim.id, isSelected)}
+                  onStatusChange={onStatusChange}
+                  isUpdating={isUpdating}
+                />
+              ))}
             </tbody>
           </table>
+        )}
+      </div>
+
+      {!loading && claims.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalClaims}
+          itemsPerPage={filters.limit}
+          handlePageChange={handlePageChange}
+          handleItemsPerPageChange={handleItemsPerPageChange}
+        />
+      )}
+
+      {/* Finalized Notice */}
+      {isFinalized && (
+        <div className="px-6 py-4 bg-green-50 border-t border-green-200">
+          <p className="text-sm text-green-800 text-center">
+            ✓ This batch is finalized. All claims are locked and cannot be modified.
+          </p>
         </div>
-      </Card>
-    </Stack>
+      )}
+    </Card>
   );
 };
 
