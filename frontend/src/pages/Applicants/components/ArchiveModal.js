@@ -53,7 +53,7 @@ const ArchiveModal = ({ archiveModal, closeArchiveModal, handleArchive, isLoadin
             <button
               onClick={handleArchive}
               disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+              className="flex-1 px-4 py-2 bg-[#003a76] hover:from-blue-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
             >
               {isLoading ? (
                 <>

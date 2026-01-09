@@ -9,7 +9,7 @@ export const DeactivateModal = ({ isOpen, onClose, onConfirm, isLoading, staffNa
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
         {/* Header with Red Theme */}
-        <div className="relative bg-gradient-to-r from-red-600 to-rose-600 px-5 py-4 rounded-t-xl">
+        <div className="relative bg-[#003a76] px-5 py-4 rounded-t-xl">
           <button
             onClick={onClose}
             className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/20 transition-colors"
@@ -56,7 +56,7 @@ export const DeactivateModal = ({ isOpen, onClose, onConfirm, isLoading, staffNa
             <button
               onClick={onConfirm}
               disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+              className="flex-1 px-4 py-2 bg-[#003a76] hover:from-red-700 hover:to-rose-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
             >
               {isLoading ? (
                 <>

@@ -105,7 +105,7 @@ const ApplicantForm = () => {
   // Empty State
   const EmptyState = () => (
     <Card className="p-8 text-center space-y-6">
-      <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+      <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 bg-[#003a76] rounded-xl flex items-center justify-center shadow-md">
         <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
       </div>
       <H2>{isError ? "Error Loading Data" : "No Applicants Found"}</H2>
@@ -163,7 +163,7 @@ const ApplicantForm = () => {
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-blue-100 text-sm">
               <thead>
-                <tr className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white uppercase text-xs font-semibold tracking-wider">
+                <tr className="bg-[#003a76] text-white uppercase text-xs font-semibold tracking-wider">
                   <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">No.</th>
                   <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">Full Name</th>
                   <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">Barangay</th>

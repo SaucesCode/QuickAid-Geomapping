@@ -118,10 +118,10 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
         <div className="flex-1 space-y-3 p-4">
           {/* File info */}
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+            <div className="p-2 bg-[#003a76] rounded-lg">
               <FileSpreadsheet className="w-5 h-5 text-white" />
             </div>
-            <H2 className="text-gray-800 group-hover:text-indigo-600">{batch.file_name}</H2>
+            <H2 className="text-gray-800 group-hover:text-blue-600">{batch.file_name}</H2>
           </div>
 
           <BodyText className="flex items-center gap-2 text-sm text-gray-600 ml-11">
@@ -150,9 +150,9 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
 
         <div className="p-4">
           {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-indigo-600" />
+            <ChevronUp className="w-5 h-5 text-blue-600" />
           ) : (
-            <ChevronDown className="w-5 h-5 text-indigo-600" />
+            <ChevronDown className="w-5 h-5 text-blue-600" />
           )}
         </div>
       </button>
@@ -160,10 +160,10 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
       {/* Expanded Table */}
       {isExpanded && (
         <div className="border-t border-gray-200">
-          <div className="p-4 bg-gradient-to-r from-gray-50 to-blue-50">
+          <div className="p-4 bg-[#003a76]">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-                <Filter className="w-4 h-4 text-indigo-600" />
+                <Filter className="w-4 h-4 text-blue-600" />
                 Filter Approvals
               </h4>
               <button
@@ -197,7 +197,7 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
               </div>
             ) : (
               <table className="min-w-full text-sm">
-                <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white sticky top-0">
+                <thead className="bg-[#003a76] text-white sticky top-0">
                   <tr>
                     {[
                       "Last Name",
@@ -230,7 +230,7 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
                       <td className="px-5 py-3">{app.municipal}</td>
                       <td className="px-5 py-3">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r ${assistanceStyles(
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#003a76] ${assistanceStyles(
                             app.type_of_assistance
                           )} shadow-sm`}
                         >
@@ -320,7 +320,7 @@ const Approved = () => {
       {/* Upload Section */}
       <Card>
         <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-200">
-          <Upload className="w-6 h-6 text-indigo-600" />
+          <Upload className="w-6 h-6 text-blue-600" />
           <H2>Upload Approved List</H2>
         </div>
 
@@ -353,13 +353,13 @@ const Approved = () => {
           }}
           className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
             dragActive
-              ? "border-indigo-500 bg-indigo-50"
-              : "border-gray-300 hover:border-indigo-400 hover:bg-gray-50"
+              ? "border-blue-500 bg-blue-50"
+              : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
           }`}
         >
           <div className="flex flex-col items-center gap-3">
-            <div className="p-4 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full">
-              <FileSpreadsheet className="w-8 h-8 text-indigo-600" />
+            <div className="p-4text-gray-800 rounded-full">
+              <FileSpreadsheet className="w-8 h-8 text-blue-600" />
             </div>
             <BodyText>
               Drag and drop <strong>one file</strong> here, or click to browse. Supports CSV
@@ -387,7 +387,7 @@ const Approved = () => {
             />
             <label
               htmlFor="file-upload"
-              className="cursor-pointer px-6 py-2 border-2 border-gray-300 rounded-lg hover:border-indigo-400 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all"
+              className="cursor-pointer px-6 py-2 border-2 border-gray-300 rounded-lg hover:border-blue-400 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-all"
             >
               Choose File
             </label>
@@ -440,7 +440,7 @@ const Approved = () => {
       {/* Batches Section */}
       <Card>
         <div className="flex items-center gap-2 mb-6 pb-3 border-b border-gray-200">
-          <FileText className="w-6 h-6 text-indigo-600" />
+          <FileText className="w-6 h-6 text-blue-600" />
           <H2>Approval Batches History</H2>
         </div>
 

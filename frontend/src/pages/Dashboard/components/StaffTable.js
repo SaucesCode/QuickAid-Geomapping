@@ -148,7 +148,7 @@ const StaffTable = ({ onEdit }) => {
             onClick={() => setShowInactive(false)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               !showInactive
-                ? "bg-indigo-600 text-white shadow-md"
+                ? "bg-[#003a76] text-white shadow-md"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
@@ -158,7 +158,7 @@ const StaffTable = ({ onEdit }) => {
             onClick={() => setShowInactive(true)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               showInactive
-                ? "bg-indigo-600 text-white shadow-md"
+                ? "bg-[#003a76] text-white shadow-md"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
