@@ -76,7 +76,7 @@ const ApplicantsFilter = ({ filters, onFilterChange, searchTerm, onSearchChange 
       <div className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 px-6 py-5 border-b border-slate-200/60">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl shadow-sm">
+            <div className="p-2.5 bg-[#003a76] rounded-xl shadow-sm">
               <Filter className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -144,7 +144,7 @@ const ApplicantsFilter = ({ filters, onFilterChange, searchTerm, onSearchChange 
             </div>
             <button
               onClick={handleApply}
-              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white hover:from-blue-700 hover:to-indigo-800 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg"
+              className="px-5 py-2.5 bg-blue-600 text-white hover:from-blue-700 hover:to-indigo-800 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg"
             >
               Search
             </button>
@@ -299,7 +299,7 @@ const ApplicantsFilter = ({ filters, onFilterChange, searchTerm, onSearchChange 
               </button>
               <button
                 onClick={handleApply}
-                className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white hover:from-blue-700 hover:to-indigo-800 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg"
+                className="px-5 py-2.5 bg-blue-600 text-white hover:from-blue-700 hover:to-indigo-800 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg"
               >
                 Apply Filters
               </button>
@@ -314,7 +314,7 @@ const ApplicantsFilter = ({ filters, onFilterChange, searchTerm, onSearchChange 
               <span className="text-sm font-semibold text-slate-700">Active:</span>
               <div className="flex flex-wrap gap-2">
                 {localSearch && (
-                  <span className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-semibold text-xs shadow-sm">
+                  <span className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold text-xs shadow-sm">
                     Search:{" "}
                     {localSearch.length > 20 ? localSearch.slice(0, 20) + "..." : localSearch}
                   </span>

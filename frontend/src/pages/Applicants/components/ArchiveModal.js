@@ -6,7 +6,7 @@ const ArchiveModal = ({ archiveModal, closeArchiveModal, handleArchive, isLoadin
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
         {/* Header with Blue Theme */}
-        <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 rounded-t-xl">
+        <div className="relative bg-[#003a76] px-5 py-4 rounded-t-xl">
           <button
             onClick={closeArchiveModal}
             className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/20 transition-colors"

@@ -137,7 +137,7 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
       <div className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 px-6 py-5 border-b border-slate-200/60">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl shadow-sm">
+            <div className="p-2.5 bg-[#003a76] rounded-xl shadow-sm">
               <Filter className="w-5 h-5 text-white" />
             </div>
             <div>
