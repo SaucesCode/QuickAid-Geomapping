@@ -3,7 +3,6 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Map,
-  UserPlus,
   Users,
   CheckCircle,
   BarChart3,
@@ -21,7 +20,7 @@ import {
   Layers,
   ChevronLeft,
   Home,
-  Check,
+  Wallet,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import CustomToast from "./CustomToast";
@@ -623,7 +622,7 @@ const Sidebar = () => {
                               }`
                             }
                           >
-                            <Check className="w-4 h-4" />
+                            <Wallet className="w-4 h-4" />
                             <span className="text-white">Disbursement</span>
                           </NavLink>
 
