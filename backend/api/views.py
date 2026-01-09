@@ -3137,14 +3137,39 @@ def export_history(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def list_disbursement_batches(request):
-    """List all disbursement batches (lightweight)"""
-    batches = DisbursementBatch.objects.select_related(
+    """List all disbursement batches with search, filter, and pagination"""
+    
+    search = request.GET.get('search', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+    limit = int(request.GET.get('limit', 10))
+    offset = int(request.GET.get('offset', 0))
+    
+    queryset = DisbursementBatch.objects.select_related(
         'approval_batch',
         'created_by'
     ).prefetch_related('claims').order_by("-created_at")
-
-    serializer = DisbursementBatchListSerializer(batches, many=True) 
-    return Response(serializer.data)
+    
+    if search:
+        queryset = queryset.filter(
+            Q(name__icontains=search) |
+            Q(approval_batch__file_name__icontains=search) |
+            Q(assistance_type__icontains=search)
+        )
+    
+    if status_filter and status_filter in ['OPEN', 'CLOSED', 'FINALIZED']:
+        queryset = queryset.filter(status=status_filter)
+    
+    total_count = queryset.count()
+    
+    batches = queryset[offset:offset + limit]
+    
+    serializer = DisbursementBatchListSerializer(batches, many=True)
+    return Response({
+        'results': serializer.data,
+        'count': total_count,
+        'limit': limit,
+        'offset': offset
+    })
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
