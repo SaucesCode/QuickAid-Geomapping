@@ -211,7 +211,7 @@ const Navbar = () => {
             className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-xl relative transition-all duration-300 transform scale-100"
             onClick={e => e.stopPropagation()}
           >
-            {/* Close Button */}
+            
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-2 right-2 p-2 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500"

@@ -332,7 +332,7 @@ const Applicants = () => {
   // TABLE HEADER
   // ------------------------------------------------------------
   const tableHeader = (
-    <tr className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
+    <tr className="bg-[#003a76] text-white text-xs font-semibold uppercase tracking-wider">
       <th className="px-3 py-4 text-center w-[50px]">No.</th>
       <th className="px-6 py-4 text-left">
         <div className="flex items-center gap-2">

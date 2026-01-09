@@ -127,7 +127,7 @@ const ApplicantTable = ({
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto max-w-full">
         <table className="min-w-full divide-y divide-gray-200 text-sm table-fixed">
-          <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold uppercase tracking-wider">
+          <thead className="bg-[#003a76] text-white text-xs font-semibold uppercase tracking-wider">
             <tr>
               <th className="px-4 py-4 text-center w-[70px]">NO.</th>
 

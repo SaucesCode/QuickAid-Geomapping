@@ -112,7 +112,7 @@ const AdminManagement = () => {
           <AnalyticsCard className="w-full max-w-lg scale-100 transform transition-all duration-300">
             {/* Modal Header */}
             <div className="flex items-center gap-3 mb-4 pb-3 border-b border-blue-100">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+              <div className="p-2 bg-[#003a76] rounded-lg shadow-sm">
                 <UserPlus className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -241,7 +241,7 @@ const AdminManagement = () => {
           <AnalyticsCard className="w-full max-w-lg scale-100 transform transition-all duration-300">
             {/* Modal Header */}
             <div className="flex items-center gap-3 mb-4 pb-3 border-b border-blue-100">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+              <div className="p-2 bg-[#003a76] rounded-lg shadow-sm">
                 <Edit3 className="w-5 h-5 text-white" />
               </div>
               <div>

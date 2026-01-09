@@ -255,7 +255,7 @@ const Geographic = () => {
           <div className="flex items-center justify-between gap-4 flex-wrap">
             {/* Left: Title */}
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-[#003a76] rounded-lg">
                 <Filter className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -359,7 +359,7 @@ const Geographic = () => {
         <AnalyticsCard>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-[#003a76] rounded-lg">
                 <MapIcon className="w-4 h-4 text-white" />
               </div>
               <div>

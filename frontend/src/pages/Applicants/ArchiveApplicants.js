@@ -153,9 +153,9 @@ const ArchiveApplicants = () => {
             {/* Table */}
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-blue-100 text-sm">
-                <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                <thead className="bg-[#003a76] text-white">
                   <tr>
-                    <th className="px-3 py-4 text-center w-[50px]">No.</th>
+                    <th className="px-3 py-4 text-center w-[50px]">NO.</th>
                     <th className="px-6 py-4 text-left">Full Name</th>
                     <th className="px-6 py-4 text-left">Barangay</th>
                     <th className="px-6 py-4 text-left">City</th>
