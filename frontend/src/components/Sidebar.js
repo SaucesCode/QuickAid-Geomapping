@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   Home,
   Wallet,
+  HandCoins,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import CustomToast from "./CustomToast";
@@ -622,7 +623,7 @@ const Sidebar = () => {
                               }`
                             }
                           >
-                            <Wallet className="w-4 h-4" />
+                            <HandCoins className="w-4 h-4" />
                             <span className="text-white">Disbursement</span>
                           </NavLink>
 
