@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
-import { Wallet, Info, MousePointer2 } from "lucide-react";
+import { Wallet, Info, MousePointer2, HandCoins, File, FileText, Package } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 // Design System Imports
@@ -271,16 +271,16 @@ const Disbursement = () => {
       <PageHeader
         title="Disbursement Management"
         subtitle="Manage assistance batches and process beneficiary payouts"
-        icon={Wallet}
+        icon={HandCoins}
       />
 
       <Stack spacing="lg">
         {/* HORIZONTAL BATCH SELECTOR */}
         <Card className="p-0 overflow-hidden">
-          <div className="p-4 border-b bg-white flex justify-between items-center">
+          <div className="border-b bg-white flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#003a76] rounded-lg">
-                <MousePointer2 className="w-5 h-5 text-white" />
+              <div>
+                <Package className="w-6 h-6 text-[#003a76]" />
               </div>
               <div>
                 <h2 className="font-bold text-gray-800">Select Disbursement Batch</h2>

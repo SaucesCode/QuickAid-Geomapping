@@ -1,29 +1,36 @@
-import { Lock, CheckCircle, Clock, ChevronRight } from "lucide-react";
+import {
+  Lock,
+  CheckCircle,
+  Clock,
+  ChevronRight,
+  Users,
+  Calendar,
+  Package,
+} from "lucide-react";
 
 const BatchList = ({ batches, selectedBatch, onSelectBatch }) => {
-  const getStatusIcon = status => {
+  const getStatusConfig = status => {
     switch (status) {
       case "OPEN":
-        return <Clock className="w-3.5 h-3.5" />;
+        return {
+          icon: <Clock className="w-3 h-3" />,
+          className: "bg-blue-50 text-blue-700 border-blue-200",
+        };
       case "CLOSED":
-        return <Lock className="w-3.5 h-3.5" />;
+        return {
+          icon: <Lock className="w-3 h-3" />,
+          className: "bg-yellow-50 text-yellow-700 border-yellow-200",
+        };
       case "FINALIZED":
-        return <CheckCircle className="w-3.5 h-3.5" />;
+        return {
+          icon: <CheckCircle className="w-3 h-3" />,
+          className: "bg-green-50 text-green-700 border-green-200",
+        };
       default:
-        return null;
-    }
-  };
-
-  const getStatusStyles = status => {
-    switch (status) {
-      case "OPEN":
-        return "bg-blue-50 text-blue-700 border-blue-200";
-      case "CLOSED":
-        return "bg-yellow-50 text-yellow-700 border-yellow-200";
-      case "FINALIZED":
-        return "bg-green-50 text-green-700 border-green-200";
-      default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
+        return {
+          icon: null,
+          className: "bg-gray-50 text-gray-600 border-gray-200",
+        };
     }
   };
 
@@ -32,114 +39,81 @@ const BatchList = ({ batches, selectedBatch, onSelectBatch }) => {
     return (order[a.status] || 99) - (order[b.status] || 99);
   });
 
-  const formatDate = date =>
-    new Date(date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-
   return (
-    <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+    <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
       {sortedBatches.map(batch => {
         const isSelected = selectedBatch?.id === batch.id;
+        const status = getStatusConfig(batch.status);
+
+        const total = batch.total_beneficiaries || 0;
+        const processed = (batch.claimed_count || 0) + (batch.unclaimed_count || 0);
+        const progress = total > 0 ? Math.round((processed / total) * 100) : 0;
 
         return (
           <button
             key={batch.id}
             onClick={() => onSelectBatch(batch)}
-            className={`w-full text-left rounded-xl border transition-all duration-200 ${
+            className={`w-full text-left rounded-lg border transition-all duration-200 ${
               isSelected
-                ? "border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm"
-                : "border-gray-200 bg-white hover:bg-gray-50"
+                ? "border-[#003a76] bg-[#003a76]/5 shadow-sm"
+                : "border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300"
             }`}
           >
-            <div className="p-4 space-y-3">
+            <div className="p-3 space-y-2">
               {/* Header */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="p-1.5 rounded-md bg-[#003a76]/10">
+                    <Package className="w-3.5 h-3.5 text-[#003a76]" />
+                  </div>
                   <h3
                     className={`text-sm font-semibold truncate ${
-                      isSelected ? "text-blue-900" : "text-gray-800"
+                      isSelected ? "text-[#003a76]" : "text-gray-800"
                     }`}
                   >
                     {batch.name}
                   </h3>
-
-                  {batch.approval_batch_file && (
-                    <p className="text-xs text-gray-500 truncate mt-0.5">
-                      {batch.approval_batch_file}
-                    </p>
-                  )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border ${getStatusStyles(
-                      batch.status
-                    )}`}
-                  >
-                    {getStatusIcon(batch.status)}
-                    {batch.status}
-                  </span>
-
-                  {isSelected && <ChevronRight className="w-4 h-4 text-blue-600" />}
-                </div>
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${status.className}`}
+                >
+                  {status.icon}
+                  {batch.status}
+                </span>
               </div>
 
               {/* Meta */}
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <p className="text-gray-500">Beneficiaries</p>
-                  <p className="font-semibold text-gray-800">
-                    {batch.total_beneficiaries || 0}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-gray-500">Payout Date</p>
-                  <p className="font-semibold text-gray-800">
-                    {formatDate(batch.payout_date)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Progress */}
-              {batch.status !== "OPEN" && (
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs text-gray-600">
-                    <span>Progress</span>
-                    <span>
-                      {(batch.claimed_count || 0) + (batch.unclaimed_count || 0)} /{" "}
-                      {batch.total_beneficiaries || 0}
+              <div className="flex items-center justify-between text-xs text-gray-600">
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1">
+                    <Users className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="font-medium text-gray-700">{total}</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="font-medium text-gray-700">
+                      {new Date(batch.payout_date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </span>
-                  </div>
-
-                  <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden flex">
-                    <div
-                      className="bg-green-500"
-                      style={{
-                        width: `${
-                          batch.total_beneficiaries
-                            ? ((batch.claimed_count || 0) / batch.total_beneficiaries) * 100
-                            : 0
-                        }%`,
-                      }}
-                    />
-                    <div
-                      className="bg-orange-400"
-                      style={{
-                        width: `${
-                          batch.total_beneficiaries
-                            ? ((batch.unclaimed_count || 0) / batch.total_beneficiaries) * 100
-                            : 0
-                        }%`,
-                      }}
-                    />
-                  </div>
+                  </span>
                 </div>
-              )}
+
+                {isSelected && <ChevronRight className="w-4 h-4 text-[#003a76]" />}
+              </div>
             </div>
+
+            {/* Progress Bar */}
+            {batch.status !== "OPEN" && (
+              <div className="h-1 w-full bg-gray-200 overflow-hidden rounded-b-lg">
+                <div
+                  className="h-full bg-[#003a76] transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            )}
           </button>
         );
       })}

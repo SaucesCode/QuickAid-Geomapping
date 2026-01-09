@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Lock,
   FileText,
+  ClipboardCheck,
 } from "lucide-react";
 import { Card, Badge } from "../../../components/DesignSystem";
 
@@ -85,7 +86,12 @@ const BatchSummary = ({
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-5">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1.5">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-800">{batch.name}</h2>
+            <div className="flex items-center gap-2">
+              <div>
+                <FileText className="w-6 h-6 text-[#003a76]" />
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800">{batch.name}</h2>
+            </div>
             <Badge variant={statusConfig.variant} className="flex items-center gap-1 text-xs">
               {statusConfig.icon}
               {statusConfig.label}
