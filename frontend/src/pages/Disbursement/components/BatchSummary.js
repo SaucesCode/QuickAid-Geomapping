@@ -1,3 +1,5 @@
+// frontend/src/pages/Disbursement/components/BatchSummary.js
+
 import {
   Calendar,
   Package,
@@ -7,7 +9,7 @@ import {
   Lock,
   FileText,
 } from "lucide-react";
-import { Card, GradientButton, OutlineButton, Badge } from "../../../components/DesignSystem";
+import { Card, Badge } from "../../../components/DesignSystem";
 
 const BatchSummary = ({
   batch,
@@ -44,25 +46,25 @@ const BatchSummary = ({
       case "OPEN":
         return {
           variant: "info",
-          icon: <Clock className="w-4 h-4" />,
+          icon: <Clock className="w-3.5 h-3.5" />,
           label: "Open - Active",
         };
       case "CLOSED":
         return {
           variant: "warning",
-          icon: <Lock className="w-4 h-4" />,
+          icon: <Lock className="w-3.5 h-3.5" />,
           label: "Closed - Ready for Payout",
         };
       case "FINALIZED":
         return {
           variant: "success",
-          icon: <CheckCircle className="w-4 h-4" />,
+          icon: <CheckCircle className="w-3.5 h-3.5" />,
           label: "Finalized - Completed",
         };
       default:
         return {
           variant: "default",
-          icon: <AlertCircle className="w-4 h-4" />,
+          icon: <AlertCircle className="w-3.5 h-3.5" />,
           label: status,
         };
     }
@@ -78,13 +80,13 @@ const BatchSummary = ({
       : 0;
 
   return (
-    <Card>
+    <Card className="p-5">
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-5">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">{batch.name}</h2>
-            <Badge variant={statusConfig.variant} className="flex items-center gap-1">
+          <div className="flex items-center gap-2 mb-1.5">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800">{batch.name}</h2>
+            <Badge variant={statusConfig.variant} className="flex items-center gap-1 text-xs">
               {statusConfig.icon}
               {statusConfig.label}
             </Badge>
@@ -92,8 +94,8 @@ const BatchSummary = ({
 
           {/* Source File */}
           {batch.approval_batch_file && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <FileText className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-xs text-gray-600">
+              <FileText className="w-3.5 h-3.5" />
               <span>Source: {batch.approval_batch_file}</span>
             </div>
           )}
@@ -102,73 +104,92 @@ const BatchSummary = ({
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
           {canClose && (
-            <GradientButton
+            <button
               onClick={onCloseBatch}
-              loading={isClosing}
               disabled={isClosing}
-              className="w-full sm:w-auto"
+              className="px-4 py-2 bg-[#003a76] hover:bg-[#002d5c] disabled:bg-gray-400 text-white rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
             >
-              <Lock className="w-4 h-4" />
-              Close Batch
-            </GradientButton>
+              {isClosing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Closing...
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4" />
+                  Close Batch
+                </>
+              )}
+            </button>
           )}
 
           {canFinalize && (
-            <GradientButton
+            <button
               onClick={onFinalizeBatch}
-              loading={isFinalizing}
               disabled={isFinalizing}
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+              className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
             >
-              <CheckCircle className="w-4 h-4" />
-              Finalize Batch
-            </GradientButton>
+              {isFinalizing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Finalizing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Finalize Batch
+                </>
+              )}
+            </button>
           )}
 
           {batch.status === "FINALIZED" && (
-            <OutlineButton className="w-full sm:w-auto cursor-not-allowed">
-              <CheckCircle className="w-4 h-4 text-green-600" />
+            <button
+              disabled
+              className="px-4 py-2 border-2 border-green-300 bg-green-50 text-green-700 rounded-lg font-semibold text-sm cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <CheckCircle className="w-4 h-4" />
               Batch Completed
-            </OutlineButton>
+            </button>
           )}
         </div>
       </div>
 
-      {/* Info Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Info Grid - Compact */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {/* Assistance Type */}
-        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-          <div className="flex items-center gap-2 mb-1">
-            <Package className="w-4 h-4 text-blue-600" />
-            <span className="text-xs font-medium text-blue-600">Assistance Type</span>
+        <div className="bg-gradient-to-br from-[#003a76]/5 to-[#003a76]/10 rounded-lg p-3 border border-[#003a76]/20">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Package className="w-3.5 h-3.5 text-[#003a76]" />
+            <span className="text-xs font-medium text-[#003a76]">Assistance Type</span>
           </div>
-          <p className="text-lg font-bold text-gray-800">{batch.assistance_type}</p>
+          <p className="text-base font-bold text-gray-800">{batch.assistance_type}</p>
         </div>
 
         {/* Payout Date */}
-        <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
-          <div className="flex items-center gap-2 mb-1">
-            <Calendar className="w-4 h-4 text-purple-600" />
+        <div className="bg-purple-50 rounded-lg p-3 border border-purple-100">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Calendar className="w-3.5 h-3.5 text-purple-600" />
             <span className="text-xs font-medium text-purple-600">Payout Date</span>
           </div>
-          <p className="text-lg font-bold text-gray-800">{formatDate(batch.payout_date)}</p>
+          <p className="text-base font-bold text-gray-800">{formatDate(batch.payout_date)}</p>
         </div>
 
         {/* Total Beneficiaries */}
-        <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
-          <div className="flex items-center gap-2 mb-1">
-            <Package className="w-4 h-4 text-indigo-600" />
+        <div className="bg-indigo-50 rounded-lg p-3 border border-indigo-100">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Package className="w-3.5 h-3.5 text-indigo-600" />
             <span className="text-xs font-medium text-indigo-600">Total Beneficiaries</span>
           </div>
-          <p className="text-lg font-bold text-gray-800">
+          <p className="text-base font-bold text-gray-800">
             {batch.total_beneficiaries?.toLocaleString() || 0}
           </p>
         </div>
 
         {/* Created By */}
-        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-          <div className="flex items-center gap-2 mb-1">
-            <Clock className="w-4 h-4 text-gray-600" />
+        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Clock className="w-3.5 h-3.5 text-gray-600" />
             <span className="text-xs font-medium text-gray-600">Created By</span>
           </div>
           <p className="text-sm font-semibold text-gray-800 truncate">
@@ -178,45 +199,47 @@ const BatchSummary = ({
         </div>
       </div>
 
-      {/* Financial Summary */}
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200 mb-6">
-        <h3 className="text-sm font-semibold text-green-800 mb-4 flex items-center gap-2">
-          <Package className="w-4 h-4" />
+      {/* Financial Summary - Compact */}
+      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200 mb-5">
+        <h3 className="text-xs font-semibold text-green-800 mb-3 flex items-center gap-1.5">
+          <Package className="w-3.5 h-3.5" />
           Financial Summary
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <p className="text-xs text-green-700 mb-1">Total Amount</p>
-            <p className="text-2xl font-bold text-green-900">
+            <p className="text-xs text-green-700 mb-0.5">Total Amount</p>
+            <p className="text-xl font-bold text-green-900">
               {formatCurrency(batch.total_amount)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-green-700 mb-1">Claimed Amount</p>
-            <p className="text-xl font-bold text-green-800">
+            <p className="text-xs text-green-700 mb-0.5">Claimed Amount</p>
+            <p className="text-lg font-bold text-green-800">
               {formatCurrency(batch.claimed_amount)}
             </p>
-            <p className="text-xs text-green-600 mt-1">{batch.claimed_count || 0} claims</p>
+            <p className="text-xs text-green-600 mt-0.5">{batch.claimed_count || 0} claims</p>
           </div>
           <div>
-            <p className="text-xs text-orange-700 mb-1">Unclaimed Amount</p>
-            <p className="text-xl font-bold text-orange-800">
+            <p className="text-xs text-orange-700 mb-0.5">Unclaimed Amount</p>
+            <p className="text-lg font-bold text-orange-800">
               {formatCurrency(batch.unclaimed_amount)}
             </p>
-            <p className="text-xs text-orange-600 mt-1">{batch.unclaimed_count || 0} claims</p>
+            <p className="text-xs text-orange-600 mt-0.5">
+              {batch.unclaimed_count || 0} claims
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Claim Status Progress */}
-      <div className="mb-6">
+      {/* Claim Status Progress - Compact */}
+      <div className="mb-5">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="text-sm font-semibold text-gray-700">Claim Processing Progress</h3>
-          <span className="text-sm font-medium text-gray-600">{completionPercentage}%</span>
+          <h3 className="text-xs font-semibold text-gray-700">Claim Processing Progress</h3>
+          <span className="text-xs font-medium text-[#003a76]">{completionPercentage}%</span>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+        <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
           <div className="flex h-full">
             {/* Claimed (Green) */}
             <div
@@ -243,23 +266,23 @@ const BatchSummary = ({
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 mt-3 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full" />
+        {/* Legend - Compact */}
+        <div className="flex flex-wrap gap-3 mt-2 text-xs">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 bg-green-500 rounded-full" />
             <span className="text-gray-600">
               Claimed: {batch.claimed_count || 0} ({formatCurrency(batch.claimed_amount)})
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-orange-400 rounded-full" />
+          <div className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 bg-orange-400 rounded-full" />
             <span className="text-gray-600">
               Unclaimed: {batch.unclaimed_count || 0} ({formatCurrency(batch.unclaimed_amount)}
               )
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-gray-300 rounded-full" />
+          <div className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 bg-gray-300 rounded-full" />
             <span className="text-gray-600">Pending: {batch.pending_count || 0}</span>
           </div>
         </div>
@@ -267,16 +290,16 @@ const BatchSummary = ({
 
       {/* Finalized Info */}
       {batch.status === "FINALIZED" && batch.finalized_at && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-          <div className="flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="flex items-start gap-2">
+            <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-green-900 mb-1">Batch Finalized</p>
-              <p className="text-sm text-green-700">
+              <p className="font-semibold text-green-900 mb-1 text-sm">Batch Finalized</p>
+              <p className="text-xs text-green-700">
                 This batch was finalized on {formatDate(batch.finalized_at)}. All claims are
                 now locked and cannot be modified.
               </p>
-              <div className="mt-3 text-sm text-green-800">
+              <div className="mt-2 text-xs text-green-800 space-y-0.5">
                 <p>
                   • Total Claimed: {batch.total_claimed} beneficiaries (
                   {formatCurrency(batch.claimed_amount)})
@@ -291,14 +314,14 @@ const BatchSummary = ({
         </div>
       )}
 
-      {/* Workflow Guide */}
+      {/* Workflow Guide - Compact */}
       {batch.status === "OPEN" && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="bg-[#003a76]/5 border border-[#003a76]/20 rounded-lg p-3">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-[#003a76] flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-blue-900 mb-1">Next Steps</p>
-              <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+              <p className="font-semibold text-[#003a76] mb-1 text-sm">Next Steps</p>
+              <ol className="text-xs text-gray-700 space-y-0.5 list-decimal list-inside">
                 <li>Review all beneficiary claims below</li>
                 <li>Click "Close Batch" when ready for payout distribution</li>
                 <li>Conduct field distribution to beneficiaries</li>
@@ -311,17 +334,17 @@ const BatchSummary = ({
       )}
 
       {batch.status === "CLOSED" && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-          <div className="flex items-start gap-3">
-            <Lock className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div className="flex items-start gap-2">
+            <Lock className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-yellow-900 mb-1">
+              <p className="font-semibold text-yellow-900 mb-1 text-sm">
                 Batch Closed - Ready for Encoding
               </p>
-              <p className="text-sm text-yellow-700 mb-2">
+              <p className="text-xs text-yellow-700 mb-1.5">
                 This batch is locked for payout. After distributing assistance in the field:
               </p>
-              <ol className="text-sm text-yellow-700 space-y-1 list-decimal list-inside">
+              <ol className="text-xs text-yellow-700 space-y-0.5 list-decimal list-inside">
                 <li>Use the table below to mark claims as CLAIMED or UNCLAIMED</li>
                 <li>You can select multiple claims and bulk update their status</li>
                 <li>Once all results are encoded, click "Finalize Batch" to complete</li>

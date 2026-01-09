@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
-import { Wallet, AlertCircle, Info } from "lucide-react";
+import { Wallet, Info, MousePointer2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 // Design System Imports
@@ -36,6 +36,24 @@ const fetchClaims = async (batchId, params = {}) => {
     params,
   });
   return data;
+};
+
+const StatusBadge = ({ status }) => {
+  const styles = {
+    OPEN: "bg-green-100 text-green-700",
+    CLOSED: "bg-yellow-100 text-yellow-700",
+    FINALIZED: "bg-gray-100 text-gray-700",
+  };
+
+  return (
+    <span
+      className={`px-2 py-1 rounded-full text-xs font-semibold ${
+        styles[status] || "bg-gray-100 text-gray-600"
+      }`}
+    >
+      {status}
+    </span>
+  );
 };
 
 // MAIN COMPONENT
@@ -243,18 +261,10 @@ const Disbursement = () => {
     }
   };
 
-  // ==========================================
-  // COMPUTED VALUES
-  // ==========================================
-
   const canEditClaims = batchDetail?.status === "OPEN" || batchDetail?.status === "CLOSED";
   const canCloseBatch = batchDetail?.status === "OPEN";
   const canFinalizeBatch = batchDetail?.status === "CLOSED";
   const isFinalized = batchDetail?.status === "FINALIZED";
-
-  // ==========================================
-  // RENDER
-  // ==========================================
 
   return (
     <PageContainer>
@@ -263,115 +273,145 @@ const Disbursement = () => {
         subtitle="Manage assistance batches and process beneficiary payouts"
         icon={Wallet}
       />
-      <div className="flex flex-col lg:flex-row gap-6 mt-6">
-        {/* LEFT SIDEBAR: BATCH LIST */}
-        <aside className="w-full lg:w-80 lg:sticky lg:top-24 self-start">
-          <Card className="p-0 overflow-hidden">
-            <div className="p-4 border-b bg-gray-50/50 flex justify-between items-center">
-              <h2 className="font-bold text-gray-700">Disbursement Batches</h2>
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                {batches.length} Total
-              </span>
-            </div>
 
-            {loadingBatches ? (
-              <div className="p-8">
-                <LoadingState message="Loading batches..." />
+      <Stack spacing="lg">
+        {/* HORIZONTAL BATCH SELECTOR */}
+        <Card className="p-0 overflow-hidden">
+          <div className="p-4 border-b bg-white flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#003a76] rounded-lg">
+                <MousePointer2 className="w-5 h-5 text-white" />
               </div>
-            ) : batchesError ? (
-              <div className="p-4 flex items-center gap-2 text-red-500 text-sm">
-                <AlertCircle className="w-4 h-4" />
-                Error loading batches. Please refresh.
+              <div>
+                <h2 className="font-bold text-gray-800">Select Disbursement Batch</h2>
+                <p className="text-xs text-gray-600">{batches.length} batches available</p>
               </div>
-            ) : batches.length === 0 ? (
-              <div className="p-8 text-center">
-                <div className="bg-gray-50 p-4 rounded-full mb-3 inline-block">
-                  <Wallet className="w-8 h-8 text-gray-300" />
-                </div>
-                <p className="text-sm text-gray-500">No disbursement batches yet.</p>
-                <p className="text-xs text-gray-400 mt-2">
-                  Upload an approved list to create one.
-                </p>
+            </div>
+          </div>
+
+          {loadingBatches ? (
+            <div className="p-8">
+              <LoadingState message="Loading batches..." />
+            </div>
+          ) : batches.length === 0 ? (
+            <div className="p-8 text-center">
+              <div className="bg-gray-50 p-4 rounded-full mb-3 inline-block">
+                <Wallet className="w-8 h-8 text-gray-300" />
               </div>
+              <p className="text-sm text-gray-500">No disbursement batches yet.</p>
+            </div>
+          ) : (
+            <div className="p-4">
+              {/* HORIZONTAL SCROLLABLE BATCH CARDS */}
+              <div
+                className="flex gap-3 overflow-x-auto pb-2"
+                style={{ scrollbarWidth: "thin" }}
+              >
+                {batches.map(batch => (
+                  <button
+                    key={batch.id}
+                    onClick={() => handleBatchSelect(batch)}
+                    className={`
+                    flex-shrink-0 p-4 rounded-xl border-2 transition-all min-w-[280px]
+                    ${
+                      selectedBatch?.id === batch.id
+                        ? "border-blue-500 bg-blue-50 shadow-md"
+                        : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm"
+                    }
+                  `}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="text-left">
+                        <h3 className="font-bold text-gray-800 text-sm">Batch #{batch.id}</h3>
+                        <p className="text-xs text-gray-500">
+                          {new Date(batch.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <StatusBadge status={batch.status} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+                      <div className="bg-gray-50 p-2 rounded">
+                        <p className="text-gray-500">Total</p>
+                        <p className="font-bold text-gray-800">{batch.total_claims}</p>
+                      </div>
+                      <div className="bg-green-50 p-2 rounded">
+                        <p className="text-green-600">Claimed</p>
+                        <p className="font-bold text-green-700">{batch.total_claimed}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* SELECTED BATCH DETAILS + CLAIMS (FULL WIDTH) */}
+        {!selectedBatch ? (
+          <Card className="flex flex-col items-center justify-center py-32 text-center border-dashed border-2">
+            <div className="bg-gray-50 p-6 rounded-full mb-4">
+              <Wallet className="w-10 h-10 text-gray-300" />
+            </div>
+            <BodyText className="text-gray-500 max-w-md">
+              Select a batch above to view and manage beneficiary claims
+            </BodyText>
+          </Card>
+        ) : (
+          <>
+            {/* Batch Summary (Compact) */}
+            {loadingBatchDetail ? (
+              <Card>
+                <LoadingState message="Loading batch details..." />
+              </Card>
             ) : (
-              <BatchList
-                batches={batches}
-                selectedBatch={selectedBatch}
-                onSelectBatch={handleBatchSelect}
+              <BatchSummary
+                batch={batchDetail}
+                isClosing={closeBatchMutation.isLoading}
+                isFinalizing={finalizeBatchMutation.isLoading}
+                canClose={canCloseBatch}
+                canFinalize={canFinalizeBatch}
+                onCloseBatch={handleCloseBatch}
+                onFinalizeBatch={handleFinalizeBatch}
               />
             )}
-          </Card>
-        </aside>
 
-        {/* MAIN PANEL */}
-        <main className="flex-1">
-          {!selectedBatch ? (
-            <Card className="flex flex-col items-center justify-center py-32 text-center border-dashed border-2">
-              <div className="bg-gray-50 p-6 rounded-full mb-4">
-                <Wallet className="w-10 h-10 text-gray-300" />
-              </div>
-              <BodyText className="text-gray-500 max-w-md">
-                Select a disbursement batch from the sidebar to view and manage beneficiary
-                claims
-              </BodyText>
-            </Card>
-          ) : (
-            <Stack spacing="lg">
-              {/* Batch Summary Card */}
-              {loadingBatchDetail ? (
-                <Card>
-                  <LoadingState message="Loading batch details..." />
-                </Card>
-              ) : (
-                <BatchSummary
-                  batch={batchDetail}
-                  isClosing={closeBatchMutation.isLoading}
-                  isFinalizing={finalizeBatchMutation.isLoading}
-                  canClose={canCloseBatch}
-                  canFinalize={canFinalizeBatch}
-                  onCloseBatch={handleCloseBatch}
-                  onFinalizeBatch={handleFinalizeBatch}
-                />
-              )}
+            {/* Claims Table (Full Width) */}
+            <ClaimTable
+              claims={claims}
+              totalClaims={totalClaims}
+              loading={loadingClaims}
+              batchStatus={batchDetail?.status}
+              canEdit={canEditClaims}
+              isFinalized={isFinalized}
+              selectedClaims={selectedClaims}
+              onClaimSelect={handleClaimSelection}
+              onSelectAll={handleSelectAllClaims}
+              onStatusChange={handleClaimStatusChange}
+              onBulkUpdate={() => setShowStatusModal(true)}
+              filters={claimFilters}
+              onFilterChange={setClaimFilters}
+              isUpdating={updateClaimMutation.isLoading}
+            />
+          </>
+        )}
 
-              {/* Claims Table */}
-              <ClaimTable
-                claims={claims}
-                totalClaims={totalClaims}
-                loading={loadingClaims}
-                batchStatus={batchDetail?.status}
-                canEdit={canEditClaims}
-                isFinalized={isFinalized}
-                selectedClaims={selectedClaims}
-                onClaimSelect={handleClaimSelection}
-                onSelectAll={handleSelectAllClaims}
-                onStatusChange={handleClaimStatusChange}
-                onBulkUpdate={() => setShowStatusModal(true)}
-                filters={claimFilters}
-                onFilterChange={setClaimFilters}
-                isUpdating={updateClaimMutation.isLoading}
-              />
-            </Stack>
-          )}
-        </main>
-      </div>
-
-      {/* Info Banner - How to Create Batches */}
-      <Card className="bg-blue-50 border-blue-200">
-        <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <h3 className="font-semibold text-blue-900 mb-1">
-              How to Create Disbursement Batches
-            </h3>
-            <p className="text-sm text-blue-700">
-              Disbursement batches are automatically created when you upload an approved list.
-              Go to <strong>Approved Applicants → Upload Approved List</strong> to create a new
-              batch.
-            </p>
+        {/* Info Banner */}
+        <Card className="bg-blue-50 border-blue-200">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-blue-900 mb-1">
+                How to Create Disbursement Batches
+              </h3>
+              <p className="text-sm text-blue-700">
+                Go to <strong>Approved → Upload Approved List</strong> to automatically create
+                a new batch.
+              </p>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </Stack>
 
       {/* Status Update Modal */}
       {showStatusModal && (
