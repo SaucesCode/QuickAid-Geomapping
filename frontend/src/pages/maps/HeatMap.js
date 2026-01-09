@@ -10,6 +10,7 @@ import {
   Activity,
   BarChart3,
   Loader2,
+  X,
   Map as MapIcon,
   Layers,
   Download,
@@ -252,108 +253,134 @@ const Geographic = () => {
         </AnalyticsGrid>
 
         <AnalyticsCard>
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            {/* Left: Title */}
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-[#003a76] rounded-lg">
-                <Filter className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-gray-800">Heatmap Filters</h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Filter by city and assistance type
-                </p>
-              </div>
-            </div>
+  <div className="flex items-center justify-between gap-6 flex-wrap">
+    {/* Left: Title */}
+    <div className="flex items-center gap-3">
+      <div className="p-2 bg-[#003a76] rounded-lg">
+        <Filter className="w-4.5 h-4.5 text-white" />
+      </div>
+      <div>
+        <h3 className="text-base font-semibold text-gray-900">Heatmap Filters</h3>
+        <p className="text-xs text-gray-600 mt-0.5">
+          Filter by city and assistance type
+        </p>
+      </div>
+    </div>
 
-            {/* Right: Dropdowns Side by Side */}
-            <div className="flex items-end gap-3 flex-wrap">
-              {/* City Dropdown */}
-              <div className="flex flex-col min-w-[160px]">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  City
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedCity}
-                    onChange={e => setSelectedCity(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 appearance-none cursor-pointer pr-8"
-                  >
-                    <option value="ALL">All Cities</option>
-                    {districtCities.map(city => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg
-                      className="w-4 h-4 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Assistance Type Dropdown */}
-              <div className="flex flex-col min-w-[160px]">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1">
-                  <Tags className="w-3 h-3" />
-                  Assistance Type
-                </label>
-                <div className="relative">
-                  <select
-                    value={heatType}
-                    onChange={e => setHeatType(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 hover:border-blue-400 appearance-none cursor-pointer pr-8"
-                  >
-                    <option value="ALL">All Types</option>
-                    <option value="Medical">Medical</option>
-                    <option value="Burial">Burial</option>
-                    <option value="Educational">Educational</option>
-                  </select>
-                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg
-                      className="w-4 h-4 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Reset Button (Optional - can remove if you don't want it) */}
+    {/* Right: Dropdowns Side by Side */}
+    <div className="flex items-end gap-3 flex-wrap">
+      {/* City Dropdown */}
+      <div className="flex flex-col min-w-[170px]">
+        <label className="text-xs font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
+          <MapPin className="w-3.5 h-3.5 text-gray-500" />
+          City
+        </label>
+        <div className="relative">
+          <select
+            value={selectedCity}
+            onChange={e => setSelectedCity(e.target.value)}
+            className="w-full px-3.5 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-[#003a76]/10 focus:border-[#003a76] outline-none transition-all text-gray-800 hover:border-gray-400 appearance-none cursor-pointer pr-9"
+          >
+            <option value="ALL">All Cities</option>
+            {districtCities.map(city => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+            {selectedCity !== "ALL" ? (
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setSelectedCity("ALL");
+                }}
+                className="p-0.5 hover:bg-gray-100 rounded transition-all cursor-pointer pointer-events-auto"
+                type="button"
+              >
+                <X className="w-3.5 h-3.5 text-gray-500 hover:text-gray-700" />
+              </button>
+            ) : (
+              <svg
+                className="w-3.5 h-3.5 text-gray-400 pointer-events-auto cursor-pointer"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Assistance Type Dropdown */}
+      <div className="flex flex-col min-w-[170px]">
+        <label className="text-xs font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
+          <Tags className="w-3.5 h-3.5 text-gray-500" />
+          Assistance Type
+        </label>
+        <div className="relative">
+          <select
+            value={heatType}
+            onChange={e => setHeatType(e.target.value)}
+            className="w-full px-3.5 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-[#003a76]/10 focus:border-[#003a76] outline-none transition-all text-gray-800 hover:border-gray-400 appearance-none cursor-pointer pr-9"
+          >
+            <option value="ALL">All Types</option>
+            <option value="Medical">Medical</option>
+            <option value="Burial">Burial</option>
+            <option value="Educational">Educational</option>
+          </select>
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+            {heatType !== "ALL" ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
                   setHeatType("ALL");
                 }}
-                className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-semibold transition-all hover:shadow-sm active:scale-[0.98] border border-gray-200"
+                className="p-0.5 hover:bg-gray-100 rounded transition-all cursor-pointer pointer-events-auto"
+                type="button"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Reset
+                <X className="w-3.5 h-3.5 text-gray-500 hover:text-gray-700" />
               </button>
-            </div>
+            ) : (
+              <svg
+                className="w-3.5 h-3.5 text-gray-400 pointer-events-auto cursor-pointer"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            )}
           </div>
-        </AnalyticsCard>
+        </div>
+      </div>
+
+      {/* Reset Button */}
+      <button
+        onClick={() => {
+          setSelectedCity("ALL");
+          setHeatType("ALL");
+        }}
+        className="flex items-center gap-1.5 px-3.5 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 rounded-lg text-sm font-medium transition-all border border-gray-300 hover:border-gray-400"
+      >
+        <RotateCcw className="w-3.5 h-3.5" />
+        Reset
+      </button>
+    </div>
+  </div>
+</AnalyticsCard>
 
         {/* Map Card - MODIFIED */}
         <AnalyticsCard>
