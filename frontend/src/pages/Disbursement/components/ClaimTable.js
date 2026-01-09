@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Search, Filter, CheckSquare, Square, Edit3 } from "lucide-react";
+import { useState, useRef } from "react";
+import { Search, CheckSquare, Square, Edit3 } from "lucide-react";
 import { Card, LoadingState, GradientButton } from "../../../components/DesignSystem";
 import ClaimRow from "./ClaimRow";
 import Pagination from "../../../components/Pagination";
@@ -23,13 +23,18 @@ const ClaimTable = ({
   const [searchTerm, setSearchTerm] = useState(filters.search || "");
   const [statusFilter, setStatusFilter] = useState(filters.status || "");
 
-  // Handle search with debounce
+  const searchTimeoutRef = useRef(null);
+
   const handleSearch = value => {
     setSearchTerm(value);
-    // Debounce search
-    setTimeout(() => {
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
       onFilterChange({ ...filters, search: value, offset: 0 });
-    }, 500);
+    }, 400);
   };
 
   // Handle status filter
@@ -85,7 +90,7 @@ const ClaimTable = ({
         </div>
 
         {/* Filters */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+        <div className="flex flex-col lg:flex-row gap-3 mt-4">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -94,23 +99,36 @@ const ClaimTable = ({
               placeholder="Search by name, barangay, city..."
               value={searchTerm}
               onChange={e => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              className="w-full h-10 pl-10 pr-4 text-sm border border-gray-300 rounded-lg
+           focus:ring-2 focus:ring-[#003a76] focus:border-[#003a76]"
             />
           </div>
 
-          {/* Status Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <select
-              value={statusFilter}
-              onChange={e => handleStatusFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm appearance-none bg-white"
-            >
-              <option value="">All Statuses</option>
-              <option value="PENDING">Pending</option>
-              <option value="CLAIMED">Claimed</option>
-              <option value="UNCLAIMED">Unclaimed</option>
-            </select>
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { label: "All", value: "" },
+              { label: "Pending", value: "PENDING" },
+              { label: "Claimed", value: "CLAIMED" },
+              { label: "Unclaimed", value: "UNCLAIMED" },
+            ].map(({ label, value }) => {
+              const active = statusFilter === value;
+
+              return (
+                <button
+                  key={value || "all"}
+                  onClick={() => handleStatusFilter(value)}
+                  className={`h-10 px-4 rounded-lg text-sm font-medium border transition-colors
+          ${
+            active
+              ? "bg-[#003a76] text-white border-[#003a76]"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+          }
+        `}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

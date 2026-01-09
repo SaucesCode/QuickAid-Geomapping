@@ -19,8 +19,10 @@ import BatchSummary from "./components/BatchSummary";
 import ClaimTable from "./components/ClaimTable";
 import StatusUpdateModal from "./components/StatusUpdateModal";
 
-const fetchBatches = async () => {
-  const { data } = await api.get("/disbursement/list-batches/");
+const fetchBatches = async (filters = {}) => {
+  const { data } = await api.get("/disbursement/list-batches/", {
+    params: filters,
+  });
   return data;
 };
 
@@ -61,6 +63,12 @@ const Disbursement = () => {
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedClaims, setSelectedClaims] = useState([]);
+  const [batchFilters, setBatchFilters] = useState({
+    search: "",
+    status: "",
+    limit: 10,
+    offset: 0,
+  });
   const [claimFilters, setClaimFilters] = useState({
     search: "",
     status: "",
@@ -72,16 +80,20 @@ const Disbursement = () => {
   // QUERIES
   // 1. Fetch All Batches (Lightweight List)
   const {
-    data: batches = [],
+    data: batchesData,
     isLoading: loadingBatches,
     isError: batchesError,
     refetch: refetchBatches,
   } = useQuery({
-    queryKey: ["disbursement-batches"],
-    queryFn: fetchBatches,
+    queryKey: ["disbursement-batches", batchFilters],
+    queryFn: () => fetchBatches(batchFilters),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
+    keepPreviousData: true,
   });
+
+  const batches = batchesData?.results || [];
+  const totalBatches = batchesData?.count || 0;
 
   // 2. Fetch Selected Batch Details (Full Data)
   const { data: batchDetail, isLoading: loadingBatchDetail } = useQuery({
@@ -90,6 +102,14 @@ const Disbursement = () => {
     enabled: !!selectedBatch?.id,
     staleTime: 1000 * 60 * 2,
   });
+
+  const { data: allBatchesData } = useQuery({
+    queryKey: ["disbursement-batches-all"],
+    queryFn: () => fetchBatches({ limit: 1000, offset: 0 }),
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const allBatches = allBatchesData?.results || [];
 
   // 3. Fetch Claims for Selected Batch
   const {
@@ -289,62 +309,16 @@ const Disbursement = () => {
             </div>
           </div>
 
-          {loadingBatches ? (
-            <div className="p-8">
-              <LoadingState message="Loading batches..." />
-            </div>
-          ) : batches.length === 0 ? (
-            <div className="p-8 text-center">
-              <div className="bg-gray-50 p-4 rounded-full mb-3 inline-block">
-                <Wallet className="w-8 h-8 text-gray-300" />
-              </div>
-              <p className="text-sm text-gray-500">No disbursement batches yet.</p>
-            </div>
-          ) : (
-            <div className="p-4">
-              {/* HORIZONTAL SCROLLABLE BATCH CARDS */}
-              <div
-                className="flex gap-3 overflow-x-auto pb-2"
-                style={{ scrollbarWidth: "thin" }}
-              >
-                {batches.map(batch => (
-                  <button
-                    key={batch.id}
-                    onClick={() => handleBatchSelect(batch)}
-                    className={`
-                    flex-shrink-0 p-4 rounded-xl border-2 transition-all min-w-[280px]
-                    ${
-                      selectedBatch?.id === batch.id
-                        ? "border-blue-500 bg-blue-50 shadow-md"
-                        : "border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm"
-                    }
-                  `}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="text-left">
-                        <h3 className="font-bold text-gray-800 text-sm">Batch #{batch.id}</h3>
-                        <p className="text-xs text-gray-500">
-                          {new Date(batch.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <StatusBadge status={batch.status} />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
-                      <div className="bg-gray-50 p-2 rounded">
-                        <p className="text-gray-500">Total</p>
-                        <p className="font-bold text-gray-800">{batch.total_claims}</p>
-                      </div>
-                      <div className="bg-green-50 p-2 rounded">
-                        <p className="text-green-600">Claimed</p>
-                        <p className="font-bold text-green-700">{batch.total_claimed}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <BatchList
+            batches={batches}
+            totalBatches={totalBatches}
+            allBatches={allBatches}
+            selectedBatch={selectedBatch}
+            onSelectBatch={handleBatchSelect}
+            filters={batchFilters}
+            onFilterChange={setBatchFilters}
+            loading={loadingBatches}
+          />
         </Card>
 
         {/* SELECTED BATCH DETAILS + CLAIMS (FULL WIDTH) */}
