@@ -110,7 +110,7 @@ const BatchList = ({
                 onClick={() => handleStatusFilter(item.key)}
                 className={`h-10 px-4 rounded-lg text-sm font-medium transition-all ${
                   isActive
-                    ? "bg-[#003a76] text-white shadow-md"
+                    ? "bg-[#003a76] text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -152,11 +152,14 @@ const BatchList = ({
               <button
                 key={batch.id}
                 onClick={() => onSelectBatch(batch)}
-                className={`w-full text-left rounded-lg border transition-all ${
-                  isSelected
-                    ? "border-[#003a76] bg-[#003a76]/5 shadow-sm"
-                    : "border-gray-300 bg-white hover:border-gray-400 hover:shadow-sm"
-                }`}
+                className={`w-full text-left rounded-lg border transition-all
+                  no-underline appearance-none focus:outline-none focus-visible:outline-none
+                  ${
+                    isSelected
+                      ? "border-[#003a76] bg-[#003a76]/5 shadow-sm"
+                      : "border-gray-300 bg-white hover:border-gray-400 hover:shadow-sm"
+                  }
+                `}
               >
                 <div className="px-3 py-2.5 space-y-2">
                   {/* Header */}

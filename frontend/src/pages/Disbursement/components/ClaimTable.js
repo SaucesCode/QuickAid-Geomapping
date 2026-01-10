@@ -153,7 +153,7 @@ const ClaimTable = ({
                   onClick={() => handleStatusFilter(item.key)}
                   className={`h-10 px-4 rounded-lg text-sm font-semibold transition-all shadow-sm ${
                     isActive
-                      ? "bg-[#003a76] text-white-500"
+                      ? "bg-[#003a76] text-white"
                       : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
                   }`}
                 >
