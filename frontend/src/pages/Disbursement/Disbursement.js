@@ -223,26 +223,12 @@ const Disbursement = () => {
 
   const handleCloseBatch = () => {
     if (!selectedBatch) return;
-
-    const confirmed = window.confirm(
-      "Close this batch? This will lock it for payout distribution. You can still encode results after."
-    );
-
-    if (confirmed) {
-      closeBatchMutation.mutate(selectedBatch.id);
-    }
+    closeBatchMutation.mutate(selectedBatch.id);
   };
 
   const handleFinalizeBatch = () => {
     if (!selectedBatch) return;
-
-    const confirmed = window.confirm(
-      "Finalize this batch? This will permanently lock all claims. This action cannot be undone."
-    );
-
-    if (confirmed) {
-      finalizeBatchMutation.mutate(selectedBatch.id);
-    }
+    finalizeBatchMutation.mutate(selectedBatch.id);
   };
 
   const handleBulkStatusUpdate = (status, payout_date) => {
@@ -297,14 +283,16 @@ const Disbursement = () => {
       <Stack spacing="lg">
         {/* HORIZONTAL BATCH SELECTOR */}
         <Card className="p-0 overflow-hidden">
-          <div className="border-b bg-white flex justify-between items-center">
+          <div className="flex items-center justify-between ">
             <div className="flex items-center gap-3">
-              <div>
-                <Package className="w-6 h-6 text-[#003a76]" />
+              <div className="w-10 h-10 bg-[#003a76] rounded-xl flex items-center justify-center shadow-md">
+                <Package className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="font-bold text-gray-800">Select Disbursement Batch</h2>
-                <p className="text-xs text-gray-600">{batches.length} batches available</p>
+                <h2 className="text-xl font-bold text-gray-800">Disbursement Batches</h2>
+                <p className="text-sm text-gray-500">
+                  Manage payout batches and beneficiary claims
+                </p>
               </div>
             </div>
           </div>

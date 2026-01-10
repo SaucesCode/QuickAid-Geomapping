@@ -1,5 +1,4 @@
-// frontend/src/pages/Disbursement/components/BatchSummary.js
-
+import { useState } from "react";
 import {
   Calendar,
   Package,
@@ -11,6 +10,8 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { Card, Badge } from "../../../components/DesignSystem";
+import ConfirmationModal from "./ConfirmationModal";
+import { formatDate } from "../../../utils/FormatDate";
 
 const BatchSummary = ({
   batch,
@@ -21,7 +22,20 @@ const BatchSummary = ({
   onCloseBatch,
   onFinalizeBatch,
 }) => {
+  const [closeModal, setCloseModal] = useState(false);
+  const [finalizeModal, setFinalizeModal] = useState(false);
+
   if (!batch) return null;
+
+  const handleCloseBatchConfirm = () => {
+    onCloseBatch();
+    setCloseModal(false);
+  };
+
+  const handleFinalizeBatchConfirm = () => {
+    onFinalizeBatch();
+    setFinalizeModal(false);
+  };
 
   // Helper function to format currency
   const formatCurrency = amount => {
@@ -29,16 +43,6 @@ const BatchSummary = ({
       style: "currency",
       currency: "PHP",
     }).format(amount || 0);
-  };
-
-  // Helper function to format date
-  const formatDate = dateString => {
-    if (!dateString) return "Not set";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
   };
 
   // Status badge configuration
@@ -83,15 +87,13 @@ const BatchSummary = ({
   return (
     <Card className="p-5">
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-5">
+      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-gray-200">
+        <div className="w-10 h-10 bg-[#003a76] rounded-xl flex items-center justify-center shadow-md">
+          <FileText className="w-5 h-5 text-white" />
+        </div>
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="flex items-center gap-2">
-              <div>
-                <FileText className="w-6 h-6 text-[#003a76]" />
-              </div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-800">{batch.name}</h2>
-            </div>
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800">{batch.name}</h2>
             <Badge variant={statusConfig.variant} className="flex items-center gap-1 text-xs">
               {statusConfig.icon}
               {statusConfig.label}
@@ -108,10 +110,10 @@ const BatchSummary = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2">
           {canClose && (
             <button
-              onClick={onCloseBatch}
+              onClick={() => setCloseModal(true)} // Changed this
               disabled={isClosing}
               className="px-4 py-2 bg-[#003a76] hover:bg-[#002d5c] disabled:bg-gray-400 text-white rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
             >
@@ -131,7 +133,7 @@ const BatchSummary = ({
 
           {canFinalize && (
             <button
-              onClick={onFinalizeBatch}
+              onClick={() => setFinalizeModal(true)} // Changed this
               disabled={isFinalizing}
               className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
             >
@@ -359,6 +361,33 @@ const BatchSummary = ({
           </div>
         </div>
       )}
+      <ConfirmationModal
+        isOpen={closeModal}
+        onClose={() => setCloseModal(false)}
+        onConfirm={handleCloseBatchConfirm}
+        title="Close Batch for Payout?"
+        message="This will lock the batch and prepare it for field distribution. You'll be able to encode payout results after closing. This action cannot be undone."
+        confirmText="Yes, Close Batch"
+        cancelText="Cancel"
+        type="warning"
+        isLoading={isClosing}
+      />
+
+      <ConfirmationModal
+        isOpen={finalizeModal}
+        onClose={() => setFinalizeModal(false)}
+        onConfirm={handleFinalizeBatchConfirm}
+        title="Finalize Batch?"
+        message={`This will permanently finalize the batch with ${
+          batch.total_claimed || 0
+        } claimed and ${
+          batch.total_unclaimed || 0
+        } unclaimed beneficiaries. Once finalized, no further changes can be made.`}
+        confirmText="Yes, Finalize"
+        cancelText="Cancel"
+        type="success"
+        isLoading={isFinalizing}
+      />
     </Card>
   );
 };
