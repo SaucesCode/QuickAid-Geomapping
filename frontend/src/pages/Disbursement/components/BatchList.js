@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../../../components/Pagination";
+import { formatDate } from "../../../utils/FormatDate";
 
 const getBatchStatusBadge = status => {
   const base = "text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide";
@@ -165,12 +166,8 @@ const BatchList = ({
                         {batch.name}
                       </h3>
                       <p className="text-[11px] text-gray-500">
-                        Date Modified: {""}
-                        {new Date(batch.payout_date).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                        Date: {""}
+                        {formatDate(batch.payout_date)}
                       </p>
                     </div>
 
@@ -186,12 +183,6 @@ const BatchList = ({
                         <span className="text-gray-500">beneficiaries</span>
                       </div>
                     </div>
-
-                    {batch.status !== "OPEN" && (
-                      <span className="text-[11px] font-medium text-gray-500">
-                        {progress}% processed
-                      </span>
-                    )}
                   </div>
                 </div>
 

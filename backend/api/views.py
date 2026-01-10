@@ -3222,15 +3222,9 @@ def update_claim_status(request, claim_id):
         id=claim_id
     )
 
-    if claim.batch.status == "CLOSED":
+    if claim.batch.status == "FINALIZED":
         return Response(
             {"error": "Batch is closed. Claim cannot be modified."},
-            status=400
-        )
-
-    if claim.status != "PENDING":
-        return Response(
-            {"error": "Only PENDING claims can be updated."},
             status=400
         )
 
