@@ -96,17 +96,18 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
   };
 
   const assistanceStyles = type => {
-    switch (type?.toLowerCase()) {
-      case "medical":
-        return "from-blue-600 to-blue-700";
-      case "burial":
-        return "from-yellow-500 to-yellow-600";
-      case "educational":
-        return "from-green-600 to-green-700";
-      default:
-        return "from-gray-500 to-gray-600";
-    }
-  };
+  switch (type?.toLowerCase()) {
+    case "medical":
+      return "bg-blue-600 text-white";
+    case "educational":
+      return "bg-green-600 text-white";
+    case "burial":
+      return "bg-yellow-300 text-gray-800";
+    default:
+      return "bg-gray-500 text-white";
+  }
+};
+
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all">
@@ -160,7 +161,7 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
       {/* Expanded Table */}
       {isExpanded && (
         <div className="border-t border-gray-200">
-          <div className="p-4 bg-[#003a76]">
+          <div className="p-4 bg-white">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-semibold text-gray-800 flex items-center gap-2">
                 <Filter className="w-4 h-4 text-blue-600" />
