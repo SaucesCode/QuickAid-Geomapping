@@ -596,7 +596,9 @@ def upload_approved_list(request):
     if not file_obj:
         return Response({"error": "No file uploaded"}, status=400)
 
-    # ✅ Read CSV / Excel
+    # =========================
+    # Read CSV / Excel
+    # =========================
     try:
         if file_obj.name.endswith(".csv"):
             df = pd.read_csv(file_obj)
@@ -606,24 +608,31 @@ def upload_approved_list(request):
     except Exception as e:
         return Response({"error": f"Failed to read file: {str(e)}"}, status=400)
 
-    # ✅ Create Approval Batch
+    # =========================
+    # Create Approval Batch
+    # =========================
     approval_batch = ApprovalBatch.objects.create(
         uploaded_by=request.user,
         file_name=file_obj.name,
         total_processed=len(df),
     )
 
-    # ✅ Detect assistance type
+    # =========================
+    # Detect assistance type
+    # =========================
     assistance_types = (
         df["type of assistance"].dropna().unique()
         if "type of assistance" in df.columns
         else []
     )
+
     primary_assistance_type = (
         assistance_types[0] if len(assistance_types) == 1 else "Mixed Assistance"
     )
 
-    # ✅ Auto-create Disbursement Batch
+    # =========================
+    # Auto-create Disbursement Batch
+    # =========================
     disbursement_batch = DisbursementBatch.objects.create(
         approval_batch=approval_batch,
         name=f"Disbursement Batch - {approval_batch.file_name} ({timezone.now().strftime('%Y-%m-%d')})",
@@ -634,8 +643,11 @@ def upload_approved_list(request):
         total_beneficiaries=0,
     )
 
-    # ✅ Build applicant OR filter
+    # =========================
+    # Build applicant OR filters
+    # =========================
     applicant_filters = Q()
+
     for _, row in df.iterrows():
         applicant_filters |= Q(
             background_info__first_name__iexact=safe_str(row.get("first name")),
@@ -644,7 +656,6 @@ def upload_approved_list(request):
             background_info__barangay__name__iexact=safe_str(row.get("barangay")),
             background_info__barangay__city__name__iexact=safe_str(row.get("municipal")),
             type_of_assistance__iexact=safe_str(row.get("type of assistance")),
-
         )
 
     applicants = {
@@ -662,20 +673,22 @@ def upload_approved_list(request):
         ).filter(applicant_filters)
     }
 
-    matched = []
+    approved_applicant_ids = set()
     disbursement_claims = []
-    approved_applicant_ids = set()  # 🔒 CRITICAL FIX
+    matched = []
+    unmatched = []  # ✅ NEW
 
-    # ✅ Process approvals + claims
+    # =========================
+    # Process rows
+    # =========================
     with transaction.atomic():
-        for _, row in df.iterrows():
+        for index, row in df.iterrows():
             first_name = safe_str(row.get("first name")).lower()
             middle_name = safe_str(row.get("middle name")).lower()
             last_name = safe_str(row.get("last name")).lower()
             barangay = safe_str(row.get("barangay")).lower()
             city = safe_str(row.get("municipal")).lower()
             assistance_type = safe_str(row.get("type of assistance")).lower()
-
             amount = row.get("amount of assistance")
 
             key = (
@@ -688,11 +701,30 @@ def upload_approved_list(request):
             )
 
             applicant = applicants.get(key)
+
+            # 🚨 UNMATCHED ROW
             if not applicant:
+                unmatched.append({
+                    "row": index + 2,  # Excel row number (header = row 1)
+                    "first_name": first_name,
+                    "middle_name": middle_name,
+                    "last_name": last_name,
+                    "barangay": barangay,
+                    "city": city,
+                    "assistance_type": assistance_type,
+                    "amount": amount,
+                    "reason": "No exact applicant match found",
+                })
                 continue
 
-            # 🚫 Prevent duplicate approvals per batch
+            # 🚫 Prevent duplicate approvals
             if applicant.id in approved_applicant_ids:
+                unmatched.append({
+                    "row": index + 2,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "reason": "Duplicate applicant in file",
+                })
                 continue
 
             approval = Approval.objects.create(
@@ -702,17 +734,8 @@ def upload_approved_list(request):
                 notes=f"Approved amount: {amount}",
             )
 
-            
-            ApprovalAuditLog.objects.create(
-                approval=approval,
-                action="APPROVED",
-                performed_by=request.user,
-                notes=f"Approved via batch upload ({approval_batch.file_name})"
-            )
-
             approved_applicant_ids.add(applicant.id)
 
-            # ✅ Parse amount safely
             try:
                 clean_amount = Decimal(str(amount).replace(",", ""))
             except (InvalidOperation, ValueError):
@@ -736,7 +759,9 @@ def upload_approved_list(request):
 
         DisbursementClaim.objects.bulk_create(disbursement_claims)
 
-    # ✅ Update batch counters
+    # =========================
+    # Update counters
+    # =========================
     approval_batch.total_approved = len(approved_applicant_ids)
     approval_batch.save(update_fields=["total_approved"])
 
@@ -746,20 +771,26 @@ def upload_approved_list(request):
     log_staff_activity(
         request.user,
         "DISBURSEMENT",
-        f"Created disbursement batch {disbursement_batch.id} with {len(approved_applicant_ids)} beneficiaries",
+        f"Created disbursement batch {disbursement_batch.id} "
+        f"({len(approved_applicant_ids)} approved, {len(unmatched)} unmatched)",
         request,
     )
 
+    # =========================
+    # FINAL RESPONSE (FRONTEND-READY)
+    # =========================
     return Response(
         {
             "total_processed": len(df),
             "total_approved": len(approved_applicant_ids),
+            "total_unmatched": len(unmatched),
+            "approved_applicant_ids": list(approved_applicant_ids),
+            "unmatched_rows": unmatched,  # 👈 THIS IS WHAT YOU NEED
             "disbursement_batch_id": disbursement_batch.id,
-            "message": "Approval batch processed and disbursement batch created successfully",
+            "message": "Approval batch processed",
         },
         status=201,
     )
-
 
 
 

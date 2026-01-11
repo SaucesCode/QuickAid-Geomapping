@@ -96,18 +96,17 @@ const BatchRow = ({ batch, toggleBatch, isExpanded }) => {
   };
 
   const assistanceStyles = type => {
-  switch (type?.toLowerCase()) {
-    case "medical":
-      return "bg-blue-600 text-white";
-    case "educational":
-      return "bg-green-600 text-white";
-    case "burial":
-      return "bg-yellow-300 text-gray-800";
-    default:
-      return "bg-gray-500 text-white";
-  }
-};
-
+    switch (type?.toLowerCase()) {
+      case "medical":
+        return "bg-blue-600 text-white";
+      case "educational":
+        return "bg-green-600 text-white";
+      case "burial":
+        return "bg-yellow-300 text-gray-800";
+      default:
+        return "bg-gray-500 text-white";
+    }
+  };
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all">
@@ -267,6 +266,8 @@ const Approved = () => {
   const queryClient = useQueryClient();
   const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [unmatchedRows, setUnmatchedRows] = useState([]);
+  const [showUnmatchedModal, setShowUnmatchedModal] = useState(false);
 
   const {
     data: batches = [],
@@ -282,19 +283,24 @@ const Approved = () => {
     onSuccess: data => {
       queryClient.invalidateQueries(["approved-batches"]);
       setFile(null);
+
+      if (data.unmatched_rows?.length > 0) {
+        setUnmatchedRows(data.unmatched_rows);
+        setShowUnmatchedModal(true);
+      }
+
       toast.custom(
         t => (
           <CustomToast
             t={t}
             type="upload"
-            customMessage={`Processed ${data.total_processed || 0} records, ${
-              data.total_approved || 0
-            } approved.`}
+            customMessage={`Processed ${data.total_processed}, Approved ${data.total_approved}, Unmatched ${data.total_unmatched}`}
           />
         ),
         { duration: 4000 }
       );
     },
+
     onError: error => {
       toast.custom(
         t => <CustomToast t={t} type="uploadError" customMessage={error.message} />,
@@ -470,7 +476,76 @@ const Approved = () => {
           </div>
         )}
       </Card>
+      {showUnmatchedModal && (
+        <UnmatchedRowsModal
+          rows={unmatchedRows}
+          onClose={() => {
+            setShowUnmatchedModal(false);
+            setUnmatchedRows([]);
+          }}
+        />
+      )}
     </PageContainer>
+  );
+};
+
+// --- Unmatched Rows Modal ---
+const UnmatchedRowsModal = ({ rows, onClose }) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-xl shadow-xl w-[90%] max-w-5xl max-h-[85vh] overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b">
+          <h3 className="text-lg font-semibold flex items-center gap-2 text-red-700">
+            <AlertCircle className="w-5 h-5" />
+            Unmatched Records ({rows.length})
+          </h3>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="overflow-auto max-h-[65vh]">
+          <table className="min-w-full text-sm">
+            <thead className="bg-red-600 text-white sticky top-0">
+              <tr>
+                {[
+                  "Row",
+                  "First Name",
+                  "Last Name",
+                  "Barangay",
+                  "Municipal",
+                  "Assistance",
+                  "Reason",
+                ].map(h => (
+                  <th key={h} className="px-4 py-3 text-left font-semibold">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {rows.map((r, i) => (
+                <tr key={i} className="hover:bg-red-50">
+                  <td className="px-4 py-3 font-semibold">{r.row}</td>
+                  <td className="px-4 py-3">{r.first_name}</td>
+                  <td className="px-4 py-3">{r.last_name}</td>
+                  <td className="px-4 py-3">{r.barangay}</td>
+                  <td className="px-4 py-3">{r.city}</td>
+                  <td className="px-4 py-3">{r.assistance_type}</td>
+                  <td className="px-4 py-3 text-red-700 font-medium">{r.reason}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex justify-end px-6 py-4 border-t bg-gray-50">
+          <button onClick={onClose} className="px-5 py-2 border rounded-lg hover:bg-gray-100">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

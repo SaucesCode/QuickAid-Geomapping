@@ -136,33 +136,33 @@ const PreviewModal = ({ previewApplicant, closePreviewView }) => {
               </div>
               <dl className="space-y-3">
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Full Name</dt>
+                  <dt className="text-xs font-medium text-blue-800">Full Name</dt>
                   <dd className="text-sm font-medium text-gray-900 mt-1">{fullName}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Sex</dt>
+                  <dt className="text-xs font-medium text-blue-800">Sex</dt>
                   <dd className="text-sm text-gray-900 mt-1">{background_info.sex}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Birthday</dt>
+                  <dt className="text-xs font-medium text-blue-800">Birthday</dt>
                   <dd className="text-sm text-gray-900 mt-1">
                     {formatDate(background_info.birthday)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Civil Status</dt>
+                  <dt className="text-xs font-medium text-blue-800">Civil Status</dt>
                   <dd className="text-sm text-gray-900 mt-1">
                     {background_info.civil_status}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Occupation</dt>
+                  <dt className="text-xs font-medium text-blue-800">Occupation</dt>
                   <dd className="text-sm text-gray-900 mt-1">
                     {background_info.occupation || "Not specified"}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Monthly Income</dt>
+                  <dt className="text-xs font-medium text-blue-800">Monthly Income</dt>
                   <dd className="text-sm text-gray-900 mt-1">
                     {background_info.monthly_income
                       ? `₱${parseFloat(background_info.monthly_income).toLocaleString()}`
@@ -180,42 +180,34 @@ const PreviewModal = ({ previewApplicant, closePreviewView }) => {
               </div>
               <dl className="space-y-3">
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Contact Number</dt>
+                  <dt className="text-xs font-medium text-blue-800">Contact Number</dt>
                   <dd className="text-sm font-medium text-gray-900 mt-1 flex items-center gap-2">
                     <Phone className="w-3.5 h-3.5 text-gray-400" />
                     {contact_number}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Street Address</dt>
+                  <dt className="text-xs font-medium text-blue-800">Street Address</dt>
                   <dd className="text-sm text-gray-900 mt-1">
                     {background_info.street_address}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Barangay</dt>
+                  <dt className="text-xs font-medium text-blue-800">Barangay</dt>
                   <dd className="text-sm text-gray-900 mt-1">{background_info.barangay}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">City/Municipality</dt>
+                  <dt className="text-xs font-medium text-blue-800">City/Municipality</dt>
                   <dd className="text-sm text-gray-900 mt-1">
                     {background_info.barangay_details?.city_name}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Province</dt>
+                  <dt className="text-xs font-medium text-blue-800">Province</dt>
                   <dd className="text-sm text-gray-900 mt-1">
                     {background_info.barangay_details?.province_name}
                   </dd>
                 </div>
-                {(longitude || latitude) && (
-                  <div>
-                    <dt className="text-xs font-medium text-gray-500">Coordinates</dt>
-                    <dd className="text-xs text-gray-600 mt-1 font-mono">
-                      {latitude?.toFixed(6)}, {longitude?.toFixed(6)}
-                    </dd>
-                  </div>
-                )}
               </dl>
             </div>
 
@@ -227,7 +219,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView }) => {
               </div>
               <dl className="space-y-3">
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Assistance Type</dt>
+                  <dt className="text-xs font-medium text-blue-800">Assistance Type</dt>
                   <dd className="mt-1">
                     <span
                       className={`inline-block px-2.5 py-1 rounded border-2 text-xs font-semibold ${
@@ -243,35 +235,29 @@ const PreviewModal = ({ previewApplicant, closePreviewView }) => {
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Applicant Type</dt>
+                  <dt className="text-xs font-medium text-blue-800">Applicant Type</dt>
                   <dd className="text-sm text-gray-900 mt-1">{applicant_type}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Date Submitted</dt>
+                  <dt className="text-xs font-medium text-blue-800">Date Submitted</dt>
                   <dd className="text-sm text-gray-900 mt-1 flex items-center gap-2">
                     <Calendar className="w-3.5 h-3.5 text-gray-400" />
                     {formatDate(date_filled)}
                   </dd>
                 </div>
-                {created_at && (
-                  <div>
-                    <dt className="text-xs font-medium text-gray-500">Created At</dt>
-                    <dd className="text-sm text-gray-900 mt-1">{formatDate(created_at)}</dd>
-                  </div>
-                )}
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Valid ID</dt>
+                  <dt className="text-xs font-medium text-blue-800">Valid ID</dt>
                   <dd className="text-sm text-gray-900 mt-1 flex items-center gap-2">
                     <IdCard className="w-3.5 h-3.5 text-gray-400" />
                     {valid_id_presented}
                     {other_valid_id && (
-                      <span className="text-gray-500">({other_valid_id})</span>
+                      <span className="text-blue-800">({other_valid_id})</span>
                     )}
                   </dd>
                 </div>
                 {staff && (
                   <div>
-                    <dt className="text-xs font-medium text-gray-500">Processed By</dt>
+                    <dt className="text-xs font-medium text-blue-800">Processed By</dt>
                     <dd className="text-sm text-gray-900 mt-1">{staff}</dd>
                   </div>
                 )}
@@ -288,19 +274,19 @@ const PreviewModal = ({ previewApplicant, closePreviewView }) => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Full Name</dt>
+                  <dt className="text-xs font-medium text-blue-800">Full Name</dt>
                   <dd className="text-sm font-medium text-gray-900 mt-1">{repFullName}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Relationship</dt>
+                  <dt className="text-xs font-medium text-blue-800">Relationship</dt>
                   <dd className="text-sm text-gray-900 mt-1">{repInfo.relationship}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Contact Number</dt>
+                  <dt className="text-xs font-medium text-blue-800">Contact Number</dt>
                   <dd className="text-sm text-gray-900 mt-1">{repInfo.contact_number}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-gray-500">Address</dt>
+                  <dt className="text-xs font-medium text-blue-800">Address</dt>
                   <dd className="text-sm text-gray-900 mt-1">
                     {repBackground.street_address}
                   </dd>
@@ -361,12 +347,12 @@ const PreviewModal = ({ previewApplicant, closePreviewView }) => {
                         <p className="text-sm font-medium text-gray-900">
                           {h.type_of_assistance}
                         </p>
-                        <p className="text-xs text-gray-500">{formatDate(h.date)}</p>
+                        <p className="text-xs text-blue-800">{formatDate(h.date)}</p>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-gray-500 text-center py-4">
+                  <p className="text-sm text-blue-800 text-center py-4">
                     No history available
                   </p>
                 )}
@@ -490,7 +476,7 @@ const PreviewModal = ({ previewApplicant, closePreviewView }) => {
                                   {audit.action}
                                 </p>
                                 <p className="text-xs text-gray-600 mt-0.5">{audit.notes}</p>
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-blue-800 mt-1">
                                   {audit.performed_by && `${audit.performed_by} • `}
                                   {formatDate(audit.timestamp)}
                                 </p>
