@@ -64,6 +64,28 @@ const ApplicantExport = () => {
     }
   };
 
+  // Handle Select All for Barangays
+  const handleSelectAllBarangays = () => {
+    const allBarangays = filters?.barangays || [];
+    if (selectedBarangays.length === allBarangays.length) {
+      setSelectedBarangays([]);
+    } else {
+      setSelectedBarangays([...allBarangays]);
+    }
+    setOpenDropdown(null);
+  };
+
+  // Handle Select All for Assistance Types
+  const handleSelectAllAssistanceTypes = () => {
+    const allTypes = filters?.assistance_types || [];
+    if (selectedAssistanceTypes.length === allTypes.length) {
+      setSelectedAssistanceTypes([]);
+    } else {
+      setSelectedAssistanceTypes([...allTypes]);
+    }
+    setOpenDropdown(null);
+  };
+
   // Clear all filters
   const clearFilters = () => {
     setStartDate("");
@@ -160,9 +182,12 @@ const ApplicantExport = () => {
     singleSelect = false,
     placeholder = "Select...",
     showNames = false,
+    showSelectAll = false,
+    onSelectAll,
   }) => {
     const isOpen = openDropdown === title;
     const hasSelection = selected.length > 0;
+    const allSelected = items.length > 0 && selected.length === items.length;
 
     const getDisplayText = () => {
       if (loading) return "Loading...";
@@ -215,7 +240,7 @@ const ApplicantExport = () => {
         </button>
 
         {/* Selected Items Names at the Bottom when multiple are selected */}
-        {showNames && selected.length > 1 && (
+        {showNames && selected.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {selected.map((item, idx) => (
               <span 
@@ -238,6 +263,20 @@ const ApplicantExport = () => {
               <div className="px-4 py-3 text-sm text-gray-500 text-center">No options available</div>
             ) : (
               <div className="py-1">
+                {showSelectAll && (
+                  <button
+                    type="button"
+                    onClick={onSelectAll}
+                    className={`w-full px-4 py-2.5 text-left text-sm transition-colors flex items-center justify-between border-b border-gray-200 font-semibold ${
+                      allSelected
+                        ? "bg-blue-50 text-blue-700"
+                        : "text-gray-900 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span>Select All</span>
+                    {allSelected && <Check className="w-4 h-4 text-blue-600" />}
+                  </button>
+                )}
                 {items.map((item, idx) => {
                   const isSelected = selected.includes(item);
                   return (
@@ -302,47 +341,71 @@ const ApplicantExport = () => {
       {showFilters && (
         <div className="space-y-5 p-6 bg-gray-50 rounded-lg border border-gray-200">
           <div>
-            <label className="block mb-2 font-semibold text-gray-700 text-sm">Date Range</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={e => setStartDate(e.target.value)}
-                  max={filters?.date_range?.latest}
-                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm bg-white"
-                />
-                {startDate && (
-                  <button onClick={() => setStartDate("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={e => setEndDate(e.target.value)}
-                  min={startDate}
-                  max={filters?.date_range?.latest}
-                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm bg-white"
-                />
-                {endDate && (
-                  <button onClick={() => setEndDate("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-            {dateError && (
-              <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4" />
-                {dateError}
-              </div>
-            )}
-          </div>
+  <label className="block mb-3 font-semibold text-gray-700 text-sm">
+    Date Range
+  </label>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {/* Start Date */}
+    <div>
+      <label className="block mb-1 text-xs font-medium text-gray-600">
+        Start Date
+      </label>
+      <div className="relative">
+        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+        <input
+          type="date"
+          value={startDate}
+          onChange={e => setStartDate(e.target.value)}
+          max={filters?.date_range?.latest}
+          className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm bg-white"
+        />
+        {startDate && (
+          <button
+            onClick={() => setStartDate("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+
+    {/* End Date */}
+    <div>
+      <label className="block mb-1 text-xs font-medium text-gray-600">
+        End Date
+      </label>
+      <div className="relative">
+        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+        <input
+          type="date"
+          value={endDate}
+          onChange={e => setEndDate(e.target.value)}
+          min={startDate}
+          max={filters?.date_range?.latest}
+          className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm bg-white"
+        />
+        {endDate && (
+          <button
+            onClick={() => setEndDate("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+
+  {dateError && (
+    <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+      <AlertCircle className="w-4 h-4" />
+      {dateError}
+    </div>
+  )}
+</div>
+
 
           <CustomDropdown
             title="City"
@@ -368,6 +431,8 @@ const ApplicantExport = () => {
             disabled={!selectedCity}
             placeholder="Select city first"
             showNames={true}
+            showSelectAll={true}
+            onSelectAll={handleSelectAllBarangays}
           />
 
           <CustomDropdown
@@ -379,6 +444,8 @@ const ApplicantExport = () => {
             loading={filtersLoading}
             placeholder="Search assistance types..."
             showNames={true}
+            showSelectAll={true}
+            onSelectAll={handleSelectAllAssistanceTypes}
           />
 
           {hasActiveFilters && (
