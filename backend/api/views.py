@@ -20,7 +20,7 @@ from django.contrib.auth.password_validation import validate_password, Validatio
 from django.db import transaction
 from django.db.models import (
     Avg, Count, ExpressionWrapper, F, DurationField,
-    IntegerField, Max, Q, Prefetch, Min
+    IntegerField, Max, Q, Prefetch, Min, Sum
 )
 from django.db.models.functions import TruncDate, ExtractYear, TruncMonth, ExtractHour
 from django.http import JsonResponse, StreamingHttpResponse
@@ -51,7 +51,7 @@ from .models import (
     Applicant, CustomUser, StaffActivityLog,
     BackgroundInfo, ApplicantHistory, Approval, 
     ApprovalBatch, SupportMessage, City, Barangay, 
-    DisbursementBatch, DisbursementClaim
+    DisbursementBatch, DisbursementClaim, ApprovalAuditLog
 )
 from .serializers import (
     ApplicantSerializer, MyTokenObtainPairSerializer, 
@@ -482,12 +482,16 @@ def submit_applicant(request):
     with transaction.atomic():
         applicant = serializer.save(staff=staff)
 
-        ApplicantHistory.objects.create(
+        ApplicantHistory.objects.get_or_create(
             background_info=applicant.background_info,
             applicant=applicant,
-            type_of_assistance=applicant.type_of_assistance,
-            date_applied=timezone.now(),
+            history_type="APPLICATION",
+            defaults={
+                "type_of_assistance": applicant.type_of_assistance,
+                "date_applied": applicant.date_filled,
+            }
         )
+
 
         if staff:
             log_staff_activity(
@@ -571,7 +575,18 @@ def list_applicants(request):
 
     # ---- RETURN PAGINATED RESPONSE ----
     return paginator.get_paginated_response(results)
-    
+
+def safe_str(value):
+    """
+    Safely convert Excel/CSV values to a clean lowercase string.
+    Handles NaN, None, numbers, etc.
+    """
+    if value is None:
+        return ""
+    if isinstance(value, float):
+        return ""
+    return str(value).strip()
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -581,7 +596,9 @@ def upload_approved_list(request):
     if not file_obj:
         return Response({"error": "No file uploaded"}, status=400)
 
-    # ✅ Read CSV/Excel
+    # =========================
+    # Read CSV / Excel
+    # =========================
     try:
         if file_obj.name.endswith(".csv"):
             df = pd.read_csv(file_obj)
@@ -591,135 +608,189 @@ def upload_approved_list(request):
     except Exception as e:
         return Response({"error": f"Failed to read file: {str(e)}"}, status=400)
 
-    # ✅ Create Approval Batch
+    # =========================
+    # Create Approval Batch
+    # =========================
     approval_batch = ApprovalBatch.objects.create(
         uploaded_by=request.user,
         file_name=file_obj.name,
         total_processed=len(df),
     )
 
-    # ✅ Collect unique assistance types and prepare batch name
-    assistance_types = df['type of assistance'].unique() if 'type of assistance' in df.columns else []
-    
-    # Use first assistance type or 'Mixed' if multiple types
-    primary_assistance_type = assistance_types[0] if len(assistance_types) == 1 else 'Mixed Assistance'
-    
-    # ✅ Auto-create Disbursement Batch
+    # =========================
+    # Detect assistance type
+    # =========================
+    assistance_types = (
+        df["type of assistance"].dropna().unique()
+        if "type of assistance" in df.columns
+        else []
+    )
+
+    primary_assistance_type = (
+        assistance_types[0] if len(assistance_types) == 1 else "Mixed Assistance"
+    )
+
+    # =========================
+    # Auto-create Disbursement Batch
+    # =========================
     disbursement_batch = DisbursementBatch.objects.create(
         approval_batch=approval_batch,
         name=f"Disbursement Batch - {approval_batch.file_name} ({timezone.now().strftime('%Y-%m-%d')})",
         assistance_type=primary_assistance_type,
-        payout_date=timezone.now().date(),  # Can be changed later
+        payout_date=timezone.now().date(),
         created_by=request.user,
-        status='OPEN',
-        total_beneficiaries=0  # Will be updated after processing
+        status="OPEN",
+        total_beneficiaries=0,
     )
 
-    matched = []
-    disbursement_claims = []
-
-    # ✅ Bulk fetch applicants (same as before)
+    # =========================
+    # Build applicant OR filters
+    # =========================
     applicant_filters = Q()
-    for _, row in df.iterrows():
-        first_name = str(row.get("first name", "")).strip()
-        last_name = str(row.get("last name", "")).strip()
-        middle_name = str(row.get("middle name", "")).strip()
-        barangay = str(row.get("barangay", "")).strip()
-        city = str(row.get("municipal", "")).strip()
-        assistance_type = str(row.get("type of assistance", "")).strip()
 
+    for _, row in df.iterrows():
         applicant_filters |= Q(
-            background_info__first_name__iexact=first_name,
-            background_info__middle_initial__iexact=middle_name,
-            background_info__last_name__iexact=last_name,
-            background_info__barangay__name__iexact=barangay,
-            background_info__barangay__city__name__iexact=city,
-            type_of_assistance__iexact=assistance_type,
+            background_info__first_name__iexact=safe_str(row.get("first name")),
+            background_info__middle_initial__iexact=safe_str(row.get("middle name")),
+            background_info__last_name__iexact=safe_str(row.get("last name")),
+            background_info__barangay__name__iexact=safe_str(row.get("barangay")),
+            background_info__barangay__city__name__iexact=safe_str(row.get("municipal")),
+            type_of_assistance__iexact=safe_str(row.get("type of assistance")),
         )
 
     applicants = {
         (
             a.background_info.first_name.lower(),
-            a.background_info.middle_initial.lower() if a.background_info.middle_initial else '',
+            (a.background_info.middle_initial or "").lower(),
             a.background_info.last_name.lower(),
             a.background_info.barangay.name.lower(),
             a.background_info.barangay.city.name.lower(),
             a.type_of_assistance.lower(),
         ): a
         for a in Applicant.objects.select_related(
-            'background_info',
-            'background_info__barangay__city'
+            "background_info",
+            "background_info__barangay__city",
         ).filter(applicant_filters)
     }
 
-    # ✅ Process approvals AND create disbursement claims
+    approved_applicant_ids = set()
+    disbursement_claims = []
+    matched = []
+    unmatched = []  # ✅ NEW
+
+    # =========================
+    # Process rows
+    # =========================
     with transaction.atomic():
-        for _, row in df.iterrows():
-            first_name = str(row.get("first name", "")).strip().lower()
-            last_name = str(row.get("last name", "")).strip().lower()
-            middle_name = str(row.get("middle name", "")).strip().lower()
-            barangay = str(row.get("barangay", "")).strip().lower()
-            city = str(row.get("municipal", "")).strip().lower()
-            assistance_type = str(row.get("type of assistance", "")).strip().lower()
+        for index, row in df.iterrows():
+            first_name = safe_str(row.get("first name")).lower()
+            middle_name = safe_str(row.get("middle name")).lower()
+            last_name = safe_str(row.get("last name")).lower()
+            barangay = safe_str(row.get("barangay")).lower()
+            city = safe_str(row.get("municipal")).lower()
+            assistance_type = safe_str(row.get("type of assistance")).lower()
             amount = row.get("amount of assistance")
 
-            key = (first_name, middle_name, last_name, barangay, city, assistance_type)
+            key = (
+                first_name,
+                middle_name,
+                last_name,
+                barangay,
+                city,
+                assistance_type,
+            )
+
             applicant = applicants.get(key)
 
+            # 🚨 UNMATCHED ROW
             if not applicant:
+                unmatched.append({
+                    "row": index + 2,  # Excel row number (header = row 1)
+                    "first_name": first_name,
+                    "middle_name": middle_name,
+                    "last_name": last_name,
+                    "barangay": barangay,
+                    "city": city,
+                    "assistance_type": assistance_type,
+                    "amount": amount,
+                    "reason": "No exact applicant match found",
+                })
                 continue
 
-            # ✅ Create Approval
+            # 🚫 Prevent duplicate approvals
+            if applicant.id in approved_applicant_ids:
+                unmatched.append({
+                    "row": index + 2,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "reason": "Duplicate applicant in file",
+                })
+                continue
+
             approval = Approval.objects.create(
                 applicant=applicant,
                 batch=approval_batch,
                 approved_by=request.user,
-                notes=f"Approved amount: {amount}"
+                notes=f"Approved amount: {amount}",
             )
-            
-            matched.append(f"{first_name.title()} {last_name.title()} - {barangay.title()} ({assistance_type.title()})")
 
-            # ✅ Extract amount properly
+            approved_applicant_ids.add(applicant.id)
+
             try:
-                clean_amount = Decimal(str(amount).replace(',', ''))
+                clean_amount = Decimal(str(amount).replace(",", ""))
             except (InvalidOperation, ValueError):
-                clean_amount = extract_amount_from_notes(approval.notes)
+                clean_amount = Decimal("0.00")
 
-            # ✅ Auto-create Disbursement Claim
             disbursement_claims.append(
                 DisbursementClaim(
                     batch=disbursement_batch,
                     approval=approval,
                     applicant=applicant,
                     amount=clean_amount,
-                    status='PENDING'
+                    status="PENDING",
                 )
             )
 
-        # ✅ Bulk create disbursement claims
+            matched.append(
+                f"{applicant.background_info.first_name} "
+                f"{applicant.background_info.last_name} "
+                f"({assistance_type.title()})"
+            )
+
         DisbursementClaim.objects.bulk_create(disbursement_claims)
 
-    # ✅ Update batch totals
-    approval_batch.total_approved = len(matched)
+    # =========================
+    # Update counters
+    # =========================
+    approval_batch.total_approved = len(approved_applicant_ids)
     approval_batch.save(update_fields=["total_approved"])
 
-    disbursement_batch.total_beneficiaries = len(matched)
+    disbursement_batch.total_beneficiaries = len(approved_applicant_ids)
     disbursement_batch.save(update_fields=["total_beneficiaries"])
 
     log_staff_activity(
         request.user,
         "DISBURSEMENT",
-        f"Created disbursement batch {disbursement_batch.id} with {len(matched)} beneficiaries",
-        request
+        f"Created disbursement batch {disbursement_batch.id} "
+        f"({len(approved_applicant_ids)} approved, {len(unmatched)} unmatched)",
+        request,
     )
 
-    return Response({
-        "approved": matched,
-        "total_processed": len(df),
-        "total_approved": len(matched),
-        "disbursement_batch_id": disbursement_batch.id,
-        "message": "Approval batch processed and disbursement batch created automatically"
-    }, status=201)
+    # =========================
+    # FINAL RESPONSE (FRONTEND-READY)
+    # =========================
+    return Response(
+        {
+            "total_processed": len(df),
+            "total_approved": len(approved_applicant_ids),
+            "total_unmatched": len(unmatched),
+            "approved_applicant_ids": list(approved_applicant_ids),
+            "unmatched_rows": unmatched,  # 👈 THIS IS WHAT YOU NEED
+            "disbursement_batch_id": disbursement_batch.id,
+            "message": "Approval batch processed",
+        },
+        status=201,
+    )
 
 
 
@@ -2894,6 +2965,107 @@ def workload_balance_analysis(request):
         },
         'recommendations': recommendations
     })
+
+
+ # ============================================
+ # 6. DISBURSEMENT
+ # ============================================
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def analytics_disbursement_overview(request):
+    claims = DisbursementClaim.objects.all()
+
+    total_budget = claims.aggregate(
+        total=Sum("amount")
+    )["total"] or 0
+
+    totals_by_status = claims.aggregate(
+        claimed=Sum("amount", filter=Q(status="CLAIMED")),
+        unclaimed=Sum("amount", filter=Q(status="UNCLAIMED")),
+        pending=Sum("amount", filter=Q(status="PENDING")),
+    )
+
+    total_claimed = totals_by_status["claimed"] or 0
+    total_unclaimed = totals_by_status["unclaimed"] or 0
+    total_pending = totals_by_status["pending"] or 0
+
+    remaining_budget = total_budget - total_claimed
+
+    disbursement_rate = (
+        (total_claimed / total_budget) * 100
+        if total_budget > 0 else 0
+    )
+
+    batch_counts = DisbursementBatch.objects.aggregate(
+        total_batches=Count("id"),
+        finalized_batches=Count("id", filter=Q(status="FINALIZED")),
+        open_batches=Count("id", filter=Q(status="OPEN")),
+    )
+
+    return Response({
+        "total_budget": total_budget,
+        "total_claimed_amount": total_claimed,
+        "total_unclaimed_amount": total_unclaimed,
+        "total_pending_amount": total_pending,
+        "remaining_budget": remaining_budget,
+        "disbursement_rate": round(disbursement_rate, 2),
+        **batch_counts
+    })
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def analytics_disbursement_by_batch(request):
+    batches = (
+        DisbursementBatch.objects
+        .annotate(
+            total_budget_amount=Sum("claims__amount"),
+            claimed_amount=Sum(
+                "claims__amount",
+                filter=Q(claims__status="CLAIMED")
+            ),
+            unclaimed_amount=Sum(
+                "claims__amount",
+                filter=Q(claims__status="UNCLAIMED")
+            ),
+            pending_amount=Sum(
+                "claims__amount",
+                filter=Q(claims__status="PENDING")
+            ),
+        )
+        .order_by("-created_at")
+    )
+
+    data = []
+
+    for batch in batches:
+        total_budget = batch.total_budget_amount or 0
+        total_claimed = batch.claimed_amount or 0
+
+        utilization_rate = (
+            (total_claimed / total_budget) * 100
+            if total_budget > 0 else 0
+        )
+
+        data.append({
+            "batch_id": batch.id,
+            "batch_name": batch.name,
+            "batch_status": batch.status,
+            "payout_date": batch.payout_date,
+
+            "total_budget_amount": total_budget,
+            "claimed_amount": total_claimed,
+            "unclaimed_amount": batch.unclaimed_amount or 0,
+            "pending_amount": batch.pending_amount or 0,
+
+            "utilization_rate": round(utilization_rate, 2),
+        })
+
+
+    return Response(data)
+
+
+
 
 # =============================================
 # HELPER FUNCTIONS

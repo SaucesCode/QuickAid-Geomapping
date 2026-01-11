@@ -1,6 +1,10 @@
 from rest_framework import serializers
 from django.db import models
-from .models import Applicant, Representative, BackgroundInfo, Barangay, Approval, DisbursementClaim, DisbursementBatch, ApplicantHistory
+from .models import (
+    Applicant, Representative, BackgroundInfo, 
+    Barangay, Approval, DisbursementClaim, 
+    DisbursementBatch, ApplicantHistory, ApprovalAuditLog
+)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -305,7 +309,14 @@ class DisbursementBatchSerializer(serializers.ModelSerializer):
         )['total'] or Decimal('0.00')
 
 
-# ✅ ADD: Lightweight serializer for batch list views
+
+class ApprovalAuditLogSerializer(serializers.ModelSerializer):
+    performed_by = serializers.StringRelatedField()
+
+    class Meta:
+        model = ApprovalAuditLog
+        fields = ["action", "performed_by", "notes", "timestamp"]
+
 class DisbursementBatchListSerializer(serializers.ModelSerializer):
     """Lighter serializer for listing batches without detailed claims"""
     created_by_name = serializers.CharField(source='created_by.username', read_only=True)
@@ -349,6 +360,10 @@ class ApprovalSerializer(serializers.ModelSerializer):
     approved_by = serializers.StringRelatedField()
     disbursement_claim = DisbursementClaimSerializer(read_only=True)
     claim_status = serializers.SerializerMethodField()
+    claim_status_label = serializers.SerializerMethodField()
+    payout_date = serializers.SerializerMethodField()
+    amount = serializers.SerializerMethodField()
+    audit_trail = serializers.SerializerMethodField()
     class Meta:
         model = Approval
         fields = [
@@ -358,13 +373,44 @@ class ApprovalSerializer(serializers.ModelSerializer):
             "notes",
             "disbursement_claim",
             "claim_status",
+            "claim_status_label",
+            "amount",
+            "payout_date",
+            "audit_trail",
         ]
 
     def get_claim_status(self, obj):
         if hasattr(obj, "disbursement_claim"):
             return obj.disbursement_claim.status
-        return "PENDING"
+        return "NOT_SCHEDULED"
+    
+    def get_claim_status_label(self, obj):
+        if not hasattr(obj, "disbursement_claim"):
+            return "Not yet scheduled for payout"
 
+        claim = obj.disbursement_claim
+
+        if claim.status == "CLAIMED":
+            return f"Claimed on {claim.payout_date}"
+        if claim.status == "UNCLAIMED":
+            return "Unclaimed"
+        if claim.status == "PENDING":
+            return "Pending payout"
+
+        return "Unknown"
+
+    def get_amount(self, obj):
+        return getattr(obj.disbursement_claim, "amount", None)
+
+    def get_payout_date(self, obj):
+        return getattr(obj.disbursement_claim, "payout_date", None)
+    
+    
+    def get_audit_trail(self, obj):
+        return ApprovalAuditLogSerializer(
+            obj.audit_logs.all(),
+            many=True
+        ).data
 
 
 # ---------------------------------------------------------
@@ -382,10 +428,11 @@ class ApplicantSerializer(serializers.ModelSerializer):
     identity_status = serializers.CharField(read_only=True)
     identity_notes = serializers.CharField(read_only=True)
     application_history = ApplicantHistorySerializer(
-        source="history_entry",
+        source="background_info.histories",
         many=True,
         read_only=True
     )
+
 
     total_approved_amount = serializers.SerializerMethodField()
     total_claimed_amount = serializers.SerializerMethodField()

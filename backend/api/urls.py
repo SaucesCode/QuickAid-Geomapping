@@ -117,6 +117,11 @@ urlpatterns = [
     path("analytics/performance/staff-efficiency-trends/", staff_efficiency_trends, name="staff-efficiency-trends"),
     path("analytics/performance/workload-balance/", workload_balance_analysis, name="workload-balance"),
 
+    # ========================
+    # Disbursement
+    # ========================
+    path("analytics/disbursement/overview", analytics_disbursement_overview, name="disbursement-overview"),
+    path("analytics/disbursement/by-batches", analytics_disbursement_by_batch, name="disbursement-by-batches"),
 
     # ========================
     # Export

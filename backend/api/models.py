@@ -393,7 +393,6 @@ class Representative(models.Model):
 class ApplicantHistory(models.Model):
     HISTORY_TYPE_CHOICES = [
         ("APPLICATION", "Application"),
-        ("PAYOUT", "Payout"),
     ]
 
     background_info = models.ForeignKey(
@@ -415,28 +414,13 @@ class ApplicantHistory(models.Model):
         default="APPLICATION"
     )
 
-    amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        null=True,
-        blank=True
-    )
-
-    related_claim = models.OneToOneField(
-        "DisbursementClaim",
-        null=True,
-        blank=True,
-        on_delete=models.PROTECT,
-        related_name="history_record"
-    )
-
     date_applied = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-date_applied"]
 
     def __str__(self):
-        return f"{self.history_type} - {self.type_of_assistance} ({self.date})"
+        return f"{self.history_type} - {self.type_of_assistance}"
 
     
 class Approval(models.Model):
@@ -450,6 +434,8 @@ class Approval(models.Model):
         related_name="approvals"
     )
     notes = models.TextField(blank=True, null=True)
+    class Meta:
+        unique_together = ("applicant", "batch")
 
     def __str__(self):
         return f"Approval for {self.applicant} at {self.approved_at}"
@@ -470,6 +456,37 @@ class ApprovalBatch(models.Model):
 
     def __str__(self):
         return f"Batch {self.id} by {self.uploaded_by} on {self.uploaded_at}"
+    
+
+class ApprovalAuditLog(models.Model):
+    ACTION_CHOICES = [
+        ("APPROVED", "Approved"),
+        ("CLAIMED", "Claimed"),
+        ("UNCLAIMED", "Unclaimed"),
+    ]
+
+    approval = models.ForeignKey(
+        "Approval",
+        on_delete=models.CASCADE,
+        related_name="audit_logs"
+    )
+
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    performed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    notes = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+
+    def __str__(self):
+        return f"{self.action} @ {self.timestamp}"
+
 
 
 class DisbursementBatch(models.Model):
@@ -504,6 +521,24 @@ class DisbursementBatch(models.Model):
     total_claimed = models.IntegerField(default=0)
     total_unclaimed = models.IntegerField(default=0)
     finalized_at = models.DateTimeField(null=True, blank=True)
+
+    def finalize(self, staff=None):
+        if self.status != "CLOSED":
+            raise ValueError("Batch must be CLOSED before finalizing.")
+
+        pending_claims = self.claims.filter(status="PENDING")
+
+        for claim in pending_claims:
+            claim.mark_unclaimed(staff=staff)
+
+        self.total_beneficiaries = self.claims.count()
+        self.total_claimed = self.claims.filter(status="CLAIMED").count()
+        self.total_unclaimed = self.claims.filter(status="UNCLAIMED").count()
+
+        self.status = "FINALIZED"
+        self.finalized_at = timezone.now()
+        self.save()
+
 
     def __str__(self):
         return self.name
@@ -543,7 +578,10 @@ class DisbursementClaim(models.Model):
     payout_date = models.DateField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def mark_claimed(self, payout_date):
+    def mark_claimed(self, payout_date, staff=None):
+        if self.status == "CLAIMED":
+            return
+
         if self.status != "PENDING":
             raise ValueError("Only PENDING claims can be claimed.")
 
@@ -551,24 +589,31 @@ class DisbursementClaim(models.Model):
         self.payout_date = payout_date
         self.save()
 
-        # Prevent duplicates
-        if hasattr(self, "history_record"):
-            return
-
-        ApplicantHistory.objects.create(
-            background_info=self.applicant.background_info,
-            applicant=self.applicant,
-            type_of_assistance=self.approval.applicant.type_of_assistance,
-            history_type="PAYOUT",
-            amount=self.amount,
-            related_claim=self,
+        ApprovalAuditLog.objects.create(
+            approval=self.approval,
+            action="CLAIMED",
+            performed_by=staff,
+            notes=f"Payout date: {payout_date}"
         )
 
-    def mark_unclaimed(self):
+
+    def mark_unclaimed(self, staff=None):
+        if self.status == "UNCLAIMED":
+            return
+        
         if self.status != "PENDING":
             raise ValueError("Only PENDING claims can be unclaimed.")
+
         self.status = "UNCLAIMED"
         self.save()
+
+        ApprovalAuditLog.objects.create(
+            approval=self.approval,
+            action="UNCLAIMED",
+            performed_by=staff,
+            notes="Automatically marked unclaimed"
+        )
+
 
 
 class StaffActivityLog(models.Model):
