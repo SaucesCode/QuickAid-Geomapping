@@ -443,19 +443,33 @@ class Approval(models.Model):
 class ApprovalBatch(models.Model):
     uploaded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        null=True,
         on_delete=models.SET_NULL,
-        related_name="approval_batches"
+        null=True
     )
-    uploaded_at = models.DateTimeField(auto_now_add=True)
+
     file_name = models.CharField(max_length=255)
-    total_processed = models.IntegerField(default=0)
-    total_approved = models.IntegerField(default=0)
-    total_already_approved = models.IntegerField(default=0)
-    total_not_found = models.IntegerField(default=0)
+
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    total_processed = models.PositiveIntegerField(default=0)
+    total_approved = models.PositiveIntegerField(default=0)
+    total_already_approved = models.PositiveIntegerField(default=0)
+    total_not_found = models.PositiveIntegerField(default=0)
+
+    STATUS_CHOICES = (
+        ("OPEN", "Open"),
+        ("COMPLETED", "Completed"),
+        ("CLOSED", "Closed"),
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="OPEN"
+    )
 
     def __str__(self):
-        return f"Batch {self.id} by {self.uploaded_by} on {self.uploaded_at}"
+        return f"Batch #{self.id} - {self.file_name}"
+
     
 
 class ApprovalAuditLog(models.Model):
@@ -496,7 +510,6 @@ class DisbursementBatch(models.Model):
         ("FINALIZED", "Finalized"),
     ]
 
-    # ✅ ADD THIS: Link to approval batch
     approval_batch = models.OneToOneField(
         "ApprovalBatch",
         on_delete=models.PROTECT,

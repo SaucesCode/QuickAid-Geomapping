@@ -18,6 +18,8 @@ import {
   UserX,
   UserCheck,
   SendHorizonal,
+  Lock,
+  PackageCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -141,6 +143,30 @@ const toastVariants = {
     text: "text-indigo-900",
     accent: "bg-indigo-100 text-indigo-600",
     icon: <SendHorizonal className="w-6 h-6" strokeWidth={2.5} />,
+  },
+  batchClosed: {
+    title: "Batch Closed",
+    message: "Batch is now ready for claim status updates.",
+    color: "bg-yellow-50",
+    text: "text-yellow-900",
+    accent: "bg-yellow-100 text-yellow-600",
+    icon: <Lock className="w-6 h-6" strokeWidth={2.5} />,
+  },
+  batchFinalized: {
+    title: "Batch Finalized",
+    message: "All claims have been locked and processed.",
+    color: "bg-green-50",
+    text: "text-green-900",
+    accent: "bg-green-100 text-green-600",
+    icon: <PackageCheck className="w-6 h-6" strokeWidth={2.5} />,
+  },
+  claimUpdated: {
+    title: "Claim Status Updated",
+    message: "Beneficiary claim has been updated successfully.",
+    color: "bg-blue-50",
+    text: "text-blue-900",
+    accent: "bg-blue-100 text-blue-600",
+    icon: <CheckCircle2 className="w-6 h-6" strokeWidth={2.5} />,
   },
 };
 

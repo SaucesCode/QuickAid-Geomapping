@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Search, CheckSquare, Square, Edit3, Users, Package } from "lucide-react"; // Add Package
+import { Search, CheckSquare, Square, Edit3, Users, Eye, Lock } from "lucide-react";
 import { Card, LoadingState } from "../../../components/DesignSystem";
 import ClaimRow from "./ClaimRow";
 import Pagination from "../../../components/Pagination";
@@ -75,17 +75,73 @@ const ClaimTable = ({
     });
   };
 
-  // Check if all visible claims are selected
+  const pendingClaims = claims.filter(claim => claim.status === "PENDING");
   const allSelected =
-    claims.length > 0 && claims.every(claim => selectedClaims.includes(claim.id));
+    pendingClaims.length > 0 &&
+    pendingClaims.every(claim => selectedClaims.includes(claim.id));
 
   const handleSelectAllToggle = () => {
-    onSelectAll(!allSelected);
+    if (allSelected) {
+      // Deselect all
+      onSelectAll(false);
+    } else {
+      // Select all PENDING claims - pass them all at once
+      onSelectAll(true);
+    }
   };
 
   return (
     <Card className="p-0 overflow-hidden">
-      {/* Header - Updated to match BatchSummary style */}
+      {/* Status-based Notice - MOVED TO TOP */}
+      {batchStatus === "OPEN" && (
+        <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-200">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <Eye className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-blue-900 mb-0.5">View-Only Mode</p>
+              <p className="text-xs text-blue-700">
+                This batch is OPEN. Claims are view-only until the batch is closed for editing.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {batchStatus === "CLOSED" && !isFinalized && (
+        <div className="px-6 py-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-b-2 border-yellow-300">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+              <Edit3 className="w-5 h-5 text-yellow-700" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-yellow-900 mb-0.5">Editing Enabled</p>
+              <p className="text-xs text-yellow-700">
+                Batch is CLOSED. You can now edit claim statuses before finalization.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isFinalized && (
+        <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-b-2 border-green-200">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <Lock className="w-5 h-5 text-green-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-green-900 mb-0.5">Batch Finalized</p>
+              <p className="text-xs text-green-700">
+                This batch is locked. All claims are completed and cannot be modified.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
       <div className="p-5 border-b bg-white">
         {/* Title Row */}
         <div className="flex items-center gap-3 mb-5 pb-4 border-b border-gray-200">
@@ -137,7 +193,7 @@ const ClaimTable = ({
             />
           </form>
 
-          {/* Status Toggle Buttons - Updated styling */}
+          {/* Status Toggle Buttons */}
           <div className="flex gap-2 flex-wrap">
             {[
               { key: "", label: "All", count: statusCounts.ALL },
@@ -145,7 +201,7 @@ const ClaimTable = ({
               { key: "CLAIMED", label: "Claimed", count: statusCounts.CLAIMED },
               { key: "UNCLAIMED", label: "Unclaimed", count: statusCounts.UNCLAIMED },
             ].map(item => {
-              const isActive = filters.status === item.key;
+              const isActive = item.key === "" ? !filters.status : filters.status === item.key;
 
               return (
                 <button
@@ -153,11 +209,11 @@ const ClaimTable = ({
                   onClick={() => handleStatusFilter(item.key)}
                   className={`h-10 px-4 rounded-lg text-sm font-semibold transition-all shadow-sm ${
                     isActive
-                      ? "bg-[#003a76] text-white"
+                      ? "bg-[#003a76] text-[#ffffff] border-[#003a76]"
                       : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
                   }`}
                 >
-                  <span>{item.label}</span>
+                  {item.label}
                 </button>
               );
             })}
@@ -192,7 +248,12 @@ const ClaimTable = ({
                     <button
                       onClick={handleSelectAllToggle}
                       className="text-gray-600 hover:text-[#003a76] transition-colors"
-                      disabled={isFinalized}
+                      disabled={isFinalized || pendingClaims.length === 0}
+                      title={
+                        pendingClaims.length === 0
+                          ? "No pending claims to select"
+                          : "Select all pending claims"
+                      }
                     >
                       {allSelected ? (
                         <CheckSquare className="w-5 h-5" />
@@ -251,15 +312,6 @@ const ClaimTable = ({
           handlePageChange={handlePageChange}
           handleItemsPerPageChange={handleItemsPerPageChange}
         />
-      )}
-
-      {/* Finalized Notice */}
-      {isFinalized && (
-        <div className="px-6 py-4 bg-green-50 border-t border-green-200">
-          <p className="text-sm text-green-800 text-center font-medium">
-            ✓ This batch is finalized. All claims are locked and cannot be modified.
-          </p>
-        </div>
       )}
     </Card>
   );
