@@ -120,8 +120,11 @@ urlpatterns = [
     # ========================
     # Disbursement
     # ========================
-    path("analytics/disbursement/overview", analytics_disbursement_overview, name="disbursement-overview"),
-    path("analytics/disbursement/by-batches", analytics_disbursement_by_batch, name="disbursement-by-batches"),
+    path("analytics/budget/location/", budget_by_location),
+    path("analytics/budget/assistance/", budget_by_assistance),
+    path("analytics/budget/year/", budget_per_year),
+    path("analytics/budget/batch/", budget_per_batch),
+    path("analytics/budget/location-assistance/", budget_location_assistance),
 
     # ========================
     # Export

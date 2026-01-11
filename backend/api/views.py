@@ -20,8 +20,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password, ValidationError
 from django.db import transaction
 from django.db.models import (
-    Avg, Count, ExpressionWrapper, F, DurationField,
-    IntegerField, Max, Q, Prefetch, Min, Sum
+    Avg, Sum, Count, ExpressionWrapper, F, DurationField,
+    IntegerField, Max, Q, Prefetch, Min
 )
 from django.db.models.functions import TruncDate, ExtractYear, TruncMonth, ExtractHour
 from django.http import JsonResponse, StreamingHttpResponse
@@ -29,7 +29,11 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.timezone import now, timedelta
-from .utils import apply_applicant_filters, apply_approval_filters, get_applicant_history, log_staff_activity, extract_amount_from_notes
+from .utils import ( 
+    apply_applicant_filters, apply_approval_filters, 
+    get_applicant_history, log_staff_activity, extract_amount_from_notes,
+    base_claimed_qs, apply_filters, total_budget
+)
 from .export_analytics import ExportOrchestrator
 from django.core.exceptions import ValidationError
 
@@ -2998,99 +3002,120 @@ def workload_balance_analysis(request):
  # ============================================
  # 6. DISBURSEMENT
  # ============================================
+
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def analytics_disbursement_overview(request):
-    claims = DisbursementClaim.objects.all()
+def budget_by_location(request):
+    level = request.GET.get("level", "city")  # city | barangay
 
-    total_budget = claims.aggregate(
-        total=Sum("amount")
-    )["total"] or 0
+    qs = apply_filters(base_claimed_qs(), request.GET)
 
-    totals_by_status = claims.aggregate(
-        claimed=Sum("amount", filter=Q(status="CLAIMED")),
-        unclaimed=Sum("amount", filter=Q(status="UNCLAIMED")),
-        pending=Sum("amount", filter=Q(status="PENDING")),
-    )
+    if level == "barangay":
+        field = "approval__applicant__background_info__barangay__name"
+    else:
+        # CHANGE THIS depending on your Barangay model
+        field = "approval__applicant__background_info__barangay__city"
 
-    total_claimed = totals_by_status["claimed"] or 0
-    total_unclaimed = totals_by_status["unclaimed"] or 0
-    total_pending = totals_by_status["pending"] or 0
-
-    remaining_budget = total_budget - total_claimed
-
-    disbursement_rate = (
-        (total_claimed / total_budget) * 100
-        if total_budget > 0 else 0
-    )
-
-    batch_counts = DisbursementBatch.objects.aggregate(
-        total_batches=Count("id"),
-        finalized_batches=Count("id", filter=Q(status="FINALIZED")),
-        open_batches=Count("id", filter=Q(status="OPEN")),
+    data = (
+        qs.values(location_name=F(field))
+        .annotate(
+            total_amount=Sum("amount"),
+            claim_count=Count("id"),
+            avg_amount=Avg("amount"),
+        )
+        .order_by("-total_amount")
     )
 
     return Response({
-        "total_budget": total_budget,
-        "total_claimed_amount": total_claimed,
-        "total_unclaimed_amount": total_unclaimed,
-        "total_pending_amount": total_pending,
-        "remaining_budget": remaining_budget,
-        "disbursement_rate": round(disbursement_rate, 2),
-        **batch_counts
+        "group_by": level,
+        "total_budget": total_budget(qs),
+        "data": data,
     })
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def analytics_disbursement_by_batch(request):
-    batches = (
-        DisbursementBatch.objects
+def budget_by_assistance(request):
+    qs = apply_filters(base_claimed_qs(), request.GET)
+
+    data = (
+        qs.values("approval__applicant__type_of_assistance")
         .annotate(
-            total_budget_amount=Sum("claims__amount"),
-            claimed_amount=Sum(
-                "claims__amount",
-                filter=Q(claims__status="CLAIMED")
-            ),
-            unclaimed_amount=Sum(
-                "claims__amount",
-                filter=Q(claims__status="UNCLAIMED")
-            ),
-            pending_amount=Sum(
-                "claims__amount",
-                filter=Q(claims__status="PENDING")
-            ),
+            total_amount=Sum("amount"),
+            claim_count=Count("id"),
+            avg_amount=Avg("amount"),
         )
-        .order_by("-created_at")
+        .order_by("-total_amount")
     )
 
-    data = []
+    return Response({
+        "group_by": "assistance",
+        "total_budget": total_budget(qs),
+        "data": data,
+    })
 
-    for batch in batches:
-        total_budget = batch.total_budget_amount or 0
-        total_claimed = batch.claimed_amount or 0
+@api_view(["GET"])
+def budget_per_year(request):
+    qs = apply_filters(base_claimed_qs(), request.GET)
 
-        utilization_rate = (
-            (total_claimed / total_budget) * 100
-            if total_budget > 0 else 0
+    data = (
+        qs.annotate(year=ExtractYear("payout_date"))
+        .values("year")
+        .annotate(
+            total_amount=Sum("amount"),
+            claim_count=Count("id"),
+            avg_amount=Avg("amount"),
         )
+        .order_by("year")
+    )
 
-        data.append({
-            "batch_id": batch.id,
-            "batch_name": batch.name,
-            "batch_status": batch.status,
-            "payout_date": batch.payout_date,
+    return Response({
+        "group_by": "year",
+        "total_budget": total_budget(qs),
+        "data": data,
+    })
 
-            "total_budget_amount": total_budget,
-            "claimed_amount": total_claimed,
-            "unclaimed_amount": batch.unclaimed_amount or 0,
-            "pending_amount": batch.pending_amount or 0,
+@api_view(["GET"])
+def budget_per_batch(request):
+    qs = apply_filters(base_claimed_qs(), request.GET)
 
-            "utilization_rate": round(utilization_rate, 2),
-        })
+    data = (
+        qs.values(
+            "approval__batch__id",
+            "approval__batch__batch_code",
+        )
+        .annotate(
+            total_amount=Sum("amount"),
+            claim_count=Count("id"),
+        )
+        .order_by("-total_amount")
+    )
 
+    return Response({
+        "group_by": "batch",
+        "total_budget": total_budget(qs),
+        "data": data,
+    })
 
-    return Response(data)
+@api_view(["GET"])
+def budget_location_assistance(request):
+    qs = apply_filters(base_claimed_qs(), request.GET)
+
+    data = (
+        qs.values(
+            "approval__applicant__background_info__city",
+            "approval__applicant__type_of_assistance",
+        )
+        .annotate(
+            total_amount=Sum("amount"),
+            claim_count=Count("id"),
+        )
+        .order_by("-total_amount")
+    )
+
+    return Response({
+        "group_by": "location_assistance",
+        "total_budget": total_budget(qs),
+        "data": data,
+    })
 
 
 
