@@ -3,8 +3,8 @@ import re
 import os
 import json
 from dotenv import load_dotenv
-from .models import ApplicantHistory, StaffActivityLog
-from django.db.models import Q
+from .models import ApplicantHistory, StaffActivityLog, DisbursementClaim, DisbursementBatch
+from django.db.models import Q, Sum
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
@@ -214,3 +214,60 @@ def extract_amount_from_notes(notes):
         except InvalidOperation:
             return Decimal('0.00')
     return Decimal('0.00')
+
+CLAIMED = "CLAIMED"
+
+def base_claimed_qs():
+    return (
+        DisbursementClaim.objects
+        .filter(status=CLAIMED)
+        .select_related(
+            "approval",
+            "approval__applicant",
+            "approval__applicant__background_info",
+            "approval__batch",
+        )
+    )
+
+
+def apply_filters(qs, params):
+    year = params.get("year")
+    city = params.get("city")
+    barangay = params.get("barangay")
+    assistance = params.get("assistance")
+    batch_id = params.get("batch_id")
+    date_from = params.get("date_from")
+    date_to = params.get("date_to")
+
+    if year:
+        qs = qs.filter(payout_date__year=year)
+
+    if date_from:
+        qs = qs.filter(payout_date__gte=date_from)
+
+    if date_to:
+        qs = qs.filter(payout_date__lte=date_to)
+
+    if assistance:
+        qs = qs.filter(
+            approval__applicant__type_of_assistance=assistance
+        )
+
+    if city:
+        qs = qs.filter(
+            approval__applicant__background_info__barangay__city=city
+        )
+
+    if barangay:
+        qs = qs.filter(
+            approval__applicant__background_info__barangay=barangay
+        )
+
+    if batch_id:
+        qs = qs.filter(approval__batch_id=batch_id)
+
+    return qs
+
+
+def total_budget(qs):
+    return qs.aggregate(total=Sum("amount"))["total"] or 0
