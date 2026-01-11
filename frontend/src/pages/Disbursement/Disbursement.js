@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import { Wallet, Info, MousePointer2, HandCoins, File, FileText, Package } from "lucide-react";
 import { toast } from "react-hot-toast";
+import CustomToast from "../../components/CustomToast";
 
 // Design System Imports
 import {
@@ -38,24 +39,6 @@ const fetchClaims = async (batchId, params = {}) => {
     params,
   });
   return data;
-};
-
-const StatusBadge = ({ status }) => {
-  const styles = {
-    OPEN: "bg-green-100 text-green-700",
-    CLOSED: "bg-yellow-100 text-yellow-700",
-    FINALIZED: "bg-gray-100 text-gray-700",
-  };
-
-  return (
-    <span
-      className={`px-2 py-1 rounded-full text-xs font-semibold ${
-        styles[status] || "bg-gray-100 text-gray-600"
-      }`}
-    >
-      {status}
-    </span>
-  );
 };
 
 // MAIN COMPONENT
@@ -135,11 +118,19 @@ const Disbursement = () => {
         payout_date,
       });
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries(["batch-claims", selectedBatch?.id]);
       queryClient.invalidateQueries(["batch-detail", selectedBatch?.id]);
       queryClient.invalidateQueries(["disbursement-batches"]);
-      toast.success("Claim status updated successfully");
+
+      // Replace with custom toast
+      toast.custom(t => (
+        <CustomToast
+          t={t}
+          type="editApplicant"
+          customMessage={`Claim status updated to ${variables.status}`}
+        />
+      ));
     },
     onError: error => {
       const errorMsg = error.response?.data?.error || "Failed to update claim status";
@@ -150,8 +141,6 @@ const Disbursement = () => {
   // Bulk Update Claim Status
   const bulkUpdateClaimsMutation = useMutation({
     mutationFn: async ({ claimIds, status, payout_date }) => {
-      // Backend doesn't have bulk endpoint yet, so we'll do sequential updates
-      // You can create a bulk endpoint later for better performance
       const promises = claimIds.map(claimId =>
         api.patch(`/disbursement/claim/${claimId}/status/`, {
           status,
@@ -164,7 +153,16 @@ const Disbursement = () => {
       queryClient.invalidateQueries(["batch-claims", selectedBatch?.id]);
       queryClient.invalidateQueries(["batch-detail", selectedBatch?.id]);
       queryClient.invalidateQueries(["disbursement-batches"]);
-      toast.success(`${variables.claimIds.length} claims updated successfully`);
+
+      // Replace with custom toast
+      toast.custom(t => (
+        <CustomToast
+          t={t}
+          type="success"
+          customMessage={`${variables.claimIds.length} claims updated to ${variables.status}`}
+        />
+      ));
+
       setSelectedClaims([]);
       setShowStatusModal(false);
     },
@@ -182,7 +180,15 @@ const Disbursement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(["batch-detail", selectedBatch?.id]);
       queryClient.invalidateQueries(["disbursement-batches"]);
-      toast.success("Batch closed successfully. Ready for payout distribution.");
+
+      // Replace with custom toast
+      toast.custom(t => (
+        <CustomToast
+          t={t}
+          type="success"
+          customMessage="Batch closed successfully. Ready for payout distribution."
+        />
+      ));
     },
     onError: error => {
       const errorMsg = error.response?.data?.error || "Failed to close batch";
@@ -200,8 +206,16 @@ const Disbursement = () => {
       queryClient.invalidateQueries(["disbursement-batches"]);
 
       const { total_claimed, total_unclaimed } = response.data;
-      toast.success(
-        `Batch finalized! ${total_claimed} claimed, ${total_unclaimed} unclaimed.`,
+
+      // Replace with custom toast
+      toast.custom(
+        t => (
+          <CustomToast
+            t={t}
+            type="success"
+            customMessage={`Batch finalized! ${total_claimed} claimed, ${total_unclaimed} unclaimed.`}
+          />
+        ),
         { duration: 5000 }
       );
     },
@@ -260,14 +274,17 @@ const Disbursement = () => {
 
   const handleSelectAllClaims = isSelected => {
     if (isSelected) {
-      const allClaimIds = claims.map(claim => claim.id);
-      setSelectedClaims(allClaimIds);
+      // Only select PENDING claims from current page
+      const pendingClaimIds = claims
+        .filter(claim => claim.status === "PENDING")
+        .map(claim => claim.id);
+      setSelectedClaims(pendingClaimIds);
     } else {
       setSelectedClaims([]);
     }
   };
 
-  const canEditClaims = batchDetail?.status === "OPEN" || batchDetail?.status === "CLOSED";
+  const canEditClaims = batchDetail?.status === "CLOSED";
   const canCloseBatch = batchDetail?.status === "OPEN";
   const canFinalizeBatch = batchDetail?.status === "CLOSED";
   const isFinalized = batchDetail?.status === "FINALIZED";
@@ -354,6 +371,7 @@ const Disbursement = () => {
               filters={claimFilters}
               onFilterChange={setClaimFilters}
               isUpdating={updateClaimMutation.isLoading}
+              batchDetail={batchDetail}
             />
           </>
         )}
