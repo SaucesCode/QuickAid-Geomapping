@@ -215,22 +215,25 @@ def extract_amount_from_notes(notes):
             return Decimal('0.00')
     return Decimal('0.00')
 
-CLAIMED = "CLAIMED"
 
-def base_claimed_qs():
+def base_disbursement_qs():
+    """Base queryset for all disbursement claims with relationships"""
     return (
         DisbursementClaim.objects
-        .filter(status=CLAIMED)
         .select_related(
             "approval",
             "approval__applicant",
             "approval__applicant__background_info",
+            "approval__applicant__background_info__barangay",
+            "approval__applicant__background_info__barangay__city",
             "approval__batch",
+            "batch",
         )
     )
 
 
-def apply_filters(qs, params):
+def apply_budget_filters(qs, params):
+    """Apply common filters to budget queries"""
     year = params.get("year")
     city = params.get("city")
     barangay = params.get("barangay")
@@ -238,6 +241,7 @@ def apply_filters(qs, params):
     batch_id = params.get("batch_id")
     date_from = params.get("date_from")
     date_to = params.get("date_to")
+    status = params.get("status")  # CLAIMED, PENDING, UNCLAIMED
 
     if year:
         qs = qs.filter(payout_date__year=year)
@@ -249,25 +253,23 @@ def apply_filters(qs, params):
         qs = qs.filter(payout_date__lte=date_to)
 
     if assistance:
-        qs = qs.filter(
-            approval__applicant__type_of_assistance=assistance
-        )
+        qs = qs.filter(approval__applicant__type_of_assistance=assistance)
 
     if city:
         qs = qs.filter(
-            approval__applicant__background_info__barangay__city=city
+            approval__applicant__background_info__barangay__city__name=city
         )
 
     if barangay:
         qs = qs.filter(
-            approval__applicant__background_info__barangay=barangay
+            approval__applicant__background_info__barangay__name=barangay
         )
 
     if batch_id:
-        qs = qs.filter(approval__batch_id=batch_id)
+        qs = qs.filter(batch_id=batch_id)
+
+    if status:
+        qs = qs.filter(status=status)
 
     return qs
 
-
-def total_budget(qs):
-    return qs.aggregate(total=Sum("amount"))["total"] or 0
