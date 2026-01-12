@@ -120,11 +120,14 @@ urlpatterns = [
     # ========================
     # Disbursement
     # ========================
-    path("analytics/budget/location/", budget_by_location),
-    path("analytics/budget/assistance/", budget_by_assistance),
-    path("analytics/budget/year/", budget_per_year),
-    path("analytics/budget/batch/", budget_per_batch),
-    path("analytics/budget/location-assistance/", budget_location_assistance),
+
+    path("analytics/budget/overview/", budget_overview, name="analytics-budget-overview"),
+    path("analytics/budget/location/", budget_by_location, name="analytics-budget-location"),
+    path("analytics/budget/assistance/", budget_by_assistance, name="analytics-budget-assistance"),
+    path("analytics/budget/trends/", budget_trends, name="analytics-budget-trends"),
+    path("analytics/budget/batch/", budget_by_batch, name="analytics-budget-batch"),
+    path("analytics/budget/location-assistance/", budget_location_assistance, name="analytics-budget-location-assistance"),
+    path("analytics/budget/comparison/", budget_comparison, name="analytics-budget-comparison"),
 
     # ========================
     # Export
