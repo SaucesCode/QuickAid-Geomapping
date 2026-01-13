@@ -10,6 +10,7 @@ import Trends from "./pages/analytics/Trends";
 import Geographic from "./pages/analytics/Geographic";
 import DemographicsEconomics from "./pages/analytics/DemographicsEconomics";
 import Performance from "./pages/analytics/Performance";
+import Budget from "./pages/analytics/Budget";
 
 import ApplicantForm from "./pages/Applicants/ApplicantForm";
 import Applicants from "./pages/Applicants/Applicants";
@@ -108,6 +109,7 @@ function App() {
               <Route path="demographics-economics" element={<DemographicsEconomics />} />
               <Route path="trends" element={<Trends />} />
               <Route path="performance" element={<Performance />} />
+              <Route path="budget" element={<Budget />} />
             </Route>
 
             <Route path="applicants" element={<Applicants />} />

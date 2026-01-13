@@ -22,6 +22,7 @@ import {
   Home,
   Wallet,
   HandCoins,
+  DollarSign,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import CustomToast from "./CustomToast";
@@ -517,6 +518,21 @@ const Sidebar = () => {
                         >
                           <Activity className="w-4 h-4" />
                           <span className="text-white">Performance</span>
+                        </NavLink>
+
+                        <NavLink
+                          to="/analytics/budget"
+                          onClick={handleNavClick}
+                          className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                              isActive
+                                ? "bg-gray-700 text-white font-medium"
+                                : "text-white hover:bg-gray-700 hover:text-white"
+                            }`
+                          }
+                        >
+                          <DollarSign className="w-4 h-4" />
+                          <span className="text-white">Budget Analytics</span>
                         </NavLink>
                       </div>
                     )}
