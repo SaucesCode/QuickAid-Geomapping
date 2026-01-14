@@ -3734,7 +3734,6 @@ def allocated_budget_yearly_comparison(request):
     })
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
 def public_budget_summary(request):
     """
     Public Budget Transparency Endpoint
