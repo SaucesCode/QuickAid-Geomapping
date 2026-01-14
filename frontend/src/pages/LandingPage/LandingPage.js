@@ -21,6 +21,7 @@ import HowToApply from "./How2apply";
 import { Link } from "react-router-dom";
 import Carousel from "./Carousel";
 import bgImage from "../../assets/JPA09392.JPG";
+import PublicBudgetSummary from "./PublicBudgetSummary";
 
 // import { GraduationCap, HeartPulse, Cross } from "lucide-react";
 
@@ -207,6 +208,8 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
+      <PublicBudgetSummary />
 
       {/* Program Objective Section */}
       <section className="py-24 bg-gradient-to-r from-blue-50 via-white to-blue-50">

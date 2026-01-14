@@ -534,6 +534,22 @@ class DisbursementBatch(models.Model):
     total_claimed = models.IntegerField(default=0)
     total_unclaimed = models.IntegerField(default=0)
     finalized_at = models.DateTimeField(null=True, blank=True)
+    total_budget = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        default=0,
+        help_text="Total budget allocated for this batch"
+    )
+    
+    def update_totals(self):
+        """Recalculate batch totals from claims"""
+        self.total_beneficiaries = self.claims.count()
+        self.total_claimed = self.claims.filter(status="CLAIMED").count()
+        self.total_unclaimed = self.claims.filter(status="UNCLAIMED").count()
+        self.total_budget = self.claims.aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+        self.save()
 
     def finalize(self, staff=None):
         if self.status != "CLOSED":
