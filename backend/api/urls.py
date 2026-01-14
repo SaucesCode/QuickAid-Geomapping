@@ -128,6 +128,11 @@ urlpatterns = [
     path("analytics/budget/batch/", budget_by_batch, name="analytics-budget-batch"),
     path("analytics/budget/location-assistance/", budget_location_assistance, name="analytics-budget-location-assistance"),
     path("analytics/budget/comparison/", budget_comparison, name="analytics-budget-comparison"),
+    path("analytics/budget/allocated/location/", allocated_budget_by_location, name="analytics-allocated-location"),
+    path("analytics/budget/allocated/assistance/annual/", allocated_budget_by_assistance_annual, name="analytics-allocated-assistance-annual"),
+    path("analytics/budget/allocated/summary/", allocated_budget_summary, name="analytics-allocated-summary"),
+    path("analytics/budget/allocated/top-locations/", allocated_budget_top_locations, name="analytics-allocated-top"),
+    path("analytics/budget/allocated/yearly-comparison/", allocated_budget_yearly_comparison, name="analytics-allocated-yearly"),
     path("public/budget/summary/", public_budget_summary),
 
     # ========================

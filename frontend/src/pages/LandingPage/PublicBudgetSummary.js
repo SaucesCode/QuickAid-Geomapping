@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import BudgetStatCard from "./BudgetStatCard";
 import { api } from "../../services/api";
+import { formatDate } from "../../utils/FormatDate";
 
-const formatPeso = value => `₱${Number(value || 0).toLocaleString("en-PH")}`;
+const formatPeso = value => `₱ ${Number(value || 0).toLocaleString("en-PH")}`;
 
 const fetchPublicBudget = async () => {
   const { data } = await api.get("/public/budget/summary/");
@@ -69,7 +70,7 @@ const PublicBudgetSummary = () => {
           <p className="text-xs text-slate-500">
             Figures shown reflect officially approved and released assistance funds.
             <br />
-            Last updated: {data.last_updated}
+            Last updated: {formatDate(data.last_updated)}
           </p>
         </div>
       </div>
