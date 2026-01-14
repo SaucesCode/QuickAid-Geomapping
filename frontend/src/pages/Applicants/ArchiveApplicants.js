@@ -1,19 +1,18 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
-  Search,
   Archive,
   RotateCcw,
   Eye,
   X,
   AlertCircle,
   Info,
-  Users,
   MapPin,
   Building2,
   Calendar,
   FileText,
+  Users,
 } from "lucide-react";
 import PreviewModal from "./components/PreviewModal";
 import Pagination from "../../components/Pagination";
@@ -25,7 +24,6 @@ import {
   Card,
   LoadingState,
   H2,
-  BodyText,
 } from "../../components/DesignSystem";
 
 import toast from "react-hot-toast";
@@ -56,18 +54,35 @@ const ArchiveApplicants = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // -----------------------------
-  //  FETCH FROM BACKEND WITH PAGINATION
+  // IDENTITY BADGE COMPONENT
   // -----------------------------
+  const IdentityBadge = ({ status }) => {
+    if (!status) return null;
+    const styles = {
+      NEW: "bg-blue-50 text-blue-600 border-blue-200",
+      REVIEWED: "bg-emerald-50 text-emerald-600 border-emerald-200",
+      SUSPICIOUS: "bg-amber-50 text-amber-600 border-amber-200",
+      BLOCKED: "bg-rose-50 text-rose-600 border-rose-200",
+    };
+
+    return (
+      <span
+        className={`flex-shrink-0 px-1.5 py-0.5 text-[7px] font-bold rounded border uppercase tracking-wide opacity-90 ${
+          styles[status] || styles.NEW
+        }`}
+      >
+        {status}
+      </span>
+    );
+  };
+
   const { data, isLoading, isError } = useQuery({
     queryKey: ["archived-applicants", filters, debouncedSearch, currentPage, itemsPerPage],
     queryFn: async () => {
       const params = new URLSearchParams();
-
-      // backend pagination:
       params.append("limit", itemsPerPage);
       params.append("offset", (currentPage - 1) * itemsPerPage);
 
-      // filters
       if (filters.city) params.append("city", filters.city);
       if (filters.barangay) params.append("barangay", filters.barangay);
       if (filters.type) params.append("type", filters.type);
@@ -75,8 +90,6 @@ const ArchiveApplicants = () => {
         params.append("start_date", filters.start);
         params.append("end_date", filters.end);
       }
-
-      // search
       if (debouncedSearch) params.append("search", debouncedSearch);
 
       const res = await api.get(`/list-archived-applicants/?${params.toString()}`);
@@ -89,18 +102,12 @@ const ArchiveApplicants = () => {
   const totalItems = data?.count || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // -----------------------------
-  //  RESTORE MUTATION
-  // -----------------------------
   const restoreMutation = useMutation({
     mutationFn: async id => api.post(`/restore-applicant/${id}/`),
     onSuccess: () => {
       queryClient.invalidateQueries(["archived-applicants"]);
       setRestoreModal({ show: false, applicantId: null });
-
-      toast.custom(t => <CustomToast t={t} type="restore" />, {
-        duration: 4000,
-      });
+      toast.custom(t => <CustomToast t={t} type="restore" />, { duration: 4000 });
     },
     onError: () => {
       toast.error("Failed to restore applicant.");
@@ -125,7 +132,6 @@ const ArchiveApplicants = () => {
         subtitle="View and restore archived records"
       />
 
-      {/* Filters */}
       <Card>
         <ApplicantsFilter
           filters={filters}
@@ -135,8 +141,7 @@ const ArchiveApplicants = () => {
         />
       </Card>
 
-      {/* Table */}
-      <Card className="p-0 overflow-hidden">
+      <Card className="p-0 overflow-hidden border border-gray-200 shadow-sm rounded-2xl">
         {isLoading ? (
           <LoadingState message="Loading archived applicants..." />
         ) : isError ? (
@@ -145,102 +150,128 @@ const ArchiveApplicants = () => {
             Failed to load data.
           </div>
         ) : archivedApplicants.length === 0 ? (
-          <div className="p-10 text-center text-blue-700 bg-blue-50">
-            No archived applicants found.
+          <div className="p-16 text-center text-gray-500">
+            <Users className="w-12 h-12 opacity-20 mx-auto mb-2" />
+            <p className="font-medium">No archived applicants found.</p>
           </div>
         ) : (
           <>
-            {/* Table */}
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-blue-100 text-sm">
-                <thead className="bg-[#003a76] text-white">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead className="bg-[#003a76] text-white text-xs font-semibold uppercase tracking-wider">
                   <tr>
-                    <th className="px-3 py-4 text-center w-[50px]">NO.</th>
-                    <th className="px-6 py-4 text-left">Full Name</th>
-                    <th className="px-6 py-4 text-left">Barangay</th>
-                    <th className="px-6 py-4 text-left">City</th>
-                    <th className="px-6 py-4 text-left">Assistance</th>
-                    <th className="px-6 py-4 text-left">Date Filled</th>
-                    <th className="px-6 py-4 text-left">Actions</th>
+                    <th className="px-4 py-4 text-center w-[70px]">NO.</th>
+                    <th className="px-4 py-4 text-left w-[280px]">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        Full Name
+                      </div>
+                    </th>
+                    <th className="px-4 py-4 text-left w-[160px]">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        Barangay
+                      </div>
+                    </th>
+                    <th className="px-4 py-4 text-left w-[130px]">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4" />
+                        City
+                      </div>
+                    </th>
+                    <th className="px-4 py-4 text-left w-[140px]">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        Assistance
+                      </div>
+                    </th>
+                    <th className="px-4 py-4 text-left w-[130px]">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Date Filled
+                      </div>
+                    </th>
+                    <th className="px-4 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-blue-100">
+                <tbody className="divide-y divide-gray-100">
                   {archivedApplicants.map((a, index) => (
-                    <tr key={a.id} className="hover:bg-blue-50 transition-colors">
-                      <td className="px-3 py-4 text-center">
+                    <tr
+                      key={a.id}
+                      className={`${
+                        index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                      } hover:bg-blue-50 transition-colors`}
+                    >
+                      <td className="px-4 py-4 text-center text-gray-600 font-semibold">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
 
                       <td
-                        className="px-6 py-4 font-bold cursor-pointer hover:text-indigo-600"
+                        className="px-4 py-4 cursor-pointer relative"
                         onClick={() => {
                           setPreviewApplicant(a);
                           setPreviewView(true);
                         }}
                       >
-                        {`${a.background_info?.first_name || ""} ${
-                          a.background_info?.last_name || ""
-                        }`}
-                      </td>
-                      <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                          <span className="truncate">
-                            {a.background_info?.barangay || "—"}
+                        <div className="pr-16">
+                          <span className="font-semibold text-gray-900 hover:text-indigo-600 truncate block transition-colors">
+                            {`${a.background_info?.first_name || ""} ${
+                              a.background_info?.last_name || ""
+                            }`}
                           </span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                          <span className="truncate">
-                            {a.background_info?.barangay_details?.city_name || "—"}
-                          </span>
+                        {/* Status Badge Positioned Top Right within the Name Cell */}
+                        <div className="absolute top-3 right-2">
+                          <IdentityBadge status={a.identity_status} />
                         </div>
                       </td>
-                      <td className="px-4 py-4 align-middle">
-                        <div className="flex items-center justify-center">
-                          <span
-                            className={`inline-flex px-2 py-1 rounded-xl text-xs font-semibold shadow-md whitespace-nowrap
-            ${
-              a.type_of_assistance?.toLowerCase() === "educational"
-                ? "bg-green-100 text-green-800"
-                : a.type_of_assistance?.toLowerCase() === "medical"
-                ? "bg-blue-100 text-blue-800"
-                : a.type_of_assistance?.toLowerCase() === "burial"
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-                          >
-                            {a.type_of_assistance}
-                          </span>
-                        </div>
+
+                      <td className="px-4 py-4 text-gray-700 truncate max-w-[160px]">
+                        {a.background_info?.barangay || "—"}
                       </td>
-                      <td className="px-4 py-4 align-middle text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                          <span className="truncate">{formatDate(a.date_filled)}</span>
-                        </div>
+
+                      <td className="px-4 py-4 text-gray-700 truncate max-w-[130px]">
+                        {a.background_info?.barangay_details?.city_name || "—"}
                       </td>
-                      <td className="px-6 py-4 align-middle">
-                        <div className="flex flex-wrap items-center gap-1">
+
+                      <td className="px-4 py-4">
+                        <span
+                          className={`inline-flex px-2.5 py-1 text-xs rounded-lg font-semibold border ${
+                            a.type_of_assistance?.toLowerCase() === "educational"
+                              ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                              : a.type_of_assistance?.toLowerCase() === "medical"
+                              ? "bg-blue-100 text-blue-700 border-blue-200"
+                              : a.type_of_assistance?.toLowerCase() === "burial"
+                              ? "bg-amber-100 text-amber-700 border-amber-200"
+                              : "bg-gray-100 text-gray-700 border-gray-200"
+                          }`}
+                        >
+                          {a.type_of_assistance}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4 text-gray-700 whitespace-nowrap">
+                        {formatDate(a.date_filled)}
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => {
                               setPreviewApplicant(a);
                               setPreviewView(true);
                             }}
-                            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-300"
+                            className="px-2 py-1.5 text-xs border rounded-lg text-indigo-600 border-indigo-300 hover:bg-indigo-50 transition-colors flex items-center gap-1"
                           >
-                            <Eye className="w-4 h-4" />
-                            View
+                            <Eye className="w-3.5 h-3.5" /> View
                           </button>
                           <button
                             onClick={() => setRestoreModal({ show: true, applicantId: a.id })}
                             disabled={restoreMutation.isPending}
-                            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors border border-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-2 py-1.5 text-xs border rounded-lg text-green-600 border-green-300 hover:bg-green-50 transition-colors flex items-center gap-1 disabled:opacity-50"
                           >
-                            <RotateCcw className="w-4 h-4" /> Restore
+                            <RotateCcw className="w-3.5 h-3.5" /> Restore
                           </button>
                         </div>
                       </td>
@@ -250,7 +281,6 @@ const ArchiveApplicants = () => {
               </table>
             </div>
 
-            {/* Pagination */}
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -277,10 +307,10 @@ const ArchiveApplicants = () => {
 
       {/* RESTORE MODAL */}
       {restoreModal.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="bg-indigo-600 px-6 py-4 rounded-t-xl text-white font-bold flex justify-between">
-              Restore Applicant
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="bg-[#003a76] px-6 py-4 text-white font-bold flex justify-between items-center">
+              <span>Restore Applicant</span>
               <button onClick={() => setRestoreModal({ show: false, applicantId: null })}>
                 <X className="w-5 h-5" />
               </button>
@@ -288,25 +318,25 @@ const ArchiveApplicants = () => {
 
             <div className="p-6">
               <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
-                <Info className="w-5 h-5 text-blue-700" />
-                <p className="text-sm text-blue-800">
-                  This applicant will be moved back to the active list.
+                <Info className="w-5 h-5 text-blue-700 mt-0.5" />
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  This applicant will be moved back to the active list and will be visible in
+                  the main applicant table.
                 </p>
               </div>
 
               <div className="flex gap-3">
                 <button
-                  className="flex-1 py-2 border rounded-lg"
+                  className="flex-1 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                   onClick={() => setRestoreModal({ show: false, applicantId: null })}
                 >
                   Cancel
                 </button>
-
                 <button
-                  className="flex-1 py-2 bg-indigo-600 text-white rounded-lg"
+                  className="flex-1 py-2.5 bg-[#003a76] text-white rounded-lg font-medium hover:bg-[#002d5c] transition-colors"
                   onClick={handleRestore}
                 >
-                  Restore Applicant
+                  Confirm Restore
                 </button>
               </div>
             </div>

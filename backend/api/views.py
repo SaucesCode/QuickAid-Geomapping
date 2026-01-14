@@ -758,11 +758,18 @@ def upload_approved_list(request):
                 already_approved += 1
                 continue
 
+            try:
+                amount = Decimal(
+                    str(row.get("amount of assistance")).replace(",", "")
+                )
+            except (InvalidOperation, TypeError):
+                amount = Decimal("0.00")
+
             approval = Approval.objects.create(
                 applicant=applicant,
                 batch=approval_batch,
                 approved_by=request.user,
-                notes=f"Approved via batch upload ({approval_batch.file_name})",
+                notes=amount,
             )
 
             ApprovalAuditLog.objects.create(
@@ -771,13 +778,6 @@ def upload_approved_list(request):
                 performed_by=request.user,
                 notes="Approved via batch upload",
             )
-
-            try:
-                amount = Decimal(
-                    str(row.get("amount of assistance")).replace(",", "")
-                )
-            except (InvalidOperation, TypeError):
-                amount = Decimal("0.00")
 
             DisbursementClaim.objects.create(
                 batch=disbursement_batch,
@@ -3390,6 +3390,380 @@ def budget_comparison(request):
             "claimed_change_percentage": round(claimed_change_pct, 2)
         }
     })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def allocated_budget_by_location(request):
+    """
+    GET /analytics/budget/allocated/location/?level=city
+    Total allocated budget by location (regardless of claim status)
+    Shows how much money has been allocated to each city/barangay
+    """
+    level = request.GET.get("level", "city")
+    year = request.GET.get("year")
+    assistance = request.GET.get("assistance")
+    
+    qs = DisbursementClaim.objects.select_related(
+        'applicant__background_info__barangay__city',
+        'batch'
+    )
+    
+    # Apply filters
+    if year:
+        qs = qs.filter(batch__payout_date__year=year)
+    if assistance:
+        qs = qs.filter(applicant__type_of_assistance=assistance)
+    
+    if level == "city":
+        grouped = qs.values(
+            location_name=F('applicant__background_info__barangay__city__name')
+        ).annotate(
+            total_allocated=Sum('amount'),
+            beneficiary_count=Count('id'),
+            avg_allocation=Avg('amount')
+        ).order_by('-total_allocated')
+    else:  # barangay level
+        # Include city name for context
+        grouped = qs.values(
+            location_name=F('applicant__background_info__barangay__name'),
+            city_name=F('applicant__background_info__barangay__city__name')
+        ).annotate(
+            total_allocated=Sum('amount'),
+            beneficiary_count=Count('id'),
+            avg_allocation=Avg('amount')
+        ).order_by('-total_allocated')
+    
+    # Format data
+    data = []
+    for item in grouped:
+        row = {
+            'location_name': item['location_name'],
+            'total_allocated': float(item['total_allocated'] or 0),
+            'beneficiary_count': item['beneficiary_count'],
+            'avg_allocation': float(item['avg_allocation'] or 0)
+        }
+        if level == "barangay":
+            row['city_name'] = item['city_name']
+        data.append(row)
+    
+    # Calculate grand total
+    grand_total = sum(d['total_allocated'] for d in data)
+    total_beneficiaries = sum(d['beneficiary_count'] for d in data)
+    
+    return Response({
+        "level": level,
+        "year": year,
+        "assistance_type": assistance,
+        "total_allocated": grand_total,
+        "total_beneficiaries": total_beneficiaries,
+        "location_count": len(data),
+        "data": data
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def allocated_budget_by_assistance_annual(request):
+    """
+    GET /analytics/budget/allocated/assistance/annual/
+    Annual allocated budget per assistance type
+    Shows budget allocation trends by year for each assistance type
+    """
+    start_year = request.GET.get("start_year")
+    end_year = request.GET.get("end_year")
+    city = request.GET.get("city")
+    barangay = request.GET.get("barangay")
+    
+    qs = DisbursementClaim.objects.select_related(
+        'applicant',
+        'batch'
+    )
+    
+    # Apply location filters
+    if city:
+        qs = qs.filter(applicant__background_info__barangay__city__name=city)
+    if barangay:
+        qs = qs.filter(applicant__background_info__barangay__name=barangay)
+    
+    # Apply year range
+    if start_year:
+        qs = qs.filter(batch__payout_date__year__gte=start_year)
+    if end_year:
+        qs = qs.filter(batch__payout_date__year__lte=end_year)
+    
+    # Group by year and assistance type
+    grouped = qs.annotate(
+        year=TruncYear('batch__payout_date')
+    ).values(
+        'year',
+        assistance_type=F('applicant__type_of_assistance')
+    ).annotate(
+        total_allocated=Sum('amount'),
+        beneficiary_count=Count('id'),
+        avg_allocation=Avg('amount')
+    ).order_by('year', 'assistance_type')
+    
+    # Organize data by year
+    data_by_year = {}
+    assistance_types = set()
+    
+    for item in grouped:
+        if item['year']:
+            year = item['year'].year
+            assistance_type = item['assistance_type']
+            assistance_types.add(assistance_type)
+            
+            if year not in data_by_year:
+                data_by_year[year] = {
+                    'year': year,
+                    'total_allocated': 0,
+                    'total_beneficiaries': 0,
+                    'by_assistance': {}
+                }
+            
+            data_by_year[year]['total_allocated'] += float(item['total_allocated'] or 0)
+            data_by_year[year]['total_beneficiaries'] += item['beneficiary_count']
+            data_by_year[year]['by_assistance'][assistance_type] = {
+                'total_allocated': float(item['total_allocated'] or 0),
+                'beneficiary_count': item['beneficiary_count'],
+                'avg_allocation': float(item['avg_allocation'] or 0)
+            }
+    
+    # Convert to list and sort by year
+    annual_data = sorted(data_by_year.values(), key=lambda x: x['year'])
+    
+    # Calculate grand totals
+    grand_total = sum(year_data['total_allocated'] for year_data in annual_data)
+    total_beneficiaries = sum(year_data['total_beneficiaries'] for year_data in annual_data)
+    
+    return Response({
+        "start_year": start_year,
+        "end_year": end_year,
+        "assistance_types": sorted(list(assistance_types)),
+        "grand_total_allocated": grand_total,
+        "grand_total_beneficiaries": total_beneficiaries,
+        "years_count": len(annual_data),
+        "data": annual_data
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def allocated_budget_summary(request):
+    """
+    GET /analytics/budget/allocated/summary/
+    High-level summary of allocated budgets
+    Total allocation by assistance type (all-time or filtered by year)
+    """
+    year = request.GET.get("year")
+    city = request.GET.get("city")
+    barangay = request.GET.get("barangay")
+    
+    qs = DisbursementClaim.objects.select_related('applicant', 'batch')
+    
+    # Apply filters
+    if year:
+        qs = qs.filter(batch__payout_date__year=year)
+    if city:
+        qs = qs.filter(applicant__background_info__barangay__city__name=city)
+    if barangay:
+        qs = qs.filter(applicant__background_info__barangay__name=barangay)
+    
+    # Overall totals
+    overall = qs.aggregate(
+        total_allocated=Sum('amount'),
+        total_beneficiaries=Count('id'),
+        avg_allocation=Avg('amount')
+    )
+    
+    # By assistance type
+    by_assistance = qs.values(
+        assistance_type=F('applicant__type_of_assistance')
+    ).annotate(
+        total_allocated=Sum('amount'),
+        beneficiary_count=Count('id'),
+        avg_allocation=Avg('amount')
+    ).order_by('-total_allocated')
+    
+    # Format assistance breakdown
+    assistance_breakdown = []
+    for item in by_assistance:
+        total = float(item['total_allocated'] or 0)
+        percentage = (total / float(overall['total_allocated'] or 1)) * 100
+        
+        assistance_breakdown.append({
+            'assistance_type': item['assistance_type'],
+            'total_allocated': total,
+            'beneficiary_count': item['beneficiary_count'],
+            'avg_allocation': float(item['avg_allocation'] or 0),
+            'percentage': round(percentage, 2)
+        })
+    
+    return Response({
+        "year": year or "All Time",
+        "city": city or "All Cities",
+        "barangay": barangay or "All Barangays",
+        "total_allocated": float(overall['total_allocated'] or 0),
+        "total_beneficiaries": overall['total_beneficiaries'],
+        "avg_allocation": float(overall['avg_allocation'] or 0),
+        "assistance_breakdown": assistance_breakdown
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def allocated_budget_top_locations(request):
+    """
+    GET /analytics/budget/allocated/top-locations/?limit=10
+    Top cities/barangays by allocated budget
+    """
+    level = request.GET.get("level", "city")
+    try:
+        limit = int(request.GET.get("limit", 10))
+    except (TypeError, ValueError):
+        limit = 10
+
+    year = request.GET.get("year")
+    assistance = request.GET.get("assistance")
+    
+    qs = DisbursementClaim.objects.select_related(
+        'applicant__background_info__barangay__city'
+    )
+    
+    if year:
+        qs = qs.filter(batch__payout_date__year=year)
+    if assistance:
+        qs = qs.filter(applicant__type_of_assistance=assistance)
+    
+    if level == "city":
+        grouped = qs.values(
+            location_name=F('applicant__background_info__barangay__city__name')
+        ).annotate(
+            total_allocated=Sum('amount'),
+            beneficiary_count=Count('id')
+        ).order_by('-total_allocated')[:limit]
+    else:
+        grouped = qs.values(
+            location_name=F('applicant__background_info__barangay__name'),
+            city_name=F('applicant__background_info__barangay__city__name')
+        ).annotate(
+            total_allocated=Sum('amount'),
+            beneficiary_count=Count('id')
+        ).order_by('-total_allocated')[:limit]
+    
+    # Calculate total for percentage
+    total_allocation = qs.aggregate(total=Sum('amount'))['total'] or 0
+    
+    data = []
+    for rank, item in enumerate(grouped, 1):
+        allocated = float(item['total_allocated'] or 0)
+        percentage = (allocated / float(total_allocation)) * 100 if total_allocation > 0 else 0
+        
+        row = {
+            'rank': rank,
+            'location_name': item['location_name'],
+            'total_allocated': allocated,
+            'beneficiary_count': item['beneficiary_count'],
+            'percentage': round(percentage, 2)
+        }
+        if level == "barangay":
+            row['city_name'] = item['city_name']
+        data.append(row)
+    
+    return Response({
+        "level": level,
+        "year": year,
+        "assistance_type": assistance,
+        "limit": limit,
+        "total_allocation": float(total_allocation),
+        "data": data
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def allocated_budget_yearly_comparison(request):
+    """
+    GET /analytics/budget/allocated/yearly-comparison/
+    Compare allocated budgets across multiple years
+    """
+    qs = DisbursementClaim.objects.select_related('batch')
+    
+    # Group by year
+    yearly_data = qs.annotate(
+        year=TruncYear('batch__payout_date')
+    ).values('year').annotate(
+        total_allocated=Sum('amount'),
+        beneficiary_count=Count('id'),
+        avg_allocation=Avg('amount'),
+        batch_count=Count('batch_id', distinct=True)
+    ).order_by('year')
+    
+    # Format and calculate year-over-year changes
+    formatted_data = []
+    previous_total = None
+    
+    for item in yearly_data:
+        if item['year']:
+            year = item['year'].year
+            total = float(item['total_allocated'] or 0)
+            
+            # Calculate YoY change
+            yoy_change = None
+            yoy_percentage = None
+            if previous_total is not None and previous_total > 0:
+                yoy_change = total - previous_total
+                yoy_percentage = (yoy_change / previous_total) * 100
+            
+            formatted_data.append({
+                'year': year,
+                'total_allocated': total,
+                'beneficiary_count': item['beneficiary_count'],
+                'avg_allocation': float(item['avg_allocation'] or 0),
+                'batch_count': item['batch_count'],
+                'yoy_change': yoy_change,
+                'yoy_percentage': round(yoy_percentage, 2) if yoy_percentage else None
+            })
+            
+            previous_total = total
+    
+    return Response({
+        "years_count": len(formatted_data),
+        "data": formatted_data
+    })
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def public_budget_summary(request):
+    """
+    Public Budget Transparency Endpoint
+    Safe for unauthenticated public access
+    """
+
+    qs = DisbursementClaim.objects.all()
+
+    aggregates = qs.aggregate(
+        total_allocated=Sum("amount"),
+        total_released=Sum("amount", filter=Q(status="CLAIMED")),
+        beneficiaries=Count("applicant", distinct=True, filter=Q(status="CLAIMED")),
+        last_update=Max("updated_at"),
+    )
+
+    total_allocated = aggregates["total_allocated"] or 0
+    total_released = aggregates["total_released"] or 0
+
+    return Response({
+        "total_allocated": float(total_allocated),
+        "total_released": float(total_released),
+        "remaining_budget": float(total_allocated - total_released),
+        "beneficiaries": aggregates["beneficiaries"] or 0,
+        "last_updated": (
+            aggregates["last_update"] or timezone.now()
+        ).date().isoformat(),
+    })
+
+
 
 # =============================================
 # HELPER FUNCTIONS

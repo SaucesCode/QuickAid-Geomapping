@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
@@ -63,6 +63,14 @@ const ASSISTANCE_COLORS = {
 
 const Budget = () => {
   const [filters, setFilters] = useState({});
+
+  useEffect(() => {
+    document.title = "QuickAid | Budget Analytics";
+    return () => {
+      document.title = "QuickAid | Home";
+    };
+  }, []);
+
   // Fetch Data
   const fetchData = async endpoint => {
     const params = new URLSearchParams();
@@ -109,12 +117,30 @@ const Budget = () => {
     queryFn: () => fetchData("/analytics/budget/comparison/"),
   });
 
-  console.log("Overview:", overview);
-  console.log("byLocation:", byLocation);
-  console.log("byAssistance:", byAssistance);
-  console.log("trends:", trends);
-  console.log("byBatch:", byBatch);
-  console.log("comparison:", comparison);
+  const { data: allocatedByLocation, isLoading: allocatedLocationLoading } = useQuery({
+    queryKey: ["budget", "allocated-location", filters],
+    queryFn: () => fetchData("/analytics/budget/allocated/location/?level=city"),
+  });
+
+  const { data: allocatedAnnual, isLoading: allocatedAnnualLoading } = useQuery({
+    queryKey: ["budget", "allocated-annual", filters],
+    queryFn: () => fetchData("/analytics/budget/allocated/assistance/annual/"),
+  });
+
+  const { data: allocatedSummary, isLoading: allocatedSummaryLoading } = useQuery({
+    queryKey: ["budget", "allocated-summary", filters],
+    queryFn: () => fetchData("/analytics/budget/allocated/summary/"),
+  });
+
+  const { data: topLocations, isLoading: topLocationsLoading } = useQuery({
+    queryKey: ["budget", "top-locations", filters],
+    queryFn: () => fetchData("/analytics/budget/allocated/top-locations/?limit=10"),
+  });
+
+  const { data: yearlyComparison, isLoading: yearlyComparisonLoading } = useQuery({
+    queryKey: ["budget", "yearly-comparison"],
+    queryFn: () => fetchData("/analytics/budget/allocated/yearly-comparison/"),
+  });
 
   // Format Currency
   const formatCurrency = value => {
@@ -126,46 +152,20 @@ const Budget = () => {
     }).format(value);
   };
 
-  // Loading states
-  const isLoading =
-    overviewLoading ||
-    locationLoading ||
-    assistanceLoading ||
-    trendsLoading ||
-    batchLoading ||
-    comparisonLoading;
-
   return (
     <PageContainer>
       <AnalyticsStack spacing="lg">
+        {/* ===== HEADER ===== */}
         <PageHeader
           icon={DollarSign}
           title="Budget Analytics Dashboard"
           subtitle="Comprehensive financial insights and budget utilization tracking"
         />
 
-        {/* Filters */}
-        <AnalyticsFilter
-          onFilterChange={setFilters}
-          extraFields={
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Optional: Add batch filter here if needed */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Batch</label>
-                <select
-                  value={filters.batch_id || ""}
-                  onChange={e => setFilters({ ...filters, batch_id: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border-2 border-slate-200 bg-white text-sm font-medium"
-                >
-                  <option value="">All Batches</option>
-                  {/* You can fetch batches dynamically here */}
-                </select>
-              </div>
-            </div>
-          }
-        />
+        {/* ===== FILTERS ===== */}
+        <AnalyticsFilter onFilterChange={setFilters} />
 
-        {/* KPI Cards */}
+        {/* ===== KPI CARDS ===== */}
         <AnalyticsGrid cols={{ default: 1, sm: 2, lg: 4 }} gap="md">
           <AnalyticsStatCard
             icon={DollarSign}
@@ -204,298 +204,507 @@ const Budget = () => {
           />
         </AnalyticsGrid>
 
-        {/* Charts Row 1: Claimed vs Unclaimed + Budget by Assistance */}
-        <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
-          <AnalyticsChartCard
-            icon={DollarSign}
-            title="Budget Allocation Status"
-            subtitle="Claimed vs Unclaimed breakdown"
-            isLoading={overviewLoading}
-          >
-            <ChartContainer height={300}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={[
-                      {
-                        name: "Claimed",
-                        value: overview?.total_claimed || 0,
-                      },
-                      {
-                        name: "Unclaimed",
-                        value: overview?.total_unclaimed || 0,
-                      },
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
-                    outerRadius={100}
-                    dataKey="value"
-                    stroke="#fff"
+        {/* ===== SECTION 1: BUDGET STATUS OVERVIEW (AFFECTED BY FILTERS) ===== */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold text-gray-800 px-1">Budget Status Overview</h2>
+          <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+            {/* Claimed vs Unclaimed Pie Chart */}
+            <AnalyticsChartCard
+              icon={DollarSign}
+              title="Budget Allocation Status"
+              subtitle="Claimed vs Unclaimed breakdown"
+              isLoading={overviewLoading}
+            >
+              <ChartContainer height={300}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        {
+                          name: "Claimed",
+                          value: overview?.total_claimed || 0,
+                        },
+                        {
+                          name: "Unclaimed",
+                          value: overview?.total_unclaimed || 0,
+                        },
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                      outerRadius={100}
+                      dataKey="value"
+                      stroke="#fff"
+                    >
+                      <Cell fill={COLOR_CLAIMED} />
+                      <Cell fill={COLOR_UNCLAIMED} />
+                    </Pie>
+                    <Tooltip formatter={value => formatCurrency(value)} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </AnalyticsChartCard>
+
+            {/* Budget by Assistance Type */}
+            <AnalyticsChartCard
+              icon={FileText}
+              title="Budget by Assistance Type"
+              subtitle="Program-wise budget allocation"
+              isLoading={assistanceLoading}
+            >
+              <ChartContainer height={300}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={byAssistance?.data || []}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                    <XAxis
+                      dataKey="assistance_type"
+                      tick={{ fontSize: 11, fill: "#4b5563" }}
+                    />
+                    <YAxis tick={{ fontSize: 11, fill: "#4b5563" }} />
+                    <Tooltip formatter={value => formatCurrency(value)} />
+                    <Legend />
+                    <Bar
+                      dataKey="total_claimed"
+                      fill={COLOR_CLAIMED}
+                      name="Claimed"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="total_unclaimed"
+                      fill={COLOR_UNCLAIMED}
+                      name="Unclaimed"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </AnalyticsChartCard>
+          </AnalyticsGrid>
+        </div>
+
+        {/* ===== SECTION 2: TRENDS & GEOGRAPHIC (AFFECTED BY FILTERS) ===== */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold text-gray-800 px-1">
+            Trends & Geographic Analysis
+          </h2>
+          <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+            {/* Batch Budget Trends */}
+            <AnalyticsChartCard
+              icon={TrendingUp}
+              title="Budget Trends Over Time"
+              subtitle="Claims and unclaimed amounts per batch"
+              isLoading={trendsLoading}
+            >
+              <ChartContainer height={300}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trends?.data || []}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                    <XAxis
+                      dataKey="period"
+                      tick={{ fontSize: 10, fill: "#4b5563" }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis tick={{ fontSize: 11, fill: "#4b5563" }} />
+                    <Tooltip formatter={value => formatCurrency(value)} />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="total_claimed"
+                      stroke={COLOR_CLAIMED}
+                      strokeWidth={2}
+                      name="Claimed"
+                      dot={{ fill: COLOR_CLAIMED }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="total_unclaimed"
+                      stroke={COLOR_UNCLAIMED}
+                      strokeWidth={2}
+                      name="Unclaimed"
+                      dot={{ fill: COLOR_UNCLAIMED }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="total_allocated"
+                      stroke={COLOR_PRIMARY}
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                      name="Total Budget"
+                      dot={{ fill: COLOR_PRIMARY }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </AnalyticsChartCard>
+
+            {/* Geographic Distribution */}
+            <AnalyticsChartCard
+              icon={MapPin}
+              title="Budget by Location (Top 10 Cities)"
+              subtitle="Geographic distribution of budget utilization"
+              isLoading={locationLoading}
+            >
+              <ChartContainer height={300}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={(byLocation?.data || []).slice(0, 10)}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
                   >
-                    <Cell fill={COLOR_CLAIMED} />
-                    <Cell fill={COLOR_UNCLAIMED} />
-                  </Pie>
-                  <Tooltip formatter={value => formatCurrency(value)} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </AnalyticsChartCard>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: "#4b5563" }} />
+                    <YAxis
+                      type="category"
+                      dataKey="location_name"
+                      tick={{ fontSize: 11, fill: "#4b5563" }}
+                      width={100}
+                    />
+                    <Tooltip formatter={value => formatCurrency(value)} />
+                    <Legend />
+                    <Bar
+                      dataKey="total_claimed"
+                      fill={COLOR_CLAIMED}
+                      name="Claimed"
+                      radius={[0, 4, 4, 0]}
+                    />
+                    <Bar
+                      dataKey="total_unclaimed"
+                      fill={COLOR_UNCLAIMED}
+                      name="Unclaimed"
+                      radius={[0, 4, 4, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </AnalyticsChartCard>
+          </AnalyticsGrid>
+        </div>
 
+        {/* ===== SECTION 3: BATCH DETAILS (AFFECTED BY FILTERS) ===== */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold text-gray-800 px-1">
+            Disbursement Batch Breakdown
+          </h2>
           <AnalyticsChartCard
-            icon={FileText}
-            title="Budget by Assistance Type"
-            subtitle="Program-wise budget allocation"
-            isLoading={assistanceLoading}
+            icon={Package}
+            title="Budget by Disbursement Batch"
+            subtitle="Batch-level budget breakdown"
+            isLoading={batchLoading}
           >
-            <ChartContainer height={300}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={byAssistance?.data || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                  <XAxis dataKey="assistance_type" tick={{ fontSize: 11, fill: "#4b5563" }} />
-                  <YAxis tick={{ fontSize: 11, fill: "#4b5563" }} />
-                  <Tooltip formatter={value => formatCurrency(value)} />
-                  <Legend />
-                  <Bar
-                    dataKey="total_claimed"
-                    fill={COLOR_CLAIMED}
-                    name="Claimed"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="total_unclaimed"
-                    fill={COLOR_UNCLAIMED}
-                    name="Unclaimed"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            <AnalyticsTable>
+              <TableHeader>
+                <TableHeaderCell>Batch Name</TableHeaderCell>
+                <TableHeaderCell>Payout Date</TableHeaderCell>
+                <TableHeaderCell>Total Budget</TableHeaderCell>
+                <TableHeaderCell>Claimed</TableHeaderCell>
+                <TableHeaderCell>Unclaimed</TableHeaderCell>
+                <TableHeaderCell>Claim Rate</TableHeaderCell>
+                <TableHeaderCell>Status</TableHeaderCell>
+              </TableHeader>
+              <TableBody>
+                {(byBatch?.data || []).slice(0, 10).map((batch, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="font-medium">{batch.batch_name}</TableCell>
+                    <TableCell>
+                      {batch.payout_date
+                        ? new Date(batch.payout_date).toLocaleDateString()
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell>{formatCurrency(batch.total_allocated)}</TableCell>
+                    <TableCell className="text-green-600 font-semibold">
+                      {formatCurrency(batch.total_claimed)}
+                    </TableCell>
+                    <TableCell className="text-red-600 font-semibold">
+                      {formatCurrency(batch.total_unclaimed)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          batch.claim_rate >= 80
+                            ? "success"
+                            : batch.claim_rate >= 60
+                            ? "warning"
+                            : "danger"
+                        }
+                      >
+                        {batch.claim_rate?.toFixed(1)}%
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          batch.batch_status === "FINALIZED"
+                            ? "success"
+                            : batch.batch_status === "CLOSED"
+                            ? "warning"
+                            : "default"
+                        }
+                      >
+                        {batch.batch_status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </AnalyticsTable>
           </AnalyticsChartCard>
-        </AnalyticsGrid>
+        </div>
 
-        {/* Charts Row 2: Monthly Trends */}
-        <AnalyticsChartCard
-          icon={TrendingUp}
-          title="Monthly Budget Trends"
-          subtitle="Claims and unclaimed amounts over time"
-          isLoading={trendsLoading}
-        >
-          <ChartContainer height={350}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trends?.data || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis
-                  dataKey="period"
-                  tick={{ fontSize: 10, fill: "#4b5563" }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis tick={{ fontSize: 11, fill: "#4b5563" }} />
-                <Tooltip formatter={value => formatCurrency(value)} />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="total_claimed"
-                  stroke={COLOR_CLAIMED}
-                  strokeWidth={2}
-                  name="Claimed"
-                  dot={{ fill: COLOR_CLAIMED }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="total_unclaimed"
-                  stroke={COLOR_UNCLAIMED}
-                  strokeWidth={2}
-                  name="Unclaimed"
-                  dot={{ fill: COLOR_UNCLAIMED }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="total_allocated"
-                  stroke={COLOR_PRIMARY}
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  name="Total Budget"
-                  dot={{ fill: COLOR_PRIMARY }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </AnalyticsChartCard>
-
-        {/* Charts Row 3: Budget by Location */}
-        <AnalyticsChartCard
-          icon={MapPin}
-          title="Budget by Location (Top 10 Cities)"
-          subtitle="Geographic distribution of budget utilization"
-          isLoading={locationLoading}
-        >
-          <ChartContainer height={400}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={(byLocation?.data || []).slice(0, 10)}
-                layout="vertical"
-                margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis type="number" tick={{ fontSize: 11, fill: "#4b5563" }} />
-                <YAxis
-                  type="category"
-                  dataKey="location_name"
-                  tick={{ fontSize: 11, fill: "#4b5563" }}
-                  width={100}
-                />
-                <Tooltip formatter={value => formatCurrency(value)} />
-                <Legend />
-                <Bar
-                  dataKey="total_claimed"
-                  fill={COLOR_CLAIMED}
-                  name="Claimed"
-                  radius={[0, 4, 4, 0]}
-                />
-                <Bar
-                  dataKey="total_unclaimed"
-                  fill={COLOR_UNCLAIMED}
-                  name="Unclaimed"
-                  radius={[0, 4, 4, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </AnalyticsChartCard>
-
-        {/* Table: Budget by Batch */}
-        <AnalyticsChartCard
-          icon={Package}
-          title="Budget by Disbursement Batch"
-          subtitle="Batch-level budget breakdown"
-          isLoading={batchLoading}
-        >
-          <AnalyticsTable>
-            <TableHeader>
-              <TableHeaderCell>Batch Name</TableHeaderCell>
-              <TableHeaderCell>Payout Date</TableHeaderCell>
-              <TableHeaderCell>Total Budget</TableHeaderCell>
-              <TableHeaderCell>Claimed</TableHeaderCell>
-              <TableHeaderCell>Unclaimed</TableHeaderCell>
-              <TableHeaderCell>Claim Rate</TableHeaderCell>
-              <TableHeaderCell>Status</TableHeaderCell>
-            </TableHeader>
-            <TableBody>
-              {(byBatch?.data || []).slice(0, 10).map((batch, idx) => (
-                <TableRow key={idx}>
-                  <TableCell className="font-medium">{batch.batch_name}</TableCell>
-                  <TableCell>
-                    {batch.payout_date
-                      ? new Date(batch.payout_date).toLocaleDateString()
-                      : "N/A"}
-                  </TableCell>
-                  <TableCell>{formatCurrency(batch.total_allocated)}</TableCell>
-                  <TableCell className="text-green-600 font-semibold">
-                    {formatCurrency(batch.total_claimed)}
-                  </TableCell>
-                  <TableCell className="text-red-600 font-semibold">
-                    {formatCurrency(batch.total_unclaimed)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        batch.claim_rate >= 80
-                          ? "success"
-                          : batch.claim_rate >= 60
-                          ? "warning"
-                          : "danger"
-                      }
-                    >
-                      {batch.claim_rate?.toFixed(1)}%
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        batch.batch_status === "FINALIZED"
-                          ? "success"
-                          : batch.batch_status === "CLOSED"
-                          ? "warning"
-                          : "default"
-                      }
-                    >
-                      {batch.batch_status}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </AnalyticsTable>
-        </AnalyticsChartCard>
-
-        {/* Year-over-Year Comparison */}
+        {/* ===== SECTION 4: YEAR-OVER-YEAR COMPARISON (NOT AFFECTED BY MOST FILTERS) ===== */}
         {comparison && (
-          <AnalyticsAlertCard icon={Calendar} title="Year-over-Year Comparison" variant="info">
-            <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="sm">
-              <InsightCard title="Budget Change" isLoading={comparisonLoading}>
-                <div className="flex items-center gap-2">
-                  {comparison.changes?.budget_change_percentage >= 0 ? (
-                    <TrendingUp className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <TrendingDown className="w-5 h-5 text-red-600" />
-                  )}
-                  <span
-                    className={`text-lg font-bold ${
-                      comparison.changes?.budget_change_percentage >= 0
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {comparison.changes?.budget_change_percentage >= 0 ? "+" : ""}
-                    {comparison.changes?.budget_change_percentage?.toFixed(1)}%
-                  </span>
-                  <span className="text-sm text-gray-600">vs {comparison.previous_year}</span>
-                </div>
-              </InsightCard>
-
-              <InsightCard title="Claims Change" isLoading={comparisonLoading}>
-                <div className="flex items-center gap-2">
-                  {comparison.changes?.claimed_change_percentage >= 0 ? (
-                    <TrendingUp className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <TrendingDown className="w-5 h-5 text-red-600" />
-                  )}
-                  <span
-                    className={`text-lg font-bold ${
-                      comparison.changes?.claimed_change_percentage >= 0
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {comparison.changes?.claimed_change_percentage >= 0 ? "+" : ""}
-                    {comparison.changes?.claimed_change_percentage?.toFixed(1)}%
-                  </span>
-                  <span className="text-sm text-gray-600">vs {comparison.previous_year}</span>
-                </div>
-              </InsightCard>
-
-              <InsightCard title="Claim Rate" isLoading={comparisonLoading}>
-                <div className="space-y-1">
-                  <div className="text-sm">
-                    <span className="font-semibold">{comparison.current_year}:</span>{" "}
-                    {comparison.current?.claim_rate}%
+          <div className="space-y-3">
+            <h2 className="text-lg font-bold text-gray-800 px-1">Year-over-Year Comparison</h2>
+            <AnalyticsAlertCard icon={Calendar} title="YoY Budget Analysis" variant="info">
+              <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="sm">
+                <InsightCard title="Budget Change" isLoading={comparisonLoading}>
+                  <div className="flex items-center gap-2">
+                    {comparison.changes?.budget_change_percentage >= 0 ? (
+                      <TrendingUp className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <TrendingDown className="w-5 h-5 text-red-600" />
+                    )}
+                    <span
+                      className={`text-lg font-bold ${
+                        comparison.changes?.budget_change_percentage >= 0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {comparison.changes?.budget_change_percentage >= 0 ? "+" : ""}
+                      {comparison.changes?.budget_change_percentage?.toFixed(1)}%
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      vs {comparison.previous_year}
+                    </span>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    <span className="font-semibold">{comparison.previous_year}:</span>{" "}
-                    {comparison.previous?.claim_rate}%
+                </InsightCard>
+
+                <InsightCard title="Claims Change" isLoading={comparisonLoading}>
+                  <div className="flex items-center gap-2">
+                    {comparison.changes?.claimed_change_percentage >= 0 ? (
+                      <TrendingUp className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <TrendingDown className="w-5 h-5 text-red-600" />
+                    )}
+                    <span
+                      className={`text-lg font-bold ${
+                        comparison.changes?.claimed_change_percentage >= 0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {comparison.changes?.claimed_change_percentage >= 0 ? "+" : ""}
+                      {comparison.changes?.claimed_change_percentage?.toFixed(1)}%
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      vs {comparison.previous_year}
+                    </span>
                   </div>
-                </div>
-              </InsightCard>
-            </AnalyticsGrid>
-          </AnalyticsAlertCard>
+                </InsightCard>
+
+                <InsightCard title="Claim Rate" isLoading={comparisonLoading}>
+                  <div className="space-y-1">
+                    <div className="text-sm">
+                      <span className="font-semibold">{comparison.current_year}:</span>{" "}
+                      {comparison.current?.claim_rate}%
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <span className="font-semibold">{comparison.previous_year}:</span>{" "}
+                      {comparison.previous?.claim_rate}%
+                    </div>
+                  </div>
+                </InsightCard>
+              </AnalyticsGrid>
+            </AnalyticsAlertCard>
+          </div>
         )}
 
-        {/* Insights Summary */}
+        {/* ===== SECTION 5: ALLOCATED BUDGET ANALYTICS (NOT AFFECTED BY MOST FILTERS) ===== */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold text-gray-800 px-1">Allocated Budget Deep Dive</h2>
+
+          {/* Allocated Budget Summary */}
+          {allocatedSummary && (
+            <AnalyticsAlertCard
+              icon={DollarSign}
+              title="Budget Allocation Overview"
+              variant="info"
+            >
+              <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="sm">
+                <InsightCard title="Total Allocated" isLoading={allocatedSummaryLoading}>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {formatCurrency(allocatedSummary?.total_allocated || 0)}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    Across {allocatedSummary?.total_beneficiaries || 0} beneficiaries
+                  </div>
+                </InsightCard>
+
+                <InsightCard title="Average Allocation" isLoading={allocatedSummaryLoading}>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {formatCurrency(allocatedSummary?.avg_allocation || 0)}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">Per beneficiary</div>
+                </InsightCard>
+
+                <InsightCard title="Top Program" isLoading={allocatedSummaryLoading}>
+                  <div className="text-lg font-bold text-green-600">
+                    {allocatedSummary?.assistance_breakdown?.[0]?.assistance_type || "N/A"}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    {allocatedSummary?.assistance_breakdown?.[0]?.percentage || 0}% of total
+                  </div>
+                </InsightCard>
+              </AnalyticsGrid>
+            </AnalyticsAlertCard>
+          )}
+
+          {/* Annual Trends Side by Side */}
+          <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+            {/* Annual Allocation Trends */}
+            {yearlyComparison && (
+              <AnalyticsChartCard
+                icon={Calendar}
+                title="Annual Budget Allocation Trends"
+                subtitle="Year-over-year allocation comparison"
+                isLoading={yearlyComparisonLoading}
+              >
+                <ChartContainer height={300}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={yearlyComparison?.data || []}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                      <XAxis dataKey="year" tick={{ fontSize: 11, fill: "#4b5563" }} />
+                      <YAxis tick={{ fontSize: 11, fill: "#4b5563" }} />
+                      <Tooltip
+                        formatter={(value, name) => {
+                          if (name === "yoy_percentage") return `${value}%`;
+                          return formatCurrency(value);
+                        }}
+                      />
+                      <Legend />
+                      <Bar
+                        dataKey="total_allocated"
+                        fill={COLOR_PRIMARY}
+                        name="Total Allocated"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="beneficiary_count"
+                        fill="#10B981"
+                        name="Beneficiaries"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+
+                {/* YoY Change Summary */}
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Year-over-Year Changes
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {yearlyComparison?.data
+                      ?.filter(item => item.yoy_percentage !== null)
+                      .slice(-3)
+                      .map((item, idx) => (
+                        <div key={idx} className="text-xs">
+                          <span className="font-medium">{item.year}: </span>
+                          <span
+                            className={`font-bold ${
+                              item.yoy_percentage >= 0 ? "text-green-600" : "text-red-600"
+                            }`}
+                          >
+                            {item.yoy_percentage >= 0 ? "+" : ""}
+                            {item.yoy_percentage}%
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </AnalyticsChartCard>
+            )}
+
+            {/* Assistance Type Annual Breakdown */}
+            {allocatedAnnual && (
+              <AnalyticsChartCard
+                icon={TrendingUp}
+                title="Annual Budget by Assistance Type"
+                subtitle="Allocation trends by program over years"
+                isLoading={allocatedAnnualLoading}
+              >
+                <ChartContainer height={300}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={allocatedAnnual?.data || []}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                      <XAxis dataKey="year" tick={{ fontSize: 11, fill: "#4b5563" }} />
+                      <YAxis tick={{ fontSize: 11, fill: "#4b5563" }} />
+                      <Tooltip formatter={value => formatCurrency(value)} />
+                      <Legend />
+                      {allocatedAnnual?.assistance_types?.map((type, idx) => (
+                        <Line
+                          key={type}
+                          type="monotone"
+                          dataKey={`by_assistance.${type}.total_allocated`}
+                          stroke={ASSISTANCE_COLORS[type] || COLOR_PRIMARY}
+                          strokeWidth={2}
+                          name={type}
+                          dot={{ fill: ASSISTANCE_COLORS[type] || COLOR_PRIMARY }}
+                        />
+                      ))}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </AnalyticsChartCard>
+            )}
+          </AnalyticsGrid>
+
+          {/* Top 10 Cities Table */}
+          <AnalyticsChartCard
+            icon={MapPin}
+            title="Top 10 Cities by Allocated Budget"
+            subtitle="Highest budget allocations by location"
+            isLoading={topLocationsLoading}
+          >
+            <AnalyticsTable>
+              <TableHeader>
+                <TableHeaderCell>Rank</TableHeaderCell>
+                <TableHeaderCell>City</TableHeaderCell>
+                <TableHeaderCell>Total Allocated</TableHeaderCell>
+                <TableHeaderCell>Beneficiaries</TableHeaderCell>
+                <TableHeaderCell>% of Total</TableHeaderCell>
+              </TableHeader>
+              <TableBody>
+                {(topLocations?.data || []).map((loc, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          loc.rank === 1 ? "success" : loc.rank <= 3 ? "warning" : "default"
+                        }
+                      >
+                        #{loc.rank}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-medium">{loc.location_name}</TableCell>
+                    <TableCell className="font-semibold text-blue-600">
+                      {formatCurrency(loc.total_allocated)}
+                    </TableCell>
+                    <TableCell>{loc.beneficiary_count.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Badge variant="info">{loc.percentage}%</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </AnalyticsTable>
+          </AnalyticsChartCard>
+        </div>
+
         <AnalyticsAlertCard icon={AlertCircle} title="Budget Analysis Insights" variant="info">
           <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="sm">
             <InsightCard title="Budget Utilization" isLoading={overviewLoading}>

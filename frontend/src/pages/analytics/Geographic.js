@@ -258,11 +258,9 @@ const Geographic = () => {
       : "N/A";
 
   const sortedGaps = [...(coverageGaps || [])].sort((a, b) => {
-    // Sort by highest days_since_last_application first
     if (b.days_since_last_application !== a.days_since_last_application) {
       return b.days_since_last_application - a.days_since_last_application;
     }
-    // Then lowest application_count
     return a.application_count - b.application_count;
   });
 
@@ -271,17 +269,10 @@ const Geographic = () => {
   const gapsEndIndex = gapsStartIndex + itemsPerPage;
   const paginatedGaps = sortedGaps.slice(gapsStartIndex, gapsEndIndex);
 
-  const handleGapsPrevPage = () => {
-    setInactivePage(prev => Math.max(1, prev - 1));
-  };
-
-  const handleGapsNextPage = () => {
-    setInactivePage(prev => Math.min(totalGapsPages, prev + 1));
-  };
-
   return (
     <PageContainer>
       <AnalyticsStack spacing="lg">
+        {/* ===== HEADER ===== */}
         <PageHeader
           icon={MapPin}
           title="Geographic Analytics"
@@ -295,8 +286,10 @@ const Geographic = () => {
           }
         />
 
+        {/* ===== FILTERS ===== */}
         <AnalyticsFilter onFilterChange={setFilters} />
 
+        {/* ===== KPI CARDS ===== */}
         <AnalyticsGrid cols={{ default: 1, sm: 2, lg: 5 }} gap="md">
           <AnalyticsStatCard
             icon={MapPin}
@@ -340,262 +333,282 @@ const Geographic = () => {
           />
         </AnalyticsGrid>
 
-        <AnalyticsCard>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-5">
-              <div className="p-1.5 bg-[#003a76] rounded-lg">
-                <MapPin className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-gray-800">
-                  Distribution Heatmap Preview
-                </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Interactive geographic visualization
-                </p>
+        {/* ===== SECTION 1: GEOGRAPHIC VISUALIZATION ===== */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold text-gray-800 px-1">Geographic Visualization</h2>
+          <AnalyticsCard>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-5">
+                <div className="p-1.5 bg-[#003a76] rounded-lg">
+                  <MapPin className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-800">
+                    Distribution Heatmap Preview
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Interactive geographic visualization
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="h-[350px] relative rounded-xl overflow-hidden border border-gray-200 z-10">
-            <MapContainer
-              center={[13.9311, 121.5542]}
-              zoom={10}
-              className="w-full h-full z-10"
-              scrollWheelZoom={false}
-              doubleClickZoom={false}
-              dragging={false}
-              zoomControl={false}
-              attributionControl={false}
+            <div className="h-[350px] relative rounded-xl overflow-hidden border border-gray-200 z-10">
+              <MapContainer
+                center={[13.9311, 121.5542]}
+                zoom={10}
+                className="w-full h-full z-10"
+                scrollWheelZoom={false}
+                doubleClickZoom={false}
+                dragging={false}
+                zoomControl={false}
+                attributionControl={false}
+              >
+                <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+
+                {validLocations.slice(0, 200).map((loc, index) => (
+                  <CircleMarker
+                    key={index}
+                    center={[loc.latitude, loc.longitude]}
+                    radius={4}
+                    fillOpacity={0.7}
+                    color="#2563eb"
+                    stroke={false}
+                  />
+                ))}
+              </MapContainer>
+            </div>
+          </AnalyticsCard>
+        </div>
+
+        {/* ===== SECTION 2: TOP PERFORMERS ===== */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold text-gray-800 px-1">Top Performing Areas</h2>
+          <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+            {/* Top Barangays Chart */}
+            <AnalyticsChartCard
+              icon={BarChart3}
+              title="Top Barangays by Applications"
+              subtitle="Leading areas by application volume"
+              isLoading={loading}
             >
-              <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+              <ChartContainer height={280}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={topBarangays.slice(0, 8)}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                    <XAxis
+                      dataKey="background_info__barangay__name"
+                      tick={{ fontSize: 11, fill: "#4b5563" }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      interval={0}
+                    />
+                    <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
+                    <RechartsTooltip />
+                    <Bar dataKey="count" fill="url(#blueGradient)" radius={[8, 8, 0, 0]} />
+                    <defs>
+                      <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3b82f6" />
+                        <stop offset="100%" stopColor="#6366f1" />
+                      </linearGradient>
+                    </defs>
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </AnalyticsChartCard>
 
-              {validLocations.slice(0, 200).map((loc, index) => (
-                <CircleMarker
-                  key={index}
-                  center={[loc.latitude, loc.longitude]}
-                  radius={4}
-                  fillOpacity={0.7}
-                  color="#2563eb" // soft blue
-                  stroke={false}
-                />
-              ))}
-            </MapContainer>
-          </div>
-        </AnalyticsCard>
+            {/* Approval Rates Chart */}
+            <AnalyticsChartCard
+              icon={TrendingUp}
+              title="Approval Rates by Location"
+              subtitle="Success rates across top regions"
+              isLoading={loading}
+            >
+              <ChartContainer height={280}>
+                <div className="flex items-center h-full">
+                  <ResponsiveContainer width="60%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={90}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, value }) => `${value}%`}
+                        strokeWidth={3}
+                        stroke="#fff"
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex-1 space-y-2">
+                    {pieData.map((item, index) => (
+                      <div
+                        key={item.name}
+                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                      >
+                        <div
+                          className="w-3 h-3 rounded-md shadow-sm"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        ></div>
+                        <span className="text-xs font-medium text-gray-700 flex-1">
+                          {item.name}
+                        </span>
+                        <span className="text-xs font-bold text-gray-900">{item.value}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </ChartContainer>
+            </AnalyticsChartCard>
+          </AnalyticsGrid>
+        </div>
 
-        <AnalyticsGrid cols={{ default: 1, lg: 2 }} gap="md">
+        {/* ===== SECTION 3: ASSISTANCE TYPE DISTRIBUTION ===== */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold text-gray-800 px-1">
+            Service Distribution Analysis
+          </h2>
           <AnalyticsChartCard
-            icon={BarChart3}
-            title="Top Barangays by Applications"
-            subtitle="Leading areas by application volume"
+            icon={Activity}
+            title="Assistance Types Distribution by Barangay"
+            subtitle="Service breakdown across top 6 barangays"
             isLoading={loading}
           >
-            <ChartContainer height={280}>
+            <ChartContainer height={350}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={topBarangays.slice(0, 8)}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
-                >
+                <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
                   <XAxis
-                    dataKey="background_info__barangay__name"
+                    dataKey="barangay"
                     tick={{ fontSize: 11, fill: "#4b5563" }}
                     angle={-45}
                     textAnchor="end"
-                    height={80}
+                    height={100}
                     interval={0}
                   />
                   <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
                   <RechartsTooltip />
-                  <Bar dataKey="count" fill="url(#blueGradient)" radius={[8, 8, 0, 0]} />
-                  <defs>
-                    <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" />
-                      <stop offset="100%" stopColor="#6366f1" />
-                    </linearGradient>
-                  </defs>
+                  <Bar
+                    dataKey="Medical"
+                    stackId="a"
+                    fill={ASSISTANCE_COLORS.Medical}
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="Educational"
+                    stackId="a"
+                    fill={ASSISTANCE_COLORS.Educational}
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="Burial"
+                    stackId="a"
+                    fill={ASSISTANCE_COLORS.Burial}
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
+            <div className="flex justify-center flex-wrap gap-4 mt-3">
+              {Object.entries(ASSISTANCE_COLORS).map(([key, color]) => (
+                <div key={key} className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-md" style={{ backgroundColor: color }}></div>
+                  <span className="text-xs font-medium text-gray-700">{key}</span>
+                </div>
+              ))}
+            </div>
           </AnalyticsChartCard>
+        </div>
 
+        {/* ===== SECTION 4: COVERAGE GAPS ===== */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold text-gray-800 px-1">Service Coverage Gaps</h2>
           <AnalyticsChartCard
-            icon={TrendingUp}
-            title="Approval Rates by Location"
-            subtitle="Success rates across top regions"
-            isLoading={loading}
+            icon={Clock}
+            title="Underserved Areas"
+            subtitle={`${coverageGaps?.length || 0} barangays requiring attention`}
+            isLoading={gapsLoading}
           >
-            <ChartContainer height={280}>
-              <div className="flex items-center h-full">
-                <ResponsiveContainer width="60%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, value }) => `${value}%`}
-                      strokeWidth={3}
-                      stroke="#fff"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-2">
-                  {pieData.map((item, index) => (
+            {paginatedGaps.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-sm">No coverage gaps detected</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                  {paginatedGaps.map((gap, index) => (
                     <div
-                      key={item.name}
-                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                      key={gap.id || index}
+                      className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-200 hover:shadow-md transition-all"
                     >
-                      <div
-                        className="w-3 h-3 rounded-md shadow-sm"
-                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                      ></div>
-                      <span className="text-xs font-medium text-gray-700 flex-1">
-                        {item.name}
-                      </span>
-                      <span className="text-xs font-bold text-gray-900">{item.value}%</span>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 text-sm truncate">
+                            {gap.barangay}
+                          </h4>
+
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            City:{" "}
+                            <span className="ml-1 font-medium text-gray-700">{gap.city}</span>
+                          </p>
+
+                          <div className="flex gap-3 mt-2">
+                            <p className="text-xs text-gray-600">
+                              Applicants:{" "}
+                              <span className="font-medium">{gap.application_count}</span>
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              Last:{" "}
+                              <span className="font-medium">
+                                {gap.days_since_last_application} days ago
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            gap.priority === "High"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {gap.priority}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            </ChartContainer>
+
+                {totalGapsPages >= 1 && (
+                  <Pagination
+                    currentPage={inactivePage}
+                    totalPages={totalGapsPages}
+                    handlePageChange={setInactivePage}
+                    itemsPerPage={itemsPerPage}
+                    handleItemsPerPageChange={e => {
+                      const newValue = Number(e.target.value);
+                      setItemsPerPage(newValue);
+                      setInactivePage(1);
+                    }}
+                    totalItems={coverageGaps?.length || 0}
+                  />
+                )}
+              </>
+            )}
           </AnalyticsChartCard>
-        </AnalyticsGrid>
+        </div>
 
-        <AnalyticsChartCard
-          icon={Activity}
-          title="Assistance Types Distribution by Barangay"
-          subtitle="Service breakdown across top 6 barangays"
-          isLoading={loading}
-        >
-          <ChartContainer height={350}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                <XAxis
-                  dataKey="barangay"
-                  tick={{ fontSize: 11, fill: "#4b5563" }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={100}
-                  interval={0}
-                />
-                <YAxis tick={{ fontSize: 12, fill: "#4b5563" }} />
-                <RechartsTooltip />
-                <Bar
-                  dataKey="Medical"
-                  stackId="a"
-                  fill={ASSISTANCE_COLORS.Medical}
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="Educational"
-                  stackId="a"
-                  fill={ASSISTANCE_COLORS.Educational}
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="Burial"
-                  stackId="a"
-                  fill={ASSISTANCE_COLORS.Burial}
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-          <div className="flex justify-center flex-wrap gap-4 mt-3">
-            {Object.entries(ASSISTANCE_COLORS).map(([key, color]) => (
-              <div key={key} className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-md" style={{ backgroundColor: color }}></div>
-                <span className="text-xs font-medium text-gray-700">{key}</span>
-              </div>
-            ))}
-          </div>
-        </AnalyticsChartCard>
-
-        <AnalyticsChartCard
-          icon={Clock}
-          title="Service Coverage Gaps"
-          subtitle={`${coverageGaps?.length || 0} underserved barangays identified`}
-          isLoading={gapsLoading}
-        >
-          {paginatedGaps.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500 text-sm">No coverage gaps detected</p>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                {paginatedGaps.map((gap, index) => (
-                  <div
-                    key={gap.id || index}
-                    className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-200 hover:shadow-md transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 text-sm truncate">
-                          {gap.barangay}
-                        </h4>
-
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          City:{" "}
-                          <span className="ml-1 font-medium text-gray-700">{gap.city}</span>
-                        </p>
-
-                        <div className="flex gap-3 mt-2">
-                          <p className="text-xs text-gray-600">
-                            Applicants:{" "}
-                            <span className="font-medium">{gap.application_count}</span>
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            Last:{" "}
-                            <span className="font-medium">
-                              {gap.days_since_last_application} days ago
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          gap.priority === "High"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-amber-100 text-amber-700"
-                        }`}
-                      >
-                        {gap.priority}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Pagination using your existing component */}
-              {totalGapsPages >= 1 && (
-                <Pagination
-                  currentPage={inactivePage}
-                  totalPages={totalGapsPages}
-                  handlePageChange={setInactivePage}
-                  itemsPerPage={itemsPerPage}
-                  handleItemsPerPageChange={e => {
-                    const newValue = Number(e.target.value);
-                    setItemsPerPage(newValue);
-                    setInactivePage(1); // Reset to first page
-                  }}
-                  totalItems={coverageGaps?.length || 0}
-                />
-              )}
-            </>
-          )}
-        </AnalyticsChartCard>
-
+        {/* ===== SECTION 5: KEY INSIGHTS ===== */}
         <AnalyticsAlertCard
           icon={MapPin}
           title="Key Geographic Insights"
@@ -603,7 +616,6 @@ const Geographic = () => {
           variant="info"
         >
           <AnalyticsGrid cols={{ default: 1, md: 3 }} gap="sm">
-            {/* Top Barangay */}
             <InsightCard
               title="Top Barangay"
               icon={MapPin}
@@ -614,7 +626,6 @@ const Geographic = () => {
               {topBarangay} has the highest number of applications ({dominantBarangayCount})
             </InsightCard>
 
-            {/* Average Approval Rate */}
             <InsightCard
               title="Average Approval Rate"
               icon={BarChart2}
@@ -625,7 +636,6 @@ const Geographic = () => {
               {avgApprovalRate}% across mapped locations.
             </InsightCard>
 
-            {/* Inactive Applicants */}
             <InsightCard
               title="Inactive Applicants"
               icon={UserX}

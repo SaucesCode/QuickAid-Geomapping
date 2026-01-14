@@ -109,7 +109,7 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
     }
   };
 
-  const handleClearField = (fieldName) => {
+  const handleClearField = fieldName => {
     setFilters(prev => {
       let updated = { ...prev, [fieldName]: "" };
       if (fieldName === "city") {
@@ -141,7 +141,9 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
               <Filter className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 tracking-tight">Analytics Filters</h3>
+              <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
+                Analytics Filters
+              </h3>
               <p className="text-sm text-slate-500 mt-0.5">Customize your data view</p>
             </div>
           </div>
@@ -162,8 +164,12 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
               </span>
             )}
             <ChevronDown
-              className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""} ${
-                hasActiveFilters && !isExpanded ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
+              className={`w-4 h-4 transition-transform duration-300 ${
+                isExpanded ? "rotate-180" : ""
+              } ${
+                hasActiveFilters && !isExpanded
+                  ? "text-blue-600"
+                  : "text-slate-400 group-hover:text-slate-600"
               }`}
             />
           </button>
@@ -291,9 +297,7 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
 
             {/* Extra Fields */}
             {extraFields && (
-              <div className="pt-4 border-t-2 border-slate-200">
-                {extraFields}
-              </div>
+              <div className="pt-4 border-t-2 border-slate-200">{extraFields}</div>
             )}
 
             {/* Active Filters Display */}
@@ -306,7 +310,8 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
                   {selectedPreset && (
                     <FilterTag
                       label={
-                        datePresets.find(p => p.value === selectedPreset)?.label || selectedPreset
+                        datePresets.find(p => p.value === selectedPreset)?.label ||
+                        selectedPreset
                       }
                       onRemove={() => {
                         setSelectedPreset("");
@@ -419,14 +424,14 @@ const CompactSelect = ({ label, name, value, onChange, onClear, disabled, childr
         onChange={onChange}
         disabled={disabled}
         className={`w-full px-3 py-2 rounded-lg border-2 border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed hover:border-slate-300 ${
-          value && !disabled ? 'pr-10' : 'pr-8'
+          value && !disabled ? "pr-10" : "pr-8"
         }`}
       >
         {children}
       </select>
       {value && !disabled ? (
         <button
-          onClick={(e) => {
+          onClick={e => {
             e.preventDefault();
             onClear();
           }}
@@ -457,7 +462,7 @@ const CompactDateInput = ({ label, name, value, onChange, onClear, min, max }) =
       />
       {value && (
         <button
-          onClick={(e) => {
+          onClick={e => {
             e.preventDefault();
             onClear();
           }}
