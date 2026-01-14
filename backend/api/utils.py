@@ -232,44 +232,59 @@ def base_disbursement_qs():
     )
 
 
-def apply_budget_filters(qs, params):
-    """Apply common filters to budget queries"""
-    year = params.get("year")
-    city = params.get("city")
-    barangay = params.get("barangay")
-    assistance = params.get("assistance")
-    batch_id = params.get("batch_id")
-    date_from = params.get("date_from")
-    date_to = params.get("date_to")
-    status = params.get("status")  # CLAIMED, PENDING, UNCLAIMED
+def extract_amount_from_notes(notes):
+    """Extract numeric amount from notes field"""
+    if not notes:
+        return 0
+    # Match patterns like "Approved amount: 4000" or just "4000"
+    match = re.search(r'(\d+(?:,\d{3})*(?:\.\d{2})?)', str(notes))
+    if match:
+        return float(match.group(1).replace(',', ''))
+    return 0
 
+def apply_budget_filters(qs, request):
+    """Apply common filters to disbursement claim queries"""
+    year = request.GET.get("year")
+    city = request.GET.get("city")
+    barangay = request.GET.get("barangay")
+    assistance = request.GET.get("assistance")
+    batch_id = request.GET.get("batch_id")
+    date_from = request.GET.get("date_from")
+    date_to = request.GET.get("date_to")
+    status = request.GET.get("status")  # CLAIMED, PENDING, UNCLAIMED
+
+    # Filter by payout_date year
     if year:
-        qs = qs.filter(payout_date__year=year)
+        qs = qs.filter(batch__payout_date__year=year)
 
+    # Filter by date range (using batch payout_date)
     if date_from:
-        qs = qs.filter(payout_date__gte=date_from)
+        qs = qs.filter(batch__payout_date__gte=date_from)
 
     if date_to:
-        qs = qs.filter(payout_date__lte=date_to)
+        qs = qs.filter(batch__payout_date__lte=date_to)
 
+    # Filter by assistance type
     if assistance:
-        qs = qs.filter(approval__applicant__type_of_assistance=assistance)
+        qs = qs.filter(applicant__type_of_assistance=assistance)
 
+    # Filter by location
     if city:
         qs = qs.filter(
-            approval__applicant__background_info__barangay__city__name=city
+            applicant__background_info__barangay__city__name=city
         )
 
     if barangay:
         qs = qs.filter(
-            approval__applicant__background_info__barangay__name=barangay
+            applicant__background_info__barangay__name=barangay
         )
 
+    # Filter by batch
     if batch_id:
         qs = qs.filter(batch_id=batch_id)
 
+    # Filter by claim status
     if status:
         qs = qs.filter(status=status)
 
     return qs
-

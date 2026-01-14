@@ -23,7 +23,7 @@ from django.db.models import (
     Avg, Sum, Count, ExpressionWrapper, F, DurationField,
     IntegerField, Max, Q, Prefetch, Min, DecimalField
 )
-from django.db.models.functions import TruncDate, ExtractYear, TruncMonth, ExtractHour, ExtractMonth
+from django.db.models.functions import TruncDate, ExtractYear, TruncMonth, ExtractHour, ExtractMonth, TruncYear, Coalesce
 from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -32,7 +32,7 @@ from django.utils.timezone import now, timedelta
 from .utils import ( 
     apply_applicant_filters, apply_approval_filters, 
     get_applicant_history, log_staff_activity, extract_amount_from_notes,
-    base_disbursement_qs, apply_budget_filters
+    base_disbursement_qs, apply_budget_filters, extract_amount_from_notes
 )
 from .export_analytics import ExportOrchestrator
 from django.core.exceptions import ValidationError
@@ -3002,287 +3002,280 @@ def workload_balance_analysis(request):
  # ============================================
  # 6. DISBURSEMENT
  # ============================================
-@api_view(["GET"])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def budget_overview(request):
     """
-    💰 Budget Overview Dashboard
-    Returns: Total budget, claimed, unclaimed, claim rate, utilization
+    GET /analytics/budget/overview/
+    Returns: total_budget, total_claimed, total_unclaimed, claim_rate, etc.
     """
-    qs = apply_budget_filters(base_disbursement_qs(), request.GET)
+    qs = DisbursementClaim.objects.select_related(
+        'applicant__background_info__barangay__city',
+        'batch'
+    )
+    qs = apply_budget_filters(qs, request)
 
-    # Total amounts
-    total_budget = qs.aggregate(total=Sum("amount"))["total"] or 0
-    total_claimed = qs.filter(status="CLAIMED").aggregate(total=Sum("amount"))["total"] or 0
-    total_unclaimed = qs.filter(status__in=["PENDING", "UNCLAIMED"]).aggregate(total=Sum("amount"))["total"] or 0
-    pending_amount = qs.filter(status="PENDING").aggregate(total=Sum("amount"))["total"] or 0
-    forfeited_amount = qs.filter(status="UNCLAIMED").aggregate(total=Sum("amount"))["total"] or 0
-
-    # Counts
-    total_beneficiaries = qs.count()
-    claimed_count = qs.filter(status="CLAIMED").count()
-    unclaimed_count = qs.filter(status__in=["PENDING", "UNCLAIMED"]).count()
-
-    # Rates
-    claim_rate = (claimed_count / total_beneficiaries * 100) if total_beneficiaries > 0 else 0
-    budget_utilization = (total_claimed / total_budget * 100) if total_budget > 0 else 0
-
-    # Average amounts
-    avg_claim_amount = qs.filter(status="CLAIMED").aggregate(avg=Avg("amount"))["avg"] or 0
-
-    # Breakdown by assistance type
-    by_assistance = (
-        qs.filter(status="CLAIMED")
-        .values("approval__applicant__type_of_assistance")
-        .annotate(
-            total_amount=Sum("amount"),
-            claim_count=Count("id"),
-            avg_amount=Avg("amount"),
-        )
-        .order_by("-total_amount")
+    # Aggregate totals
+    aggregates = qs.aggregate(
+        total_budget=Coalesce(Sum('amount'), 0, output_field=DecimalField()),
+        total_claimed=Coalesce(
+            Sum('amount', filter=Q(status='CLAIMED')), 
+            0, 
+            output_field=DecimalField()
+        ),
+        total_unclaimed=Coalesce(
+            Sum('amount', filter=Q(status='UNCLAIMED')), 
+            0, 
+            output_field=DecimalField()
+        ),
+        pending_amount=Coalesce(
+            Sum('amount', filter=Q(status='PENDING')), 
+            0, 
+            output_field=DecimalField()
+        ),
+        avg_claim=Avg('amount', filter=Q(status='CLAIMED')),
+        total_beneficiaries=Count('id'),
+        claimed_count=Count('id', filter=Q(status='CLAIMED')),
+        unclaimed_count=Count('id', filter=Q(status='UNCLAIMED')),
+        pending_count=Count('id', filter=Q(status='PENDING'))
     )
 
+    total_budget = float(aggregates['total_budget'])
+    total_claimed = float(aggregates['total_claimed'])
+    claim_rate = (total_claimed / total_budget * 100) if total_budget > 0 else 0
+    budget_utilization = claim_rate  # Same as claim_rate
+
+    # Breakdown by assistance type
+    breakdown = qs.values(
+        type=F('applicant__type_of_assistance')
+    ).annotate(
+        total_amount=Sum('amount'),
+        claim_count=Count('id'),
+        avg_amount=Avg('amount')
+    ).order_by('-total_amount')
+
     return Response({
-        "total_budget": float(total_budget),
-        "total_claimed": float(total_claimed),
-        "total_unclaimed": float(total_unclaimed),
-        "pending_amount": float(pending_amount),
-        "forfeited_amount": float(forfeited_amount),
+        "total_budget": total_budget,
+        "total_claimed": total_claimed,
+        "total_unclaimed": float(aggregates['total_unclaimed']),
+        "pending_amount": float(aggregates['pending_amount']),
+        "forfeited_amount": 0,  # Not tracked in current model
         "claim_rate": round(claim_rate, 2),
         "budget_utilization": round(budget_utilization, 2),
-        "avg_claim_amount": float(avg_claim_amount),
-        "total_beneficiaries": total_beneficiaries,
-        "claimed_count": claimed_count,
-        "unclaimed_count": unclaimed_count,
-        "breakdown_by_assistance": list(by_assistance),
+        "avg_claim_amount": float(aggregates['avg_claim'] or 0),
+        "total_beneficiaries": aggregates['total_beneficiaries'],
+        "claimed_count": aggregates['claimed_count'],
+        "unclaimed_count": aggregates['unclaimed_count'],
+        "pending_count": aggregates['pending_count'],
+        "breakdown_by_assistance": [
+            {
+                "approval__applicant__type_of_assistance": item['type'],
+                "total_amount": float(item['total_amount']),
+                "claim_count": item['claim_count'],
+                "avg_amount": float(item['avg_amount'])
+            }
+            for item in breakdown
+        ]
     })
 
 
-@api_view(["GET"])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def budget_by_location(request):
     """
-    📍 Budget by Location (City or Barangay)
-    Query param: ?level=city (default) or ?level=barangay
+    GET /analytics/budget/location/?level=city
+    Breakdown by city or barangay
     """
     level = request.GET.get("level", "city")
-    qs = apply_budget_filters(base_disbursement_qs(), request.GET)
-
-    if level == "barangay":
-        location_field = "approval__applicant__background_info__barangay__name"
-    else:
-        location_field = "approval__applicant__background_info__barangay__city__name"
-
-    data = (
-        qs.values(location_name=F(location_field))
-        .annotate(
-            total_allocated=Sum("amount"),
-            total_claimed=Sum("amount", filter=Q(status="CLAIMED")),
-            total_unclaimed=Sum("amount", filter=Q(status__in=["PENDING", "UNCLAIMED"])),
-            claim_count=Count("id", filter=Q(status="CLAIMED")),
-            unclaim_count=Count("id", filter=Q(status__in=["PENDING", "UNCLAIMED"])),
-            avg_claim_amount=Avg("amount", filter=Q(status="CLAIMED")),
-        )
-        .annotate(
-            claim_rate=ExpressionWrapper(
-                F("claim_count") * 100.0 / (F("claim_count") + F("unclaim_count")),
-                output_field=DecimalField()
-            )
-        )
-        .order_by("-total_allocated")
+    qs = DisbursementClaim.objects.select_related(
+        'applicant__background_info__barangay__city'
     )
+    qs = apply_budget_filters(qs, request)
 
-    total_budget = qs.aggregate(total=Sum("amount"))["total"] or 0
-    total_claimed = qs.filter(status="CLAIMED").aggregate(total=Sum("amount"))["total"] or 0
-    total_unclaimed = qs.filter(status__in=["PENDING", "UNCLAIMED"]).aggregate(total=Sum("amount"))["total"] or 0
+    if level == "city":
+        grouped = qs.values(
+            location_name=F('applicant__background_info__barangay__city__name')
+        ).annotate(
+            total_allocated=Sum('amount'),
+            total_claimed=Sum('amount', filter=Q(status='CLAIMED')),
+            total_unclaimed=Sum('amount', filter=Q(status='UNCLAIMED')),
+            claim_count=Count('id', filter=Q(status='CLAIMED')),
+            unclaim_count=Count('id', filter=Q(status='UNCLAIMED')),
+            avg_claim_amount=Avg('amount', filter=Q(status='CLAIMED'))
+        ).order_by('-total_allocated')
+    else:  # barangay level
+        grouped = qs.values(
+            location_name=F('applicant__background_info__barangay__name')
+        ).annotate(
+            total_allocated=Sum('amount'),
+            total_claimed=Sum('amount', filter=Q(status='CLAIMED')),
+            total_unclaimed=Sum('amount', filter=Q(status='UNCLAIMED')),
+            claim_count=Count('id', filter=Q(status='CLAIMED')),
+            unclaim_count=Count('id', filter=Q(status='UNCLAIMED')),
+            avg_claim_amount=Avg('amount', filter=Q(status='CLAIMED'))
+        ).order_by('-total_allocated')
+
+    # Calculate claim rates
+    data = []
+    for item in grouped:
+        total = float(item['total_allocated'] or 0)
+        claimed = float(item['total_claimed'] or 0)
+        claim_rate = (claimed / total * 100) if total > 0 else 0
+
+        data.append({
+            'location_name': item['location_name'],
+            'total_allocated': total,
+            'total_claimed': claimed,
+            'total_unclaimed': float(item['total_unclaimed'] or 0),
+            'claim_count': item['claim_count'],
+            'unclaim_count': item['unclaim_count'],
+            'avg_claim_amount': float(item['avg_claim_amount'] or 0),
+            'claim_rate': round(claim_rate, 2)
+        })
+
+    # Calculate totals
+    total_budget = sum(d['total_allocated'] for d in data)
+    total_claimed = sum(d['total_claimed'] for d in data)
+    total_unclaimed = sum(d['total_unclaimed'] for d in data)
 
     return Response({
         "group_by": level,
-        "total_budget": float(total_budget),
-        "total_claimed": float(total_claimed),
-        "total_unclaimed": float(total_unclaimed),
-        "data": [
-            {
-                **item,
-                "total_allocated": float(item["total_allocated"] or 0),
-                "total_claimed": float(item["total_claimed"] or 0),
-                "total_unclaimed": float(item["total_unclaimed"] or 0),
-                "avg_claim_amount": float(item["avg_claim_amount"] or 0),
-                "claim_rate": float(item["claim_rate"] or 0),
-            }
-            for item in data
-        ],
+        "total_budget": total_budget,
+        "total_claimed": total_claimed,
+        "total_unclaimed": total_unclaimed,
+        "data": data
     })
 
 
-@api_view(["GET"])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def budget_by_assistance(request):
     """
-    🏥 Budget by Assistance Type (Medical, Burial, Educational)
+    GET /analytics/budget/assistance/
+    Breakdown by assistance type
     """
-    qs = apply_budget_filters(base_disbursement_qs(), request.GET)
+    qs = DisbursementClaim.objects.select_related('applicant')
+    qs = apply_budget_filters(qs, request)
 
-    data = (
-        qs.values(assistance_type=F("approval__applicant__type_of_assistance"))
-        .annotate(
-            total_allocated=Sum("amount"),
-            total_claimed=Sum("amount", filter=Q(status="CLAIMED")),
-            total_unclaimed=Sum("amount", filter=Q(status__in=["PENDING", "UNCLAIMED"])),
-            claim_count=Count("id", filter=Q(status="CLAIMED")),
-            unclaim_count=Count("id", filter=Q(status__in=["PENDING", "UNCLAIMED"])),
-            avg_claim_amount=Avg("amount", filter=Q(status="CLAIMED")),
+    data = qs.values(
+        assistance_type=F('applicant__type_of_assistance')
+    ).annotate(
+        total_allocated=Sum('amount'),
+        total_claimed=Sum('amount', filter=Q(status='CLAIMED')),
+        total_unclaimed=Sum('amount', filter=Q(status='UNCLAIMED'))
+    ).order_by('-total_allocated')
+
+    # Calculate claim rates
+    formatted_data = []
+    for item in data:
+        total = float(item['total_allocated'] or 0)
+        claimed = float(item['total_claimed'] or 0)
+        claim_rate = (claimed / total * 100) if total > 0 else 0
+
+        formatted_data.append({
+            'assistance_type': item['assistance_type'],
+            'total_allocated': total,
+            'total_claimed': claimed,
+            'total_unclaimed': float(item['total_unclaimed'] or 0),
+            'claim_rate': round(claim_rate, 2)
+        })
+
+    return Response({"data": formatted_data})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def budget_batch_trends(request):
+    """
+    GET /analytics/budget/batch-trends/
+    Batch-based budget performance trends
+    """
+
+    qs = DisbursementClaim.objects.select_related('batch')
+    qs = apply_budget_filters(qs, request)
+
+    grouped = (
+        qs.values(
+            batch_pk=F('batch__id'),
+            batch_name=F('batch__name'),
+            batch_payout_date=F('batch__payout_date'),
+            batch_status=F('batch__status'),
         )
         .annotate(
-            claim_rate=ExpressionWrapper(
-                F("claim_count") * 100.0 / (F("claim_count") + F("unclaim_count")),
-                output_field=DecimalField()
-            )
+            total_allocated=Sum('amount'),
+            total_claimed=Sum('amount', filter=Q(status='CLAIMED')),
+            total_unclaimed=Sum('amount', filter=Q(status='UNCLAIMED')),
+            claim_count=Count('id', filter=Q(status='CLAIMED')),
+            unclaim_count=Count('id', filter=Q(status='UNCLAIMED')),
         )
-        .order_by("-total_allocated")
+        .order_by('batch_payout_date')
     )
 
-    total_budget = qs.aggregate(total=Sum("amount"))["total"] or 0
-    total_claimed = qs.filter(status="CLAIMED").aggregate(total=Sum("amount"))["total"] or 0
-    total_unclaimed = qs.filter(status__in=["PENDING", "UNCLAIMED"]).aggregate(total=Sum("amount"))["total"] or 0
+    data = []
+    for item in grouped:
+        total = float(item['total_allocated'] or 0)
+        claimed = float(item['total_claimed'] or 0)
+        claim_rate = (claimed / total * 100) if total > 0 else 0
+
+        data.append({
+            "batch_id": item["batch_pk"],
+            "batch_name": item["batch_name"],
+            "payout_date": item["batch_payout_date"],
+            "batch_status": item["batch_status"],
+            "total_allocated": total,
+            "total_claimed": claimed,
+            "total_unclaimed": float(item["total_unclaimed"] or 0),
+            "claim_rate": round(claim_rate, 2),
+        })
 
     return Response({
-        "group_by": "assistance_type",
-        "total_budget": float(total_budget),
-        "total_claimed": float(total_claimed),
-        "total_unclaimed": float(total_unclaimed),
-        "data": [
-            {
-                **item,
-                "total_allocated": float(item["total_allocated"] or 0),
-                "total_claimed": float(item["total_claimed"] or 0),
-                "total_unclaimed": float(item["total_unclaimed"] or 0),
-                "avg_claim_amount": float(item["avg_claim_amount"] or 0),
-                "claim_rate": float(item["claim_rate"] or 0),
-            }
-            for item in data
-        ],
+        "trend_type": "batch",
+        "data": data
     })
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def budget_trends(request):
-    """
-    📈 Budget Trends Over Time (Monthly/Yearly)
-    Query param: ?granularity=monthly (default) or ?granularity=yearly
-    """
-    granularity = request.GET.get("granularity", "monthly")
-    qs = apply_budget_filters(base_disbursement_qs(), request.GET)
-
-    if granularity == "yearly":
-        data = (
-            qs.annotate(period=ExtractYear("payout_date"))
-            .values("period")
-            .annotate(
-                total_allocated=Sum("amount"),
-                total_claimed=Sum("amount", filter=Q(status="CLAIMED")),
-                total_unclaimed=Sum("amount", filter=Q(status__in=["PENDING", "UNCLAIMED"])),
-                claim_count=Count("id", filter=Q(status="CLAIMED")),
-                unclaim_count=Count("id", filter=Q(status__in=["PENDING", "UNCLAIMED"])),
-            )
-            .annotate(
-                claim_rate=ExpressionWrapper(
-                    F("claim_count") * 100.0 / (F("claim_count") + F("unclaim_count")),
-                    output_field=DecimalField()
-                )
-            )
-            .order_by("period")
-        )
-    else:  # monthly
-        data = (
-            qs.annotate(period=TruncMonth("payout_date"))
-            .values("period")
-            .annotate(
-                total_allocated=Sum("amount"),
-                total_claimed=Sum("amount", filter=Q(status="CLAIMED")),
-                total_unclaimed=Sum("amount", filter=Q(status__in=["PENDING", "UNCLAIMED"])),
-                claim_count=Count("id", filter=Q(status="CLAIMED")),
-                unclaim_count=Count("id", filter=Q(status__in=["PENDING", "UNCLAIMED"])),
-            )
-            .annotate(
-                claim_rate=ExpressionWrapper(
-                    F("claim_count") * 100.0 / (F("claim_count") + F("unclaim_count")),
-                    output_field=DecimalField()
-                )
-            )
-            .order_by("period")
-        )
-
-    return Response({
-        "granularity": granularity,
-        "data": [
-            {
-                "period": item["period"].isoformat() if isinstance(item["period"], date) else str(item["period"]),
-                "total_allocated": float(item["total_allocated"] or 0),
-                "total_claimed": float(item["total_claimed"] or 0),
-                "total_unclaimed": float(item["total_unclaimed"] or 0),
-                "claim_count": item["claim_count"],
-                "unclaim_count": item["unclaim_count"],
-                "claim_rate": float(item["claim_rate"] or 0),
-            }
-            for item in data
-        ],
-    })
-
-
-@api_view(["GET"])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def budget_by_batch(request):
     """
-    📦 Budget by Disbursement Batch
+    GET /analytics/budget/batch/
+    Budget breakdown per DisbursementBatch
     """
-    qs = apply_budget_filters(base_disbursement_qs(), request.GET)
+    qs = DisbursementClaim.objects.select_related('batch')
+    qs = apply_budget_filters(qs, request)
 
-    data = (
-        qs.values(
-            batch_pk=F("batch__id"),
-            batch_name=F("batch__name"),
-            batch_payout_date=F("batch__payout_date"),
-            batch_status=F("batch__status"),
-        )
-        .annotate(
-            total_allocated=Sum("amount"),
-            total_claimed=Sum("amount", filter=Q(status="CLAIMED")),
-            total_unclaimed=Sum("amount", filter=Q(status__in=["PENDING", "UNCLAIMED"])),
-            claim_count=Count("id", filter=Q(status="CLAIMED")),
-            unclaim_count=Count("id", filter=Q(status__in=["PENDING", "UNCLAIMED"])),
-        )
-        .annotate(
-            claim_rate=ExpressionWrapper(
-                F("claim_count") * 100.0 / (F("claim_count") + F("unclaim_count")),
-                output_field=DecimalField()
-            )
-        )
-        .order_by("-total_allocated")
-    )
+    grouped = qs.values(
+        disbursement_batch_id=F('batch__id'),
+        batch_name=F('batch__name'),
+        batch_payout_date=F('batch__payout_date'),
+        batch_status=F('batch__status')
+    ).annotate(
+        total_allocated=Sum('amount'),
+        total_claimed=Sum('amount', filter=Q(status='CLAIMED')),
+        total_unclaimed=Sum('amount', filter=Q(status='UNCLAIMED'))
+    ).order_by('-batch_payout_date')
 
-    total_budget = qs.aggregate(total=Sum("amount"))["total"] or 0
-    total_claimed = qs.filter(status="CLAIMED").aggregate(total=Sum("amount"))["total"] or 0
-    total_unclaimed = qs.filter(status__in=["PENDING", "UNCLAIMED"]).aggregate(total=Sum("amount"))["total"] or 0
 
-    return Response({
-        "group_by": "disbursement_batch",
-        "total_budget": float(total_budget),
-        "total_claimed": float(total_claimed),
-        "total_unclaimed": float(total_unclaimed),
-        "data": [
-            {
-                **item,
-                "payout_date": item["batch_payout_date"].isoformat() if item["batch_payout_date"] else None,
-                "total_allocated": float(item["total_allocated"] or 0),
-                "total_claimed": float(item["total_claimed"] or 0),
-                "total_unclaimed": float(item["total_unclaimed"] or 0),
-                "claim_rate": float(item["claim_rate"] or 0),
-            }
-            for item in data
-        ],
-    })
+
+    # Calculate claim rates
+    data = []
+    for item in grouped:
+        total = float(item['total_allocated'] or 0)
+        claimed = float(item['total_claimed'] or 0)
+        claim_rate = (claimed / total * 100) if total > 0 else 0
+
+        data.append({
+            'batch_id': item['disbursement_batch_id'],
+            'batch_name': item['batch_name'],
+            'payout_date': item['batch_payout_date'],
+            'batch_status': item['batch_status'],
+            'total_allocated': total,
+            'total_claimed': claimed,
+            'total_unclaimed': float(item['total_unclaimed'] or 0),
+            'claim_rate': round(claim_rate, 2)
+        })
+
+    return Response({"data": data})
 
 
 @api_view(["GET"])
@@ -3292,7 +3285,7 @@ def budget_location_assistance(request):
     🗺️ Cross-Tabulation: Location × Assistance Type
     Shows which locations claim most for each assistance type
     """
-    qs = apply_budget_filters(base_disbursement_qs(), request.GET)
+    qs = apply_budget_filters(base_disbursement_qs(), request)
 
     data = (
         qs.values(
@@ -3325,58 +3318,78 @@ def budget_location_assistance(request):
     })
 
 
-@api_view(["GET"])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def budget_comparison(request):
     """
-    📊 Comparative Analytics (Year-over-Year)
-    Compare current year vs previous year
+    GET /analytics/budget/comparison/?current_year=2025
+    Year-over-year comparison
     """
-    current_year = request.GET.get("current_year", timezone.now().year)
-    previous_year = int(current_year) - 1
+    try:
+        current_year_str = request.GET.get("current_year", str(datetime.now().year))
+        current_year = int(current_year_str.split('?')[0])  # Clean malformed params
+    except (ValueError, AttributeError):
+        current_year = datetime.now().year
+    
+    previous_year = current_year - 1
 
-    current_qs = base_disbursement_qs().filter(payout_date__year=current_year)
-    previous_qs = base_disbursement_qs().filter(payout_date__year=previous_year)
+    # Get claims for both years
+    current_qs = DisbursementClaim.objects.filter(
+        batch__payout_date__year=current_year
+    )
+    previous_qs = DisbursementClaim.objects.filter(
+        batch__payout_date__year=previous_year
+    )
 
-    def get_summary(qs):
-        total = qs.aggregate(total=Sum("amount"))["total"] or 0
-        claimed = qs.filter(status="CLAIMED").aggregate(total=Sum("amount"))["total"] or 0
-        count = qs.count()
-        claimed_count = qs.filter(status="CLAIMED").count()
-        
-        return {
-            "total_budget": float(total),
-            "total_claimed": float(claimed),
-            "total_unclaimed": float(total - claimed),
-            "beneficiary_count": count,
-            "claimed_count": claimed_count,
-            "claim_rate": round((claimed_count / count * 100) if count > 0 else 0, 2),
-        }
+    # Aggregate current year
+    current_agg = current_qs.aggregate(
+        total_budget=Sum('amount'),
+        total_claimed=Sum('amount', filter=Q(status='CLAIMED'))
+    )
 
-    current_summary = get_summary(current_qs)
-    previous_summary = get_summary(previous_qs)
+    # Aggregate previous year
+    previous_agg = previous_qs.aggregate(
+        total_budget=Sum('amount'),
+        total_claimed=Sum('amount', filter=Q(status='CLAIMED'))
+    )
+
+    # Calculate totals
+    current_total = float(current_agg['total_budget'] or 0)
+    current_claimed = float(current_agg['total_claimed'] or 0)
+    previous_total = float(previous_agg['total_budget'] or 0)
+    previous_claimed = float(previous_agg['total_claimed'] or 0)
+
+    # Calculate claim rates
+    current_claim_rate = (current_claimed / current_total * 100) if current_total > 0 else 0
+    previous_claim_rate = (previous_claimed / previous_total * 100) if previous_total > 0 else 0
 
     # Calculate changes
-    budget_change = current_summary["total_budget"] - previous_summary["total_budget"]
-    budget_change_pct = (budget_change / previous_summary["total_budget"] * 100) if previous_summary["total_budget"] > 0 else 0
+    budget_change = current_total - previous_total
+    claimed_change = current_claimed - previous_claimed
 
-    claimed_change = current_summary["total_claimed"] - previous_summary["total_claimed"]
-    claimed_change_pct = (claimed_change / previous_summary["total_claimed"] * 100) if previous_summary["total_claimed"] > 0 else 0
+    budget_change_pct = (budget_change / previous_total * 100) if previous_total > 0 else 0
+    claimed_change_pct = (claimed_change / previous_claimed * 100) if previous_claimed > 0 else 0
 
     return Response({
         "current_year": current_year,
         "previous_year": previous_year,
-        "current": current_summary,
-        "previous": previous_summary,
-        "changes": {
-            "budget_change": float(budget_change),
-            "budget_change_percentage": round(budget_change_pct, 2),
-            "claimed_change": float(claimed_change),
-            "claimed_change_percentage": round(claimed_change_pct, 2),
+        "current": {
+            "total_budget": current_total,
+            "total_claimed": current_claimed,
+            "claim_rate": round(current_claim_rate, 2)
         },
+        "previous": {
+            "total_budget": previous_total,
+            "total_claimed": previous_claimed,
+            "claim_rate": round(previous_claim_rate, 2)
+        },
+        "changes": {
+            "budget_change": budget_change,
+            "budget_change_percentage": round(budget_change_pct, 2),
+            "claimed_change": claimed_change,
+            "claimed_change_percentage": round(claimed_change_pct, 2)
+        }
     })
-
-
 
 # =============================================
 # HELPER FUNCTIONS
