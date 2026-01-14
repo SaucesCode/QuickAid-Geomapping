@@ -128,6 +128,7 @@ urlpatterns = [
     path("analytics/budget/batch/", budget_by_batch, name="analytics-budget-batch"),
     path("analytics/budget/location-assistance/", budget_location_assistance, name="analytics-budget-location-assistance"),
     path("analytics/budget/comparison/", budget_comparison, name="analytics-budget-comparison"),
+    path("public/budget/summary/", public_budget_summary),
 
     # ========================
     # Export

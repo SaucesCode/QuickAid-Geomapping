@@ -1,6 +1,6 @@
 // frontend/src/pages/Applicants/Approved.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
@@ -33,7 +33,6 @@ import toast from "react-hot-toast";
 import CustomToast from "../../components/CustomToast";
 import { formatDate } from "../../utils/FormatDate";
 
-// --- API Helpers ---
 const fetchBatches = async () => {
   const res = await api.get("/approved/batches/?limit=50");
   return res.data.results;
@@ -49,7 +48,6 @@ const uploadApprovedFile = async ({ file, batchId }) => {
   return res.data;
 };
 
-// --- Child Component: BatchRow ---
 const BatchRow = ({ batch, toggleBatch, isExpanded, onContinueBatch, activeBatchId }) => {
   const [filters, setFilters] = useState({
     city: "",
@@ -82,10 +80,7 @@ const BatchRow = ({ batch, toggleBatch, isExpanded, onContinueBatch, activeBatch
   const totalItems = approvalsData?.count || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const handlePageChange = page => {
-    setCurrentPage(page);
-  };
-
+  const handlePageChange = page => setCurrentPage(page);
   const handleItemsPerPageChange = e => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1);
@@ -93,13 +88,11 @@ const BatchRow = ({ batch, toggleBatch, isExpanded, onContinueBatch, activeBatch
 
   return (
     <Card className="overflow-hidden border-2 border-gray-300 hover:border-blue-400 transition-all">
-      {/* Header */}
       <button
         onClick={() => toggleBatch(batch.id)}
         className="w-full flex justify-between items-center text-left p-4"
       >
         <div className="flex-1 space-y-3">
-          {/* File info */}
           <div className="flex items-center gap-3">
             <div className="p-2 bg-[#003a76] rounded-lg">
               <FileSpreadsheet className="w-5 h-5 text-white" />
@@ -122,7 +115,6 @@ const BatchRow = ({ batch, toggleBatch, isExpanded, onContinueBatch, activeBatch
             <span className="text-gray-500">{formatDate(batch.uploaded_at)}</span>
           </BodyText>
 
-          {/* Stats */}
           <div className="flex flex-wrap gap-3 ml-11">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg">
               <BarChart3 className="w-4 h-4 text-blue-600" />
@@ -136,7 +128,6 @@ const BatchRow = ({ batch, toggleBatch, isExpanded, onContinueBatch, activeBatch
                 Approved: <strong>{batch.total_approved}</strong>
               </span>
             </div>
-            {/* Replace existing continue button with: */}
             <div className="flex items-center gap-2">
               <button
                 onClick={e => {
@@ -156,7 +147,6 @@ const BatchRow = ({ batch, toggleBatch, isExpanded, onContinueBatch, activeBatch
             </div>
           </div>
         </div>
-
         <div className="p-4">
           {isExpanded ? (
             <ChevronUp className="w-5 h-5 text-blue-600" />
@@ -166,10 +156,8 @@ const BatchRow = ({ batch, toggleBatch, isExpanded, onContinueBatch, activeBatch
         </div>
       </button>
 
-      {/* Expanded Content */}
       {isExpanded && (
         <div className="border-t-2 border-gray-200">
-          {/* Filters */}
           <div className="p-4 bg-gray-50 border-b border-gray-200">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -188,19 +176,9 @@ const BatchRow = ({ batch, toggleBatch, isExpanded, onContinueBatch, activeBatch
                 )}
               </button>
             </div>
-
             {showFilters && <ApprovedFilter filters={filters} onFilterChange={setFilters} />}
-            {!showFilters && approvals.length > 0 && (
-              <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-                <p className="text-sm text-gray-700">
-                  Showing <strong>{approvals.length}</strong> of <strong>{totalItems}</strong>{" "}
-                  approved records
-                </p>
-              </div>
-            )}
           </div>
 
-          {/* Table */}
           <div className="overflow-x-auto">
             {isLoading ? (
               <div className="p-8">
@@ -271,7 +249,6 @@ const BatchRow = ({ batch, toggleBatch, isExpanded, onContinueBatch, activeBatch
                     </tbody>
                   </table>
                 </div>
-
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -289,9 +266,9 @@ const BatchRow = ({ batch, toggleBatch, isExpanded, onContinueBatch, activeBatch
   );
 };
 
-// --- Main Component ---
 const Approved = () => {
   const queryClient = useQueryClient();
+  const fileInputRef = useRef(null);
   const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [unmatchedRows, setUnmatchedRows] = useState([]);
@@ -304,6 +281,13 @@ const Approved = () => {
       document.title = "QuickAid | Home";
     };
   }, []);
+
+  const resetFileInput = () => {
+    setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const {
     data: batches = [],
@@ -318,7 +302,7 @@ const Approved = () => {
     mutationFn: uploadApprovedFile,
     onSuccess: data => {
       queryClient.invalidateQueries(["approved-batches"]);
-      setFile(null);
+      resetFileInput();
 
       if (data.approval_batch_id) {
         setActiveBatchId(data.approval_batch_id);
@@ -329,14 +313,13 @@ const Approved = () => {
         setShowUnmatchedModal(true);
       }
 
-      // Use CustomToast instead
       toast.custom(
         t => (
           <CustomToast
             t={t}
             type="upload"
             customMessage={`Processed ${data.total_processed} records, ${
-              data.total_approved
+              data.total_newly_approved
             } approved${
               data.unmatched_rows?.length ? `, ${data.unmatched_rows.length} unmatched` : ""
             }`}
@@ -346,7 +329,6 @@ const Approved = () => {
       );
     },
     onError: error => {
-      // Use CustomToast for errors
       toast.custom(
         t => (
           <CustomToast
@@ -388,14 +370,12 @@ const Approved = () => {
         subtitle="Upload and manage approved applicant batches"
       />
 
-      {/* Upload Section */}
       <Card>
         <div className="flex items-center gap-2 mb-5 pb-4 border-b-2 border-gray-200">
           <Upload className="w-6 h-6 text-[#003a76]" />
           <H2>Upload Approved List</H2>
         </div>
 
-        {/* Drag & Drop */}
         <div
           onDragEnter={e => {
             e.preventDefault();
@@ -412,13 +392,9 @@ const Approved = () => {
             const droppedFile = e.dataTransfer.files?.[0];
             if (droppedFile) {
               const validTypes = [".csv", ".xlsx", ".xls"];
-              const fileExtension = "." + droppedFile.name.split(".").pop().toLowerCase();
-
-              if (validTypes.includes(fileExtension)) {
-                setFile(droppedFile);
-              } else {
-                toast.error("Invalid file type. Please upload CSV or Excel files only.");
-              }
+              const fileExt = "." + droppedFile.name.split(".").pop().toLowerCase();
+              if (validTypes.includes(fileExt)) setFile(droppedFile);
+              else toast.error("Invalid file type.");
             }
           }}
           className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
@@ -436,18 +412,17 @@ const Approved = () => {
             </BodyText>
             <p className="text-xs text-gray-500">Supports CSV and Excel (.csv, .xlsx, .xls)</p>
             <input
+              ref={fileInputRef}
               type="file"
               onChange={e => {
                 const selectedFile = e.target.files?.[0];
                 if (selectedFile) {
                   const validTypes = [".csv", ".xlsx", ".xls"];
-                  const fileExtension = "." + selectedFile.name.split(".").pop().toLowerCase();
-
-                  if (validTypes.includes(fileExtension)) {
-                    setFile(selectedFile);
-                  } else {
-                    toast.error("Invalid file type. Please upload CSV or Excel files only.");
-                    e.target.value = "";
+                  const fileExt = "." + selectedFile.name.split(".").pop().toLowerCase();
+                  if (validTypes.includes(fileExt)) setFile(selectedFile);
+                  else {
+                    toast.error("Invalid file type.");
+                    resetFileInput();
                   }
                 }
               }}
@@ -464,7 +439,6 @@ const Approved = () => {
           </div>
         </div>
 
-        {/* Selected File */}
         {file && (
           <div className="mt-4 flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
             <div className="flex items-center gap-3">
@@ -475,7 +449,7 @@ const Approved = () => {
               </div>
             </div>
             <button
-              onClick={() => setFile(null)}
+              onClick={resetFileInput}
               className="p-2 hover:bg-blue-100 rounded-lg transition-colors"
             >
               <X className="w-5 h-5 text-blue-600" />
@@ -483,9 +457,7 @@ const Approved = () => {
           </div>
         )}
 
-        {/* Upload Button and Active Batch Indicator - Side by Side */}
         <div className="mt-4 flex items-center justify-between gap-4">
-          {/* Active Batch Indicator */}
           {activeBatchId ? (
             <div className="flex items-center gap-3 px-4 py-2.5 bg-green-50 border-2 border-green-300 rounded-lg">
               <div className="flex items-center gap-2">
@@ -502,22 +474,15 @@ const Approved = () => {
                 onClick={() => setActiveBatchId(null)}
                 className="ml-2 text-xs text-green-700 hover:text-green-800 font-medium flex items-center gap-1 px-2 py-1 hover:bg-green-100 rounded transition-colors"
               >
-                <X className="w-3.5 h-3.5" />
-                Cancel
+                <X className="w-3.5 h-3.5" /> Cancel
               </button>
             </div>
           ) : (
-            <div /> // Empty div to maintain flex layout
+            <div />
           )}
 
-          {/* Upload Button */}
           <GradientButton
-            onClick={() =>
-              uploadMutation.mutate({
-                file,
-                batchId: activeBatchId,
-              })
-            }
+            onClick={() => uploadMutation.mutate({ file, batchId: activeBatchId })}
             disabled={!file || uploadMutation.isPending}
             loading={uploadMutation.isPending}
           >
@@ -527,7 +492,6 @@ const Approved = () => {
         </div>
       </Card>
 
-      {/* Batches Section */}
       <Card>
         <div className="flex items-center gap-2 mb-6 pb-4 border-b-2 border-gray-200">
           <FileText className="w-6 h-6 text-[#003a76]" />
@@ -539,7 +503,7 @@ const Approved = () => {
         ) : isError ? (
           <div className="text-center py-12">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-            <p className="text-sm text-red-600">Failed to load batches. Please try again.</p>
+            <p className="text-sm text-red-600">Failed to load batches.</p>
           </div>
         ) : batches.length === 0 ? (
           <div className="text-center py-12">
@@ -562,7 +526,6 @@ const Approved = () => {
         )}
       </Card>
 
-      {/* Unmatched Rows Modal */}
       {showUnmatchedModal && (
         <UnmatchedRowsModal
           rows={unmatchedRows}
@@ -576,12 +539,10 @@ const Approved = () => {
   );
 };
 
-// --- Unmatched Rows Modal ---
 const UnmatchedRowsModal = ({ rows, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden border-2 border-gray-300">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-red-50 border-b-2 border-red-200">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-red-600" />
@@ -596,8 +557,6 @@ const UnmatchedRowsModal = ({ rows, onClose }) => {
             <X className="w-5 h-5 text-red-600" />
           </button>
         </div>
-
-        {/* Table */}
         <div className="overflow-auto max-h-[calc(90vh-140px)]">
           <table className="min-w-full text-sm">
             <thead className="bg-red-600 text-white sticky top-0">
@@ -632,8 +591,6 @@ const UnmatchedRowsModal = ({ rows, onClose }) => {
             </tbody>
           </table>
         </div>
-
-        {/* Footer */}
         <div className="flex justify-end px-6 py-4 bg-gray-50 border-t-2 border-gray-200">
           <button
             onClick={onClose}

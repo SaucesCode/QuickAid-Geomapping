@@ -758,11 +758,18 @@ def upload_approved_list(request):
                 already_approved += 1
                 continue
 
+            try:
+                amount = Decimal(
+                    str(row.get("amount of assistance")).replace(",", "")
+                )
+            except (InvalidOperation, TypeError):
+                amount = Decimal("0.00")
+
             approval = Approval.objects.create(
                 applicant=applicant,
                 batch=approval_batch,
                 approved_by=request.user,
-                notes=f"Approved via batch upload ({approval_batch.file_name})",
+                notes=amount,
             )
 
             ApprovalAuditLog.objects.create(
@@ -771,13 +778,6 @@ def upload_approved_list(request):
                 performed_by=request.user,
                 notes="Approved via batch upload",
             )
-
-            try:
-                amount = Decimal(
-                    str(row.get("amount of assistance")).replace(",", "")
-                )
-            except (InvalidOperation, TypeError):
-                amount = Decimal("0.00")
 
             DisbursementClaim.objects.create(
                 batch=disbursement_batch,
@@ -3389,6 +3389,36 @@ def budget_comparison(request):
             "claimed_change": claimed_change,
             "claimed_change_percentage": round(claimed_change_pct, 2)
         }
+    })
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def public_budget_summary(request):
+    """
+    Public Budget Transparency Endpoint
+    Safe for unauthenticated public access
+    """
+
+    qs = DisbursementClaim.objects.all()
+
+    aggregates = qs.aggregate(
+        total_allocated=Sum("amount"),
+        total_released=Sum("amount", filter=Q(status="CLAIMED")),
+        beneficiaries=Count("applicant", distinct=True, filter=Q(status="CLAIMED")),
+        last_update=Max("updated_at"),
+    )
+
+    total_allocated = aggregates["total_allocated"] or 0
+    total_released = aggregates["total_released"] or 0
+
+    return Response({
+        "total_allocated": float(total_allocated),
+        "total_released": float(total_released),
+        "remaining_budget": float(total_allocated - total_released),
+        "beneficiaries": aggregates["beneficiaries"] or 0,
+        "last_updated": (
+            aggregates["last_update"] or timezone.now()
+        ).date().isoformat(),
     })
 
 # =============================================

@@ -109,13 +109,6 @@ const Budget = () => {
     queryFn: () => fetchData("/analytics/budget/comparison/"),
   });
 
-  console.log("Overview:", overview);
-  console.log("byLocation:", byLocation);
-  console.log("byAssistance:", byAssistance);
-  console.log("trends:", trends);
-  console.log("byBatch:", byBatch);
-  console.log("comparison:", comparison);
-
   // Format Currency
   const formatCurrency = value => {
     return new Intl.NumberFormat("en-PH", {
@@ -279,8 +272,8 @@ const Budget = () => {
         {/* Charts Row 2: Monthly Trends */}
         <AnalyticsChartCard
           icon={TrendingUp}
-          title="Monthly Budget Trends"
-          subtitle="Claims and unclaimed amounts over time"
+          title="Batch Budget Trends"
+          subtitle="Claims and unclaimed amounts per batch"
           isLoading={trendsLoading}
         >
           <ChartContainer height={350}>
