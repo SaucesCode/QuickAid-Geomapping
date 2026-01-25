@@ -3,10 +3,91 @@ import re
 import os
 import json
 from dotenv import load_dotenv
-from .models import ApplicantHistory, StaffActivityLog, DisbursementClaim, DisbursementBatch
-from django.db.models import Q, Sum
+from .models import ApplicantHistory, StaffActivityLog, DisbursementClaim, DisbursementBatch, Applicant
+from django.db.models import Q, Sum, ExpressionWrapper, F, DurationField
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
+from django.utils import timezone
+
+load_dotenv()
+
+
+# =============================================
+# HELPER FUNCTIONS FOR ANALYTICS
+# =============================================
+
+def duration_to_minutes(duration, default=0.0):
+    """
+    Convert timedelta to minutes, rounded to 1 decimal place.
+    """
+    if duration is None:
+        return default
+    try:
+        return round(duration.total_seconds() / 60, 1)
+    except (AttributeError, TypeError):
+        return default
+
+
+def safe_float(value, default=0.0):
+    """
+    Convert value to float, handling None, Decimal, and other types.
+    """
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+
+def calculate_percentage(numerator, denominator, decimals=2):
+    """
+    Calculate percentage safely, handling zero division.
+    """
+    if denominator == 0 or denominator is None:
+        return 0.0
+    try:
+        num = float(numerator or 0)
+        den = float(denominator)
+        return round((num / den) * 100, decimals)
+    except (ValueError, TypeError, ZeroDivisionError):
+        return 0.0
+
+
+def get_processing_time_annotation():
+    """
+    Returns ExpressionWrapper annotation for calculating processing time.
+    """
+    return ExpressionWrapper(
+        F('date_filled') - F('created_at'),
+        output_field=DurationField()
+    )
+
+
+def get_applicant_base_queryset(archived=False):
+    """
+    Returns base queryset for Applicant with common select_related optimizations.
+    """
+    qs = Applicant.objects.select_related(
+        'background_info',
+        'background_info__barangay',
+        'background_info__barangay__city'
+    )
+    if not archived:
+        qs = qs.filter(is_archived=False)
+    return qs
+
+
+def get_month_boundaries(today=None):
+    """
+    Calculate month boundaries for analytics comparisons.
+    """
+    if today is None:
+        today = timezone.localdate()
+    start_of_this_month = today.replace(day=1)
+    start_of_last_month = (start_of_this_month - timedelta(days=1)).replace(day=1)
+    end_of_last_month = start_of_this_month - timedelta(days=1)
+    return start_of_this_month, start_of_last_month, end_of_last_month
 
 
 load_dotenv()
@@ -231,16 +312,6 @@ def base_disbursement_qs():
         )
     )
 
-
-def extract_amount_from_notes(notes):
-    """Extract numeric amount from notes field"""
-    if not notes:
-        return 0
-    # Match patterns like "Approved amount: 4000" or just "4000"
-    match = re.search(r'(\d+(?:,\d{3})*(?:\.\d{2})?)', str(notes))
-    if match:
-        return float(match.group(1).replace(',', ''))
-    return 0
 
 def apply_budget_filters(qs, request):
     """Apply common filters to disbursement claim queries"""

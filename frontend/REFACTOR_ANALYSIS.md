@@ -2,426 +2,572 @@
 
 ## Executive Summary
 
-Analysis of the frontend codebase identified **~1,800–2,200 lines** that can be removed or consolidated through shared hooks, components, and utilities. Target: **20%+ reduction** in maintainable LOC without changing behavior.
+Analysis of the React frontend codebase identified **~1,200–1,800 lines** that can be removed or consolidated through shared hooks, chart components, data transformation utilities, and loading state management. Target: **20%+ reduction** in maintainable LOC without breaking functionality.
 
 ---
 
 ## 1. Duplicate Code Patterns
 
-### 1.1 `fetchData` (Analytics API) — **HIGH**
+### 1.1 Chart Configuration Boilerplate — **HIGH**
 
-**Locations:**
-- `Geographic.js:93–102` (~10 lines)
-- `Trends.js:78–87` (~10 lines)
-- `Performance.js:86–99` (~14 lines, includes `setError`/`catch`)
-- `DemographicsEconomics.js:111–121` (~11 lines)
-- `Budget.js:76–89` (~14 lines; uses `date_from`/`date_to`/`assistance`/`batch_id`)
+**Locations:** All 5 analytics pages (Geographic.js, Trends.js, Performance.js, DemographicsEconomics.js, Budget.js)
 
-**Pattern:** Each builds `URLSearchParams` from `filters` (start, end, type, city, barangay) and calls `api.get(endpoint + query)`.
-
-**Suggested consolidation:**
-- Create `useAnalyticsFetch(endpoint, filters, options?)` in `hooks/useAnalyticsFetch.js`.
-- For Budget, support an optional `paramMap` (e.g. `{ start: "date_from", end: "date_to", type: "assistance" }`) or a second `fetchData` variant in the same hook.
-
-| File              | Current `fetchData` lines | After hook |
-|-------------------|---------------------------|------------|
-| Geographic        | 10                        | 0          |
-| Trends            | 10                        | 0          |
-| Performance       | 14                        | 0          |
-| DemographicsEconomics | 11                    | 0          |
-| Budget            | 14                        | 0 (or 2–3 if paramMap) |
-
-**Estimated removal: ~50–55 lines.**  
-**Severity: High** (5 files, repeated pattern).
-
----
-
-### 1.2 `document.title` + cleanup — **MEDIUM**
-
-**Locations:** 15+ pages use the same `useEffect` pattern, e.g.:
-
-```js
-useEffect(() => {
-  document.title = "QuickAid | <PageName>";
-  return () => { document.title = "QuickAid | Home"; };
-}, []);
-```
-
-**Files:** Applicants, ArchiveApplicants, Approved, ApplicantForm, ExportApplicants, Dashboard, AdminManagement, Login, SettingsPage, HeatMap, MapComponent, PrintPage, PrintPagebyID, Intakesheet, and all 5 analytics pages (Geographic, Trends, Performance, DemographicsEconomics, Budget).
-
-**Suggested consolidation:**
-- `usePageTitle(title)` in `hooks/usePageTitle.js`:
-  - Sets `document.title = "QuickAid | " + title` on mount and resets to `"QuickAid | Home"` on unmount.
-
-**Estimated removal: ~45 lines** (3 lines × 15 usages).  
-**Severity: Medium** (many files, small but repetitive).
-
----
-
-### 1.3 Assistance type colors & `getAssistanceColor` — **HIGH**
-
-**Locations (inconsistent definitions):**
-
-| File                 | Constant / helper                       | Values |
-|----------------------|----------------------------------------|--------|
-| Geographic.js:61–65  | `ASSISTANCE_COLORS`                    | Educational #10B981, Medical #3B82F6, Burial #FDE68A |
-| Trends.js:49–63      | `ASSISTANCE_COLOR_MAP`, `getAssistanceColor` | educational, medical, burial, other, default |
-| DemographicsEconomics.js:88–96 | `assistanceColors`, `getAssistanceColor` | Medical #4caf50, Burial #f44336, Educational #2196f3 |
-| Budget.js:58–63      | `ASSISTANCE_COLORS`                    | Medical #3B82F6, Educational #10B981, Burial #F59E0B |
-| Dashboard.js:53–65   | `ASSISTANCE_COLORS`, `getAssistanceColor` | medical, educational, burial, default |
-| MapComponent.js:43–48| `assistanceColors`, `assistanceTypes`  | Medical: "blue", Burial: "#fef08a", Educational: "green" |
-
-**Suggested consolidation:**
-- Single source: `utils/assistanceColors.js`:
-  - `ASSISTANCE_COLORS = { Medical, Educational, Burial }` (pick one canonical set, e.g. Geographic/Budget).
-  - `getAssistanceColor(type)` normalizing `type` (lowercase, strip "Assistance") and falling back to a default.
-  - Export `ASSISTANCE_TYPES = ["Medical", "Educational", "Burial"]` for option lists.
-
-**Estimated removal: ~80–100 lines** across 6 files.  
-**Severity: High** (logic duplication + inconsistent UX).
-
----
-
-### 1.4 Cities/barangays fetch + location filters — **HIGH**
-
-**Locations:**
-- `AnalyticsFilter.js:30–48` — `citiesWithApplicants`, `barangaysByCity` (city from `filters.city`)
-- `ApplicantFilter.js:21–39` — same keys, `localFilters.city`
-- `ApprovedFilter.js:187–205` — same keys, `localFilters.city`
-
-**Pattern:** Same `api.get("/applicant-locations/filters/")` and `api.get("...?city=" + city)` with `staleTime`, `enabled: !!city` for barangays.
-
-**Suggested consolidation:**
-- `useLocationFilters(city)` in `hooks/useLocationFilters.js` returning `{ cities, barangays, isFetchingCities, isFetchingBarangays }`.
-- All three filter components use this hook.
-
-**Estimated removal: ~50 lines** (duplicated `useQuery` blocks).  
-**Severity: High** (3 components, identical API usage).
-
----
-
-### 1.5 Filter UI: `CompactSelect`, `CompactDateInput`, `FilterTag` — **HIGH**
-
-**Locations:**
-- `AnalyticsFilter.js:324–366` — `CompactSelect` (name, value, onChange, onClear, disabled, children)
-- `AnalyticsFilter.js:368–395` — `CompactDateInput` (label, name, value, onChange, onClear, min, max)
-- `AnalyticsFilter.js:397–406` — `FilterTag` (label, onRemove)
-- `ApplicantFilter.js:271–328` — Same three components with slightly different props (`onChange(value)` vs `onChange` with `e.target` / `name`).
-
-**Differences:**
-- Analytics: `onChange` receives `e` and uses `name`; `CompactSelect` uses `name` and `e.target`.
-- Applicants: `onChange(value)` and `onChange(e => value)`; no `name` on `CompactSelect`.
-
-**Suggested consolidation:**
-- Move to `components/filters/CompactSelect.js`, `CompactDateInput.js`, `FilterTag.js`.
-- Unified API: `CompactSelect` accepts `name` (optional) and `onChange(e)` or `onChange(value)` via an adapter.
-- `ApplicantFilter` and `AnalyticsFilter` both use these shared components. `ApprovedFilter` can be refactored to use `CompactSelect` as well (it has its own `FilterSelect`).
-
-**Estimated removal: ~120–140 lines** (one full set of the three components plus partial reuse in ApprovedFilter).  
-**Severity: High** (duplicate form building blocks).
-
----
-
-### 1.6 Filter layout & structure: Analytics vs Applicants — **MEDIUM**
-
-**Locations:**
-- `AnalyticsFilter.js:135–385` — header, Quick Date Range / date presets, collapsible grid (Location, Type, Custom Date Range), Active Filters, Reset, `CompactSelect`/`CompactDateInput` layout.
-- `ApplicantFilter.js:74–328` — Same structure: header, Search (instead of date presets), same 3-column grid (Location, Type, Date Range), Active Filters, Reset + Apply.
-
-**Duplicate JSX:**
-- Header: icon box, title, subtitle, toggle (Show/Hide Filters), `ChevronDown`, active-count badge.
-- Grid: Location (City, Barangay), Assistance Type (Medical, Educational, Burial), Date (Start/End).
-- Active Filters: `FilterTag` for city, barangay, type, start, end (plus search in Applicants, preset in Analytics).
-- “Compact summary when collapsed” strip with same layout.
-- Same `FilterTag` styling.
-
-**Suggested consolidation:**
-- `FilterPanel` (or `FiltersContainer`) in `components/filters/FilterPanel.js`:
-  - Props: `title`, `subtitle`, `headerAction`, `quickSection` (date presets vs search), `fields` (Location, Type, Date), `extraFields`, `activeFilters`, `onReset`, `onClearField`, `children` for Reset/Apply.
-- `AnalyticsFilter` and `ApplicantFilter` become thin wrappers that provide `quickSection`, `fields`, and callbacks. `ApprovedFilter` can adopt the same layout with `headerAction` and `quickSection` = search.
-
-**Estimated removal: ~180–220 lines** (most of the shared layout in both filters).  
-**Severity: Medium** (large but structured blocks; needs careful prop design).
-
----
-
-### 1.7 Assistance type `<option>` lists — **LOW**
-
-**Locations:**
-- `AnalyticsFilter.js:264–267`
-- `ApplicantFilter.js:212–215`
-- `ApprovedFilter.js:291–294`
-- `HeatMap.js:335–337`
-- `Step3.js:284–286`
-- `EditModal.js:290–292`
-
-All: `Medical`, `Educational`, `Burial` (order有时 differs).
-
-**Suggested consolidation:**
-- Use `ASSISTANCE_TYPES` from `utils/assistanceColors.js` and map:
-
-```js
-{ASSISTANCE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-```
-
-**Estimated removal: ~25 lines** (5–6 lines × 5–6 files, minus 1 shared constant and one line per usage).  
-**Severity: Low** (few lines, but good for consistency).
-
----
-
-### 1.8 Chart styling: `CartesianGrid`, `XAxis`, `YAxis`, `tick` — **MEDIUM**
-
-**Locations:** 45+ lines across `Budget.js`, `Geographic.js`, `DemographicsEconomics.js`, `Performance.js`, `Trends.js`, `Dashboard.js` with:
-
-- `<CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />` (or `#e5e7eb`, or no stroke)
-- `<XAxis ... tick={{ fill: "#4b5563" }} />` (sometimes `fontSize={11}`)
-- `<YAxis tick={{ fill: "#4b5563" }} />` (or `fontSize={11}`)
-
-**Suggested consolidation:**
-- `components/charts/ChartAxes.js` (or similar):  
-  `ChartGrid`, `ChartXAxis`, `ChartYAxis` with default `stroke="#e0e7ff"`, `tick={{ fill: "#4b5563" }}`, `fontSize={11}`, and overridable props.
-- Alternatively, a `useChartDefaults()` hook returning `{ gridProps, xAxisProps, yAxisProps }` and use object spread in each chart.
-
-**Estimated removal: ~60–80 lines** (repeated props).  
-**Severity: Medium** (many occurrences; refactor is mechanical).
-
----
-
-### 1.9 Section headings on analytics pages — **LOW**
-
-**Locations:**  
-`Budget.js`, `Geographic.js`, and possibly others use:
-
+**Pattern:** Every chart repeats the same structure:
 ```jsx
-<div className="space-y-3">
-  <h2 className="text-lg font-bold text-gray-800 px-1">…</h2>
-  …
-</div>
+<ChartContainer height={250}>
+  <ResponsiveContainer width="100%" height="100%">
+    <BarChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+      <XAxis 
+        dataKey="..."
+        tick={{ fontSize: 11, fill: "#4b5563" }}
+        angle={-45}
+        textAnchor="end"
+        height={60}
+      />
+      <YAxis tick={{ fontSize: 11, fill: "#4b5563" }} />
+      <Tooltip />
+      <Bar dataKey="..." fill="..." />
+    </BarChart>
+  </ResponsiveContainer>
+</ChartContainer>
 ```
 
 **Suggested consolidation:**
-- `AnalyticsSection` in `AnalyticsComponents.js` (or `components/charts/`):  
-  `AnalyticsSection({ title, children })` rendering the `space-y-3` wrapper and `h2`.
+- Create reusable chart components in `components/ChartComponents.js`:
+  - `<AnalyticsBarChart>` — handles BarChart with common config
+  - `<AnalyticsPieChart>` — handles PieChart with common config
+  - `<AnalyticsLineChart>` — handles LineChart with common config
+  - `<AnalyticsAreaChart>` — handles AreaChart with common config
 
-**Estimated removal: ~15–20 lines.**  
-**Severity: Low.**
-
----
-
-### 1.10 `formatCurrency` (Budget) — **LOW**
-
-**Location:** `Budget.js:147–154` only.
-
-**Note:** If other pages (e.g. Disbursement, future reports) need PHP formatting, move to `utils/formatCurrency.js` and reuse. No current duplication; low priority.
+**Estimated removal: ~300–400 lines** (repeated chart boilerplate across 40+ charts).  
+**Severity: High** (40+ chart instances, identical structure).
 
 ---
 
-## 2. Consolidation Opportunities
+### 1.2 Data Transformation Functions — **HIGH**
 
-### 2.1 Merge `ApplicantFilter` and `AnalyticsFilter` (and align `ApprovedFilter`)
+**Locations:** All analytics pages have multiple `transform*Data` functions:
+- `Trends.js`: `transformMonthlyData`, `transformYearlyData`, `transformOvertimeData`, `transformCumulativeData`, `transformAssistanceTypeOverTime`, `transformApplicantHeatmap` (6 functions)
+- `DemographicsEconomics.js`: `transformGenderData`, `transformCivilStatusData`, `transformOccupationData`, `transformAgeGenderData` (4 functions)
+- `Performance.js`: `transformProcessingByType`, `transformStaffProductivity`, `transformStaffLeaderboard`, `transformStaffActivity` (4 functions)
+- `Geographic.js`: `processBarangayTypeData`, `processApprovalData` (2 functions)
 
-**Current:**
-- **AnalyticsFilter:** `filters` state internal; `onFilterChange(filters)`; includes date presets; param names: start, end, type, city, barangay.
-- **ApplicantFilter:** `filters` + `searchTerm` from parent or local; `onFilterChange`, `onSearchChange`; “Apply” to commit; same params plus search.
-- **ApprovedFilter:** local filters; search; city/barangay/type; different layout (inline, no collapsible panel).
-
-**Suggested approach (instead of one mega-component):**
-- Shared **`FilterPanel`** (section layout, toggle, active tags, reset) as in 1.6.
-- Shared **`useLocationFilters(city)`** and **`CompactSelect` / `CompactDateInput` / `FilterTag`** as in 1.4 and 1.5.
-- **AnalyticsFilter:** composes `FilterPanel` + date presets + `AnalyticsFilter`-specific param handling; keeps `onFilterChange`; no Apply (immediate).
-- **ApplicantFilter:** composes `FilterPanel` + search + Apply; `onFilterChange` + `onSearchChange`.
-- **ApprovedFilter:** refactor to use `FilterPanel` + same Location/Type/Date building blocks and `FilterSelect` → `CompactSelect`.
-
-**Estimated removal: ~200–250 lines** when combined with 1.5 and 1.6.  
-**Severity: High** (three similar components).
-
----
-
-### 2.2 `useAnalyticsFetch` and standard `queryKey` pattern
-
-All analytics pages use:
-
-- `queryKey: ["<domain>", "<sublabel>", filters]`
-- `queryFn: () => fetchData(endpoint)`
-- `staleTime` (or `keepPreviousData`) where used.
+**Pattern:** Similar transformation patterns:
+- Date formatting: `new Date(item.month).toLocaleDateString("en-US", { month: "short", year: "numeric" })`
+- Field mapping: `data.map(item => ({ newField: item.oldField, count: item.count }))`
+- Filtering/slicing: `.filter(...).slice(0, 10)`
+- Grouping/reducing: `.reduce((acc, item) => { ... }, {})`
 
 **Suggested consolidation:**
-- `useAnalyticsFetch(endpoint, filters, { queryKey, staleTime, paramMap? })` that:
-  - Builds query from `filters` (and optional `paramMap` for Budget).
-  - Returns `{ data, isLoading, isError, ... }` from `useQuery`.
+- Create `utils/dataTransformers.js` with reusable transformers:
+  ```javascript
+  export function formatDate(date, format = 'short') { ... }
+  export function mapDataField(data, fieldMap) { ... }
+  export function groupBy(data, key) { ... }
+  export function sliceTop(data, limit = 10) { ... }
+  ```
 
-Multiple `useQuery` calls per page remain, but each `queryFn` and `fetchData` boilerplate is removed. Combined with 1.1: **~50–55 lines** removed.
-
----
-
-### 2.3 `ApprovedFilter` dead code
-
-**Location:** `ApprovedFilter.js:1–178` — entire block commented out (old implementation).
-
-**Suggested consolidation:** Delete the commented block.
-
-**Estimated removal: ~178 lines.**  
-**Severity: Medium** (single file, large block).
+**Estimated removal: ~200–300 lines** (consolidating 16+ transform functions).  
+**Severity: High** (16+ functions, similar patterns).
 
 ---
 
-### 2.4 Reuse of `AnalyticsComponents` (Badge, Table, EmptyState, ChartContainer)
+### 1.3 Loading State Aggregation — **MEDIUM**
 
-`AnalyticsTable`, `TableHeader`, `TableHeaderCell`, `TableBody`, `TableRow`, `TableCell`, `Badge`, `EmptyState`, `ChartContainer` are already in `AnalyticsComponents.js` and used in Budget, Performance, etc. No new consolidation; ensure Disbursement and Applicants use `Badge` / table primitives where it fits to avoid new divergence.
+**Locations:**
+- `Geographic.js` (lines 116–121): `const loading = locationsLoading || topBarangaysLoading || ...`
+- `Trends.js` (lines 89–97): `const loadingStates = { monthly: monthlyLoading, yearly: yearlyLoading, ... }`
+- `Performance.js`: Individual loading checks per stat card
+- `DemographicsEconomics.js` (lines 140–147): `const loadingStates = { gender: genderLoading, ... }`
+- `Budget.js`: Individual loading checks per query
 
----
+**Pattern:** Similar loading state management patterns.
 
-## 3. Refactoring Suggestions
+**Suggested consolidation:**
+- Create `useLoadingStates(queries)` hook that aggregates loading states:
+  ```javascript
+  const loadingStates = useLoadingStates({
+    locations: locationsLoading,
+    topBarangays: topBarangaysLoading,
+    // ...
+  });
+  const overallLoading = Object.values(loadingStates).some(Boolean);
+  ```
 
-### 3.1 Shared hooks
-
-| Hook                   | Purpose                                      | Files to refactor                         | Est. lines removed |
-|------------------------|----------------------------------------------|-------------------------------------------|--------------------|
-| `usePageTitle(title)`  | Set/reset `document.title`                    | 15+ pages                                 | ~45                |
-| `useAnalyticsFetch`    | Analytics `fetchData` + `useQuery` wiring     | Geographic, Trends, Performance, DemographicsEconomics, Budget | ~55                |
-| `useLocationFilters`   | Cities + barangays from `/applicant-locations/filters/` | AnalyticsFilter, ApplicantFilter, ApprovedFilter | ~50                |
-
----
-
-### 3.2 Reusable components
-
-| Component         | Purpose                                      | Est. lines removed |
-|-------------------|----------------------------------------------|--------------------|
-| `CompactSelect`   | Shared select with clear, used in filters    | ~40                |
-| `CompactDateInput`| Shared date input with clear                 | ~30                |
-| `FilterTag`       | Active filter chip with remove               | ~20                |
-| `FilterPanel`     | Filter layout, header, collapse, active tags | ~200 (with 1.6)    |
-| `ChartGrid` / `ChartXAxis` / `ChartYAxis` | Default Recharts styling           | ~70                |
-| `AnalyticsSection`| Section title + `space-y-3` wrapper          | ~15                |
+**Estimated removal: ~50–80 lines** (repeated loading aggregation).  
+**Severity: Medium** (5 pages, similar patterns).
 
 ---
 
-### 3.3 Utilities
+### 1.4 Color Constants and Helpers — **MEDIUM**
 
-| Utility                 | Purpose                                      | Est. lines removed |
-|-------------------------|----------------------------------------------|--------------------|
-| `utils/assistanceColors.js` | `ASSISTANCE_COLORS`, `getAssistanceColor`, `ASSISTANCE_TYPES` | ~90                 |
-| `utils/formatCurrency.js`   | `formatCurrency` for PHP (if reused)     | 0 (future)         |
+**Locations:**
+- `Performance.js` (lines 49–67): `BLUE_MEDIUM`, `DANGER_RED`, `SUCCESS_GREEN`, `WARNING_YELLOW`, `CHART_COLORS`, `getProductivityColor()`
+- `DemographicsEconomics.js` (lines 44–77): `COLOR_PRIMARY`, `COLOR_SECONDARY`, `COLOR_TERTIARY`, `COLOR_ACCENT`, `COLOR_PINK`, `COLOR_SINGLE`, `COLOR_MARRIED`, `getGenderColor()`, `getCivilStatusColor()`, `INCOME_COLORS`
+- `Geographic.js` (lines 62–69): `COLORS` array
+- `Budget.js` (lines 54–57): `COLOR_CLAIMED`, `COLOR_UNCLAIMED`, `COLOR_PRIMARY`
 
----
+**Pattern:** Color constants and helper functions duplicated across pages.
 
-### 3.4 API / data layer
+**Suggested consolidation:**
+- Extend `utils/assistanceColors.js` or create `utils/chartColors.js`:
+  ```javascript
+  export const CHART_COLORS = [...];
+  export const STATUS_COLORS = { claimed: "#10B981", unclaimed: "#EF4444", ... };
+  export function getProductivityColor(count) { ... }
+  export function getGenderColor(gender) { ... }
+  export function getCivilStatusColor(status) { ... }
+  ```
 
-- **`/applicant-locations/filters/`:** already centralized in `useLocationFilters` suggestion.
-- **Analytics:** `fetchData` and `useQuery` pattern centralized in `useAnalyticsFetch`; no new `api.js` surface needed.
-
----
-
-## 4. Specific Areas (Analytics, Charts, Filters, Tables)
-
-### 4.1 Analytics pages (Geographic, Trends, Performance, DemographicsEconomics, Budget)
-
-- **`fetchData`:** replace with `useAnalyticsFetch` (1.1, 2.2).
-- **`document.title`:** replace with `usePageTitle` (1.2).
-- **Assistance colors:** import from `utils/assistanceColors.js` (1.3).
-- **Chart props:** use `ChartGrid` / `ChartXAxis` / `ChartYAxis` or `useChartDefaults` (1.8).
-- **Section headings:** use `AnalyticsSection` (1.9).
-
-### 4.2 Chart configuration and rendering
-
-- Shared axes/grid components (1.8).
-- `ChartContainer` and `AnalyticsChartCard` from `AnalyticsComponents` already used; keep.
-- One `ASSISTANCE_COLORS`/`getAssistanceColor` for all charts (1.3).
-
-### 4.3 Data transformation
-
-- **Trends:** `transformMonthlyData`, `transformYearlyData`, etc. are page-specific; no consolidation unless another page needs the same logic.
-- **Performance:** `getTimeAgo` is reusable: move to `utils/dateUtils.js` and import where needed (~5–10 lines saved in one place, reuse later).
-
-### 4.4 Loading and error handling
-
-- **Analytics:** `AnalyticsChartCard` and `AnalyticsStatCard` already take `isLoading`; `InsightCard` too. Keep.
-- **Applicants:** `LoadingTable`, `ErrorState`, `EmptyState` are local; could be replaced by `DesignSystem` or `AnalyticsComponents` `EmptyState` for consistency, but not a large line win.
-
-### 4.5 Filter implementations
-
-- Consolidate `AnalyticsFilter`, `ApplicantFilter`, and `ApprovedFilter` via `FilterPanel`, `useLocationFilters`, and shared `CompactSelect` / `CompactDateInput` / `FilterTag` (1.4, 1.5, 1.6, 2.1).
-- **ApprovedFilter:** remove commented block (2.3).
-
-### 4.6 Table / list rendering
-
-- `AnalyticsTable`, `TableHeader`, `TableHeaderCell`, `TableBody`, `TableRow`, `TableCell` in `AnalyticsComponents` are used in Budget and Performance. Disbursement and Applicants can use these where the semantics match to avoid new table patterns.
+**Estimated removal: ~100–150 lines** (duplicate color definitions).  
+**Severity: Medium** (4 pages, overlapping color logic).
 
 ---
 
-## 5. Summary: Estimated Lines Removed
+### 1.5 Stat Card Calculations — **MEDIUM**
 
-| Category                         | Est. lines removed |
-|----------------------------------|--------------------|
-| `fetchData` → `useAnalyticsFetch`| 50–55              |
-| `document.title` → `usePageTitle`| 45                 |
-| Assistance colors → `assistanceColors.js` | 80–100      |
-| Cities/barangays → `useLocationFilters`   | 50              |
-| CompactSelect / CompactDateInput / FilterTag | 120–140    |
-| Filter layout → `FilterPanel`     | 180–220            |
-| Assistance `<option>` → `ASSISTANCE_TYPES`| 25                |
-| Chart axes/grid → shared components      | 60–80            |
-| `AnalyticsSection`               | 15–20              |
-| `ApprovedFilter` commented block | 178                |
-| **Total (conservative)**         | **~800–1,070**     |
-| **Total (including FilterPanel overlap)** | **~950–1,220** |
+**Locations:** All analytics pages calculate stats similarly:
+- `Trends.js` (lines 204–231): `totalApplications`, `monthlyGrowth`, `averageMonthlyApplications`, `mostPopularAssistance`
+- `DemographicsEconomics.js` (lines 205–225): `totalApplicants`, `dominantGender`, `topOccupation`, `totalIncome`
+- `Performance.js` (lines 187–212): `calculateStats()` function
+- `Geographic.js` (lines 125–137): `totalApplicants`, `topBarangay`, `barangayCount`, `avgApprovalRate`
+- `Budget.js`: Direct calculations in JSX
 
-If the full `FilterPanel` + filter-component merge is done (2.1), total approaches **~1,200–1,500** lines.  
-Frontend `src` is on the order of **~8,000–10,000+** lines; **~1,200 / 9,000 ≈ 13–15%** in a conservative case, and **~1,500 / 9,000 ≈ 17%** with filter consolidation.  
-Adding `getTimeAgo`, `formatCurrency`, and table/empty-state reuse could push toward **20%+**.
+**Pattern:** Similar calculation patterns:
+- `data.reduce((sum, item) => sum + item.count, 0)` — total count
+- `data.reduce((prev, curr) => (prev.count > curr.count ? prev : curr), {...})` — max item
+- `data.length > 0 ? Math.round(data.reduce(...) / data.length) : 0` — average
 
----
+**Suggested consolidation:**
+- Create `utils/analyticsCalculations.js`:
+  ```javascript
+  export function calculateTotal(data, field = 'count') { ... }
+  export function findMax(data, field = 'count') { ... }
+  export function calculateAverage(data, field = 'count') { ... }
+  export function calculateGrowthRate(data) { ... }
+  ```
 
-## 6. Suggested Implementation Order
-
-1. **Quick wins (low risk)**  
-   - `usePageTitle` and swap in 15+ pages.  
-   - Delete `ApprovedFilter` commented block.  
-   - `utils/assistanceColors.js` + `ASSISTANCE_TYPES` and replace all assistance color/option definitions.
-
-2. **Data and API**  
-   - `useAnalyticsFetch` and refactor all 5 analytics pages.  
-   - `useLocationFilters` and refactor the 3 filter components.
-
-3. **Filter UI**  
-   - Extract `CompactSelect`, `CompactDateInput`, `FilterTag` into `components/filters/`.  
-   - Refactor `AnalyticsFilter` and `ApplicantFilter` to use them; then `FilterPanel` and, if needed, `ApprovedFilter` alignment.
-
-4. **Charts and layout**  
-   - `ChartGrid` / `ChartXAxis` / `ChartYAxis` (or `useChartDefaults`) and replace repeated props.  
-   - `AnalyticsSection` for analytics section headings.
-
-5. **Cross-cutting**  
-   - `getTimeAgo` → `utils/dateUtils.js`.  
-   - `formatCurrency` → `utils/formatCurrency.js` when a second consumer appears.  
-   - Align Disbursement/Applicants with `AnalyticsComponents` table/empty-state where it fits.
+**Estimated removal: ~80–120 lines** (repeated calculation logic).  
+**Severity: Medium** (5 pages, similar calculations).
 
 ---
 
-## 7. Files to Create or Touch
+### 1.6 Chart Gradient Definitions — **LOW**
+
+**Locations:**
+- `Trends.js` (lines 303–307, 336–340, 394–398): Multiple `<defs><linearGradient>` blocks
+- `DemographicsEconomics.js` (lines 373–377, 442–446): Gradient definitions
+- `Geographic.js` (lines 381–386): Gradient definition
+- `Budget.js`: No gradients (uses solid colors)
+
+**Pattern:** Similar gradient definitions for charts.
+
+**Note:** Gradients are chart-specific. Could create a `<ChartGradient>` component, but low priority.
+
+**Estimated removal: ~30–40 lines** (if consolidated).  
+**Severity: Low** (chart-specific, limited reuse).
+
+---
+
+### 1.7 Date Formatting — **MEDIUM**
+
+**Locations:**
+- `Trends.js` (lines 102–106, 117–120, 126–129, 135–138): `new Date(item.month).toLocaleDateString("en-US", { month: "short", year: "numeric" })`
+- `Budget.js` (line 404): `new Date(batch.payout_date).toLocaleDateString()`
+- Multiple pages: Date formatting in various formats
+
+**Pattern:** Repeated date formatting logic.
+
+**Suggested consolidation:**
+- Create `utils/dateFormatters.js`:
+  ```javascript
+  export function formatMonthYear(date) { ... }
+  export function formatShortDate(date) { ... }
+  export function formatLongDate(date) { ... }
+  ```
+
+**Estimated removal: ~40–60 lines** (repeated date formatting).  
+**Severity: Medium** (10+ occurrences).
+
+---
+
+### 1.8 Currency Formatting — **LOW**
+
+**Location:** `Budget.js` (lines 136–143): `formatCurrency()` function
+
+**Pattern:** Only used in Budget.js, but could be reused elsewhere.
+
+**Suggested consolidation:**
+- Move to `utils/formatCurrency.js` for potential reuse.
+
+**Estimated removal: ~0 lines** (single usage, but improves organization).  
+**Severity: Low** (single usage, but good practice).
+
+---
+
+### 1.9 Empty State Handling — **LOW**
+
+**Locations:**
+- `Geographic.js` (lines 510–513): Empty state for coverage gaps
+- Other pages: Various empty state checks
+
+**Pattern:** Similar empty state patterns, but `EmptyState` component already exists in `AnalyticsComponents.js`.
+
+**Note:** `EmptyState` component exists but isn't used consistently. Encourage usage.
+
+**Severity: Low** (component exists, just needs adoption).
+
+---
+
+### 1.10 Pagination Logic — **LOW**
+
+**Location:** `Geographic.js` (lines 75–76, 236–239): Pagination state and calculations
+
+**Pattern:** Only used in one place. No duplication.
+
+**Severity: N/A** (single usage).
+
+---
+
+## 2. Component Structure Patterns
+
+### 2.1 Page Structure — **HIGH**
+
+**Pattern:** All analytics pages follow identical structure:
+```jsx
+<PageContainer>
+  <AnalyticsStack spacing="lg">
+    <PageHeader icon={...} title="..." subtitle="..." />
+    <AnalyticsFilter onFilterChange={setFilters} />
+    <AnalyticsGrid cols={{ default: 1, sm: 2, lg: 4 }} gap="md">
+      {/* Stat Cards */}
+    </AnalyticsGrid>
+    {/* Charts */}
+    <AnalyticsAlertCard>
+      {/* Insights */}
+    </AnalyticsAlertCard>
+  </AnalyticsStack>
+</PageContainer>
+```
+
+**Suggested consolidation:**
+- Create `<AnalyticsPageLayout>` component that wraps this structure:
+  ```javascript
+  <AnalyticsPageLayout
+    icon={Icon}
+    title="..."
+    subtitle="..."
+    onFilterChange={setFilters}
+    statCards={[...]}
+    charts={[...]}
+    insights={[...]}
+  />
+  ```
+
+**Estimated removal: ~150–200 lines** (repeated page structure).  
+**Severity: High** (5 pages, identical structure).
+
+---
+
+### 2.2 Multiple `useAnalyticsQuery` Calls — **MEDIUM**
+
+**Locations:** All analytics pages have 5–11 `useAnalyticsQuery` calls:
+- `Geographic.js`: 6 calls
+- `Trends.js`: 7 calls
+- `Performance.js`: 6 calls
+- `DemographicsEconomics.js`: 7 calls
+- `Budget.js`: 11 calls
+
+**Pattern:** Similar pattern of multiple query calls with similar options.
+
+**Note:** Already using `useAnalyticsQuery` hook (good!). Could create `useMultipleAnalyticsQueries()` hook to batch them, but current approach is fine.
+
+**Severity: Low** (already using shared hook, minor optimization possible).
+
+---
+
+### 2.3 Filter State Management — **LOW**
+
+**Locations:** All analytics pages: `const [filters, setFilters] = useState({});`
+
+**Pattern:** Identical filter state management.
+
+**Note:** Already using `AnalyticsFilter` component (good!). No duplication.
+
+**Severity: N/A** (already consolidated).
+
+---
+
+## 3. Chart-Specific Patterns
+
+### 3.1 BarChart Configuration — **HIGH**
+
+**Locations:** 20+ BarChart instances across all pages
+
+**Common props:**
+- `CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff"`
+- `XAxis tick={{ fontSize: 11, fill: "#4b5563" }}` (often with `angle={-45}`, `textAnchor="end"`, `height={60}`)
+- `YAxis tick={{ fontSize: 11, fill: "#4b5563" }}`
+- `Tooltip` (sometimes with `formatter`)
+- `Bar dataKey="..." fill="..." radius={[4, 4, 0, 0]}`
+
+**Suggested consolidation:**
+- Create `<AnalyticsBarChart>` component:
+  ```javascript
+  <AnalyticsBarChart
+    data={data}
+    dataKey="count"
+    xAxisKey="month"
+    xAxisAngle={-45}
+    height={250}
+    bars={[{ dataKey: "count", fill: "#3B82F6" }]}
+  />
+  ```
+
+**Estimated removal: ~200–250 lines** (repeated BarChart configs).  
+**Severity: High** (20+ BarChart instances).
+
+---
+
+### 3.2 PieChart Configuration — **MEDIUM**
+
+**Locations:** 8+ PieChart instances across pages
+
+**Common props:**
+- `cx="50%" cy="50%" outerRadius={90|100}`
+- `labelLine={false}`
+- `label={({ name, percent }) => ...}`
+- `dataKey="count"` or `dataKey="value"`
+- `stroke="#fff"`
+- `<Cell>` mapping with colors
+
+**Suggested consolidation:**
+- Create `<AnalyticsPieChart>` component:
+  ```javascript
+  <AnalyticsPieChart
+    data={data}
+    dataKey="count"
+    nameKey="type"
+    colors={COLORS}
+    outerRadius={90}
+    showLabel
+  />
+  ```
+
+**Estimated removal: ~100–150 lines** (repeated PieChart configs).  
+**Severity: Medium** (8+ PieChart instances).
+
+---
+
+### 3.3 LineChart/AreaChart Configuration — **MEDIUM**
+
+**Locations:** 5+ LineChart/AreaChart instances
+
+**Common props:**
+- `CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff"`
+- `XAxis` with angle/height
+- `YAxis` with fontSize
+- `Tooltip`
+- `Line`/`Area` with `type="monotone"`, `strokeWidth={2}`, `dot={{ ... }}`
+
+**Suggested consolidation:**
+- Create `<AnalyticsLineChart>` and `<AnalyticsAreaChart>` components.
+
+**Estimated removal: ~80–120 lines** (repeated Line/Area chart configs).  
+**Severity: Medium** (5+ instances).
+
+---
+
+## 4. Data Processing Patterns
+
+### 4.1 Array Operations — **MEDIUM**
+
+**Locations:** All analytics pages use similar array operations:
+- `.filter(item => ...)`
+- `.map(item => ({ ... }))`
+- `.slice(0, 10)`
+- `.reduce((acc, item) => { ... }, {})`
+- `.sort((a, b) => ...)`
+
+**Pattern:** Similar array transformation patterns.
+
+**Note:** These are standard JavaScript patterns. Could create utility functions, but may be over-engineering.
+
+**Severity: Low** (standard patterns, limited consolidation benefit).
+
+---
+
+### 4.2 Data Validation/Safety — **MEDIUM**
+
+**Locations:** All pages have safety checks:
+- `Array.isArray(data) ? data : []`
+- `data?.length || 0`
+- `data?.[0]?.field || "N/A"`
+- `item.field || 0`
+
+**Pattern:** Similar null/undefined safety patterns.
+
+**Suggested consolidation:**
+- Create `utils/dataSafety.js`:
+  ```javascript
+  export function safeArray(data) { return Array.isArray(data) ? data : []; }
+  export function safeGet(data, path, defaultValue) { ... }
+  export function safeCount(data) { return Array.isArray(data) ? data.length : 0; }
+  ```
+
+**Estimated removal: ~50–80 lines** (repeated safety checks).  
+**Severity: Medium** (many occurrences, improves readability).
+
+---
+
+## 5. Specific File Analysis
+
+### 5.1 Geographic.js (625 lines)
+
+**Duplications:**
+- Chart configurations (BarChart, PieChart) — ~80 lines
+- Data transformation functions — ~50 lines
+- Loading state aggregation — ~10 lines
+- Color constants — ~10 lines
+- Stat calculations — ~20 lines
+
+**Total removable: ~170 lines** (27% reduction).
+
+---
+
+### 5.2 Trends.js (561 lines)
+
+**Duplications:**
+- Chart configurations (BarChart, LineChart, AreaChart, PieChart) — ~120 lines
+- Data transformation functions — ~80 lines
+- Loading state object — ~10 lines
+- Stat calculations — ~30 lines
+- Date formatting — ~20 lines
+
+**Total removable: ~260 lines** (46% reduction).
+
+---
+
+### 5.3 Performance.js (517 lines)
+
+**Duplications:**
+- Chart configurations (BarChart, PieChart) — ~80 lines
+- Data transformation functions — ~70 lines
+- Color constants and helpers — ~30 lines
+- Stat calculations — ~30 lines
+- Table rendering (could use shared component) — ~40 lines
+
+**Total removable: ~250 lines** (48% reduction).
+
+---
+
+### 5.4 DemographicsEconomics.js (591 lines)
+
+**Duplications:**
+- Chart configurations (BarChart, PieChart, AreaChart) — ~100 lines
+- Data transformation functions — ~60 lines
+- Color constants and helpers — ~40 lines
+- Stat calculations — ~25 lines
+- Date formatting — ~15 lines
+
+**Total removable: ~240 lines** (41% reduction).
+
+---
+
+### 5.5 Budget.js (735 lines)
+
+**Duplications:**
+- Chart configurations (BarChart, LineChart, PieChart) — ~150 lines
+- Color constants — ~10 lines
+- Currency formatting (already a function, good!) — 0 lines
+- Table rendering — ~60 lines
+- Stat calculations in JSX — ~30 lines
+
+**Total removable: ~250 lines** (34% reduction).
+
+---
+
+## 6. Summary: Estimated Lines Removed
+
+| Category | Est. lines removed |
+|----------|-------------------|
+| Chart configuration boilerplate | ~300–400 |
+| Data transformation functions | ~200–300 |
+| Loading state aggregation | ~50–80 |
+| Color constants and helpers | ~100–150 |
+| Stat calculations | ~80–120 |
+| Date formatting | ~40–60 |
+| Page structure | ~150–200 |
+| Data safety checks | ~50–80 |
+| **Total (conservative)** | **~970–1,390** |
+| **Total (with full refactoring)** | **~1,200–1,800** |
+
+Analytics pages total: **~3,029 lines**  
+**~1,200 / 3,029 ≈ 40%** reduction achievable with full refactoring.
+
+---
+
+## 7. Suggested Implementation Order
+
+1. **Quick wins (low risk)**
+   - Create `utils/chartColors.js` — consolidate color constants
+   - Create `utils/dateFormatters.js` — consolidate date formatting
+   - Create `utils/dataSafety.js` — consolidate safety checks
+   - Create `utils/analyticsCalculations.js` — consolidate stat calculations
+
+2. **Chart components (medium risk)**
+   - Create `<AnalyticsBarChart>` component
+   - Create `<AnalyticsPieChart>` component
+   - Create `<AnalyticsLineChart>` component
+   - Create `<AnalyticsAreaChart>` component
+
+3. **Data transformations (low risk)**
+   - Create `utils/dataTransformers.js` with reusable transformers
+   - Replace local transform functions with utilities
+
+4. **Loading states (low risk)**
+   - Create `useLoadingStates()` hook
+   - Replace manual loading aggregation
+
+5. **Page layout (medium risk)**
+   - Create `<AnalyticsPageLayout>` component (optional, may be too opinionated)
+
+---
+
+## 8. Files to Create or Touch
 
 **New files:**
-
-- `src/hooks/usePageTitle.js`
-- `src/hooks/useAnalyticsFetch.js`
-- `src/hooks/useLocationFilters.js`
-- `src/utils/assistanceColors.js`
-- `src/components/filters/CompactSelect.js`
-- `src/components/filters/CompactDateInput.js`
-- `src/components/filters/FilterTag.js`
-- `src/components/filters/FilterPanel.js` (optional, for full filter layout reuse)
-- `src/components/charts/ChartAxes.js` (or `useChartDefaults` in `hooks/`)
-- `src/utils/formatCurrency.js` (when needed)
-- `src/utils/dateUtils.js` (for `getTimeAgo`)
+- `utils/chartColors.js` — color constants and helpers
+- `utils/dateFormatters.js` — date formatting utilities
+- `utils/dataSafety.js` — data safety utilities
+- `utils/analyticsCalculations.js` — calculation utilities
+- `utils/dataTransformers.js` — data transformation utilities
+- `components/ChartComponents.js` — reusable chart components
+- `hooks/useLoadingStates.js` — loading state aggregation hook
 
 **Heavy edits:**
-
-- All 5 analytics pages
-- `AnalyticsFilter.js`, `ApplicantFilter.js`, `ApprovedFilter.js`
-- `Dashboard.js`, `MapComponent.js`, `HeatMap.js`
-- `EditModal.js`, `Step3.js`, `ApplicantTable.js` (for `ASSISTANCE_TYPES` / colors)
-- 15+ pages for `usePageTitle`
+- `pages/analytics/Geographic.js` — use new components/utilities
+- `pages/analytics/Trends.js` — use new components/utilities
+- `pages/analytics/Performance.js` — use new components/utilities
+- `pages/analytics/DemographicsEconomics.js` — use new components/utilities
+- `pages/analytics/Budget.js` — use new components/utilities
 
 ---
 
-*Generated from static analysis of the QuickAid-Geomapping frontend. Re-run after refactors to update estimates.*
+## 9. Risk Assessment
+
+| Refactoring | Risk Level | Reason |
+|-------------|------------|--------|
+| Create color utilities | **Safe** | Pure functions, easy to test |
+| Create date formatters | **Safe** | Pure functions, easy to test |
+| Create data safety utils | **Safe** | Pure functions, easy to test |
+| Create calculation utils | **Safe** | Pure functions, easy to test |
+| Create chart components | **Moderate** | Need to ensure all chart variations supported |
+| Create data transformers | **Safe** | Pure functions, easy to test |
+| Create loading states hook | **Safe** | Simple hook, easy to test |
+| Create page layout component | **Moderate** | May be too opinionated, limits flexibility |
+
+---
+
+*Generated from static analysis of the QuickAid-Geomapping React frontend. Focus on safe, high-impact changes first.*

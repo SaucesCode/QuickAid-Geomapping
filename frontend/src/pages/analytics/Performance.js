@@ -25,6 +25,13 @@ import {
   Target,
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
+import {
+  CHART_COLORS,
+  EDUCATION_GREEN,
+  MEDICALS_BLUE,
+  BURIAL_YELLOW,
+  getProductivityColor,
+} from "../../utils/chartColors";
 
 // Import Analytics Components
 import {
@@ -45,32 +52,6 @@ import {
   TableCell,
   Badge,
 } from "../../components/AnalyticsComponents";
-
-// Color Constants
-const BLUE_MEDIUM = "#3B82F6";
-const DANGER_RED = "#EF4444";
-const SUCCESS_GREEN = "#10B981";
-const WARNING_YELLOW = "#FACC15";
-const EDUCATION_GREEN = SUCCESS_GREEN;
-const MEDICALS_BLUE = BLUE_MEDIUM;
-const BURIAL_YELLOW = "#FDE68A";
-
-const CHART_COLORS = [
-  "#1D4ED8", // Blue
-  "#3B82F6", // Light Blue
-  "#10B981", // Green
-  "#F59E0B", // Amber
-  "#EF4444", // Red
-  "#8B5CF6", // Purple
-  "#14B8A6", // Teal
-  "#F97316", // Orange
-];
-
-const getProductivityColor = count => {
-  if (count > 50) return BLUE_MEDIUM;
-  if (count > 25) return WARNING_YELLOW;
-  return DANGER_RED;
-};
 
 const Performance = () => {
   const [filters, setFilters] = useState({});

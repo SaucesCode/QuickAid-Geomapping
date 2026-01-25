@@ -27,6 +27,20 @@ import {
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 import { getAssistanceColorOrDefault } from "../../utils/assistanceColors";
+import {
+  COLOR_PRIMARY,
+  COLOR_SECONDARY,
+  COLOR_TERTIARY,
+  COLOR_ACCENT,
+  getGenderColor,
+  getCivilStatusColor,
+  INCOME_COLORS,
+} from "../../utils/chartColors";
+import {
+  calculateTotal,
+  findMax,
+  safeFirst,
+} from "../../utils/analyticsCalculations";
 
 // Import Analytics Components
 import {
@@ -40,51 +54,6 @@ import {
   ChartContainer,
   InsightCard,
 } from "../../components/AnalyticsComponents";
-
-// Color Constants
-const COLOR_PRIMARY = "#3B82F6";
-const COLOR_SECONDARY = "#6366F1";
-const COLOR_TERTIARY = "#2563EB";
-const COLOR_ACCENT = "#1D4ED8";
-const COLOR_PINK = "#EC4899";
-
-const COLOR_SINGLE = COLOR_PRIMARY;
-const COLOR_MARRIED = COLOR_TERTIARY;
-const COLOR_DIVORCED = COLOR_SECONDARY;
-const COLOR_WIDOWED = COLOR_ACCENT;
-const COLOR_SEPARATED = "#93C5FD";
-
-const COLOR_MALE = COLOR_PRIMARY;
-const COLOR_FEMALE = COLOR_PINK;
-
-// Color Helper Functions
-const getGenderColor = gender => {
-  if (!gender) return "#94A3B8";
-  const normalized = gender.toString().trim().toLowerCase();
-  if (normalized === "male") return COLOR_MALE;
-  if (normalized === "female") return COLOR_FEMALE;
-  return "#94A3B8";
-};
-
-const getCivilStatusColor = status => {
-  const norm = (status || "").toLowerCase();
-  if (norm.includes("married")) return COLOR_MARRIED;
-  if (norm.includes("single")) return COLOR_SINGLE;
-  if (norm.includes("divorced")) return COLOR_DIVORCED;
-  if (norm.includes("widowed")) return COLOR_WIDOWED;
-  if (norm.includes("separated") || norm.includes("divprced")) return COLOR_SEPARATED;
-  return "#94A3B8";
-};
-
-const INCOME_COLORS = [
-  "#3B82F6",
-  "#2563EB",
-  "#1D4ED8",
-  "#6366F1",
-  "#4F46E5",
-  "#4338CA",
-  "#93C5FD",
-];
 
 const DemographicsEconomics = () => {
   const [filters, setFilters] = useState({});
@@ -208,20 +177,20 @@ const DemographicsEconomics = () => {
   const isIncomeLoaded = !loadingStates.income;
 
   const totalApplicants = isGenderLoaded
-    ? transformedGenderData.reduce((s, i) => s + i.count, 0)
+    ? calculateTotal(transformedGenderData, "count")
     : "...";
   const dominantGender = isGenderLoaded
-    ? transformedGenderData.reduce((p, c) => (p.count > c.count ? p : c), {
+    ? findMax(transformedGenderData, "count", {
         count: 0,
         gender: "N/A",
       })
     : { count: "...", gender: "..." };
 
   const topOccupation = isOccupationLoaded
-    ? transformedOccupationData[0]
+    ? safeFirst(transformedOccupationData, { occupation: "...", count: "..." })
     : { occupation: "...", count: "..." };
   const totalIncome = isIncomeLoaded
-    ? incomeDistribution.reduce((s, i) => s + i.count, 0)
+    ? calculateTotal(incomeDistribution, "count")
     : "...";
 
   return (

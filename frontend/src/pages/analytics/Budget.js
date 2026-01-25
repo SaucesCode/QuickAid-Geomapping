@@ -30,6 +30,8 @@ import {
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 import { ASSISTANCE_COLORS } from "../../utils/assistanceColors";
+import { COLOR_CLAIMED, COLOR_UNCLAIMED, COLOR_PRIMARY } from "../../utils/chartColors";
+import { formatLongDate } from "../../utils/dateFormatters";
 
 // Import Analytics Components
 import {
@@ -50,11 +52,6 @@ import {
   TableCell,
   Badge,
 } from "../../components/AnalyticsComponents";
-
-// Color Constants
-const COLOR_CLAIMED = "#10B981"; // Green
-const COLOR_UNCLAIMED = "#EF4444"; // Red
-const COLOR_PRIMARY = "#3B82F6"; // Blue
 
 const BUDGET_QUERY_OPTS = {
   paramMap: { start_date: "date_from", end_date: "date_to", type: "assistance" },
@@ -400,9 +397,7 @@ const Budget = () => {
                   <TableRow key={idx}>
                     <TableCell className="font-medium">{batch.batch_name}</TableCell>
                     <TableCell>
-                      {batch.payout_date
-                        ? new Date(batch.payout_date).toLocaleDateString()
-                        : "N/A"}
+                      {batch.payout_date ? formatLongDate(batch.payout_date) : "N/A"}
                     </TableCell>
                     <TableCell>{formatCurrency(batch.total_allocated)}</TableCell>
                     <TableCell className="text-green-600 font-semibold">
