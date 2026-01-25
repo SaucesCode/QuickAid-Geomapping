@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -25,25 +26,24 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
-  const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
   const [sending, setSending] = useState(false);
   const [emailError, setEmailError] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    document.title = "QuickAid | Login";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Login");
 
-  const handleLogin = async e => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (!username || !password) return;
     setIsLoading(true);
     try {
       await loginStaff(username, password);
-      toast.custom(t => <CustomToast t={t} type="login" />);
+      toast.custom((t) => <CustomToast t={t} type="login" />);
       navigate("/dashboard");
     } catch (err) {
       setShowModal(true);
@@ -54,16 +54,18 @@ const Login = () => {
     }
   };
 
-  const validateEmail = email => {
+  const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const handleSubmitAdmin = async e => {
+  const handleSubmitAdmin = async (e) => {
     e.preventDefault();
 
     if (!validateEmail(contactForm.email)) {
-      setEmailError("Please enter a valid email address (e.g., user@example.com).");
+      setEmailError(
+        "Please enter a valid email address (e.g., user@example.com)."
+      );
       return;
     }
     setEmailError("");
@@ -71,7 +73,7 @@ const Login = () => {
     setSending(true);
     try {
       await api.post("/contact-admin/", contactForm);
-      toast.custom(t => <CustomToast t={t} type="contactAdmin" />);
+      toast.custom((t) => <CustomToast t={t} type="contactAdmin" />);
       setContactForm({ name: "", email: "", message: "" });
       setShowContactModal(false);
     } catch {
@@ -112,14 +114,22 @@ const Login = () => {
 
         {/* Logos */}
         <div className="relative z-10 flex items-center space-x-8">
-          <img src={header} alt="DSWD Logo" className="h-19 w-auto drop-shadow-lg" />
+          <img
+            src={header}
+            alt="DSWD Logo"
+            className="h-19 w-auto drop-shadow-lg"
+          />
           {/* <img src={aicsLogo} alt="AICS Logo" className="h-16 w-auto drop-shadow-lg" /> */}
         </div>
 
         {/* Welcome Text */}
         <div className="relative z-10 flex flex-col justify-center flex-1 px-6 text-center lg:text-left -mt-20">
           <div className="relative mx-auto w-fit">
-            <img src={LP1} alt="QuickAid Logo" className="w-64 drop-shadow-lg mx-auto" />
+            <img
+              src={LP1}
+              alt="QuickAid Logo"
+              className="w-64 drop-shadow-lg mx-auto"
+            />
             <p className="absolute bottom-[-1.8rem] right-[-55%] text-lg text-blue-200 whitespace-nowrap">
               Authorized Staff Login Portal for the AICS Information System
             </p>
@@ -141,11 +151,20 @@ const Login = () => {
           {/* 🎨 Login Card - GLASSMORHPISM EFFECT */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-10 shadow-2xl shadow-white/30 border border-white/20">
             <div className="mb-8 text-left text-white">
-              <h2 className="text-3xl font-semibold text-white mb-1">Welcome back</h2>
-              <p className="text-sky-200 text-base opacity-80">Please enter your details.</p>
+              <h2 className="text-3xl font-semibold text-white mb-1">
+                Welcome back
+              </h2>
+              <p className="text-sky-200 text-base opacity-80">
+                Please enter your details.
+              </p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6" noValidate autoComplete="off">
+            <form
+              onSubmit={handleLogin}
+              className="space-y-6"
+              noValidate
+              autoComplete="off"
+            >
               <div>
                 <label
                   htmlFor="username"
@@ -159,7 +178,7 @@ const Login = () => {
                     type="text"
                     placeholder="Enter your username"
                     value={username}
-                    onChange={e => setUsername(e.target.value)}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
                     className="w-full bg-transparent border-b border-white/50 text-white rounded-none pl-0 pr-3 py-2 focus:border-white focus:outline-none transition-colors placeholder:text-white/60"
                   />
@@ -180,7 +199,7 @@ const Login = () => {
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
                     className="w-full bg-transparent border-b border-white/50 text-white rounded-none pl-0 pr-10 py-2 focus:border-white focus:outline-none transition-colors placeholder:text-white/60"
                   />
@@ -209,7 +228,9 @@ const Login = () => {
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
                   </div>
                 )}
-                <span className={isLoading ? "opacity-0" : "opacity-100 text-white"}>
+                <span
+                  className={isLoading ? "opacity-0" : "opacity-100 text-white"}
+                >
                   Log in
                 </span>
               </button>
@@ -247,10 +268,12 @@ const Login = () => {
             </button>
             <div className="flex flex-col items-center text-center">
               <AlertCircle className="w-14 h-14 text-red-400 mb-4 animate-pulse" />
-              <h3 className="text-2xl font-bold text-white mb-2">Access Denied</h3>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Access Denied
+              </h3>
               <p className="text-sm text-sky-200/80">
-                Invalid **username** or **password**. Please verify your credentials and try
-                again.
+                Invalid **username** or **password**. Please verify your
+                credentials and try again.
               </p>
               <button
                 onClick={() => setShowModal(false)}
@@ -283,7 +306,9 @@ const Login = () => {
                   type="text"
                   placeholder="Your full name"
                   value={contactForm.name}
-                  onChange={e => setContactForm({ ...contactForm, name: e.target.value })}
+                  onChange={(e) =>
+                    setContactForm({ ...contactForm, name: e.target.value })
+                  }
                   required
                   className="w-full border border-white/30 rounded-lg px-4 py-3 bg-white/10 text-white placeholder:text-white/60 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
                 />
@@ -295,7 +320,7 @@ const Login = () => {
                   type="email"
                   placeholder="Your email address"
                   value={contactForm.email}
-                  onChange={e => {
+                  onChange={(e) => {
                     setContactForm({ ...contactForm, email: e.target.value });
                     if (emailError && validateEmail(e.target.value)) {
                       setEmailError("");
@@ -320,7 +345,9 @@ const Login = () => {
                 <textarea
                   placeholder="Describe your issue or request for help..."
                   value={contactForm.message}
-                  onChange={e => setContactForm({ ...contactForm, message: e.target.value })}
+                  onChange={(e) =>
+                    setContactForm({ ...contactForm, message: e.target.value })
+                  }
                   required
                   className="w-full border border-white/30 rounded-lg px-4 py-3 h-28 bg-white/10 text-white placeholder:text-white/60 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
                 />

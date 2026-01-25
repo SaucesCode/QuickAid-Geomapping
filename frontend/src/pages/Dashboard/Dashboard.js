@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
@@ -48,33 +49,13 @@ import {
   InsightCard,
 } from "../../components/AnalyticsComponents";
 import MonthToggle from "./components/MonthToggle";
-
-// Assistance Type Colors
-const ASSISTANCE_COLORS = {
-  medical: "info",
-  educational: "success",
-  burial: "warning",
-  default: "default",
-};
-
-const getAssistanceTypeVariant = type => {
-  const normalized = (type || "").toLowerCase();
-  if (normalized.includes("medical")) return ASSISTANCE_COLORS.medical;
-  if (normalized.includes("educational")) return ASSISTANCE_COLORS.educational;
-  if (normalized.includes("burial")) return ASSISTANCE_COLORS.burial;
-  return ASSISTANCE_COLORS.default;
-};
+import { getAssistanceTypeVariant } from "../../utils/assistanceColors";
 
 const Dashboard = () => {
   const [assistanceMonth, setAssistanceMonth] = useState("current");
   const [forecastMonth, setForecastMonth] = useState("current");
 
-  useEffect(() => {
-    document.title = "QuickAid | Dashboard";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Dashboard");
 
   const getDateRange = monthType => {
     const today = new Date();

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useQuery } from "@tanstack/react-query";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
@@ -18,6 +19,11 @@ import {
 } from "lucide-react";
 import MapCanvas from "./MapCanvas";
 import toast from "react-hot-toast";
+import {
+  ASSISTANCE_TYPES,
+  ASSISTANCE_COLORS_FOR_MAP,
+  getAssistanceMapColor,
+} from "../../utils/assistanceColors";
 
 // ===========================================
 // 1. LEAFLET SETUP & CONFIGURATION
@@ -40,12 +46,6 @@ L.Marker.prototype.options.icon = L.icon({
 const defaultCenter = [13.918, 121.575];
 
 // Configuration data
-const assistanceColors = {
-  Medical: "blue",
-  Burial: "#fef08a",
-  Educational: "green",
-};
-const assistanceTypes = ["Medical", "Burial", "Educational"];
 const cities = ["Lucena City", "Sariaya", "Candelaria", "Tiaong", "San Antonio", "Dolores"];
 
 /**
@@ -99,12 +99,6 @@ const MapComponent = () => {
    * @description Toggles the visibility of the filter panel.
    */
   const togglePanel = () => setPanelOpen(prev => !prev);
-
-  /**
-   * @function getColor
-   * @description Returns the configured color for a given assistance type.
-   */
-  const getColor = type => assistanceColors[type] || "#f87171";
 
   /**
    * @function resetFilters
@@ -198,7 +192,7 @@ const MapComponent = () => {
    */
   const stats = useMemo(() => {
     const counts = {};
-    assistanceTypes.forEach(t => {
+    ASSISTANCE_TYPES.forEach(t => {
       counts[t] = filteredLocations.filter(l => l.type_of_assistance === t).length;
     });
     return counts;
@@ -225,16 +219,7 @@ const MapComponent = () => {
     setBarangayFilter("");
   }, [allLocationsData, cityFilter]);
 
-  /**
-   * @hook useEffect
-   * @description Manages browser tab title.
-   */
-  useEffect(() => {
-    document.title = "QuickAid | Geolocation Map";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Geolocation Map");
 
   // --- Custom Map Functions ---
 
@@ -258,7 +243,7 @@ const MapComponent = () => {
       typeCounts[a] > typeCounts[b] ? a : b
     );
 
-    const color = getColor(dominantType);
+    const color = getAssistanceMapColor(dominantType);
     const count = markers.length;
 
     return L.divIcon({
@@ -348,7 +333,7 @@ const MapComponent = () => {
             clusterEnabled={clusterEnabled}
             createClusterCustomIcon={createClusterCustomIcon}
             createColoredIcon={createColoredIcon}
-            getColor={getColor}
+            getColor={getAssistanceMapColor}
             geoData={geoData}
             cityFilter={cityFilter}
             cityGeoData={cityGeoData}
@@ -455,7 +440,7 @@ const MapComponent = () => {
                       value={typeFilter}
                     >
                       <option value="">All Types</option>
-                      {assistanceTypes.map(type => (
+                      {ASSISTANCE_TYPES.map(type => (
                         <option key={type} value={type}>
                           {type}
                         </option>
@@ -624,7 +609,7 @@ const MapComponent = () => {
 
                 {/* Stats Cards by Type */}
                 <div className="space-y-2">
-                  {Object.entries(assistanceColors).map(([type, color]) => (
+                  {Object.entries(ASSISTANCE_COLORS_FOR_MAP).map(([type, color]) => (
                     <div
                       key={type}
                       className="flex items-center justify-between p-2.5 bg-white/60 rounded-lg border border-gray-200 hover:bg-white/80 transition-colors"

@@ -1,5 +1,6 @@
 // File: frontend/src/forms/Step3.js
 import React, { useState } from "react";
+import { ASSISTANCE_TYPES } from "../../utils/assistanceColors";
 
 const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
   const [errors, setErrors] = useState({});
@@ -281,9 +282,9 @@ const Step3 = ({ formData, handleChange, nextStep, prevStep, setFormData }) => {
                     <option value="" disabled>
                       Select assistance type
                     </option>
-                    <option value="Medical">Medical</option>
-                    <option value="Burial">Burial</option>
-                    <option value="Educational">Educational</option>
+                    {ASSISTANCE_TYPES.map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
                   </select>
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                     <svg
