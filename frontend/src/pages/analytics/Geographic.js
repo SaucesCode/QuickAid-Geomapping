@@ -34,6 +34,8 @@ import AnalyticsFilter from "../../components/AnalyticsFilter";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../../components/Pagination";
 import { ASSISTANCE_COLORS } from "../../utils/assistanceColors";
+import { COLORS } from "../../utils/chartColors";
+import { calculateAverage, safeArray, safeCount } from "../../utils/analyticsCalculations";
 
 // Import Analytics Components
 import {
@@ -58,15 +60,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: require("leaflet/dist/images/marker-icon.png"),
   shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
-
-const COLORS = [
-  "#EF4444", // Red
-  "#F59E0B", // Amber / Yellow
-  "#10B981", // Emerald / Green
-  "#3B82F6", // Blue
-  "#8B5CF6", // Purple
-  "#EC4899", // Pink
-];
 
 const Geographic = () => {
   const [filters, setFilters] = useState({});
@@ -121,19 +114,16 @@ const Geographic = () => {
     inactiveLoading;
 
   // Data processing
-  const validLocations = (locations || []).filter(loc => loc.latitude && loc.longitude);
+  const validLocations = safeArray(locations).filter(loc => loc.latitude && loc.longitude);
   const totalApplicants = validLocations.length;
   const topBarangay =
-    Array.isArray(topBarangays) && topBarangays.length > 0
+    safeArray(topBarangays).length > 0
       ? topBarangays[0]?.background_info__barangay__name || "N/A"
       : "N/A";
   const barangayCount = [...new Set(validLocations.map(loc => loc.barangay))].length;
   const avgApprovalRate =
-    Array.isArray(approvalRates) && approvalRates.length > 0
-      ? (
-          approvalRates.reduce((sum, item) => sum + (item.approval_rate || 0), 0) /
-          approvalRates.length
-        ).toFixed(1)
+    safeArray(approvalRates).length > 0
+      ? calculateAverage(approvalRates, "approval_rate").toFixed(1)
       : 0;
 
   const initializeHeatmap = locationData => {
@@ -167,7 +157,7 @@ const Geographic = () => {
   };
 
   const processBarangayTypeData = () => {
-    const safeData = Array.isArray(barangayByType) ? barangayByType : [];
+    const safeData = safeArray(barangayByType);
     const barangays = [
       ...new Set(
         safeData
@@ -295,7 +285,7 @@ const Geographic = () => {
           <AnalyticsStatCard
             icon={Clock}
             title="Inactive"
-            value={inactiveApplicants?.length || 0}
+            value={safeCount(inactiveApplicants)}
             subtitle="6+ months"
             color="#003a76"
             isLoading={loading}
@@ -504,7 +494,7 @@ const Geographic = () => {
           <AnalyticsChartCard
             icon={Clock}
             title="Underserved Areas"
-            subtitle={`${coverageGaps?.length || 0} barangays requiring attention`}
+            subtitle={`${safeCount(coverageGaps)} barangays requiring attention`}
             isLoading={gapsLoading}
           >
             {paginatedGaps.length === 0 ? (
@@ -569,7 +559,7 @@ const Geographic = () => {
                       setItemsPerPage(newValue);
                       setInactivePage(1);
                     }}
-                    totalItems={coverageGaps?.length || 0}
+                    totalItems={safeCount(coverageGaps)}
                   />
                 )}
               </>

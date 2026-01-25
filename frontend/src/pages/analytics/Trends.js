@@ -29,6 +29,13 @@ import {
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 import { getAssistanceColor } from "../../utils/assistanceColors";
+import { formatMonthYear, formatShortDate } from "../../utils/dateFormatters";
+import {
+  calculateGrowthRateFromArray,
+  calculateAverage,
+  findMax,
+  safeLast,
+} from "../../utils/analyticsCalculations";
 
 // Import Analytics Components
 import {
@@ -99,10 +106,7 @@ const Trends = () => {
   // Data Transformations
   const transformMonthlyData = data =>
     data.map(item => ({
-      month: new Date(item.month).toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      }),
+      month: formatMonthYear(item.month),
       count: item.count,
     }));
 
@@ -114,28 +118,19 @@ const Trends = () => {
 
   const transformOvertimeData = data =>
     data.map(item => ({
-      date: new Date(item.day).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
+      date: formatShortDate(item.day),
       count: item.count,
     }));
 
   const transformCumulativeData = data =>
     data.map(item => ({
-      date: new Date(item.day).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
+      date: formatShortDate(item.day),
       cumulative: item.cumulative,
     }));
 
   const transformAssistanceTypeOverTime = data => {
     const grouped = data.reduce((acc, item) => {
-      const monthKey = new Date(item.month).toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      });
+      const monthKey = formatMonthYear(item.month);
       if (!acc[monthKey]) acc[monthKey] = { month: monthKey };
       acc[monthKey][item.type_of_assistance] = item.count;
       return acc;
@@ -162,12 +157,6 @@ const Trends = () => {
     return hours;
   };
 
-  const calculateGrowthRate = data => {
-    if (data.length < 2) return 0;
-    const latest = data[data.length - 1]?.count || 0;
-    const previous = data[data.length - 2]?.count || 0;
-    return previous > 0 ? ((latest - previous) / previous) * 100 : 0;
-  };
 
   // Dynamic Color Mapping
   useEffect(() => {
@@ -207,27 +196,22 @@ const Trends = () => {
   const isAssistanceTypeLoaded = !loadingStates.assistanceType;
 
   const totalApplications = isCumulativeLoaded
-    ? transformedCumulativeData.length > 0
-      ? transformedCumulativeData[transformedCumulativeData.length - 1].cumulative
-      : 0
+    ? safeLast(transformedCumulativeData, { cumulative: 0 })?.cumulative || 0
     : "...";
 
-  const monthlyGrowth = isMonthlyLoaded ? calculateGrowthRate(transformedMonthlyData) : 0;
+  const monthlyGrowth = isMonthlyLoaded
+    ? calculateGrowthRateFromArray(transformedMonthlyData)
+    : 0;
 
   const averageMonthlyApplications = isMonthlyLoaded
-    ? transformedMonthlyData.length > 0
-      ? Math.round(
-          transformedMonthlyData.reduce((sum, i) => sum + i.count, 0) /
-            transformedMonthlyData.length
-        )
-      : 0
+    ? calculateAverage(transformedMonthlyData, "count")
     : "...";
 
   const mostPopularAssistance = isAssistanceTypeLoaded
-    ? assistanceTypeData.reduce((prev, curr) => (prev.count > curr.count ? prev : curr), {
+    ? findMax(assistanceTypeData, "count", {
         type_of_assistance: "N/A",
         count: 0,
-      }) || {}
+      })
     : { type_of_assistance: "...", count: "..." };
 
   return (

@@ -32,7 +32,9 @@ from django.utils.timezone import now, timedelta
 from .utils import ( 
     apply_applicant_filters, apply_approval_filters, 
     get_applicant_history, log_staff_activity, extract_amount_from_notes,
-    base_disbursement_qs, apply_budget_filters, extract_amount_from_notes
+    base_disbursement_qs, apply_budget_filters,
+    duration_to_minutes, safe_float, calculate_percentage,
+    get_processing_time_annotation, get_applicant_base_queryset, get_month_boundaries
 )
 from .export_analytics import ExportOrchestrator
 from django.core.exceptions import ValidationError
@@ -45,6 +47,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import (
     IsAdminUser, IsAuthenticated, AllowAny
 )
+from .decorators import analytics_view
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -1498,13 +1501,10 @@ def summary_metrics(request):
     avg_processing_time = base_qs.exclude(
         created_at__isnull=True, date_filled__isnull=True
     ).aggregate(
-        avg_time=Avg(ExpressionWrapper(
-            F('date_filled') - F('created_at'),
-            output_field=DurationField()
-        ))
+        avg_time=Avg(get_processing_time_annotation())
     )['avg_time']
 
-    avg_minutes = round(avg_processing_time.total_seconds() / 60, 1) if avg_processing_time else 0
+    avg_minutes = duration_to_minutes(avg_processing_time)
 
     most_common_type = base_qs.values('type_of_assistance').annotate(
         count=Count('id')
@@ -1562,10 +1562,7 @@ def applicant_growth_rate(request):
     - Compares this month vs previous month (% growth)
     - Uses exact month boundaries, not just last 30 days
     """
-    today = timezone.localdate()
-    start_of_this_month = today.replace(day=1)
-    start_of_last_month = (start_of_this_month - timedelta(days=1)).replace(day=1)
-    end_of_last_month = start_of_this_month - timedelta(days=1)
+    start_of_this_month, start_of_last_month, end_of_last_month = get_month_boundaries()
 
     base_qs = Applicant.objects.filter(is_archived=False)
 
@@ -1596,10 +1593,7 @@ def monthly_comparison_metrics(request):
     Compare current month vs previous month for all key metrics
     Returns: percentage changes and actual values
     """
-    today = timezone.localdate()
-    start_of_this_month = today.replace(day=1)
-    start_of_last_month = (start_of_this_month - timedelta(days=1)).replace(day=1)
-    end_of_last_month = start_of_this_month - timedelta(days=1)
+    start_of_this_month, start_of_last_month, end_of_last_month = get_month_boundaries()
     
     base_qs = Applicant.objects.filter(is_archived=False)
     
@@ -1616,7 +1610,7 @@ def monthly_comparison_metrics(request):
             output_field=DurationField()
         ))
     )['avg_time']
-    this_month_minutes = round(this_month_avg_time.total_seconds() / 60, 1) if this_month_avg_time else 0
+    this_month_minutes = duration_to_minutes(this_month_avg_time)
     
     # Last month
     last_month = base_qs.filter(
@@ -1632,7 +1626,7 @@ def monthly_comparison_metrics(request):
             output_field=DurationField()
         ))
     )['avg_time']
-    last_month_minutes = round(last_month_avg_time.total_seconds() / 60, 1) if last_month_avg_time else 0
+    last_month_minutes = duration_to_minutes(last_month_avg_time)
     
     # Calculate percentage changes
     volume_change = ((this_month_count - last_month_count) / last_month_count * 100) if last_month_count > 0 else 0
@@ -1732,13 +1726,10 @@ def capacity_alerts(request):
     """
     alerts = []
     
-    today = timezone.localdate()
-    start_of_this_month = today.replace(day=1)
-    base_qs = Applicant.objects.filter(is_archived=False)
+    start_of_this_month, start_of_last_month, end_of_last_month = get_month_boundaries()
+    base_qs = get_applicant_base_queryset()
     
     # 1. Growth Rate Alert
-    start_of_last_month = (start_of_this_month - timedelta(days=1)).replace(day=1)
-    end_of_last_month = start_of_this_month - timedelta(days=1)
     
     this_month_count = base_qs.filter(date_filled__date__gte=start_of_this_month).count()
     last_month_count = base_qs.filter(
@@ -1768,7 +1759,7 @@ def capacity_alerts(request):
         ))
     )['avg_time']
     
-    avg_minutes = round(avg_time.total_seconds() / 60, 1) if avg_time else 0
+    avg_minutes = duration_to_minutes(avg_time)
     
     if avg_minutes > 15:
         alerts.append({
@@ -1864,20 +1855,16 @@ def apply_common_filters(request, queryset):
     return queryset
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def analytics_applicant_locations(request):
     """
     🌍 Geographic: Applicant locations
     - Returns lat/lon + address for mapping
     - Filters: type, city, barangay
     """
-    applicants = Applicant.objects.select_related(
-        "background_info",
-        "background_info__barangay",
-        'background_info__barangay__city').exclude(
+    applicants = get_applicant_base_queryset().exclude(
         latitude__isnull=True, longitude__isnull=True
-    ).filter(is_archived=False)
+    )
 
     applicants = apply_common_filters(request, applicants)
 
@@ -1895,38 +1882,26 @@ def analytics_applicant_locations(request):
     return Response(data)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def top_barangays(request):
     """
     🌍 Geographic: Top barangays
     - Returns top 10 barangays by applicant count
     - Optional filters: assistance type, date range
     """
-    base_qs = Applicant.objects.select_related(
-        "barangay_info",
-        "barangay_info__barangay",
-        "barangay_info__barangay__city",
-    ).filter(is_archived=False)
-
+    base_qs = get_applicant_base_queryset()
     base_qs = apply_common_filters(request, base_qs)
 
     data = base_qs.values('background_info__barangay__name').annotate(count=Count('id')).order_by('-count')[:10]
     return Response(list(data))
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def barangay_by_type(request):
     """
     Geographic: Applications by barangay & assistance type
     """
-    qs = Applicant.objects.filter(is_archived=False).select_related(
-        "background_info",
-        "background_info__barangay",
-        "background_info__barangay__city"
-    )
-
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
 
     # ✅ Group by barangay and assistance type
@@ -1950,13 +1925,12 @@ def barangay_by_type(request):
     return Response(response_data)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def barangay_performance_comparison(request):
     """
     Compare barangays by applications and approval rate only
     """
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
 
     barangay_metrics = qs.values('background_info__barangay__name').annotate(
@@ -2005,14 +1979,13 @@ def barangay_performance_comparison(request):
     })
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def service_coverage_gaps(request):
     """
     Identify underserved areas and service gaps
     Returns: barangays with low volume and potential outreach targets
     """
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
     
     # Get all barangays with application counts
@@ -2050,8 +2023,7 @@ def service_coverage_gaps(request):
     return Response(underserved)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def approval_rate_by_location(request):
     """
     🌍 Geographic: Approval rates by location
@@ -2064,7 +2036,7 @@ def approval_rate_by_location(request):
     }
 
     group_field = valid_groups.get(request.GET.get("group", "city"))
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
 
     qs = (
@@ -2215,11 +2187,10 @@ def _analyze_demographic_trends(data):
     
     return " | ".join(insights) if insights else "Demographics remain stable"
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def applicants_by_gender(request):
     """👥 Demographics: Applicants by gender"""
-    applicants = Applicant.objects.filter(is_archived=False)\
+    applicants = get_applicant_base_queryset()\
         .values(
             "background_info__sex"
         ).annotate(count=Count("id")).order_by("count")
@@ -2229,11 +2200,10 @@ def applicants_by_gender(request):
     return Response(list(applicants))
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def applicants_by_civil_status(request):
     """👥 Demographics: Applicants by civil status"""
-    applicants = Applicant.objects.filter(is_archived=False)
+    applicants = get_applicant_base_queryset()
     applicants = apply_common_filters(request, applicants)
 
     data = applicants.values("background_info__civil_status")\
@@ -2244,12 +2214,11 @@ def applicants_by_civil_status(request):
 
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def applicants_by_age_group(request):
     """👥 Demographics: Applicants by age groups (0–17, 18–25, … 60+)"""
     today = date.today()
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
 
     qs = qs.annotate(
@@ -2303,12 +2272,11 @@ def applicants_by_occupation(request):
 
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def applicants_by_age_gender(request):
     """👥 Demographics: Applicants by age × gender cross-tab"""
     today = date.today()
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
     qs = qs.annotate(
         age=ExpressionWrapper(
@@ -2325,12 +2293,11 @@ def applicants_by_age_gender(request):
     return Response(list(data))
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def income_distribution(request):
     """💰 Economics: Income distribution by applicant"""
 
-    applicants = Applicant.objects.filter(is_archived=False)
+    applicants = get_applicant_base_queryset()
     applicants = applicants.exclude(background_info__monthly_income=0)
 
     applicants = apply_common_filters(request, applicants)
@@ -2448,13 +2415,12 @@ def monthly_trends(request):
     return Response(list(data))
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def yearly_trends(request):
     """
     📈 Trends: Applicants by year
     """
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
     
     qs = qs.annotate(
@@ -2465,27 +2431,25 @@ def yearly_trends(request):
     return Response(list(qs))
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def trends_over_time(request):
     """
     📈 Trends: Applicants over time (daily granularity, configurable start/end)
     """
 
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
 
     data = qs.annotate(day=TruncDate("date_filled")).values("day").annotate(count=Count("id")).order_by("day")
     return Response(list(data))
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def cumulative_applicants(request):
     """
     📈 Trends: Cumulative applicants over time
     """
-    qs = Applicant.objects.annotate(
+    qs = get_applicant_base_queryset().annotate(
         day=TruncDate("date_filled")
     ).values("day").annotate(count=Count("id")).order_by("day")
 
@@ -2499,14 +2463,13 @@ def cumulative_applicants(request):
     return Response(cumulative)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def assistance_type_trend(request):
     """
     📈 Trends: Distribution of assistance types
     """
 
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
 
     qs = qs.values("type_of_assistance").annotate(count=Count("id")).order_by("-count")
@@ -2561,14 +2524,13 @@ def assistance_type_linetrend(request):
 
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def assistance_type_over_time(request):
     """
     📈 Trends: Assistance types over time (monthly stacked)
     """
 
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
 
     qs = qs.annotate(
@@ -2578,13 +2540,12 @@ def assistance_type_over_time(request):
     return Response(list(qs))
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def approval_trends(request):
     """
     📈 Trends: Approval counts over time (monthly)
     """
-    qs = Applicant.objects.filter(is_archive=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
 
     qs = Applicant.objects.filter(approvals__isnull=False).annotate(
@@ -2611,11 +2572,10 @@ def time_to_approval(request):
     return Response({"average_days_to_approval": avg_days})
 
 # Applicants Activity Heatmap (by hour of day)
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def applicant_activity_heatmap(request):
 
-    qs = Applicant.objects.annotate(
+    qs = get_applicant_base_queryset().annotate(
         hour=ExtractHour("date_filled")
     ).values("hour").annotate(count=Count("id")).order_by("hour")
 
@@ -2637,32 +2597,30 @@ def applicant_activity_heatmap(request):
 # 5. ⚡ PERFORMANCE & PRODUCTIVITY
 # ======================================================
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def average_processing_time(request):
     """
     ⚡ Performance: Average processing time (minutes)
     """
-    qs = Applicant.objects.exclude(created_at__isnull=True, date_filled__isnull=True).annotate(
-        duration=ExpressionWrapper(F("date_filled") - F("created_at"), output_field=DurationField())
+    qs = get_applicant_base_queryset().exclude(created_at__isnull=True, date_filled__isnull=True).annotate(
+        duration=get_processing_time_annotation()
     )
 
     qs = apply_common_filters(request, qs)
 
     avg_time = qs.aggregate(avg=Avg("duration"))["avg"]
-    avg_minutes = round(avg_time.total_seconds() / 60, 1) if avg_time else 0
+    avg_minutes = duration_to_minutes(avg_time)
     
     return Response({"average_processing_time_minutes": avg_minutes})
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def processing_time_by_type(request):
     """
     ⚡ Performance: Average processing time grouped by assistance type
     """
-    qs = Applicant.objects.exclude(created_at__isnull=True, date_filled__isnull=True).annotate(
-        duration=ExpressionWrapper(F("date_filled") - F("created_at"), output_field=DurationField())
+    qs = get_applicant_base_queryset().exclude(created_at__isnull=True, date_filled__isnull=True).annotate(
+        duration=get_processing_time_annotation()
     )
 
     qs = apply_common_filters(request, qs)
@@ -2675,7 +2633,7 @@ def processing_time_by_type(request):
     results = [
             {
             "type": row["type_of_assistance"],
-            "avg_minutes": round(row["avg_time"].total_seconds() / 60, 1) if row["avg_time"] else 0
+            "avg_minutes": duration_to_minutes(row["avg_time"])
         } 
         for row in data
     ]
@@ -2683,14 +2641,13 @@ def processing_time_by_type(request):
     return Response(results)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def processing_time_distribution(request):
     """
     ⚡ Performance: Distribution of processing times (bucketed in minutes)
     """
-    qs = Applicant.objects.exclude(created_at__isnull=True, date_filled__isnull=True).annotate(
-        duration=ExpressionWrapper(F("date_filled") - F("created_at"), output_field=DurationField())
+    qs = get_applicant_base_queryset().exclude(created_at__isnull=True, date_filled__isnull=True).annotate(
+        duration=get_processing_time_annotation()
     )
 
     qs = apply_common_filters(request, qs)
@@ -2714,44 +2671,34 @@ def processing_time_distribution(request):
     return Response(data)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def staff_productivity(request):
     """
     ⚡ Performance: Applicants processed per staff member
     """
 
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
 
     qs = qs.values("staff__username").annotate(count=Count("id")).order_by("-count")
     return Response(list(qs))
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def staff_efficiency_trends(request):
     """
     Track staff performance changes over time
     Returns: efficiency metrics with month-over-month changes
     """
-    today = timezone.now().date()
-    start_of_this_month = today.replace(day=1)
-    start_of_last_month = (start_of_this_month - timedelta(days=1)).replace(day=1)
-    end_of_last_month = start_of_this_month - timedelta(days=1)
+    start_of_this_month, start_of_last_month, end_of_last_month = get_month_boundaries()
     
-    base_qs = Applicant.objects.filter(is_archived=False)
+    base_qs = get_applicant_base_queryset()
     
     # This month staff performance
     this_month_staff = base_qs.filter(
         date_filled__date__gte=start_of_this_month
     ).values('staff__username').annotate(
         count=Count('id'),
-        avg_time=Avg(
-            ExpressionWrapper(
-                F('date_filled') - F('created_at'),
-                output_field=DurationField()
-            )
-        )
+        avg_time=Avg(get_processing_time_annotation())
     )
     
     # Last month staff performance
@@ -2759,19 +2706,14 @@ def staff_efficiency_trends(request):
         date_filled__date__range=[start_of_last_month, end_of_last_month]
     ).values('staff__username').annotate(
         count=Count('id'),
-        avg_time=Avg(
-            ExpressionWrapper(
-                F('date_filled') - F('created_at'),
-                output_field=DurationField()
-            )
-        )
+        avg_time=Avg(get_processing_time_annotation())
     )
     
     # Build comparison dictionary
     last_month_dict = {
         item['staff__username']: {
             'count': item['count'],
-            'avg_minutes': round(item['avg_time'].total_seconds() / 60, 1) if item['avg_time'] else 0
+            'avg_minutes': duration_to_minutes(item['avg_time'])
         }
         for item in last_month_staff if item['staff__username']
     }
@@ -2783,7 +2725,7 @@ def staff_efficiency_trends(request):
             continue
         
         current_count = item['count']
-        current_avg = round(item['avg_time'].total_seconds() / 60, 1) if item['avg_time'] else 0
+        current_avg = duration_to_minutes(item['avg_time'])
         
         # Compare with last month
         if username in last_month_dict:
@@ -2833,13 +2775,12 @@ def staff_efficiency_trends(request):
     })
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@analytics_view()
 def staff_leaderboard(request):
     """
     ⚡ Performance: Staff ranked by number of processed applications
     """
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
 
     qs = qs.values("staff__username").annotate(count=Count("id")).order_by("-count")[:10]
@@ -2909,18 +2850,13 @@ def workload_balance_analysis(request):
     Analyze staff workload distribution and identify imbalances
     Returns: workload metrics with balance indicators
     """
-    qs = Applicant.objects.filter(is_archived=False)
+    qs = get_applicant_base_queryset()
     qs = apply_common_filters(request, qs)
     
     # Get staff workload
     staff_workload = qs.values('staff__username').annotate(
         total_applications=Count('id'),
-        avg_processing_minutes=Avg(
-            ExpressionWrapper(
-                F('date_filled') - F('created_at'),
-                output_field=DurationField()
-            )
-        )
+        avg_processing_minutes=Avg(get_processing_time_annotation())
     ).order_by('-total_applications')
     
     # Convert to list
@@ -2930,7 +2866,7 @@ def workload_balance_analysis(request):
             continue
         
         avg_seconds = item['avg_processing_minutes']
-        avg_minutes = round(avg_seconds.total_seconds() / 60, 1) if avg_seconds else 0
+        avg_minutes = duration_to_minutes(avg_seconds)
         
         workloads.append({
             'staff': item['staff__username'],
@@ -3040,9 +2976,9 @@ def budget_overview(request):
         pending_count=Count('id', filter=Q(status='PENDING'))
     )
 
-    total_budget = float(aggregates['total_budget'])
-    total_claimed = float(aggregates['total_claimed'])
-    claim_rate = (total_claimed / total_budget * 100) if total_budget > 0 else 0
+    total_budget = safe_float(aggregates['total_budget'])
+    total_claimed = safe_float(aggregates['total_claimed'])
+    claim_rate = calculate_percentage(total_claimed, total_budget)
     budget_utilization = claim_rate  # Same as claim_rate
 
     # Breakdown by assistance type
@@ -3057,12 +2993,12 @@ def budget_overview(request):
     return Response({
         "total_budget": total_budget,
         "total_claimed": total_claimed,
-        "total_unclaimed": float(aggregates['total_unclaimed']),
-        "pending_amount": float(aggregates['pending_amount']),
+        "total_unclaimed": safe_float(aggregates['total_unclaimed']),
+        "pending_amount": safe_float(aggregates['pending_amount']),
         "forfeited_amount": 0,  # Not tracked in current model
-        "claim_rate": round(claim_rate, 2),
-        "budget_utilization": round(budget_utilization, 2),
-        "avg_claim_amount": float(aggregates['avg_claim'] or 0),
+        "claim_rate": claim_rate,
+        "budget_utilization": budget_utilization,
+        "avg_claim_amount": safe_float(aggregates['avg_claim']),
         "total_beneficiaries": aggregates['total_beneficiaries'],
         "claimed_count": aggregates['claimed_count'],
         "unclaimed_count": aggregates['unclaimed_count'],
@@ -3070,9 +3006,9 @@ def budget_overview(request):
         "breakdown_by_assistance": [
             {
                 "approval__applicant__type_of_assistance": item['type'],
-                "total_amount": float(item['total_amount']),
+                "total_amount": safe_float(item['total_amount']),
                 "claim_count": item['claim_count'],
-                "avg_amount": float(item['avg_amount'])
+                "avg_amount": safe_float(item['avg_amount'])
             }
             for item in breakdown
         ]
@@ -3118,19 +3054,19 @@ def budget_by_location(request):
     # Calculate claim rates
     data = []
     for item in grouped:
-        total = float(item['total_allocated'] or 0)
-        claimed = float(item['total_claimed'] or 0)
-        claim_rate = (claimed / total * 100) if total > 0 else 0
+        total = safe_float(item['total_allocated'])
+        claimed = safe_float(item['total_claimed'])
+        claim_rate = calculate_percentage(claimed, total)
 
         data.append({
             'location_name': item['location_name'],
             'total_allocated': total,
             'total_claimed': claimed,
-            'total_unclaimed': float(item['total_unclaimed'] or 0),
+            'total_unclaimed': safe_float(item['total_unclaimed']),
             'claim_count': item['claim_count'],
             'unclaim_count': item['unclaim_count'],
-            'avg_claim_amount': float(item['avg_claim_amount'] or 0),
-            'claim_rate': round(claim_rate, 2)
+            'avg_claim_amount': safe_float(item['avg_claim_amount']),
+            'claim_rate': claim_rate
         })
 
     # Calculate totals
@@ -3168,16 +3104,16 @@ def budget_by_assistance(request):
     # Calculate claim rates
     formatted_data = []
     for item in data:
-        total = float(item['total_allocated'] or 0)
-        claimed = float(item['total_claimed'] or 0)
-        claim_rate = (claimed / total * 100) if total > 0 else 0
+        total = safe_float(item['total_allocated'])
+        claimed = safe_float(item['total_claimed'])
+        claim_rate = calculate_percentage(claimed, total)
 
         formatted_data.append({
             'assistance_type': item['assistance_type'],
             'total_allocated': total,
             'total_claimed': claimed,
-            'total_unclaimed': float(item['total_unclaimed'] or 0),
-            'claim_rate': round(claim_rate, 2)
+            'total_unclaimed': safe_float(item['total_unclaimed']),
+            'claim_rate': claim_rate
         })
 
     return Response({"data": formatted_data})
@@ -3213,9 +3149,9 @@ def budget_batch_trends(request):
 
     data = []
     for item in grouped:
-        total = float(item['total_allocated'] or 0)
-        claimed = float(item['total_claimed'] or 0)
-        claim_rate = (claimed / total * 100) if total > 0 else 0
+        total = safe_float(item['total_allocated'])
+        claimed = safe_float(item['total_claimed'])
+        claim_rate = calculate_percentage(claimed, total)
 
         data.append({
             "batch_id": item["batch_pk"],
@@ -3224,8 +3160,8 @@ def budget_batch_trends(request):
             "batch_status": item["batch_status"],
             "total_allocated": total,
             "total_claimed": claimed,
-            "total_unclaimed": float(item["total_unclaimed"] or 0),
-            "claim_rate": round(claim_rate, 2),
+            "total_unclaimed": safe_float(item["total_unclaimed"]),
+            "claim_rate": claim_rate,
         })
 
     return Response({
@@ -3260,9 +3196,9 @@ def budget_by_batch(request):
     # Calculate claim rates
     data = []
     for item in grouped:
-        total = float(item['total_allocated'] or 0)
-        claimed = float(item['total_claimed'] or 0)
-        claim_rate = (claimed / total * 100) if total > 0 else 0
+        total = safe_float(item['total_allocated'])
+        claimed = safe_float(item['total_claimed'])
+        claim_rate = calculate_percentage(claimed, total)
 
         data.append({
             'batch_id': item['disbursement_batch_id'],
@@ -3271,8 +3207,8 @@ def budget_by_batch(request):
             'batch_status': item['batch_status'],
             'total_allocated': total,
             'total_claimed': claimed,
-            'total_unclaimed': float(item['total_unclaimed'] or 0),
-            'claim_rate': round(claim_rate, 2)
+            'total_unclaimed': safe_float(item['total_unclaimed']),
+            'claim_rate': claim_rate
         })
 
     return Response({"data": data})
@@ -3305,13 +3241,13 @@ def budget_location_assistance(request):
 
     return Response({
         "group_by": "location_assistance",
-        "total_budget": float(total_budget),
+        "total_budget": safe_float(total_budget),
         "data": [
             {
                 **item,
-                "total_allocated": float(item["total_allocated"] or 0),
-                "total_claimed": float(item["total_claimed"] or 0),
-                "total_unclaimed": float(item["total_unclaimed"] or 0),
+                "total_allocated": safe_float(item["total_allocated"]),
+                "total_claimed": safe_float(item["total_claimed"]),
+                "total_unclaimed": safe_float(item["total_unclaimed"]),
             }
             for item in data
         ],
@@ -3354,14 +3290,14 @@ def budget_comparison(request):
     )
 
     # Calculate totals
-    current_total = float(current_agg['total_budget'] or 0)
-    current_claimed = float(current_agg['total_claimed'] or 0)
-    previous_total = float(previous_agg['total_budget'] or 0)
-    previous_claimed = float(previous_agg['total_claimed'] or 0)
+    current_total = safe_float(current_agg['total_budget'])
+    current_claimed = safe_float(current_agg['total_claimed'])
+    previous_total = safe_float(previous_agg['total_budget'])
+    previous_claimed = safe_float(previous_agg['total_claimed'])
 
     # Calculate claim rates
-    current_claim_rate = (current_claimed / current_total * 100) if current_total > 0 else 0
-    previous_claim_rate = (previous_claimed / previous_total * 100) if previous_total > 0 else 0
+    current_claim_rate = calculate_percentage(current_claimed, current_total)
+    previous_claim_rate = calculate_percentage(previous_claimed, previous_total)
 
     # Calculate changes
     budget_change = current_total - previous_total
@@ -3376,12 +3312,12 @@ def budget_comparison(request):
         "current": {
             "total_budget": current_total,
             "total_claimed": current_claimed,
-            "claim_rate": round(current_claim_rate, 2)
+            "claim_rate": current_claim_rate
         },
         "previous": {
             "total_budget": previous_total,
             "total_claimed": previous_claimed,
-            "claim_rate": round(previous_claim_rate, 2)
+            "claim_rate": previous_claim_rate
         },
         "changes": {
             "budget_change": budget_change,
@@ -3439,9 +3375,9 @@ def allocated_budget_by_location(request):
     for item in grouped:
         row = {
             'location_name': item['location_name'],
-            'total_allocated': float(item['total_allocated'] or 0),
+            'total_allocated': safe_float(item['total_allocated']),
             'beneficiary_count': item['beneficiary_count'],
-            'avg_allocation': float(item['avg_allocation'] or 0)
+            'avg_allocation': safe_float(item['avg_allocation'])
         }
         if level == "barangay":
             row['city_name'] = item['city_name']
@@ -3522,12 +3458,12 @@ def allocated_budget_by_assistance_annual(request):
                     'by_assistance': {}
                 }
             
-            data_by_year[year]['total_allocated'] += float(item['total_allocated'] or 0)
+            data_by_year[year]['total_allocated'] += safe_float(item['total_allocated'])
             data_by_year[year]['total_beneficiaries'] += item['beneficiary_count']
             data_by_year[year]['by_assistance'][assistance_type] = {
-                'total_allocated': float(item['total_allocated'] or 0),
+                'total_allocated': safe_float(item['total_allocated']),
                 'beneficiary_count': item['beneficiary_count'],
-                'avg_allocation': float(item['avg_allocation'] or 0)
+                'avg_allocation': safe_float(item['avg_allocation'])
             }
     
     # Convert to list and sort by year
@@ -3589,24 +3525,24 @@ def allocated_budget_summary(request):
     # Format assistance breakdown
     assistance_breakdown = []
     for item in by_assistance:
-        total = float(item['total_allocated'] or 0)
-        percentage = (total / float(overall['total_allocated'] or 1)) * 100
+        total = safe_float(item['total_allocated'])
+        percentage = calculate_percentage(total, safe_float(overall['total_allocated']))
         
         assistance_breakdown.append({
             'assistance_type': item['assistance_type'],
             'total_allocated': total,
             'beneficiary_count': item['beneficiary_count'],
-            'avg_allocation': float(item['avg_allocation'] or 0),
-            'percentage': round(percentage, 2)
+            'avg_allocation': safe_float(item['avg_allocation']),
+            'percentage': percentage
         })
     
     return Response({
         "year": year or "All Time",
         "city": city or "All Cities",
         "barangay": barangay or "All Barangays",
-        "total_allocated": float(overall['total_allocated'] or 0),
+        "total_allocated": safe_float(overall['total_allocated']),
         "total_beneficiaries": overall['total_beneficiaries'],
-        "avg_allocation": float(overall['avg_allocation'] or 0),
+        "avg_allocation": safe_float(overall['avg_allocation']),
         "assistance_breakdown": assistance_breakdown
     })
 
@@ -3657,15 +3593,15 @@ def allocated_budget_top_locations(request):
     
     data = []
     for rank, item in enumerate(grouped, 1):
-        allocated = float(item['total_allocated'] or 0)
-        percentage = (allocated / float(total_allocation)) * 100 if total_allocation > 0 else 0
+        allocated = safe_float(item['total_allocated'])
+        percentage = calculate_percentage(allocated, safe_float(total_allocation))
         
         row = {
             'rank': rank,
             'location_name': item['location_name'],
             'total_allocated': allocated,
             'beneficiary_count': item['beneficiary_count'],
-            'percentage': round(percentage, 2)
+            'percentage': percentage
         }
         if level == "barangay":
             row['city_name'] = item['city_name']
@@ -3676,7 +3612,7 @@ def allocated_budget_top_locations(request):
         "year": year,
         "assistance_type": assistance,
         "limit": limit,
-        "total_allocation": float(total_allocation),
+        "total_allocation": safe_float(total_allocation),
         "data": data
     })
 
@@ -3707,23 +3643,23 @@ def allocated_budget_yearly_comparison(request):
     for item in yearly_data:
         if item['year']:
             year = item['year'].year
-            total = float(item['total_allocated'] or 0)
+            total = safe_float(item['total_allocated'])
             
             # Calculate YoY change
             yoy_change = None
             yoy_percentage = None
             if previous_total is not None and previous_total > 0:
                 yoy_change = total - previous_total
-                yoy_percentage = (yoy_change / previous_total) * 100
+                yoy_percentage = calculate_percentage(yoy_change, previous_total)
             
             formatted_data.append({
                 'year': year,
                 'total_allocated': total,
                 'beneficiary_count': item['beneficiary_count'],
-                'avg_allocation': float(item['avg_allocation'] or 0),
+                'avg_allocation': safe_float(item['avg_allocation']),
                 'batch_count': item['batch_count'],
                 'yoy_change': yoy_change,
-                'yoy_percentage': round(yoy_percentage, 2) if yoy_percentage else None
+                'yoy_percentage': yoy_percentage
             })
             
             previous_total = total
