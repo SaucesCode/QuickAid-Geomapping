@@ -1,5 +1,6 @@
 import { X, User, MapPin, FileText, Users } from "lucide-react";
 import AddressDropdown from "../../forms/AddressDropdown";
+import { ASSISTANCE_TYPES } from "../../../utils/assistanceColors";
 import clsx from "clsx";
 import { useOutletContext } from "react-router-dom";
 
@@ -287,9 +288,9 @@ const EditModal = ({
                         <option value="" disabled>
                           Select Type of Assistance
                         </option>
-                        <option value="Medical">Medical</option>
-                        <option value="Burial">Burial</option>
-                        <option value="Educational">Educational</option>
+                        {ASSISTANCE_TYPES.map(t => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
                       </select>
                     </div>
                     <div className="space-y-1.5">

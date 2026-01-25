@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
@@ -120,9 +121,7 @@ const ArchiveApplicants = () => {
     }
   };
 
-  useEffect(() => {
-    document.title = "QuickAid | Archived Applicants";
-  }, []);
+  usePageTitle("Archived Applicants");
 
   return (
     <PageContainer>

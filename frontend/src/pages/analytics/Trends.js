@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "../../services/api";
+import React, { useState, useEffect } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
+import { useAnalyticsQuery } from "../../hooks/useAnalyticsQuery";
 import {
   LineChart,
   Line,
@@ -28,6 +28,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
+import { getAssistanceColor } from "../../utils/assistanceColors";
 
 // Import Analytics Components
 import {
@@ -45,77 +46,45 @@ import {
   InsightCard,
 } from "../../components/AnalyticsComponents";
 
-// Assistance Type Color Mapping
-const ASSISTANCE_COLOR_MAP = {
-  educational: "#0d8d1eff",
-  medical: "#1c2ed3ff",
-  burial: "#FDE68A",
-  other: "#EF4444",
-  default: "#123b94ff",
-};
-
-const getAssistanceColor = type => {
-  const key = type ? type.toLowerCase() : "";
-  if (key.includes("educational")) return ASSISTANCE_COLOR_MAP.educational;
-  if (key.includes("medical")) return ASSISTANCE_COLOR_MAP.medical;
-  if (key.includes("burial")) return ASSISTANCE_COLOR_MAP.burial;
-  return ASSISTANCE_COLOR_MAP[key] || ASSISTANCE_COLOR_MAP.default;
-};
-
 const Trends = () => {
-  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
   const [colorMap, setColorMap] = useState({});
 
-  useEffect(() => {
-    document.title = "QuickAid | Trends Analysis";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Trends Analysis");
 
-  // Fetch Logic
-  const fetchData = async endpoint => {
-    const params = new URLSearchParams();
-    if (filters.start) params.append("start_date", filters.start);
-    if (filters.end) params.append("end_date", filters.end);
-    if (filters.type) params.append("type", filters.type);
-    if (filters.city) params.append("city", filters.city);
-    if (filters.barangay) params.append("barangay", filters.barangay);
-    const query = params.toString() ? `?${params.toString()}` : "";
-    const res = await api.get(`${endpoint}${query}`);
-    return res.data;
-  };
-
-  const { data: monthlyData = [], isLoading: monthlyLoading } = useQuery({
-    queryKey: ["trends", "monthly", filters],
-    queryFn: () => fetchData("/analytics/trends/monthly/"),
-  });
-  const { data: yearlyData = [], isLoading: yearlyLoading } = useQuery({
-    queryKey: ["trends", "yearly", filters],
-    queryFn: () => fetchData("/analytics/trends/yearly/"),
-  });
-  const { data: overtimeData = [], isLoading: overtimeLoading } = useQuery({
-    queryKey: ["trends", "overtime", filters],
-    queryFn: () => fetchData("/analytics/trends/over-time/"),
-  });
-  const { data: cumulativeData = [], isLoading: cumulativeLoading } = useQuery({
-    queryKey: ["trends", "cumulative", filters],
-    queryFn: () => fetchData("/analytics/trends/cumulative/"),
-  });
-  const { data: assistanceTypeData = [], isLoading: assistanceTypeLoading } = useQuery({
-    queryKey: ["trends", "assistanceType", filters],
-    queryFn: () => fetchData("/analytics/trends/assistance-type/"),
-  });
-  const { data: assistanceTypeDataOverTime = [], isLoading: assistanceTypeOverTimeLoading } =
-    useQuery({
-      queryKey: ["trends", "assistanceTypeOverTime", filters],
-      queryFn: () => fetchData("/analytics/trends/assistance-type-over-time/"),
+  const { data: monthlyData = [], isLoading: monthlyLoading } = useAnalyticsQuery(
+    "/analytics/trends/monthly/",
+    filters,
+    { queryKey: ["trends", "monthly", filters] }
+  );
+  const { data: yearlyData = [], isLoading: yearlyLoading } = useAnalyticsQuery(
+    "/analytics/trends/yearly/",
+    filters,
+    { queryKey: ["trends", "yearly", filters] }
+  );
+  const { data: overtimeData = [], isLoading: overtimeLoading } = useAnalyticsQuery(
+    "/analytics/trends/over-time/",
+    filters,
+    { queryKey: ["trends", "overtime", filters] }
+  );
+  const { data: cumulativeData = [], isLoading: cumulativeLoading } = useAnalyticsQuery(
+    "/analytics/trends/cumulative/",
+    filters,
+    { queryKey: ["trends", "cumulative", filters] }
+  );
+  const { data: assistanceTypeData = [], isLoading: assistanceTypeLoading } =
+    useAnalyticsQuery("/analytics/trends/assistance-type/", filters, {
+      queryKey: ["trends", "assistanceType", filters],
     });
-  const { data: applicantHeatmap = [], isLoading: applicantHeatmapLoading } = useQuery({
-    queryKey: ["trends", "applicantHeatmap", filters],
-    queryFn: () => fetchData("/analytics/trends/applicant-heatmap/"),
-  });
+  const { data: assistanceTypeDataOverTime = [], isLoading: assistanceTypeOverTimeLoading } =
+    useAnalyticsQuery("/analytics/trends/assistance-type-over-time/", filters, {
+      queryKey: ["trends", "assistanceTypeOverTime", filters],
+    });
+  const { data: applicantHeatmap = [], isLoading: applicantHeatmapLoading } = useAnalyticsQuery(
+    "/analytics/trends/applicant-heatmap/",
+    filters,
+    { queryKey: ["trends", "applicantHeatmap", filters] }
+  );
 
   const loadingStates = {
     monthly: monthlyLoading,
@@ -212,7 +181,7 @@ const Trends = () => {
 
       uniqueTypes.forEach(type => {
         const primaryColor = getAssistanceColor(type);
-        if (primaryColor === ASSISTANCE_COLOR_MAP.default) {
+        if (primaryColor == null) {
           newColorMap[type] = fallbackColors[fallbackIndex % fallbackColors.length];
           fallbackIndex++;
         } else {

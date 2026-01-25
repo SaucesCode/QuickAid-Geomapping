@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { User, Lock, Edit, Mail, Shield, AlertCircle } from "lucide-react";
 import {
   PageContainer,
@@ -40,12 +41,7 @@ const SettingsPage = () => {
     { id: "password", label: "Change Password", icon: Lock },
   ];
 
-  useEffect(() => {
-    document.title = "QuickAid | Settings";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Settings");
 
   useEffect(() => {
     const initializeUser = async () => {

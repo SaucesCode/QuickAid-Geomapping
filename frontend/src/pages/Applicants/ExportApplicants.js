@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { Download, Database, BarChart3 } from "lucide-react";
 import {
   PageContainer,
@@ -14,12 +15,7 @@ import ApplicantExport from "./components/ApplicantsExport";
 const ExportApplicants = () => {
   const [activeTab, setActiveTab] = useState("applicants");
 
-  useEffect(() => {
-    document.title = "QuickAid | Export Data";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Export Data");
 
   return (
     <PageContainer>

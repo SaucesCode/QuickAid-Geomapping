@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "../../services/api";
+import { useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
+import { useAnalyticsQuery } from "../../hooks/useAnalyticsQuery";
 import {
   BarChart,
   Bar,
@@ -29,6 +29,7 @@ import {
   Clock,
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
+import { ASSISTANCE_COLORS } from "../../utils/assistanceColors";
 
 // Import Analytics Components
 import {
@@ -55,92 +56,81 @@ const COLOR_CLAIMED = "#10B981"; // Green
 const COLOR_UNCLAIMED = "#EF4444"; // Red
 const COLOR_PRIMARY = "#3B82F6"; // Blue
 
-const ASSISTANCE_COLORS = {
-  Medical: "#3B82F6",
-  Educational: "#10B981",
-  Burial: "#F59E0B",
+const BUDGET_QUERY_OPTS = {
+  paramMap: { start_date: "date_from", end_date: "date_to", type: "assistance" },
+  extraKeys: ["batch_id"],
 };
 
 const Budget = () => {
   const [filters, setFilters] = useState({});
 
-  useEffect(() => {
-    document.title = "QuickAid | Budget Analytics";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Budget Analytics");
 
-  // Fetch Data
-  const fetchData = async endpoint => {
-    const params = new URLSearchParams();
+  const { data: overview, isLoading: overviewLoading } = useAnalyticsQuery(
+    "/analytics/budget/overview/",
+    filters,
+    { queryKey: ["budget", "overview", filters], ...BUDGET_QUERY_OPTS }
+  );
 
-    if (filters.start) params.append("date_from", filters.start);
-    if (filters.end) params.append("date_to", filters.end);
-    if (filters.type) params.append("assistance", filters.type);
-    if (filters.city) params.append("city", filters.city);
-    if (filters.barangay) params.append("barangay", filters.barangay);
-    if (filters.batch_id) params.append("batch_id", filters.batch_id);
+  const { data: byLocation, isLoading: locationLoading } = useAnalyticsQuery(
+    "/analytics/budget/location/?level=city",
+    filters,
+    { queryKey: ["budget", "location", filters], ...BUDGET_QUERY_OPTS }
+  );
 
-    const query = params.toString() ? `?${params.toString()}` : "";
-    const res = await api.get(`${endpoint}${query}`);
-    return res.data;
-  };
+  const { data: byAssistance, isLoading: assistanceLoading } = useAnalyticsQuery(
+    "/analytics/budget/assistance/",
+    filters,
+    { queryKey: ["budget", "assistance", filters], ...BUDGET_QUERY_OPTS }
+  );
 
-  const { data: overview, isLoading: overviewLoading } = useQuery({
-    queryKey: ["budget", "overview", filters],
-    queryFn: () => fetchData("/analytics/budget/overview/"),
-  });
+  const { data: trends, isLoading: trendsLoading } = useAnalyticsQuery(
+    "/analytics/budget/trends/?granularity=monthly",
+    filters,
+    { queryKey: ["budget", "trends", filters], ...BUDGET_QUERY_OPTS }
+  );
 
-  const { data: byLocation, isLoading: locationLoading } = useQuery({
-    queryKey: ["budget", "location", filters],
-    queryFn: () => fetchData("/analytics/budget/location/?level=city"),
-  });
+  const { data: byBatch, isLoading: batchLoading } = useAnalyticsQuery(
+    "/analytics/budget/batch/",
+    filters,
+    { queryKey: ["budget", "batch", filters], ...BUDGET_QUERY_OPTS }
+  );
 
-  const { data: byAssistance, isLoading: assistanceLoading } = useQuery({
-    queryKey: ["budget", "assistance", filters],
-    queryFn: () => fetchData("/analytics/budget/assistance/"),
-  });
+  const { data: comparison, isLoading: comparisonLoading } = useAnalyticsQuery(
+    "/analytics/budget/comparison/",
+    filters,
+    { queryKey: ["budget", "comparison", filters.year], ...BUDGET_QUERY_OPTS }
+  );
 
-  const { data: trends, isLoading: trendsLoading } = useQuery({
-    queryKey: ["budget", "trends", filters],
-    queryFn: () => fetchData("/analytics/budget/trends/?granularity=monthly"),
-  });
+  const { data: allocatedByLocation, isLoading: allocatedLocationLoading } = useAnalyticsQuery(
+    "/analytics/budget/allocated/location/?level=city",
+    filters,
+    { queryKey: ["budget", "allocated-location", filters], ...BUDGET_QUERY_OPTS }
+  );
 
-  const { data: byBatch, isLoading: batchLoading } = useQuery({
-    queryKey: ["budget", "batch", filters],
-    queryFn: () => fetchData("/analytics/budget/batch/"),
-  });
+  const { data: allocatedAnnual, isLoading: allocatedAnnualLoading } = useAnalyticsQuery(
+    "/analytics/budget/allocated/assistance/annual/",
+    filters,
+    { queryKey: ["budget", "allocated-annual", filters], ...BUDGET_QUERY_OPTS }
+  );
 
-  const { data: comparison, isLoading: comparisonLoading } = useQuery({
-    queryKey: ["budget", "comparison", filters.year],
-    queryFn: () => fetchData("/analytics/budget/comparison/"),
-  });
+  const { data: allocatedSummary, isLoading: allocatedSummaryLoading } = useAnalyticsQuery(
+    "/analytics/budget/allocated/summary/",
+    filters,
+    { queryKey: ["budget", "allocated-summary", filters], ...BUDGET_QUERY_OPTS }
+  );
 
-  const { data: allocatedByLocation, isLoading: allocatedLocationLoading } = useQuery({
-    queryKey: ["budget", "allocated-location", filters],
-    queryFn: () => fetchData("/analytics/budget/allocated/location/?level=city"),
-  });
+  const { data: topLocations, isLoading: topLocationsLoading } = useAnalyticsQuery(
+    "/analytics/budget/allocated/top-locations/?limit=10",
+    filters,
+    { queryKey: ["budget", "top-locations", filters], ...BUDGET_QUERY_OPTS }
+  );
 
-  const { data: allocatedAnnual, isLoading: allocatedAnnualLoading } = useQuery({
-    queryKey: ["budget", "allocated-annual", filters],
-    queryFn: () => fetchData("/analytics/budget/allocated/assistance/annual/"),
-  });
-
-  const { data: allocatedSummary, isLoading: allocatedSummaryLoading } = useQuery({
-    queryKey: ["budget", "allocated-summary", filters],
-    queryFn: () => fetchData("/analytics/budget/allocated/summary/"),
-  });
-
-  const { data: topLocations, isLoading: topLocationsLoading } = useQuery({
-    queryKey: ["budget", "top-locations", filters],
-    queryFn: () => fetchData("/analytics/budget/allocated/top-locations/?limit=10"),
-  });
-
-  const { data: yearlyComparison, isLoading: yearlyComparisonLoading } = useQuery({
-    queryKey: ["budget", "yearly-comparison"],
-    queryFn: () => fetchData("/analytics/budget/allocated/yearly-comparison/"),
-  });
+  const { data: yearlyComparison, isLoading: yearlyComparisonLoading } = useAnalyticsQuery(
+    "/analytics/budget/allocated/yearly-comparison/",
+    filters,
+    { queryKey: ["budget", "yearly-comparison"], ...BUDGET_QUERY_OPTS }
+  );
 
   // Format Currency
   const formatCurrency = value => {

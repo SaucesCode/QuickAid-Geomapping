@@ -1,6 +1,7 @@
 // frontend/src/pages/Applicants/Approved.js
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import {
@@ -275,12 +276,7 @@ const Approved = () => {
   const [showUnmatchedModal, setShowUnmatchedModal] = useState(false);
   const [activeBatchId, setActiveBatchId] = useState(null);
 
-  useEffect(() => {
-    document.title = "QuickAid | Approved Applicants";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Approved Applicants");
 
   const resetFileInput = () => {
     setFile(null);

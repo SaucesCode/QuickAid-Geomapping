@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "../../services/api";
+import { useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
+import { useAnalyticsQuery } from "../../hooks/useAnalyticsQuery";
 import {
   BarChart,
   Bar,
@@ -73,66 +73,47 @@ const getProductivityColor = count => {
 };
 
 const Performance = () => {
-  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
 
-  useEffect(() => {
-    document.title = "QuickAid | Performance Analysis";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Performance Analysis");
 
-  const fetchData = async endpoint => {
-    const params = new URLSearchParams();
-    if (filters.start) params.append("start_date", filters.start);
-    if (filters.end) params.append("end_date", filters.end);
-    if (filters.type) params.append("type", filters.type);
-    if (filters.city) params.append("city", filters.city);
-    if (filters.barangay) params.append("barangay", filters.barangay);
-    const query = params.toString() ? `?${params.toString()}` : "";
-    const res = await api.get(`${endpoint}${query}`).catch(err => {
-      setError(err);
-      throw err;
-    });
-    return res.data;
-  };
+  const opts = { keepPreviousData: true };
 
-  const { data: avgProcessingTime, isLoading: loadingAvg } = useQuery({
-    queryKey: ["performance", "average-processing", filters],
-    queryFn: () => fetchData(`/analytics/performance/average-processing/`),
-    keepPreviousData: true,
-  });
+  const { data: avgProcessingTime, isLoading: loadingAvg } = useAnalyticsQuery(
+    "/analytics/performance/average-processing/",
+    filters,
+    { queryKey: ["performance", "average-processing", filters], ...opts }
+  );
 
-  const { data: avgProcessingTimeByType = [], isLoading: loadingType } = useQuery({
-    queryKey: ["performance", "processing-by-type", filters],
-    queryFn: () => fetchData(`/analytics/performance/processing-by-type/`),
-    keepPreviousData: true,
-  });
+  const { data: avgProcessingTimeByType = [], isLoading: loadingType } = useAnalyticsQuery(
+    "/analytics/performance/processing-by-type/",
+    filters,
+    { queryKey: ["performance", "processing-by-type", filters], ...opts }
+  );
 
-  const { data: processingDistribution = [], isLoading: loadingDistribution } = useQuery({
-    queryKey: ["performance", "processing-distribution", filters],
-    queryFn: () => fetchData(`/analytics/performance/processing-distribution/`),
-    keepPreviousData: true,
-  });
+  const { data: processingDistribution = [], isLoading: loadingDistribution } = useAnalyticsQuery(
+    "/analytics/performance/processing-distribution/",
+    filters,
+    { queryKey: ["performance", "processing-distribution", filters], ...opts }
+  );
 
-  const { data: staffProductivity = [], isLoading: loadingProductivity } = useQuery({
-    queryKey: ["performance", "staff-productivity", filters],
-    queryFn: () => fetchData(`/analytics/performance/staff-productivity/`),
-    keepPreviousData: true,
-  });
+  const { data: staffProductivity = [], isLoading: loadingProductivity } = useAnalyticsQuery(
+    "/analytics/performance/staff-productivity/",
+    filters,
+    { queryKey: ["performance", "staff-productivity", filters], ...opts }
+  );
 
-  const { data: staffLeaderboard = [], isLoading: loadingLeaderboard } = useQuery({
-    queryKey: ["performance", "staff-leaderboard", filters],
-    queryFn: () => fetchData(`/analytics/performance/staff-leaderboard/`),
-    keepPreviousData: true,
-  });
+  const { data: staffLeaderboard = [], isLoading: loadingLeaderboard } = useAnalyticsQuery(
+    "/analytics/performance/staff-leaderboard/",
+    filters,
+    { queryKey: ["performance", "staff-leaderboard", filters], ...opts }
+  );
 
-  const { data: staffActivity = [], isLoading: loadingActivity } = useQuery({
-    queryKey: ["performance", "staff-activity", filters],
-    queryFn: () => fetchData(`/analytics/performance/staff-activity/`),
-    keepPreviousData: true,
-  });
+  const { data: staffActivity = [], isLoading: loadingActivity } = useAnalyticsQuery(
+    "/analytics/performance/staff-activity/",
+    filters,
+    { queryKey: ["performance", "staff-activity", filters], ...opts }
+  );
 
   const transformProcessingByType = (data = []) => {
     return data.map(item => ({

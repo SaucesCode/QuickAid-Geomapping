@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { Users, UserPlus, Mail, Lock, Eye, EyeOff, Save, Edit3 } from "lucide-react";
 import SupportMessages from "./components/SupportMessages";
 import ActivityLogs from "./components/ActivityLogs";
@@ -32,12 +33,7 @@ const AdminManagement = () => {
 
   const token = localStorage.getItem("accessToken");
 
-  useEffect(() => {
-    document.title = "QuickAid | Admin Dashboard";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Admin Dashboard");
 
   // Submit Logic
   const handleSubmit = async () => {

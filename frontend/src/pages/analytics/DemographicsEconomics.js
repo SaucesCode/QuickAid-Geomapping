@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "../../services/api";
+import { useState } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
+import { useAnalyticsQuery } from "../../hooks/useAnalyticsQuery";
 import {
   BarChart,
   Bar,
@@ -26,6 +26,7 @@ import {
   VenusAndMars,
 } from "lucide-react";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
+import { getAssistanceColorOrDefault } from "../../utils/assistanceColors";
 
 // Import Analytics Components
 import {
@@ -85,75 +86,52 @@ const INCOME_COLORS = [
   "#93C5FD",
 ];
 
-export const assistanceColors = {
-  Medical: "#4caf50", // green
-  Burial: "#f44336", // red
-  Educational: "#2196f3", // blue
-  Default: "#9e9e9e", // gray fallback
-};
-
-export const getAssistanceColor = type => {
-  return assistanceColors[type] || assistanceColors.Default;
-};
-
 const DemographicsEconomics = () => {
-  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
 
-  useEffect(() => {
-    document.title = "QuickAid | Demographics and Economics Analysis";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Demographics and Economics Analysis");
 
-  // Fetch Logic
-  const fetchData = async endpoint => {
-    const params = new URLSearchParams();
-    if (filters.start) params.append("start_date", filters.start);
-    if (filters.end) params.append("end_date", filters.end);
-    if (filters.type) params.append("type", filters.type);
-    if (filters.city) params.append("city", filters.city);
-    if (filters.barangay) params.append("barangay", filters.barangay);
-    const query = params.toString() ? `?${params.toString()}` : "";
-    const res = await api.get(`${endpoint}${query}`);
-    return res.data;
-  };
+  const { data: genderData = [], isLoading: genderLoading } = useAnalyticsQuery(
+    "/analytics/demographics/gender/",
+    filters,
+    { queryKey: ["demographics", "gender", filters] }
+  );
 
-  const { data: genderData = [], isLoading: genderLoading } = useQuery({
-    queryKey: ["demographics", "gender", filters],
-    queryFn: () => fetchData("/analytics/demographics/gender/"),
-  });
+  const { data: civilStatusData = [], isLoading: civilStatusLoading } = useAnalyticsQuery(
+    "/analytics/demographics/civil-status/",
+    filters,
+    { queryKey: ["demographics", "civil-status", filters] }
+  );
 
-  const { data: civilStatusData = [], isLoading: civilStatusLoading } = useQuery({
-    queryKey: ["demographics", "civil-status", filters],
-    queryFn: () => fetchData("/analytics/demographics/civil-status/"),
-  });
+  const { data: ageGroupData = [], isLoading: ageGroupLoading } = useAnalyticsQuery(
+    "/analytics/demographics/age-groups/",
+    filters,
+    { queryKey: ["demographics", "age-groups", filters] }
+  );
 
-  const { data: ageGroupData = [], isLoading: ageGroupLoading } = useQuery({
-    queryKey: ["demographics", "age-groups", filters],
-    queryFn: () => fetchData("/analytics/demographics/age-groups/"),
-  });
+  const { data: occupationData = [], isLoading: occupationLoading } = useAnalyticsQuery(
+    "/analytics/demographics/occupation/",
+    filters,
+    { queryKey: ["demographics", "occupation", filters] }
+  );
 
-  const { data: occupationData = [], isLoading: occupationLoading } = useQuery({
-    queryKey: ["demographics", "occupation", filters],
-    queryFn: () => fetchData("/analytics/demographics/occupation/"),
-  });
+  const { data: ageGenderData = [], isLoading: ageGenderLoading } = useAnalyticsQuery(
+    "/analytics/demographics/age-gender/",
+    filters,
+    { queryKey: ["demographics", "age-gender", filters] }
+  );
 
-  const { data: ageGenderData = [], isLoading: ageGenderLoading } = useQuery({
-    queryKey: ["demographics", "age-gender", filters],
-    queryFn: () => fetchData("/analytics/demographics/age-gender/"),
-  });
+  const { data: incomeDistribution = [], isLoading: incomeLoading } = useAnalyticsQuery(
+    "/analytics/economics/income-distribution/",
+    filters,
+    { queryKey: ["economics", "income-distribution", filters] }
+  );
 
-  const { data: incomeDistribution = [], isLoading: incomeLoading } = useQuery({
-    queryKey: ["economics", "income-distribution", filters],
-    queryFn: () => fetchData("/analytics/economics/income-distribution/"),
-  });
-
-  const { data: incomeAssistance = [], isLoading: incomeAssistanceLoading } = useQuery({
-    queryKey: ["economics", "income-assistance", filters],
-    queryFn: () => fetchData("/analytics/economics/income-assistance/"),
-  });
+  const { data: incomeAssistance = [], isLoading: incomeAssistanceLoading } = useAnalyticsQuery(
+    "/analytics/economics/income-assistance/",
+    filters,
+    { queryKey: ["economics", "income-assistance", filters] }
+  );
 
   const firstIncomeBracket = incomeAssistance?.income_brackets?.[0] || {
     assistance_breakdown: [],
@@ -532,7 +510,7 @@ const DemographicsEconomics = () => {
                     key={item.type}
                     dataKey={`assistance_breakdown[${idx}].count`}
                     name={item.type}
-                    fill={getAssistanceColor(item.type)}
+                    fill={getAssistanceColorOrDefault(item.type)}
                     stackId="a"
                   />
                 ))}

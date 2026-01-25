@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { Search, Plus, Users, FileText, UserPlus } from "lucide-react";
 import { api } from "../../services/api";
 import { useQuery } from "@tanstack/react-query";
@@ -25,12 +26,7 @@ const ApplicantForm = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  useEffect(() => {
-    document.title = "QuickAid | Applicant Registry";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Applicant Registry");
 
   // Fetch applicants (summary response)
   const {
@@ -59,7 +55,7 @@ const ApplicantForm = () => {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return applicants;
 
-    return applicants.filter(a => {
+    return applicants.filter((a) => {
       const fullName = a.full_name?.toLowerCase() || "";
       const barangay = a.barangay?.toLowerCase() || "";
       const city = a.city?.toLowerCase() || "";
@@ -87,13 +83,13 @@ const ApplicantForm = () => {
     [filteredApplicants, indexOfFirstItem, indexOfLastItem]
   );
 
-  const handlePageChange = pageNumber => {
+  const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
     }
   };
 
-  const handleItemsPerPageChange = e => {
+  const handleItemsPerPageChange = (e) => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1);
   };
@@ -116,7 +112,10 @@ const ApplicantForm = () => {
           ? "Your search criteria yielded no results. Try adjusting your search."
           : "Get started by adding your first applicant to the system."}
       </BodyText>
-      <GradientButton onClick={() => navigate("/new-applicant")} className="mx-auto">
+      <GradientButton
+        onClick={() => navigate("/new-applicant")}
+        className="mx-auto"
+      >
         <Plus className="w-5 h-5" />
         Add New Applicant
       </GradientButton>
@@ -145,7 +144,7 @@ const ApplicantForm = () => {
             type="text"
             placeholder="Search by name, barangay, city, or assistance type..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50 focus:bg-white text-gray-700 placeholder-gray-400 text-sm sm:text-base"
           />
         </div>
@@ -165,11 +164,19 @@ const ApplicantForm = () => {
               <thead>
                 <tr className="bg-[#003a76] text-white uppercase text-xs font-semibold tracking-wider">
                   <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">No.</th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">Full Name</th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">Barangay</th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">
+                    Full Name
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">
+                    Barangay
+                  </th>
                   <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">City</th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">Assistance Type</th>
-                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">Date Filled</th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">
+                    Assistance Type
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 text-left">
+                    Date Filled
+                  </th>
                 </tr>
               </thead>
 
@@ -184,7 +191,9 @@ const ApplicantForm = () => {
                       {a.full_name}
                     </td>
 
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700">{a.barangay}</td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700">
+                      {a.barangay}
+                    </td>
 
                     <td className="px-4 sm:px-6 py-3 sm:py-4 text-gray-700">
                       {a.city || "N/A"}

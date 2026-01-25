@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import { useNavigate } from "react-router-dom";
@@ -90,11 +91,7 @@ const Applicants = () => {
   const [previewApplicant, setPreviewApplicant] = useState(null);
   const [archiveModal, setArchiveModal] = useState({ show: false, applicantId: null });
 
-  // Set Page Title
-  useEffect(() => {
-    document.title = "QuickAid | Applicants";
-    return () => (document.title = "QuickAid | Home");
-  }, []);
+  usePageTitle("Applicants");
 
   // ------------------------------------------------------------
   // BACKEND PAGINATION FETCHER
@@ -121,6 +118,7 @@ const Applicants = () => {
     params.append("offset", offset);
 
     const res = await api.get(`/applicants/?${params.toString()}`);
+    console.log(res.data);
 
     return {
       results: res.data.results,
@@ -144,6 +142,8 @@ const Applicants = () => {
   const applicants = data?.results || [];
   const totalItems = data?.count || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  console.log(data);
 
   // ------------------------------------------------------------
   // SORTING — Only sort the current page
@@ -302,7 +302,7 @@ const Applicants = () => {
 
       // Make request
       await api.put(`/applicants/${a.id}/`, payload);
-      queryClient.invalidateQueries({ queryKey: ["applicants"] });
+      // queryClient.invalidateQueries({ queryKey: ["applicants"] });
       toast.custom(t => <CustomToast t={t} type="editApplicant" />, { id: "saving" });
       setEditView(false);
     } catch (err) {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
@@ -18,6 +19,7 @@ import {
   Tags,
   RotateCcw,
 } from "lucide-react";
+import { ASSISTANCE_TYPES } from "../../utils/assistanceColors";
 import html2canvas from "html2canvas";
 
 // Import Analytics Components
@@ -105,12 +107,7 @@ const Geographic = () => {
   const [selectedCity, setSelectedCity] = useState("ALL");
   const mapRef = useRef(null);
 
-  useEffect(() => {
-    document.title = "QuickAid | HeatMap";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("HeatMap");
 
   // Fetch Locations
   useEffect(() => {
@@ -332,9 +329,9 @@ const Geographic = () => {
             className="w-full px-3.5 py-2 rounded-lg border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-[#003a76]/10 focus:border-[#003a76] outline-none transition-all text-gray-800 hover:border-gray-400 appearance-none cursor-pointer pr-9"
           >
             <option value="ALL">All Types</option>
-            <option value="Medical">Medical</option>
-            <option value="Burial">Burial</option>
-            <option value="Educational">Educational</option>
+            {ASSISTANCE_TYPES.map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
           </select>
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
             {heatType !== "ALL" ? (

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../services/api";
+import { ASSISTANCE_TYPES } from "../utils/assistanceColors";
 
 const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
   const [filters, setFilters] = useState({
@@ -262,9 +263,9 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
                   onClear={() => handleClearField("type")}
                 >
                   <option value="">All Types</option>
-                  <option value="Medical">Medical</option>
-                  <option value="Educational">Educational</option>
-                  <option value="Burial">Burial</option>
+                  {ASSISTANCE_TYPES.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
                 </CompactSelect>
               </div>
 

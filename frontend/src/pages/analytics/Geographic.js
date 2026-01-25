@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { usePageTitle } from "../../hooks/usePageTitle";
+import { useAnalyticsQuery } from "../../hooks/useAnalyticsQuery";
 import { MapContainer, TileLayer, CircleMarker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -29,10 +30,10 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { api } from "../../services/api";
 import AnalyticsFilter from "../../components/AnalyticsFilter";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../../components/Pagination";
+import { ASSISTANCE_COLORS } from "../../utils/assistanceColors";
 
 // Import Analytics Components
 import {
@@ -58,13 +59,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
-// Assistance Type Colors
-const ASSISTANCE_COLORS = {
-  Educational: "#10B981",
-  Medical: "#3B82F6",
-  Burial: "#FDE68A",
-};
-
 const COLORS = [
   "#EF4444", // Red
   "#F59E0B", // Amber / Yellow
@@ -75,74 +69,49 @@ const COLORS = [
 ];
 
 const Geographic = () => {
-  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
   const navigate = useNavigate();
 
   const [inactivePage, setInactivePage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  useEffect(() => {
-    document.title = "QuickAid | Geographic Analysis";
-    return () => {
-      document.title = "QuickAid | Home";
-    };
-  }, []);
+  usePageTitle("Geographic Analysis");
 
-  // Fetch logic
-  const fetchData = async endpoint => {
-    const params = new URLSearchParams();
-    if (filters.start) params.append("start_date", filters.start);
-    if (filters.end) params.append("end_date", filters.end);
-    if (filters.type) params.append("type", filters.type);
-    if (filters.city) params.append("city", filters.city);
-    if (filters.barangay) params.append("barangay", filters.barangay);
-    const query = params.toString() ? `?${params.toString()}` : "";
-    const res = await api.get(`${endpoint}${query}`);
-    return res.data;
-  };
+  const { data: locations = [], isLoading: locationsLoading } = useAnalyticsQuery(
+    "/analytics/geographic/locations/",
+    filters,
+    { queryKey: ["geographic", "locations", filters] }
+  );
 
-  const { data: locations = [], isLoading: locationsLoading } = useQuery({
-    queryKey: ["geographic", "locations", filters],
-    queryFn: () => fetchData("/analytics/geographic/locations/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
-  });
+  const { data: topBarangays = [], isLoading: topBarangaysLoading } = useAnalyticsQuery(
+    "/analytics/geographic/top-barangays/",
+    filters,
+    { queryKey: ["geographic", "topBarangays", filters] }
+  );
 
-  const { data: topBarangays = [], isLoading: topBarangaysLoading } = useQuery({
-    queryKey: ["geographic", "topBarangays", filters],
-    queryFn: () => fetchData("/analytics/geographic/top-barangays/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
-  });
+  const { data: coverageGaps = [], isLoading: gapsLoading } = useAnalyticsQuery(
+    "/analytics/geographic/coverage-gaps/",
+    filters,
+    { queryKey: ["geographic", "coverage-gaps", filters] }
+  );
 
-  const { data: coverageGaps = [], isLoading: gapsLoading } = useQuery({
-    queryKey: ["geographic", "coverage-gaps", filters],
-    queryFn: () => fetchData("/analytics/geographic/coverage-gaps/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
-  });
+  const { data: barangayByType = [], isLoading: barangayTypeLoading } = useAnalyticsQuery(
+    "/analytics/geographic/barangay-by-type/",
+    filters,
+    { queryKey: ["geographic", "barangayByType", filters] }
+  );
 
-  const { data: barangayByType = [], isLoading: barangayTypeLoading } = useQuery({
-    queryKey: ["geographic", "barangayByType", filters],
-    queryFn: () => fetchData("/analytics/geographic/barangay-by-type/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
-  });
+  const { data: approvalRates = [], isLoading: approvalLoading } = useAnalyticsQuery(
+    "/analytics/geographic/approval-rate/",
+    filters,
+    { queryKey: ["geographic", "approvalRate", filters] }
+  );
 
-  const { data: approvalRates = [], isLoading: approvalLoading } = useQuery({
-    queryKey: ["geographic", "approvalRate", filters],
-    queryFn: () => fetchData("/analytics/geographic/approval-rate/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: inactiveApplicants = [], isLoading: inactiveLoading } = useQuery({
-    queryKey: ["geographic", "inactiveApplicants", filters],
-    queryFn: () => fetchData("/analytics/geographic/inactive-applicants/"),
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
-  });
+  const { data: inactiveApplicants = [], isLoading: inactiveLoading } = useAnalyticsQuery(
+    "/analytics/geographic/inactive-applicants/",
+    filters,
+    { queryKey: ["geographic", "inactiveApplicants", filters] }
+  );
 
   const loading =
     locationsLoading ||
