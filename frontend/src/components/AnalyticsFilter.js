@@ -10,8 +10,7 @@ import {
   ChevronDown,
   X,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "../services/api";
+import { useLocationFilters } from "../hooks/useLocationFilters";
 import { ASSISTANCE_TYPES } from "../utils/assistanceColors";
 
 const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
@@ -27,27 +26,8 @@ const AnalyticsFilter = ({ onFilterChange, extraFields = null }) => {
   const [dateError, setDateError] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Fetch cities
-  const { data: cities = [], isFetching: isFetchingCities } = useQuery({
-    queryKey: ["citiesWithApplicants"],
-    queryFn: async () => {
-      const res = await api.get("/applicant-locations/filters/");
-      return res.data.cities || [];
-    },
-    staleTime: 1000 * 60 * 10,
-  });
-
-  // Fetch barangays for selected city
-  const { data: barangays = [], isFetching: isFetchingBarangays } = useQuery({
-    queryKey: ["barangaysByCity", filters.city],
-    queryFn: async () => {
-      if (!filters.city) return [];
-      const res = await api.get(`/applicant-locations/filters/?city=${filters.city}`);
-      return res.data.barangays || [];
-    },
-    enabled: !!filters.city,
-    staleTime: 1000 * 60 * 5,
-  });
+  const { cities, barangays, isFetchingCities, isFetchingBarangays } =
+    useLocationFilters(filters.city);
 
   // Date presets
   const datePresets = [
