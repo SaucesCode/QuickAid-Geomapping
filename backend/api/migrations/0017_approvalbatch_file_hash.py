@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='approvalbatch',
             name='file_hash',
-            field=models.CharField(default=0, max_length=64, unique=True),
+            field=models.CharField(max_length=64, unique=True, null=True, blank=True,),
             preserve_default=False,
         ),
     ]
